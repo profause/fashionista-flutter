@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fashionista/core/auth/auth_provider_cubit.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
@@ -7,6 +9,7 @@ import 'package:fashionista/presentation/screens/main/main_screen.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/custom_chip_form_field_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/date_picker_form_field_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_text_field_widget.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -29,6 +32,8 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
   late TextEditingController _genderController;
   late TextEditingController _dateOfBirthController;
   late TextEditingController _accountTypeController;
+
+  StreamSubscription<firebase_auth.User?>? _userChangesSubscription;
 
   bool _hasMissingRequiredFields() {
     return _fullNameController.text.isEmpty ||
@@ -77,6 +82,19 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
 
     _dateOfBirthController = TextEditingController();
     _accountTypeController = TextEditingController();
+
+    // Listen for auth changes
+    _userChangesSubscription = firebase_auth.FirebaseAuth.instance
+        .userChanges()
+        .listen((user) {
+          if (user != null) {
+            // User is signed in → fetch details
+            _getUserDetails();
+          } else {
+            // User signed out → redirect
+            Navigator.of(context).pushReplacementNamed('/login');
+          }
+        });
   }
 
   @override
@@ -348,7 +366,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
     );
   }
 
-  Future<void> _getProfile() async {
+  Future<void> _getUserDetails() async {
     try {
       final userBloc = context.read<UserBloc>();
       final uid = userBloc.state.uid;
@@ -369,6 +387,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
           ).showSnackBar(SnackBar(content: Text(ifLeft)));
         },
         (ifRight) {
+          userBloc.clear();
           userBloc.add(UpdateUser(ifRight));
           if (mounted) {
             // Dismiss the dialog manually
@@ -448,16 +467,6 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
       // Close progress dialog
       Navigator.of(context).pop();
 
-      // scaffoldMessenger.showSnackBar(
-      //   SnackBar(
-      //     content: Text(
-      //       'Profile updated successfully',
-      //       style: textTheme.bodyMedium,
-      //     ),
-      //     backgroundColor: Theme.of(context).colorScheme.primary,
-      //   ),
-      // );
-
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const MainScreen()),
         (route) => false,
@@ -477,6 +486,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
 
     _dateOfBirthController.dispose();
     _accountTypeController.dispose();
+    _userChangesSubscription?.cancel();
     super.dispose();
   }
 }

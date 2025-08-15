@@ -3,14 +3,12 @@ import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/widgets/bloc/button_loading_state_cubit.dart';
 import 'package:fashionista/core/widgets/bloc/previous_screen_state_cubit.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
-import 'package:fashionista/data/services/firebase_auth_service.dart';
 import 'package:fashionista/domain/usecases/auth/signin_usecase.dart';
 import 'package:fashionista/domain/usecases/auth/verify_otp_usecase.dart';
 import 'package:fashionista/presentation/screens/auth/mobile_number_auth_page.dart';
 import 'package:fashionista/presentation/screens/auth/otp_verification_page.dart';
 import 'package:fashionista/presentation/screens/main/main_screen.dart';
 import 'package:fashionista/presentation/screens/profile/create_profile_screen.dart';
-import 'package:fashionista/presentation/screens/profile/edit_profile_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -230,6 +228,7 @@ class _SignInScreenState extends State<SignInScreen> {
           );
 
           var loggedInUser = _userBloc.state.copyWith(
+            fullName: ifRight?.displayName ?? 'Guest user',
             userName: ifRight?.displayName ?? 'Guest user',
             mobileNumber: ifRight?.phoneNumber ?? '233543756168',
             uid: ifRight?.uid ?? '',

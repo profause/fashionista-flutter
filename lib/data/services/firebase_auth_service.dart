@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:dartz/dartz.dart';
-import 'package:fashionista/data/models/profile/models/user.dart' as userModel;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 

@@ -1,8 +1,9 @@
 import 'package:fashionista/core/auth/auth_provider_cubit.dart';
-import 'package:fashionista/core/widgets/bloc/previous_screen_state_cubit.dart';
+import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
-import 'package:fashionista/presentation/screens/main/main_screen.dart';
+import 'package:fashionista/data/services/firebase_user_service.dart';
+import 'package:fashionista/domain/usecases/profile/update_user_profile_usecase.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/custom_chip_form_field_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/date_picker_form_field_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_text_field_widget.dart';
@@ -28,8 +29,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _genderController;
   late TextEditingController _dateOfBirthController;
   late TextEditingController _accountTypeController;
-
-  late PreviousScreenStateCubit _previousScreenStateCubit;
 
   bool _hasMissingRequiredFields() {
     return _fullNameController.text.isEmpty ||
@@ -78,8 +77,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     _dateOfBirthController = TextEditingController();
     _accountTypeController = TextEditingController();
-
-    _previousScreenStateCubit = context.read<PreviousScreenStateCubit>();
   }
 
   @override
@@ -119,7 +116,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
             if (_hasMissingRequiredFields()) {
               bool leave = await _showIncompleteDialog();
-              //if (leave) Navigator.of(context).pop(result);
+              if (leave) {} //Navigator.of(context).pop(result);
             } else {
               await _saveProfile(user); // Auto-save before leaving
               //Navigator.of(context).pop(result);
@@ -426,6 +423,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       );
 
       context.read<UserBloc>().add(UpdateUser(updatedUser));
+
       final authProviderCubit = context.read<AuthProviderCubit>();
       authProviderCubit.setAuthState(
         updatedUser.fullName,
@@ -434,33 +432,35 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         true,
       );
 
+      final updateUserResult = await sl<UpdateUserProfileUsecase>().call(
+        updatedUser,
+      );
+
+      updateUserResult.fold(
+        (ifLeft) {
+          if (mounted) {
+            // Dismiss the dialog manually
+            Navigator.of(context, rootNavigator: true).pop();
+          }
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(ifLeft)));
+        },
+        (ifRight) async {
+          await sl<FirebaseUserService>().updateUserDisplayName(
+            updatedUser.fullName,
+          );
+          if (mounted) {
+            // Dismiss the dialog manually
+            Navigator.of(context, rootNavigator: true).pop();
+          }
+        },
+      );
+
       //sync with firestore
-
-      await Future.delayed(const Duration(seconds: 2)); // Simulate saving delay
-
       if (!mounted) return;
 
-      // Close progress dialog
-      Navigator.of(context).pop();
-
-      // scaffoldMessenger.showSnackBar(
-      //   SnackBar(
-      //     content: Text(
-      //       'Profile updated successfully',
-      //       style: textTheme.bodyMedium,
-      //     ),
-      //     backgroundColor: Theme.of(context).colorScheme.primary,
-      //   ),
-      // );
-
-      if (_previousScreenStateCubit.state == 'ProfileScreen') {
-        Navigator.pop(context); // Go back to previous page
-      } else {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const MainScreen()),
-          (route) => false,
-        );
-      }
+      Navigator.pop(context); // Go back to previous page
     }
   }
 }

@@ -8,6 +8,7 @@ import 'package:fashionista/domain/usecases/auth/signin_usecase.dart';
 import 'package:fashionista/domain/usecases/auth/signout_usecase.dart';
 import 'package:fashionista/domain/usecases/auth/verify_otp_usecase.dart';
 import 'package:fashionista/domain/usecases/profile/fetch_user_profile_usecase.dart';
+import 'package:fashionista/domain/usecases/profile/update_user_profile_usecase.dart';
 import 'package:get_it/get_it.dart';
 
 final sl = GetIt.instance;
@@ -22,4 +23,5 @@ Future<void> initialiseDependencies() async {
   sl.registerSingleton<FirebaseUserService>(FirebaseUserServiceImpl());
   sl.registerSingleton<UserRepository>(UserRepositoryImpl());
   sl.registerSingleton<FetchUserProfileUsecase>(FetchUserProfileUsecase());
+  sl.registerSingleton<UpdateUserProfileUsecase>(UpdateUserProfileUsecase());
 }
