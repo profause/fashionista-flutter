@@ -32,7 +32,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           body: SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(8),
               child: Column(
                 children: [
                   Card(
@@ -40,7 +40,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    elevation: 1,
+                    elevation: 0,
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Row(

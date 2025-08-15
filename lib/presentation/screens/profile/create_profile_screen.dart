@@ -97,10 +97,11 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
         return Scaffold(
           backgroundColor: colorScheme.surface,
           appBar: AppBar(
+            automaticallyImplyLeading: false,
             foregroundColor: colorScheme.primary,
             backgroundColor: colorScheme.surface,
             title: Text(
-              'Edit Profile',
+              'Create Profile',
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall!.copyWith(fontWeight: FontWeight.bold),
@@ -129,7 +130,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
           ),
           body: SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(8),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -140,9 +141,9 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      elevation: 1,
+                      elevation: 0,
                       child: Padding(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(8),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -193,7 +194,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      elevation: 1,
+                      elevation: 0,
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
@@ -267,7 +268,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      elevation: 1,
+                      elevation: 0,
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
@@ -318,7 +319,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      elevation: 1,
+                      elevation: 0,
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(

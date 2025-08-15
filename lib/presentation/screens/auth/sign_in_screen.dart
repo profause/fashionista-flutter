@@ -3,14 +3,20 @@ import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/widgets/bloc/button_loading_state_cubit.dart';
 import 'package:fashionista/core/widgets/bloc/previous_screen_state_cubit.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
+import 'package:fashionista/data/services/firebase_auth_service.dart';
 import 'package:fashionista/domain/usecases/auth/signin_usecase.dart';
+import 'package:fashionista/domain/usecases/auth/verify_otp_usecase.dart';
 import 'package:fashionista/presentation/screens/auth/mobile_number_auth_page.dart';
 import 'package:fashionista/presentation/screens/auth/otp_verification_page.dart';
 import 'package:fashionista/presentation/screens/main/main_screen.dart';
+import 'package:fashionista/presentation/screens/profile/create_profile_screen.dart';
 import 'package:fashionista/presentation/screens/profile/edit_profile_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'dart:io' show Platform;
+
+bool isIOS = Platform.isIOS;
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -26,6 +32,7 @@ class _SignInScreenState extends State<SignInScreen> {
   late PreviousScreenStateCubit _previousScreenStateCubit;
   late AuthProviderCubit _authProviderCubit;
   late UserBloc _userBloc;
+  final ValueNotifier<String> _verificationId = ValueNotifier('');
 
   @override
   void initState() {
@@ -35,16 +42,24 @@ class _SignInScreenState extends State<SignInScreen> {
       _buttonLoadingStateCubit = context.read<ButtonLoadingStateCubit>();
       _previousScreenStateCubit = context.read<PreviousScreenStateCubit>();
       _previousScreenStateCubit.setPreviousScreen('SignInScreen');
-      //this temporary code should be removed
       _authProviderCubit = context.read<AuthProviderCubit>();
-      _authProviderCubit.setAuthState('Guest user', '', '233543756168', true);
       _userBloc = context.read<UserBloc>();
+      if (isIOS) {
+        //this temporary code should be removed
 
-      var loggedInUser = _userBloc.state.copyWith(
-        userName: 'Guest user',
-        mobileNumber: '233543756168',
-      );
-      _userBloc.add(UpdateUser(loggedInUser));
+        _authProviderCubit.setAuthState(
+          'Guest user',
+          '233543756168',
+          'La9DWF9gv9YEqpWzTrYVBiUzGHf1',
+          true,
+        );
+        var loggedInUser = _userBloc.state.copyWith(
+          userName: 'Guest user',
+          mobileNumber: '233543756168',
+          uid: 'La9DWF9gv9YEqpWzTrYVBiUzGHf1',
+        );
+        _userBloc.add(UpdateUser(loggedInUser));
+      }
     }
   }
 
@@ -83,36 +98,43 @@ class _SignInScreenState extends State<SignInScreen> {
         },
       ),
     ];
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      body: SafeArea(
-        //tag: "getStartedButton",
-        child: Column(
-          children: [
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount: pages.length,
-                physics: const NeverScrollableScrollPhysics(),
-                itemBuilder: (context, index) {
-                  return pages[index];
-                },
-              ),
+    return ValueListenableBuilder<String>(
+      valueListenable: _verificationId,
+      builder: (context, verificationId, _) {
+        otpString = verificationId;
+        debugPrint("otpString: $otpString");
+        return Scaffold(
+          backgroundColor: colorScheme.surface,
+          body: SafeArea(
+            //tag: "getStartedButton",
+            child: Column(
+              children: [
+                Expanded(
+                  child: PageView.builder(
+                    controller: _pageController,
+                    itemCount: pages.length,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemBuilder: (context, index) {
+                      return pages[index];
+                    },
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-      // body: Center(
-      //   child: Hero(
-      //     tag: "getStartedButton",
-      //     child: AnimatedPrimaryButton(
-      //       text: "Get Started",
-      //       onPressed: () {
-      //         // Navigate to login/signup
-      //       },
-      //     ),
-      //   ),
-      // ),
+          ),
+          // body: Center(
+          //   child: Hero(
+          //     tag: "getStartedButton",
+          //     child: AnimatedPrimaryButton(
+          //       text: "Get Started",
+          //       onPressed: () {
+          //         // Navigate to login/signup
+          //       },
+          //     ),
+          //   ),
+          // ),
+        );
+      },
     );
   }
 
@@ -128,6 +150,10 @@ class _SignInScreenState extends State<SignInScreen> {
       debugPrint("Mobile number submitted again: $number");
       _buttonLoadingStateCubit.setLoading(true);
 
+      // var result = await sl<FirebaseAuthService>().signInWithPhoneNumber2(
+      //   number,
+      //   _verificationId,
+      // );
       var result = await sl<SignInUsecase>().call(number);
 
       result.fold(
@@ -139,6 +165,7 @@ class _SignInScreenState extends State<SignInScreen> {
         },
         (ifRight) {
           _buttonLoadingStateCubit.setLoading(false);
+          otpString = ifRight.toString();
           nextPage();
         },
       );
@@ -153,7 +180,7 @@ class _SignInScreenState extends State<SignInScreen> {
       //     _buttonLoadingStateCubit.setLoading(false);
       //   },
       //   codeSent: (String verificationId, int? resendToken) {
-      //     debugPrint("Code Sent");
+      //     debugPrint("Code Sent $verificationId");
       //     otpString = verificationId;
       //     _buttonLoadingStateCubit.setLoading(false);
       //     nextPage();
@@ -179,52 +206,110 @@ class _SignInScreenState extends State<SignInScreen> {
         verificationId: otpString,
         smsCode: otp,
       );
-      await FirebaseAuth.instance.signInWithCredential(credential).then((
-        onValue,
-      ) {
-        if (!mounted) return;
-        _buttonLoadingStateCubit.setLoading(false);
-        debugPrint("Verification Completed");
-        debugPrint(onValue.user.toString());
-        //final uid = onValue.user?.uid;
-        _authProviderCubit.setAuthState(
-          onValue.user?.displayName ?? 'Guest user',
-          onValue.user?.phoneNumber ?? '',
-          onValue.user?.uid ?? '',
-          true,
-        );
 
-        var loggedInUser = _userBloc.state.copyWith(
-          userName: onValue.user?.displayName ?? 'Guest user',
-          mobileNumber: onValue.user?.phoneNumber ?? '233543756168',
-          uid: onValue.user?.uid ?? '',
-        );
-        _userBloc.add(UpdateUser(loggedInUser));
-        final user = _userBloc.state;
-        final isFullNameEmpty = user.fullName.isEmpty;
-        final isUserNameEmpty = user.userName == 'Guest user';
-        final isAccountTypeEmpty = user.accountType.isEmpty;
-        final isGenderEmpty = user.gender.isEmpty;
+      var result = await sl<VerifyOtpUsecase>().call(credential);
 
-        if (isFullNameEmpty ||
-            isUserNameEmpty ||
-            isAccountTypeEmpty ||
-            isGenderEmpty) {
-          Navigator.push(
+      result.fold(
+        (ifLeft) {
+          _buttonLoadingStateCubit.setLoading(false);
+          ScaffoldMessenger.of(
             context,
-            MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+          ).showSnackBar(SnackBar(content: Text(ifLeft)));
+        },
+        (ifRight) {
+          if (!mounted) return;
+          _buttonLoadingStateCubit.setLoading(false);
+          debugPrint("Verification Completed");
+          debugPrint("ifRight: $ifRight?.uid");
+          debugPrint(ifRight.toString());
+          _authProviderCubit.setAuthState(
+            ifRight?.displayName ?? 'Guest user',
+            ifRight?.phoneNumber ?? '',
+            ifRight?.uid ?? '',
+            true,
           );
-        } else {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const MainScreen()),
+
+          var loggedInUser = _userBloc.state.copyWith(
+            userName: ifRight?.displayName ?? 'Guest user',
+            mobileNumber: ifRight?.phoneNumber ?? '233543756168',
+            uid: ifRight?.uid ?? '',
+            joinedDate: ifRight.metadata.creationTime
           );
-        }
-      });
+          _userBloc.add(UpdateUser(loggedInUser));
+          final user = _userBloc.state;
+          final isFullNameEmpty = user.fullName.isEmpty;
+          final isUserNameEmpty = user.userName == 'Guest user';
+          final isAccountTypeEmpty = user.accountType.isEmpty;
+          final isGenderEmpty = user.gender.isEmpty;
+
+          if (isFullNameEmpty ||
+              isUserNameEmpty ||
+              isAccountTypeEmpty ||
+              isGenderEmpty) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const CreateProfileScreen(),
+              ),
+            );
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const MainScreen()),
+            );
+          }
+        },
+      );
+
+      // await FirebaseAuth.instance.signInWithCredential(credential).then((
+      //   onValue,
+      // ) {
+      //   if (!mounted) return;
+      //   _buttonLoadingStateCubit.setLoading(false);
+      //   debugPrint("Verification Completed");
+      //   debugPrint(onValue.user.toString());
+      //   //final uid = onValue.user?.uid;
+      //   _authProviderCubit.setAuthState(
+      //     onValue.user?.displayName ?? 'Guest user',
+      //     onValue.user?.phoneNumber ?? '',
+      //     onValue.user?.uid ?? '',
+      //     true,
+      //   );
+
+      //   var loggedInUser = _userBloc.state.copyWith(
+      //     userName: onValue.user?.displayName ?? 'Guest user',
+      //     mobileNumber: onValue.user?.phoneNumber ?? '233543756168',
+      //     uid: onValue.user?.uid ?? '',
+      //   );
+      //   _userBloc.add(UpdateUser(loggedInUser));
+      //   final user = _userBloc.state;
+      //   final isFullNameEmpty = user.fullName.isEmpty;
+      //   final isUserNameEmpty = user.userName == 'Guest user';
+      //   final isAccountTypeEmpty = user.accountType.isEmpty;
+      //   final isGenderEmpty = user.gender.isEmpty;
+
+      //   if (isFullNameEmpty ||
+      //       isUserNameEmpty ||
+      //       isAccountTypeEmpty ||
+      //       isGenderEmpty) {
+      //     Navigator.push(
+      //       context,
+      //       MaterialPageRoute(
+      //         builder: (context) => const CreateProfileScreen(),
+      //       ),
+      //     );
+      //   } else {
+      //     Navigator.push(
+      //       context,
+      //       MaterialPageRoute(builder: (context) => const MainScreen()),
+      //     );
+      //   }
+      // });
     } on FirebaseAuthException catch (e) {
       _buttonLoadingStateCubit.setLoading(false);
       debugPrint(e.toString());
       if (!mounted) return;
+      _buttonLoadingStateCubit.setLoading(false);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(e.toString())));

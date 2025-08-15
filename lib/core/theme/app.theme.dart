@@ -10,7 +10,7 @@ final ThemeData fashionistaLightTheme = ThemeData(
     secondary: Color(0xFF2E2E2E), // Dark grey
     onSecondary: Color(0xFFFFFFFF),
 
-    surface: Color(0xFFF2F2F2), // Off-white background
+    surface: Color(0xFFF7F7F7), // Off-white background
     onSurface: Color(0xFF262626), // Black text/icons
 
     error: Colors.red,

@@ -17,7 +17,7 @@ class ProfileInfoCardWidget extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
       ),
-      elevation: 1,
+      elevation: 0,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

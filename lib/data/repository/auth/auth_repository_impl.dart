@@ -2,6 +2,8 @@ import 'package:dartz/dartz.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/services/firebase_auth_service.dart';
 import 'package:fashionista/domain/repository/auth/auth_repository.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   @override
@@ -15,10 +17,9 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either> verifyPhoneNumberWithOtp(String mobileNumber, String otp) {
+  Future<Either> verifyPhoneNumberWithOtp(PhoneAuthCredential credential) async{
     return sl<FirebaseAuthService>().verifyPhoneNumberWithOtp(
-      mobileNumber,
-      otp,
+     credential
     );
   }
 }

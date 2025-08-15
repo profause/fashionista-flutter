@@ -160,7 +160,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             body: SafeArea(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(8),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -171,7 +171,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        elevation: 1,
+                        elevation: 0,
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: Column(
@@ -224,7 +224,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        elevation: 1,
+                        elevation: 0,
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: Column(
@@ -298,7 +298,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        elevation: 1,
+                        elevation: 0,
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: Column(
@@ -349,7 +349,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        elevation: 1,
+                        elevation: 0,
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: Column(

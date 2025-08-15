@@ -60,6 +60,7 @@ class User extends Equatable {
       location: '',
       dateOfBirth: null,
       uid: '',
+      joinedDate: null
     );
   }
 
@@ -79,6 +80,7 @@ class User extends Equatable {
     String? location,
     DateTime? dateOfBirth,
     String? uid,
+    DateTime? joinedDate
   }) {
     return User(
       fullName: fullName ?? this.fullName,
@@ -91,6 +93,7 @@ class User extends Equatable {
       location: location ?? this.location,
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
       uid: uid ?? this.uid,
+      joinedDate: joinedDate ?? this.joinedDate
     );
   }
 
@@ -106,5 +109,6 @@ class User extends Equatable {
         location,
         dateOfBirth,
         uid,
+        joinedDate,
       ];
 }

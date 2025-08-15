@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:fashionista/core/assets/app_images.dart';
 import 'package:fashionista/core/auth/auth_provider_cubit.dart';
+import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/widgets/bloc/previous_screen_state_cubit.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
+import 'package:fashionista/domain/usecases/auth/signout_usecase.dart';
 import 'package:fashionista/presentation/screens/auth/sign_in_screen.dart';
 import 'package:fashionista/presentation/screens/profile/edit_profile_screen.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_card_widget.dart';
@@ -11,6 +15,7 @@ import 'package:fashionista/presentation/screens/settings/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -21,12 +26,34 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   late PreviousScreenStateCubit _previousScreenStateCubit;
-
+  late final StreamSubscription<firebase_auth.User?> _userSubscription;
   @override
   void initState() {
     super.initState();
     _previousScreenStateCubit = context.read<PreviousScreenStateCubit>();
     _previousScreenStateCubit.setPreviousScreen('ProfileScreen');
+
+    // Listen for Firebase Auth user changes
+    _userSubscription = firebase_auth.FirebaseAuth.instance
+        .userChanges()
+        .listen((firebase_auth.User? user) {
+          if (user == null) {
+            // User signed out → redirect to login
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.of(context, rootNavigator: true).pop();
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const SignInScreen()),
+                (route) => false,
+              );
+            });
+          }
+        });
+  }
+
+  @override
+  void dispose() {
+    _userSubscription.cancel();
+    super.dispose();
   }
 
   @override
@@ -46,7 +73,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(8),
           child: BlocBuilder<UserBloc, User>(
             builder: (context, user) => Column(
               mainAxisAlignment: MainAxisAlignment.center, // center vertically
@@ -185,7 +212,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  elevation: 1,
+                  elevation: 0,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Row(
@@ -266,11 +293,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (mounted) {
           context.read<UserBloc>().clear();
           context.read<AuthProviderCubit>().setAuthState('', '', '', false);
-
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (_) => const SignInScreen()),
-            (route) => false,
+          showDialog(
+            context: context,
+            barrierDismissible: false, // Prevent dismissing
+            builder: (_) => const Center(child: CircularProgressIndicator()),
           );
+          sl<SignOutUsecase>().call('');
         }
       }
     }

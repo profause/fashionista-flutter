@@ -6,6 +6,6 @@ import 'package:fashionista/domain/repository/auth/auth_repository.dart';
 class VerifyOtpUsecase implements Usecase<Either,dynamic>{
   @override
   Future<Either> call(dynamic params) {
-    return sl<AuthRepository>().verifyPhoneNumberWithOtp(params[0],params[1]);
+    return sl<AuthRepository>().verifyPhoneNumberWithOtp(params);
   }
 }

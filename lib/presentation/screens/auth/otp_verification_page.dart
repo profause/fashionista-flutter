@@ -40,7 +40,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage>
 
   void _startCountdown() {
     //_timer.cancel();
-    _countdown = 30;
+    _countdown = 60;
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_countdown == 0) {
         timer.cancel();
@@ -85,7 +85,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage>
                     keyboardType: TextInputType.number,
                     textAlign: TextAlign.center,
                     decoration: InputDecoration(
-                      hintText: "Enter OTP",
+                      hintText: "Enter One Time Password",
                       filled: true,
                       fillColor: AppTheme.lightGrey.withValues(alpha: 0.9),
                       border: OutlineInputBorder(
