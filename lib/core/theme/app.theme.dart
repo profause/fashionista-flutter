@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 final ThemeData fashionistaLightTheme = ThemeData(
   useMaterial3: true,
@@ -28,13 +29,34 @@ final ThemeData fashionistaLightTheme = ThemeData(
     inversePrimary: Color(0xFFFFFFFF),
   ),
   scaffoldBackgroundColor: const Color(0xFFFAFAFA),
+  brightness: Brightness.light,
   appBarTheme: const AppBarTheme(
     backgroundColor: Color(0xFF1C1C1C),
     foregroundColor: Colors.white,
-    elevation: 0,
+    elevation: 1,
+    scrolledUnderElevation: 0,
+    shadowColor: Color(0xFF262626),
+    systemOverlayStyle: SystemUiOverlayStyle(
+      statusBarColor: Colors.white,
+      statusBarIconBrightness: Brightness.dark, // Android icons
+      statusBarBrightness: Brightness.light, // iOS icons
+    ),
   ),
   dividerColor: const Color(0xFFE0E0E0),
 );
+
+ThemeData buildAppTheme() {
+  return ThemeData(
+    useMaterial3: true,
+    appBarTheme: const AppBarTheme(
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      backgroundColor: Colors.white, // fixed background
+      foregroundColor: Colors.black,
+    ),
+    // You can add more theme configs here
+  );
+}
 
 final ThemeData fashionistaDarkTheme = ThemeData(
   useMaterial3: true,
@@ -68,6 +90,7 @@ final ThemeData fashionistaDarkTheme = ThemeData(
     backgroundColor: Color(0xFF1C1C1C),
     foregroundColor: Colors.white,
     elevation: 0,
+    scrolledUnderElevation: 0,
   ),
   dividerColor: const Color(0xFF2C2C2C),
 );
@@ -79,13 +102,13 @@ class AppTheme {
   static Color darkGrey = const Color(0xFF6E6E6E);
   static Color charcoal = const Color(0xFF1C1C1C);
 
-    static TextStyle titleStyle = const TextStyle(
-      fontSize: 20,
-      fontWeight: FontWeight.bold,
-    );
+  static TextStyle titleStyle = const TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.bold,
+  );
 
-    static TextStyle appTitleStyle = const TextStyle(
-      fontSize: 40,
-      fontWeight: FontWeight.bold,
-    );
+  static TextStyle appTitleStyle = const TextStyle(
+    fontSize: 40,
+    fontWeight: FontWeight.bold,
+  );
 }

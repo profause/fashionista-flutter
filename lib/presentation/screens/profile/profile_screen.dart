@@ -12,6 +12,7 @@ import 'package:fashionista/presentation/screens/auth/sign_in_screen.dart';
 import 'package:fashionista/presentation/screens/profile/edit_profile_screen.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_card_widget.dart';
 import 'package:fashionista/presentation/screens/settings/settings_screen.dart';
+import 'package:fashionista/presentation/widgets/scrollable_scafold_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -63,18 +64,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        foregroundColor: colorScheme.primary,
-        backgroundColor: colorScheme.onPrimary,
-        title: Text(
-          'Profile',
-          style: Theme.of(
-            context,
-          ).textTheme.headlineSmall!.copyWith(fontWeight: FontWeight.bold),
-        ),
-      ),
+    return ScrollableScafoldWidget(
+      title: 'Profile',
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(8),
@@ -84,6 +75,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               crossAxisAlignment:
                   CrossAxisAlignment.center, // center horizontally
               children: [
+                //const SizedBox(height: 8),
                 Center(
                   // ensures horizontal centering
                   child: Material(
@@ -161,7 +153,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 TextButton(
                   onPressed: () {
                     Navigator.push(
@@ -188,7 +180,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 //personal info
                 ProfileInfoCardWidget(
                   items: [
@@ -196,7 +188,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     {'title': 'User name', 'value': user.userName},
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 //contact info
                 ProfileInfoCardWidget(
                   items: [
@@ -206,7 +198,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ],
                 ),
                 //demographic info
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 ProfileInfoCardWidget(
                   items: [
                     {'title': 'Gender', 'value': user.gender},
@@ -218,7 +210,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     },
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 //account info
                 ProfileInfoCardWidget(
                   items: [
@@ -231,7 +223,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     },
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 Card(
                   color: colorScheme.onPrimary,
                   shape: RoundedRectangleBorder(
