@@ -8,12 +8,14 @@ import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/services/firebase_user_service.dart';
 import 'package:fashionista/domain/usecases/auth/signout_usecase.dart';
+import 'package:fashionista/domain/usecases/profile/fetch_user_profile_usecase.dart';
 import 'package:fashionista/presentation/screens/auth/sign_in_screen.dart';
 import 'package:fashionista/presentation/screens/profile/edit_profile_screen.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_card_widget.dart';
 import 'package:fashionista/presentation/screens/settings/settings_screen.dart';
 import 'package:fashionista/presentation/widgets/scrollable_scafold_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -29,30 +31,35 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   late PreviousScreenStateCubit _previousScreenStateCubit;
+  late AuthProviderCubit _authProviderCubit;
   late final StreamSubscription<firebase_auth.User?> _userSubscription;
   bool _isUploading = false;
   @override
   void initState() {
     super.initState();
     _isUploading = false;
-    _previousScreenStateCubit = context.read<PreviousScreenStateCubit>();
-    _previousScreenStateCubit.setPreviousScreen('ProfileScreen');
-
-    // Listen for Firebase Auth user changes
-    _userSubscription = firebase_auth.FirebaseAuth.instance
-        .userChanges()
-        .listen((firebase_auth.User? user) {
-          if (user == null) {
-            // User signed out → redirect to login
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              Navigator.of(context, rootNavigator: true).pop();
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const SignInScreen()),
-                (route) => false,
-              );
-            });
-          }
-        });
+    if (mounted) {
+      _previousScreenStateCubit = context.read<PreviousScreenStateCubit>();
+      _previousScreenStateCubit.setPreviousScreen('ProfileScreen');
+      _authProviderCubit = context.read<AuthProviderCubit>();
+      // Listen for Firebase Auth user changes
+      _userSubscription = firebase_auth.FirebaseAuth.instance
+          .userChanges()
+          .listen((firebase_auth.User? user) {
+            if (user == null && !_authProviderCubit.state.isAuthenticated) {
+              // User signed out → redirect to login
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                Navigator.of(context, rootNavigator: true).pop();
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const SignInScreen()),
+                  (route) => false,
+                );
+              });
+            } else {
+              _getUserDetails();
+            }
+          });
+    }
   }
 
   @override
@@ -64,8 +71,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return ScrollableScafoldWidget(
-      title: 'Profile',
+    //final textTheme = Theme.of(context).textTheme;
+    return Scaffold(
+      backgroundColor: colorScheme.surface,
+      appBar: AppBar(
+        foregroundColor: colorScheme.primary,
+        backgroundColor: colorScheme.onPrimary,
+        title: Text(
+          'Profile',
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall!.copyWith(fontWeight: FontWeight.bold),
+        ),
+        elevation: 0,
+        toolbarHeight: 0,
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(8),
@@ -285,6 +305,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Future<void> _getUserDetails() async {
+    try {
+      final userBloc = context.read<UserBloc>();
+      final uid = userBloc.state.uid;
+      showDialog(
+        context: context,
+        barrierDismissible: false, // Prevent dismissing
+        builder: (_) => const Center(child: CircularProgressIndicator()),
+      );
+      final result = await sl<FetchUserProfileUsecase>().call(uid!);
+      result.fold(
+        (ifLeft) {
+          if (mounted) {
+            // Dismiss the dialog manually
+            Navigator.of(context, rootNavigator: true).pop();
+          }
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(ifLeft)));
+        },
+        (ifRight) {
+          userBloc.clear();
+          userBloc.add(UpdateUser(ifRight));
+          if (mounted) {
+            // Dismiss the dialog manually
+            Navigator.of(context, rootNavigator: true).pop();
+          }
+        },
+      );
+    } catch (e) {
+      if (mounted) {
+        // Dismiss the dialog manually
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+    }
+  }
+
   _chooseImageSource(BuildContext context) {
     if (mounted) {
       showDialog(
@@ -383,6 +440,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           setState(() {
             _isUploading = false;
           });
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(error)));
         },
         (url) {
           UserBloc userBloc = context.read<UserBloc>();

@@ -1,6 +1,7 @@
 import 'package:fashionista/data/models/settings/bloc/settings_bloc.dart';
 import 'package:fashionista/data/models/settings/models/settings_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -22,13 +23,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
           backgroundColor: colorScheme.surface,
           appBar: AppBar(
             foregroundColor: colorScheme.primary,
-            backgroundColor: colorScheme.surface,
+            backgroundColor: colorScheme.onPrimary,
             title: Text(
               'Settings',
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall!.copyWith(fontWeight: FontWeight.bold),
             ),
+            elevation: 0,
+            //toolbarHeight: 0,
+            
           ),
           body: SafeArea(
             child: SingleChildScrollView(

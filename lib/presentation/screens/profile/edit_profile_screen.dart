@@ -8,6 +8,7 @@ import 'package:fashionista/presentation/screens/profile/widgets/custom_chip_for
 import 'package:fashionista/presentation/screens/profile/widgets/date_picker_form_field_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_text_field_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
@@ -126,35 +127,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             backgroundColor: colorScheme.surface,
             appBar: AppBar(
               foregroundColor: colorScheme.primary,
-              backgroundColor: colorScheme.surface,
+              backgroundColor: colorScheme.onPrimary,
               title: Text(
                 'Edit Profile',
                 style: Theme.of(context).textTheme.headlineSmall!.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              actions: [
-                // Padding(
-                //   padding: const EdgeInsets.only(
-                //     right: 12.0,
-                //   ), // match iOS trailing spacing
-                //   child: GestureDetector(
-                //     onTap: () async {
-                //       // Handle save action
-                //       await _saveProfile(user);
-                //     },
-                //     child: Text(
-                //       'Save',
-                //       style: TextStyle(
-                //         fontSize: 17, // iOS standard nav bar font size
-                //         fontWeight: FontWeight.w600, // semi-bold
-                //         color: colorScheme.primary, // accent color
-                //       ),
-                //     ),
-                //   ),
-                // ),
-              ],
+              elevation: 0,
+              //toolbarHeight: 0,
+              // systemOverlayStyle: SystemUiOverlayStyle(
+              //   statusBarColor: colorScheme.onPrimary,
+              //   statusBarIconBrightness: Brightness.dark,
+              //   //systemNavigationBarColor: Colors.white,
+              //   systemNavigationBarIconBrightness: Brightness.dark,
+              // ),
             ),
+
             body: SafeArea(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(8),

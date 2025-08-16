@@ -11,6 +11,7 @@ import 'package:fashionista/presentation/screens/profile/widgets/date_picker_for
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_text_field_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
@@ -92,7 +93,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
             _getUserDetails();
           } else {
             // User signed out → redirect
-            Navigator.of(context).pushReplacementNamed('/login');
+            //Navigator.of(context).pushReplacementNamed('/login');
           }
         });
   }
@@ -117,13 +118,21 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
           appBar: AppBar(
             automaticallyImplyLeading: false,
             foregroundColor: colorScheme.primary,
-            backgroundColor: colorScheme.surface,
+            backgroundColor: colorScheme.onPrimary,
             title: Text(
               'Create Profile',
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall!.copyWith(fontWeight: FontWeight.bold),
             ),
+            elevation: 0,
+            //toolbarHeight: 0,
+            // systemOverlayStyle: SystemUiOverlayStyle(
+            //   statusBarColor: colorScheme.onPrimary,
+            //   statusBarIconBrightness: Brightness.dark,
+            //   //systemNavigationBarColor: Colors.white,
+            //   systemNavigationBarIconBrightness: Brightness.dark,
+            // ),
             actions: [
               Padding(
                 padding: const EdgeInsets.only(

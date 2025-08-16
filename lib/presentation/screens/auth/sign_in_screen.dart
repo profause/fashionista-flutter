@@ -120,17 +120,6 @@ class _SignInScreenState extends State<SignInScreen> {
               ],
             ),
           ),
-          // body: Center(
-          //   child: Hero(
-          //     tag: "getStartedButton",
-          //     child: AnimatedPrimaryButton(
-          //       text: "Get Started",
-          //       onPressed: () {
-          //         // Navigate to login/signup
-          //       },
-          //     ),
-          //   ),
-          // ),
         );
       },
     );
@@ -139,7 +128,6 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   void dispose() {
     _pageController.dispose();
-
     super.dispose();
   }
 

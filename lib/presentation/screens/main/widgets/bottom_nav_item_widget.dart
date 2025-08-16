@@ -50,16 +50,16 @@ class BottomNavItem extends StatelessWidget {
                   size: 24,
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: isSelected
-                        ? colorScheme.onPrimary
-                        : colorScheme.primary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                // Text(
+                //   label,
+                //   style: TextStyle(
+                //     color: isSelected
+                //         ? colorScheme.onPrimary
+                //         : colorScheme.primary,
+                //     fontSize: 12,
+                //     fontWeight: FontWeight.w500,
+                //   ),
+                // ),
               ],
             ),
           ),

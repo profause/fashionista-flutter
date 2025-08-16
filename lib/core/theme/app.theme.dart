@@ -45,19 +45,6 @@ final ThemeData fashionistaLightTheme = ThemeData(
   dividerColor: const Color(0xFFE0E0E0),
 );
 
-ThemeData buildAppTheme() {
-  return ThemeData(
-    useMaterial3: true,
-    appBarTheme: const AppBarTheme(
-      elevation: 0,
-      scrolledUnderElevation: 0,
-      backgroundColor: Colors.white, // fixed background
-      foregroundColor: Colors.black,
-    ),
-    // You can add more theme configs here
-  );
-}
-
 final ThemeData fashionistaDarkTheme = ThemeData(
   useMaterial3: true,
   colorScheme: const ColorScheme(

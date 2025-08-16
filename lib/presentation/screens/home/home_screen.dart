@@ -20,23 +20,25 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: colorScheme.surface,
         elevation: 0,
         toolbarHeight: 0,
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: colorScheme.surface,
-          statusBarIconBrightness: Brightness.dark,
-          //systemNavigationBarColor: Colors.white,
-          systemNavigationBarIconBrightness: Brightness.dark,
+        // systemOverlayStyle: SystemUiOverlayStyle(
+        //   statusBarColor: colorScheme.surface,
+        //   statusBarIconBrightness: Brightness.dark,
+        //   //systemNavigationBarColor: Colors.white,
+        //   systemNavigationBarIconBrightness: Brightness.dark,
+        // ),
+        title: Text(
+          'Home',
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall!.copyWith(fontWeight: FontWeight.bold),
         ),
-        title: const Text('Home'),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(8),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-             Header(), 
-              const SizedBox(height: 8),
-              ],
+            children: [Header(), const SizedBox(height: 8)],
           ),
         ),
       ),
