@@ -61,7 +61,7 @@ class BottomNavBar extends StatelessWidget {
                     onTap: onNavItemTap,
                   )
                 : BottomNavItem(
-                    index: 3,
+                    index: 2,
                     icon: Icons.man_3_outlined,
                     activeIcon: Icons.man_3,
                     label: "Designers",
@@ -70,7 +70,7 @@ class BottomNavBar extends StatelessWidget {
                   ),
 
             BottomNavItem(
-              index: 4,
+              index: 3,
               icon: Icons.checkroom_outlined,
               activeIcon: Icons.checkroom,
               label: "Closet",
@@ -79,7 +79,7 @@ class BottomNavBar extends StatelessWidget {
             ),
 
             BottomNavItem(
-              index: 5,
+              index: 4,
               icon: Icons.person_outline,
               activeIcon: Icons.person,
               label: "Profile",

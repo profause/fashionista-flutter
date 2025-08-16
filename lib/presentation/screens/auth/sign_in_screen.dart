@@ -252,9 +252,10 @@ class _SignInScreenState extends State<SignInScreen> {
               ),
             );
           } else {
-            Navigator.push(
+            Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (context) => const MainScreen()),
+              MaterialPageRoute(builder: (BuildContext context) => const MainScreen()),
+              (route) => false,
             );
           }
         },

@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:fashionista/core/assets/app_images.dart';
 import 'package:fashionista/core/auth/auth_provider_cubit.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
@@ -7,6 +6,7 @@ import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/widgets/bloc/previous_screen_state_cubit.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
+import 'package:fashionista/data/services/firebase_user_service.dart';
 import 'package:fashionista/domain/usecases/auth/signout_usecase.dart';
 import 'package:fashionista/presentation/screens/auth/sign_in_screen.dart';
 import 'package:fashionista/presentation/screens/profile/edit_profile_screen.dart';
@@ -14,6 +14,8 @@ import 'package:fashionista/presentation/screens/profile/widgets/profile_info_ca
 import 'package:fashionista/presentation/screens/settings/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
@@ -27,9 +29,11 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   late PreviousScreenStateCubit _previousScreenStateCubit;
   late final StreamSubscription<firebase_auth.User?> _userSubscription;
+  bool _isUploading = false;
   @override
   void initState() {
     super.initState();
+    _isUploading = false;
     _previousScreenStateCubit = context.read<PreviousScreenStateCubit>();
     _previousScreenStateCubit.setPreviousScreen('ProfileScreen');
 
@@ -63,7 +67,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
         foregroundColor: colorScheme.primary,
-        backgroundColor: colorScheme.surface,
+        backgroundColor: colorScheme.onPrimary,
         title: Text(
           'Profile',
           style: Theme.of(
@@ -126,11 +130,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                                 onPressed: () {
                                   // Handle camera click
+                                  _chooseImageSource(context);
                                 },
                                 splashRadius: 24,
                               ),
                             ),
                           ),
+                          // Centered loader overlay
+                          if (_isUploading)
+                            Positioned.fill(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.black.withValues(
+                                    alpha: 0.20,
+                                  ), // subtle dim
+                                ),
+                                alignment: Alignment.center,
+                                child: const SizedBox(
+                                  width: 36,
+                                  height: 36,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 3,
+                                  ),
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -268,6 +293,128 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  _chooseImageSource(BuildContext context) {
+    if (mounted) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Upload Image'),
+          content: const Text('Choose your image source:'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                _pickImage(ImageSource.camera);
+              },
+              child: const Text('Camera'),
+            ),
+            TextButton(
+              onPressed: () {
+                _pickImage(ImageSource.gallery);
+              },
+              child: const Text('Gallery'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  XFile? _imageFile;
+  CroppedFile? _croppedFile;
+  Future<void> _pickImage(ImageSource source) async {
+    final pickedFile = await ImagePicker().pickImage(source: source);
+    setState(() {
+      if (pickedFile != null) {
+        _imageFile = pickedFile;
+      }
+    });
+    if (mounted) {
+      // Dismiss the dialog manually
+      Navigator.of(context, rootNavigator: true).pop();
+    }
+    _cropImage();
+  }
+
+  Future<void> _cropImage() async {
+    final colorScheme = Theme.of(context).colorScheme;
+    final croppedFile = await ImageCropper().cropImage(
+      sourcePath: _imageFile!.path,
+      aspectRatio: CropAspectRatio(ratioX: 1.0, ratioY: 1.0),
+      compressFormat: ImageCompressFormat.jpg,
+      compressQuality: 40,
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Crop Image',
+          toolbarColor: colorScheme.surface,
+          toolbarWidgetColor: colorScheme.primary,
+          initAspectRatio: CropAspectRatioPreset.square,
+          lockAspectRatio: false,
+          aspectRatioPresets: [
+            CropAspectRatioPreset.original,
+            CropAspectRatioPreset.square,
+            CropAspectRatioPreset.ratio4x3,
+            CropAspectRatioPresetCustom(),
+          ],
+        ),
+        IOSUiSettings(
+          title: 'Crop Image',
+          aspectRatioPresets: [
+            CropAspectRatioPreset.original,
+            CropAspectRatioPreset.square,
+            CropAspectRatioPreset.ratio4x3,
+            CropAspectRatioPresetCustom(),
+          ],
+        ),
+      ],
+    );
+
+    setState(() {
+      _croppedFile = croppedFile ?? _croppedFile;
+    });
+
+    _uploadImage();
+  }
+
+  Future<void> _uploadImage() async {
+    if (_croppedFile != null) {
+      setState(() {
+        _isUploading = true;
+      });
+      final result = await sl<FirebaseUserService>().uploadProfileImage(
+        _croppedFile!,
+      );
+
+      result.fold(
+        (error) {
+          debugPrint('Error: $error');
+          _clearImageFile();
+          setState(() {
+            _isUploading = false;
+          });
+        },
+        (url) {
+          UserBloc userBloc = context.read<UserBloc>();
+          User user = userBloc.state;
+          user = user.copyWith(profileImage: url);
+          userBloc.add(UpdateUser(user));
+
+          debugPrint('Uploaded! Image URL: $url');
+          _clearImageFile();
+          setState(() {
+            _isUploading = false;
+          });
+        },
+      );
+    }
+  }
+
+  void _clearImageFile() {
+    setState(() {
+      _imageFile = null;
+      _croppedFile = null;
+    });
+  }
+
   Future<void> _signOut(BuildContext context) async {
     if (mounted) {
       final shouldSignOut = await showDialog<bool>(
@@ -303,4 +450,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     }
   }
+}
+
+class CropAspectRatioPresetCustom implements CropAspectRatioPresetData {
+  @override
+  (int, int)? get data => (2, 3);
+
+  @override
+  String get name => '2x3 (customized)';
 }

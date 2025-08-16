@@ -22,10 +22,17 @@ class _MainScreenState extends State<MainScreen> {
   final ValueNotifier<int> _selectedIndex = ValueNotifier(0);
   late UserBloc _userBloc;
 
-  final List<Widget> _pages = [
+  final List<Widget> _designerPageList = [
     HomeScreen(),
     TrendsScreen(),
     ClientsScreen(),
+    ClosetScreen(),
+    ProfileScreen(),
+  ];
+
+  final List<Widget> _regularUserPageList = [
+    HomeScreen(),
+    TrendsScreen(),
     DesignersScreen(),
     ClosetScreen(),
     ProfileScreen(),
@@ -90,8 +97,10 @@ class _MainScreenState extends State<MainScreen> {
           PageView(
             controller: _pageController,
             onPageChanged: _onPageChanged,
-            physics: const NeverScrollableScrollPhysics(),
-            children: _pages,
+            //physics: const NeverScrollableScrollPhysics(),
+            children: _userBloc.state.accountType == 'Designer'
+                ? _designerPageList
+                : _regularUserPageList,
           );
           //_pages[currentIndex];
         },

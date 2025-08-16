@@ -1,14 +1,20 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/widgets.dart';
+import 'package:image_cropper/image_cropper.dart';
 
 abstract class FirebaseUserService {
   Future<Either> fetchUserDetailsFromFirestore(String uid);
   Future<Either> updateUserDetails(User user);
   Future<Either> updateUserDisplayName(String name);
   Future<Either> updateUserEmail(String email);
+  Future<Either> uploadProfileImage(CroppedFile croppedFile);
 }
 
 class FirebaseUserServiceImpl implements FirebaseUserService {
@@ -74,6 +80,51 @@ class FirebaseUserServiceImpl implements FirebaseUserService {
       return Right(user);
     } on firebase_auth.FirebaseAuthException catch (e) {
       return Left(e.message ?? 'Unknown error');
+    }
+  }
+
+  @override
+  Future<Either<String, String>> uploadProfileImage(
+    CroppedFile croppedFile,
+  ) async {
+    try {
+      final user = firebase_auth.FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        return const Left("User not logged in");
+      }
+
+      // Storage reference
+      final ref = FirebaseStorage.instance
+          .ref()
+          .child('profile_images')
+          .child('${user.uid}.jpg');
+
+      // Metadata
+      final metadata = SettableMetadata(
+        contentType: 'image/jpeg',
+        customMetadata: {'uid': user.uid},
+      );
+
+      // Upload file
+      final uploadTask = ref.putFile(File(croppedFile.path), metadata);
+      await uploadTask;
+
+      // Get download URL
+      final link = await ref.getDownloadURL();
+
+      // Update Firestore profile image URL
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).update(
+        {'profile_image': link},
+      );
+
+      // Also update FirebaseAuth profile photo
+      await user.updatePhotoURL(link);
+
+      return Right(link);
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'Upload failed');
+    } catch (e) {
+      return Left(e.toString());
     }
   }
 }
