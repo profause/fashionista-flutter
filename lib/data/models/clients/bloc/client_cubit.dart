@@ -7,7 +7,7 @@ import 'package:fashionista/domain/usecases/clients/update_client_usecase.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ClientCubit extends Cubit<ClientState> {
-  ClientCubit() : super(ClientInitial());
+  ClientCubit(Client client) : super(ClientLoaded(client: client));
   void clientUpdated(Client client) async {
     var result = await sl<UpdateClientUsecase>().call(client);
     result.fold((l) => (), (r) => emit(ClientUpdated(client: r)));
@@ -15,7 +15,7 @@ class ClientCubit extends Cubit<ClientState> {
 
   void clientDelete(String clientId) async {
     var result = await sl<DeleteClientUsecase>().call(clientId);
-    result.fold((l) => null, (r) => emit(ClientDelete(message: r)));
+    result.fold((l) => null, (r) => emit(ClientDeleted(message: r)));
   }
 
   void clientLoaded(String clientId) async {

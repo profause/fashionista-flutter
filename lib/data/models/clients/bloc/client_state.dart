@@ -1,21 +1,22 @@
 import 'package:fashionista/data/models/clients/client_model.dart';
 
-abstract class ClientState {}
-
-class ClientInitial extends ClientState {}
-
+abstract class ClientState {
+  get client => null;
+}
 class ClientLoaded extends ClientState {
+  @override
   final Client client;
   ClientLoaded({required this.client});
 }
 
 class ClientUpdated extends ClientState {
+  @override
   final Client client;
 
   ClientUpdated({required this.client});
 }
 
-class ClientDelete extends ClientState {
+class ClientDeleted extends ClientState {
   final String message;
-  ClientDelete({required this.message});
+  ClientDeleted({required this.message});
 }

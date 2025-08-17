@@ -3,6 +3,8 @@ import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/widgets/animated_primary_button.dart';
 import 'package:fashionista/core/widgets/bloc/button_loading_state_cubit.dart';
+import 'package:fashionista/data/models/clients/bloc/client_cubit.dart';
+import 'package:fashionista/data/models/clients/bloc/client_state.dart';
 import 'package:fashionista/data/models/clients/client_measurement_model.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/domain/usecases/clients/add_client_usecase.dart';
@@ -14,7 +16,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class EditClientScreen extends StatefulWidget {
-
   final Client client;
   const EditClientScreen({super.key, required this.client});
 
@@ -58,129 +59,144 @@ class _EditClientScreenState extends State<EditClientScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        foregroundColor: colorScheme.primary,
-        backgroundColor: colorScheme.onPrimary,
-        title: Text(
-          widget.client.fullName,
-          style: textTheme.headlineSmall!.copyWith(fontWeight: FontWeight.bold),
-        ),
-        elevation: 0,
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(8),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                Card(
-                  color: colorScheme.onPrimary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  elevation: 0,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ProfileInfoTextFieldWidget(
-                          label: 'Full Name',
-                          controller: _fullNameController,
-                          hint: 'Enter your full name',
-                          validator: (value) {
-                            // if (value == null || value.isEmpty) {
-                            //   return 'Please enter your full name';
-                            // }
-                            if (!RegExp(
-                              r'^([A-Za-z_][A-Za-z0-9_]\w+)?',
-                            ).hasMatch(value!)) {
-                              return 'Please enter a valid name';
-                            }
-                            return null;
-                          },
-                        ),
-                        Divider(
-                          height: 16,
-                          thickness: 1,
-                          color: Colors.grey[300],
-                        ),
-                        ProfileInfoTextFieldWidget(
-                          label: 'Mobile Number',
-                          controller: _mobileNumberController,
-                          hint: 'Enter your mobile number',
-                          validator: (value) {
-                            // if (value == null || value.isEmpty) {
-                            //   return 'Please enter your mobile number';
-                            // }
-                            if (!RegExp(
-                              r'^((\+?\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$)?',
-                            ).hasMatch(value!)) {
-                              return 'Please enter a valid mobile number';
-                            }
-                            return null;
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Card(
-                  color: colorScheme.onPrimary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  elevation: 0,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomChipFormFieldWidget(
-                          initialValue: widget.client.gender,
-                          label: 'Gender',
-                          items: ['Male', 'Female'],
-                          onChanged: (gender) {
-                            _genderController.text = gender;
-                            //debugPrint('Selected gender: $gender');
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: Hero(
-        tag: 'edit-client-button',
-        child: AnimatedPrimaryButton(
-          text: "Save",
-          onPressed: () async {
-            final number = _mobileNumberController.text.trim();
-            final isValid = RegExp(
-              r'^(\+?\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$',
-            ).hasMatch(number);
-
-            if (!isValid) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("Enter mobile number to proceed"),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-              return; // Stop here if invalid
+    return BlocProvider(
+      create: (context) => ClientCubit(widget.client),
+      child: BlocBuilder<ClientCubit, ClientState>(
+        builder: (context, state) {
+          if (state is ClientDeleted) {
+            if (mounted) {
+              Navigator.pop(context);
             }
-            _saveClient(widget.client);
-          },
-        ),
+          }
+          return Scaffold(
+            backgroundColor: colorScheme.surface,
+            appBar: AppBar(
+              foregroundColor: colorScheme.primary,
+              backgroundColor: colorScheme.onPrimary,
+              title: Text(
+                state.client.fullName,
+                style: textTheme.headlineSmall!.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              elevation: 0,
+            ),
+            body: SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(8),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      Card(
+                        color: colorScheme.onPrimary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        elevation: 0,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ProfileInfoTextFieldWidget(
+                                label: 'Full Name',
+                                controller: _fullNameController,
+                                hint: 'Enter your full name',
+                                validator: (value) {
+                                  // if (value == null || value.isEmpty) {
+                                  //   return 'Please enter your full name';
+                                  // }
+                                  if (!RegExp(
+                                    r'^([A-Za-z_][A-Za-z0-9_]\w+)?',
+                                  ).hasMatch(value!)) {
+                                    return 'Please enter a valid name';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              Divider(
+                                height: 16,
+                                thickness: 1,
+                                color: Colors.grey[300],
+                              ),
+                              ProfileInfoTextFieldWidget(
+                                label: 'Mobile Number',
+                                controller: _mobileNumberController,
+                                hint: 'Enter your mobile number',
+                                validator: (value) {
+                                  // if (value == null || value.isEmpty) {
+                                  //   return 'Please enter your mobile number';
+                                  // }
+                                  if (!RegExp(
+                                    r'^((\+?\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$)?',
+                                  ).hasMatch(value!)) {
+                                    return 'Please enter a valid mobile number';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Card(
+                        color: colorScheme.onPrimary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        elevation: 0,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CustomChipFormFieldWidget(
+                                initialValue: state.client.gender,
+                                label: 'Gender',
+                                items: ['Male', 'Female'],
+                                onChanged: (gender) {
+                                  _genderController.text = gender;
+                                  //debugPrint('Selected gender: $gender');
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.centerFloat,
+            floatingActionButton: Hero(
+              tag: 'edit-client-button',
+              child: AnimatedPrimaryButton(
+                text: "Save",
+                onPressed: () async {
+                  final number = _mobileNumberController.text.trim();
+                  final isValid = RegExp(
+                    r'^(\+?\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$',
+                  ).hasMatch(number);
+
+                  if (!isValid) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Enter mobile number to proceed"),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                    return; // Stop here if invalid
+                  }
+                  _saveClient(state.client);
+                },
+              ),
+            ),
+          );
+        },
       ),
     );
   }

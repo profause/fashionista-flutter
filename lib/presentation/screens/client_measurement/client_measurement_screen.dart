@@ -2,7 +2,6 @@ import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/clients/client_measurement_model.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/presentation/screens/client_measurement/add_client_measurement_screen.dart';
-import 'package:fashionista/presentation/screens/clients/edit_client_screen.dart';
 import 'package:flutter/material.dart';
 
 class ClientMeasurementScreen extends StatefulWidget {
