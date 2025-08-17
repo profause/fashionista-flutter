@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class ProfileInfoTextFieldWidget extends StatelessWidget {
   final String? label;
@@ -7,6 +8,7 @@ class ProfileInfoTextFieldWidget extends StatelessWidget {
   final TextEditingController? controller;
   final String? Function(String?)? validator;
   final TextInputType? keyboardType;
+  final List<TextInputFormatter>? inputFormatters;
   final bool enabled;
 
   const ProfileInfoTextFieldWidget({
@@ -17,6 +19,7 @@ class ProfileInfoTextFieldWidget extends StatelessWidget {
     this.controller,
     this.validator,
     this.keyboardType = TextInputType.text,
+    this.inputFormatters,
     this.enabled = true,
   });
 
@@ -39,6 +42,11 @@ class ProfileInfoTextFieldWidget extends StatelessWidget {
           controller: controller,
           validator: validator,
           keyboardType: keyboardType,
+          inputFormatters: inputFormatters != null ? [
+            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+            FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s\.]')),
+            FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9_]')),
+          ] : null,
           obscureText: isPassword,
           enabled: enabled,
           style: textTheme.bodyLarge,

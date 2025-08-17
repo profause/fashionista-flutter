@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
+import 'package:fashionista/data/models/clients/client_measurement_model.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:flutter/foundation.dart';
 
@@ -10,6 +11,16 @@ abstract class FirebaseClientsService {
   Future<Either> addClientToFirestore(Client client);
   Future<Either> updateClientToFirestore(Client client);
   Future<Either> deleteClientById(String uid);
+  Future<Either> updateClientMeasurementToFirestore(
+    Client client,
+    ClientMeasurement clientMeasurement,
+  );
+  Future<Either> deleteClientMeasurementFromFirestore(
+    String clientId,
+    ClientMeasurement clientMeasurement,
+  );
+
+  Future<Either> updateClientMeasurement(Client clientId);
 }
 
 class FirebaseClientsServiceImpl implements FirebaseClientsService {
@@ -107,7 +118,7 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
       // Delete the document with the given uid
       await firestore.collection('clients').doc(uid).delete();
 
-      debugPrint("Client with UID $uid deleted successfully.");
+      //debugPrint("Client with UID $uid deleted successfully.");
       return const Right('successfully deleted client'); // success without data
     } on FirebaseException catch (e) {
       debugPrint("Firestore error: ${e.message}");
@@ -115,6 +126,73 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
     } catch (e) {
       debugPrint("Unexpected error: $e");
       return Left(e.toString());
+    }
+  }
+
+  @override
+  Future<Either> updateClientMeasurementToFirestore(
+    Client client,
+    ClientMeasurement clientMeasurement,
+  ) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      await firestore.collection('clients').doc(client.uid).update({
+        "measurements": FieldValue.arrayUnion(client.measurements),
+      });
+      return Right(client);
+    } on FirebaseException catch (e) {
+      return Left(e.message);
+    }
+  }
+
+  @override
+  Future<Either> deleteClientMeasurementFromFirestore(
+    String clientId,
+    ClientMeasurement clientMeasurement,
+  ) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      await firestore.collection('clients').doc(clientId).update({
+        "measurements": FieldValue.arrayRemove([clientMeasurement]),
+      });
+      return Right('measurement deleted successfully');
+    } on FirebaseException catch (e) {
+      return Left(e.message);
+    }
+  }
+
+  @override
+  Future<Either> updateClientMeasurement(Client client) async {
+    try {
+      final docRef = FirebaseFirestore.instance
+          .collection('clients')
+          .doc(client.uid);
+
+      // Get current measurements
+      final snapshot = await docRef.get();
+      final data = snapshot.data();
+      if (data == null) return Left('No data found');
+
+      final clientT = Client.fromJson(data);
+      List measurementsToRemove = clientT.measurements
+          .map((m) => m.toJson())
+          .toList();
+
+      List measurementsToAdd = client.measurements
+          .map((m) => m.toJson())
+          .toList();
+
+      await docRef.update({
+        "measurements": FieldValue.arrayRemove(measurementsToRemove),
+      });
+
+      await docRef.update({
+        "measurements": FieldValue.arrayUnion(measurementsToAdd),
+      });
+
+      return Right('measurement deleted successfully');
+    } on FirebaseException catch (e) {
+      return Left(e.message);
     }
   }
 }

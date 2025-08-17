@@ -16,21 +16,32 @@ class ClientsScreen extends StatefulWidget {
 
 class _ClientsScreenState extends State<ClientsScreen> {
   late CollectionReference<Client> collection;
+  late Query<Client> query;
   late AuthProviderCubit _authProviderCubit;
-  bool _isLoading = false;
+  //bool _isLoading = false;
   final collectionRef = FirebaseFirestore.instance.collection('clients');
 
   @override
   void initState() {
-    _isLoading = false;
+    //_isLoading = false;
     //if (mounted) {
-      _authProviderCubit = context.read<AuthProviderCubit>();
-      collection = collectionRef
-          //.where('createdBy', isEqualTo: _authProviderCubit.state.uid).get()
-          .withConverter<Client>(
-            fromFirestore: (snapshot, _) => Client.fromJson(snapshot.data()!),
-            toFirestore: (client, _) => client.toJson(),
-          );
+    _authProviderCubit = context.read<AuthProviderCubit>();
+    collection =
+        collectionRef //.orderBy('createdDate', descending: true)
+            //.where('createdBy', isEqualTo: _authProviderCubit.state.uid).get()
+            .withConverter<Client>(
+              fromFirestore: (snapshot, _) => Client.fromJson(snapshot.data()!),
+              toFirestore: (client, _) => client.toJson(),
+            );
+
+    query = collectionRef
+        .where('created_by', isEqualTo: _authProviderCubit.state.uid)
+        .orderBy('created_date', descending: true)
+        .withConverter(
+          fromFirestore: (snapshot, _) => Client.fromJson(snapshot.data()!),
+          toFirestore: (client, _) => client.toJson(),
+        );
+
     //}
     super.initState();
   }
@@ -39,6 +50,12 @@ class _ClientsScreenState extends State<ClientsScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+
+    Future<void> refreshClients() async {
+      // Force rebuild StreamBuilder by calling setState
+      setState(() {});
+      await Future.delayed(const Duration(milliseconds: 500)); // optional
+    }
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -51,17 +68,45 @@ class _ClientsScreenState extends State<ClientsScreen> {
         ),
         elevation: 0,
       ),
-      body: FirestoreListView<Client>(
-        query: collection,
-        padding: const EdgeInsets.all(8.0),
-        itemBuilder: (context, snapshot) {
-          final clientInfo = snapshot.data();
-          return Column(
-            children: [
-              ClientInfoCardWidget(clientInfo: clientInfo),
-            ],
-          );
-        },
+      body: RefreshIndicator(
+        onRefresh: refreshClients,
+        child: StreamBuilder<QuerySnapshot<Client>>(
+          stream: collection
+              .orderBy('created_date', descending: true)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (snapshot.hasError) {
+              return Center(child: Text("Error: ${snapshot.error}"));
+            }
+
+            final clients = snapshot.data?.docs ?? [];
+            if (clients.isEmpty) {
+              return ListView(
+                // Needed so pull-to-refresh still works
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: const [
+                  SizedBox(
+                    height: 300,
+                    child: Center(child: Text("No clients found")),
+                  ),
+                ],
+              );
+            }
+            return ListView.builder(
+              padding: const EdgeInsets.all(8.0),
+              physics: const AlwaysScrollableScrollPhysics(),
+              itemCount: clients.length,
+              itemBuilder: (context, index) {
+                final client = clients[index].data();
+                return ClientInfoCardWidget(clientInfo: client);
+              },
+            );
+          },
+        ),
       ),
       floatingActionButton: Hero(
         tag: 'add-client-button',

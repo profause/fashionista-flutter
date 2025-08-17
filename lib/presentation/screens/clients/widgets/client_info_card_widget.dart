@@ -1,8 +1,6 @@
-import 'package:fashionista/data/models/clients/bloc/client_cubit.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/presentation/screens/clients/client_details_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ClientInfoCardWidget extends StatefulWidget {
   final Client clientInfo;
@@ -87,12 +85,32 @@ class _ClientInfoCardWidgetState extends State<ClientInfoCardWidget> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      widget.clientInfo.fullName,
-                      style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          widget.clientInfo.fullName,
+                          style: textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          widget.clientInfo.createdDate != null &&
+                                  widget.clientInfo.createdDate!.year ==
+                                      DateTime.now().year &&
+                                  widget.clientInfo.createdDate!.month ==
+                                      DateTime.now().month &&
+                                  widget.clientInfo.createdDate!.day ==
+                                      DateTime.now().day
+                              ? 'New'
+                              : '',
+                          style: textTheme.bodySmall!.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
+
                     const SizedBox(height: 4),
                     Text(
                       widget.clientInfo.mobileNumber,

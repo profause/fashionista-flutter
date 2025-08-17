@@ -1,9 +1,13 @@
+import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/widgets/animated_primary_button.dart';
 import 'package:fashionista/core/widgets/bloc/button_loading_state_cubit.dart';
+import 'package:fashionista/data/models/clients/bloc/client_cubit.dart';
 import 'package:fashionista/data/models/clients/client_measurement_model.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
+import 'package:fashionista/data/services/firebase_clients_service.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/custom_chip_form_field_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_text_field_widget.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -119,6 +123,10 @@ class _AddClientMeasurementScreenState
                         label: 'Measured Value',
                         controller: _measuredValueController,
                         hint: 'Enter measured value',
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        
                         validator: (value) {
                           // if (value == null || value.isEmpty) {
                           //   return 'Please enter your mobile number';
@@ -200,12 +208,74 @@ class _AddClientMeasurementScreenState
               );
               return; // Stop here if invalid
             }
-            _saveClientMeasurement();
+
+            final updatedMeasurement = widget.clientMeasurement.copyWith(
+              bodyPart: _bodyPartController.text.trim(),
+              measuredValue: double.parse(_measuredValueController.text.trim()),
+              notes: _noteController.text.trim(),
+              measuringUnit: _measuringUnitController.text.trim(),
+              updatedDate: DateTime.now(),
+            );
+            final List<ClientMeasurement> measurements = List.from(
+              widget.client.measurements,
+            );
+
+            // check if bodyPart already exists
+            final index = measurements.indexWhere(
+              (m) =>
+                  m.bodyPart.toLowerCase() ==
+                  updatedMeasurement.bodyPart.toLowerCase(),
+            );
+
+            if (index != -1) {
+              // update existing
+              measurements[index] = updatedMeasurement;
+            } else {
+              // add new
+              measurements.add(updatedMeasurement);
+            }
+            // now create updated client with new list
+            final updatedClient = widget.client.copyWith(
+              measurements: measurements,
+            );
+
+            context.read<ClientCubit>().updateClient(updatedClient);
+            _saveClientMeasurement(updatedClient);
           },
         ),
       ),
     );
   }
 
-  Future<void> _saveClientMeasurement() async {}
+  Future<void> _saveClientMeasurement(Client client) async {
+    try {
+      _buttonLoadingStateCubit.setLoading(true);
+
+      final result = await sl<FirebaseClientsService>().updateClientMeasurement(
+        client,
+      );
+
+      result.fold(
+        (l) {
+          _buttonLoadingStateCubit.setLoading(false);
+          if (!mounted) return;
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l)));
+        },
+        (r) {
+          _buttonLoadingStateCubit.setLoading(false);
+          if (!mounted) return;
+          Navigator.pop(context);
+        },
+      );
+    } on FirebaseException catch (e) {
+      _buttonLoadingStateCubit.setLoading(false);
+      debugPrint(e.toString());
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message!)));
+    }
+  }
 }

@@ -1,11 +1,15 @@
+import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/clients/bloc/client_cubit.dart';
 import 'package:fashionista/data/models/clients/bloc/client_state.dart';
 import 'package:fashionista/data/models/clients/client_measurement_model.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
+import 'package:fashionista/data/services/firebase_clients_service.dart';
 import 'package:fashionista/presentation/screens/client_measurement/add_client_measurement_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
 class ClientMeasurementScreen extends StatefulWidget {
   final Client client;
@@ -84,7 +88,10 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
                                         context,
                                         MaterialPageRoute(
                                           builder: (_) => BlocProvider.value(
-                                            value: context.read<ClientCubit>(), // reuse existing cubit
+                                            value: context
+                                                .read<
+                                                  ClientCubit
+                                                >(), // reuse existing cubit
                                             child: AddClientMeasurementScreen(
                                               clientMeasurement: measurement,
                                               client: state.client,
@@ -115,8 +122,71 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
                                   IconButton(
                                     padding: const EdgeInsets.all(0),
                                     icon: const Icon(Icons.delete, size: 20),
-                                    onPressed: () {
-                                      //_deleteMeasurement(measurement);
+                                    onPressed: () async {
+                                      final canDelete = await showDialog<bool>(
+                                        context: context,
+                                        builder: (ctx) => AlertDialog(
+                                          title: const Text(
+                                            'Delete Measurement',
+                                          ),
+                                          content: const Text(
+                                            'Are you sure you want to delete this measurement?',
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.of(ctx).pop(false),
+                                              child: const Text('Cancel'),
+                                            ),
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.of(ctx).pop(true),
+                                              style: TextButton.styleFrom(
+                                                foregroundColor: Colors.red,
+                                              ),
+                                              child: const Text('Delete'),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+
+                                      if (canDelete == true) {
+                                        if (mounted) {
+                                          showDialog(
+                                            context: context,
+                                            barrierDismissible:
+                                                false, // Prevent dismissing
+                                            builder: (_) => const Center(
+                                              child:
+                                                  CircularProgressIndicator(),
+                                            ),
+                                          );
+                                        }
+
+                                        final List<ClientMeasurement>
+                                        measurements = List.from(
+                                          state.client.measurements,
+                                        );
+
+                                        final index = measurements.indexWhere(
+                                          (m) =>
+                                              m.bodyPart.toLowerCase() ==
+                                              measurement.bodyPart
+                                                  .toLowerCase(),
+                                        );
+                                        measurements.removeAt(index);
+
+                                        final updatedClient = state.client
+                                            .copyWith(
+                                              measurements: measurements,
+                                            );
+
+                                        context
+                                            .read<ClientCubit>()
+                                            .updateClient(updatedClient);
+
+                                        _deleteMeasurement(updatedClient);
+                                      }
                                     },
                                   ),
                                 ],
@@ -147,9 +217,37 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
                         ),
                         Row(
                           children: [
+                            Container(
+                              margin: const EdgeInsets.symmetric(vertical: 4),
+                              // divider color
+                              child: Text(
+                                measurement.notes ?? '',
+                                style: textTheme.bodyMedium,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.calendar_month,
+                              size: 18,
+                              color: Colors.grey[600],
+                            ),
+                            Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 2),
+                              height: 0,
+                              width: 1,
+                              color: AppTheme.lightGrey, // divider color
+                            ),
                             Text(
-                              measurement.notes ?? '',
-                              style: textTheme.bodyMedium,
+                              DateFormat('yyyy-MM-dd').format(
+                                measurement.updatedDate == null
+                                    ? DateTime.now()
+                                    : measurement.updatedDate!,
+                              ),
+                              style: textTheme.titleSmall!,
                             ),
                           ],
                         ),
@@ -204,5 +302,37 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
         return const Center(child: CircularProgressIndicator());
       },
     );
+  }
+
+  Future<void> _deleteMeasurement(Client client) async {
+    try {
+      //_buttonLoadingStateCubit.setLoading(true);
+
+      final result = await sl<FirebaseClientsService>().updateClientMeasurement(
+        client,
+      );
+
+      result.fold(
+        (l) {
+          //_buttonLoadingStateCubit.setLoading(false);
+          if (!mounted) return;
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l)));
+        },
+        (r) {
+          // _buttonLoadingStateCubit.setLoading(false);
+          if (!mounted) return;
+          Navigator.of(context, rootNavigator: true).pop();
+        },
+      );
+    } on FirebaseException catch (e) {
+      //_buttonLoadingStateCubit.setLoading(false);
+      debugPrint(e.toString());
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message!)));
+    }
   }
 }

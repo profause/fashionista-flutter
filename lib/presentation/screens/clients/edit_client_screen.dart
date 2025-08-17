@@ -216,9 +216,6 @@ class _EditClientScreenState extends State<EditClientScreen> {
   }
 
   Future<void> _saveClient(Client client) async {
-    context.read<ClientCubit>().stream.listen(
-      (state) => debugPrint('from state: ' + state.toString()),
-    );
     try {
       _buttonLoadingStateCubit.setLoading(true);
       final fullName = _fullNameController.text.trim();

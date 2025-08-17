@@ -23,6 +23,9 @@ class ClientMeasurement extends Equatable {
   @JsonKey(name: 'previous_values')
   final List<double> previousValues;
 
+  @JsonKey(name: 'tags')
+  final List<String>? tags;
+
   const ClientMeasurement({
     required this.bodyPart,
     required this.measuredValue,
@@ -30,6 +33,7 @@ class ClientMeasurement extends Equatable {
     required this.updatedDate,
     this.notes,
     required this.previousValues,
+    this.tags,
   });
 
   factory ClientMeasurement.fromJson(Map<String, dynamic> json) =>
@@ -52,6 +56,7 @@ class ClientMeasurement extends Equatable {
     DateTime? updatedDate,
     String? notes,
     List<double>? previousValues,
+    List<String>? tags,
   }) {
     return ClientMeasurement(
       bodyPart: bodyPart ?? this.bodyPart,
@@ -60,6 +65,7 @@ class ClientMeasurement extends Equatable {
       updatedDate: updatedDate ?? this.updatedDate,
       notes: notes ?? this.notes,
       previousValues: previousValues ?? this.previousValues,
+      tags: tags ?? this.tags,
     );
   }
 
@@ -71,6 +77,7 @@ class ClientMeasurement extends Equatable {
       measuringUnit: '',
       updatedDate: null,
       previousValues: [],
+      tags: [],
     );
   }
 
@@ -82,6 +89,7 @@ class ClientMeasurement extends Equatable {
     updatedDate,
     notes,
     previousValues,
+    tags,
   ];
 
   static const Set<String> maleMeasurementTemplate = {

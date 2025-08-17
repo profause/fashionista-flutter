@@ -1,11 +1,14 @@
 import 'package:fashionista/core/assets/app_images.dart';
+import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/clients/bloc/client_cubit.dart';
 import 'package:fashionista/data/models/clients/bloc/client_state.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
+import 'package:fashionista/data/services/firebase_clients_service.dart';
 import 'package:fashionista/presentation/screens/client_measurement/client_measurement_screen.dart';
 import 'package:fashionista/presentation/screens/clients/client_profile_page.dart';
 import 'package:fashionista/presentation/screens/clients/edit_client_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -40,12 +43,6 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
       length: 2,
       child: BlocBuilder<ClientCubit, ClientState>(
         builder: (context, state) {
-          if (state is ClientDeleted) {
-            if (mounted) {
-              Navigator.pop(context);
-            }
-          }
-
           if (state is ClientLoaded || state is ClientUpdated) {
             return Scaffold(
               backgroundColor: colorScheme.surface,
@@ -72,9 +69,45 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                             size: 24,
                             color: colorScheme.primary,
                           ),
-                          onPressed: () {
-                            // Handle camera click
-                            // _deleteClient(context);
+                          onPressed: () async {
+                            final canDelete = await showDialog<bool>(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                title: const Text('Delete Client'),
+                                content: const Text(
+                                  'Are you sure you want to delete this client?',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(ctx).pop(false),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(ctx).pop(true),
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: Colors.red,
+                                    ),
+                                    child: const Text('Delete'),
+                                  ),
+                                ],
+                              ),
+                            );
+
+                            if (canDelete == true) {
+                              if (mounted) {
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible:
+                                      false, // Prevent dismissing
+                                  builder: (_) => const Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                );
+                              }
+                              _deleteClient(state.client);
+                            }
                           },
                           splashRadius: 24,
                         ),
@@ -85,7 +118,10 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                               context,
                               MaterialPageRoute(
                                 builder: (_) => BlocProvider.value(
-                                  value: context.read<ClientCubit>(), // reuse existing cubit
+                                  value: context
+                                      .read<
+                                        ClientCubit
+                                      >(), // reuse existing cubit
                                   child: EditClientScreen(client: state.client),
                                 ),
                               ),
@@ -212,12 +248,37 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                             color: colorScheme.primary,
                           ),
                           insets: EdgeInsets.symmetric(
-                            horizontal: 36,
+                            horizontal: 50,
                           ), // adjust for fixed width
                         ),
                         tabs: [
-                          Tab(text: "Profile"),
-                          Tab(text: "Measurements"),
+                          Container(
+                            margin: const EdgeInsets.symmetric(
+                              vertical: 8,
+                              horizontal: 8,
+                            ),
+                            // divider color
+                            child: Text(
+                              "Profile",
+                              style: textTheme.titleMedium!.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          //Tab(text: "Profile"),
+                          Container(
+                            margin: const EdgeInsets.symmetric(
+                              vertical: 8,
+                              horizontal: 8,
+                            ),
+                            // divider color
+                            child: Text(
+                              "Measurements",
+                              style: textTheme.titleMedium!.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -237,5 +298,36 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
         },
       ),
     );
+  }
+
+  Future<void> _deleteClient(Client client) async {
+    try {
+      final result = await sl<FirebaseClientsService>().deleteClientById(
+        client.uid,
+      );
+      result.fold(
+        (l) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l)));
+        },
+        (r) {
+          if (!mounted) return;
+
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(r)));
+          Navigator.of(context, rootNavigator: true).pop();
+          Navigator.pop(context);
+        },
+      );
+    } on FirebaseException catch (e) {
+      debugPrint(e.toString());
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message!)));
+    }
   }
 }
