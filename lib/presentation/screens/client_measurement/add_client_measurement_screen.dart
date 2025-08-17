@@ -1,6 +1,7 @@
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/widgets/animated_primary_button.dart';
 import 'package:fashionista/core/widgets/bloc/button_loading_state_cubit.dart';
+import 'package:fashionista/core/widgets/tag_input_field.dart';
 import 'package:fashionista/data/models/clients/bloc/client_cubit.dart';
 import 'package:fashionista/data/models/clients/client_measurement_model.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
@@ -32,6 +33,7 @@ class _AddClientMeasurementScreenState
   late TextEditingController _measuredValueController;
   late TextEditingController _noteController;
   late TextEditingController _measuringUnitController;
+  late TextEditingController _tagsController;
   late ButtonLoadingStateCubit _buttonLoadingStateCubit;
 
   @override
@@ -41,6 +43,7 @@ class _AddClientMeasurementScreenState
     _measuredValueController = TextEditingController();
     _noteController = TextEditingController();
     _measuringUnitController = TextEditingController();
+    _tagsController = TextEditingController();
 
     _bodyPartController.text = widget.clientMeasurement.bodyPart;
     _measuredValueController.text = widget.clientMeasurement.measuredValue
@@ -126,7 +129,7 @@ class _AddClientMeasurementScreenState
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
                         ),
-                        
+
                         validator: (value) {
                           // if (value == null || value.isEmpty) {
                           //   return 'Please enter your mobile number';
@@ -184,6 +187,39 @@ class _AddClientMeasurementScreenState
                           return null;
                         },
                       ),
+                      Divider(
+                        height: 16,
+                        thickness: 1,
+                        color: Colors.grey[300],
+                      ),
+
+                      const SizedBox(height: 16),
+                      TagInputField(
+                        label: 'Garment type or tags',
+                        hint:
+                            'Type and press Enter, Space or Comma to add a tag',
+                        valueIn: widget.clientMeasurement.tags == null
+                            ? []
+                            : widget.clientMeasurement.tags == ''
+                            ? []
+                            : widget.clientMeasurement.tags!.split('|'),
+                        valueOut: (value) =>
+                            _tagsController.text = value.join('|'),
+                      ),
+
+                      // ProfileInfoTextFieldWidget(
+                      //   label: 'Garment type or tags',
+                      //   controller: _tagsController,
+                      //   hint: 'add garment type or tags',
+                      //   validator: (value) {
+                      //     if (!RegExp(
+                      //       r'^([A-Za-z_][A-Za-z0-9_]\w+)?',
+                      //     ).hasMatch(value!)) {
+                      //       return 'add garment type or tags';
+                      //     }
+                      //     return null;
+                      //   },
+                      // ),
                     ],
                   ),
                 ),
@@ -198,6 +234,7 @@ class _AddClientMeasurementScreenState
         child: AnimatedPrimaryButton(
           text: "Save",
           onPressed: () async {
+            debugPrint(_tagsController.text.trim());
             final isValid = _bodyPartController.text.isNotEmpty;
             if (!isValid) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -215,6 +252,7 @@ class _AddClientMeasurementScreenState
               notes: _noteController.text.trim(),
               measuringUnit: _measuringUnitController.text.trim(),
               updatedDate: DateTime.now(),
+              tags: _tagsController.text.trim(),
             );
             final List<ClientMeasurement> measurements = List.from(
               widget.client.measurements,
@@ -248,6 +286,7 @@ class _AddClientMeasurementScreenState
   }
 
   Future<void> _saveClientMeasurement(Client client) async {
+    debugPrint(client.measurements.toString());
     try {
       _buttonLoadingStateCubit.setLoading(true);
 
@@ -277,5 +316,55 @@ class _AddClientMeasurementScreenState
         context,
       ).showSnackBar(SnackBar(content: Text(e.message!)));
     }
+  }
+
+  Widget _tagWidget(BuildContext context, String text) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return Container(
+      margin: const EdgeInsets.only(right: 12),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {},
+          borderRadius: BorderRadius.circular(30),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            decoration: BoxDecoration(
+              color: colorScheme.primary.withValues(alpha: 0.1),
+              border: Border.all(
+                color: colorScheme.primary.withValues(alpha: .5),
+                width: 1.0,
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  text,
+                  style: textTheme.bodyMedium!.copyWith(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () {
+                    // Handle tap here (e.g., remove chip or clear text)
+                    debugPrint("Close icon tapped");
+                  },
+                  child: Icon(
+                    Icons.close_rounded,
+                    color: colorScheme.primary,
+                    size: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

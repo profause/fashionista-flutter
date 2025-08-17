@@ -24,7 +24,7 @@ class ClientMeasurement extends Equatable {
   final List<double> previousValues;
 
   @JsonKey(name: 'tags')
-  final List<String>? tags;
+  final String? tags;
 
   const ClientMeasurement({
     required this.bodyPart,
@@ -56,7 +56,7 @@ class ClientMeasurement extends Equatable {
     DateTime? updatedDate,
     String? notes,
     List<double>? previousValues,
-    List<String>? tags,
+    String? tags,
   }) {
     return ClientMeasurement(
       bodyPart: bodyPart ?? this.bodyPart,
@@ -77,7 +77,7 @@ class ClientMeasurement extends Equatable {
       measuringUnit: '',
       updatedDate: null,
       previousValues: [],
-      tags: [],
+      tags: '',
     );
   }
 

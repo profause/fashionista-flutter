@@ -18,7 +18,7 @@ ClientMeasurement _$ClientMeasurementFromJson(Map<String, dynamic> json) =>
       previousValues: (json['previous_values'] as List<dynamic>)
           .map((e) => (e as num).toDouble())
           .toList(),
-      tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      tags: json['tags'] as String?,
     );
 
 Map<String, dynamic> _$ClientMeasurementToJson(ClientMeasurement instance) =>
