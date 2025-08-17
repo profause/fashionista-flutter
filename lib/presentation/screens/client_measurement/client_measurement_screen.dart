@@ -21,6 +21,15 @@ class ClientMeasurementScreen extends StatefulWidget {
 }
 
 class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
+  bool _isSearching = false;
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -40,222 +49,313 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
         if (state is ClientLoaded || state is ClientUpdated) {
           return Scaffold(
             backgroundColor: colorScheme.surface,
-            body: ListView.builder(
-              padding: const EdgeInsets.all(8),
-              itemCount: state.client.measurements.length,
-              itemBuilder: (context, index) {
-                final measurement = state.client.measurements[index];
-                return Card(
-                  elevation: 0,
+            body: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Card(
                   color: colorScheme.onPrimary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  margin: const EdgeInsets.only(bottom: 12),
+                  elevation: 0,
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Text(
-                              measurement.bodyPart, // e.g. "Chest"
-                              style: textTheme.titleMedium!.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const Spacer(),
-                            Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: AppTheme
-                                      .lightGrey, // or your preferred border color
-                                  width: .5,
+                        Expanded(
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            transitionBuilder: (child, animation) =>
+                                SizeTransition(
+                                  sizeFactor: animation,
+                                  child: child,
                                 ),
-                                borderRadius: BorderRadius.circular(
-                                  16,
-                                ), // adjust radius as needed
-                              ),
-                              child: Row(
-                                children: [
-                                  IconButton(
-                                    padding: const EdgeInsets.all(0),
-                                    icon: const Icon(Icons.edit, size: 20),
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => BlocProvider.value(
-                                            value: context
-                                                .read<
-                                                  ClientCubit
-                                                >(), // reuse existing cubit
-                                            child: AddClientMeasurementScreen(
-                                              clientMeasurement: measurement,
-                                              client: state.client,
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                      // Navigator.push(
-                                      //   context,
-                                      //   MaterialPageRoute(
-                                      //     builder: (context) =>
-                                      //         AddClientMeasurementScreen(
-                                      //           clientMeasurement: measurement,
-                                      //           clientUid: state.client.uid,
-                                      //         ),
-                                      //   ),
-                                      // );
+                            child: _isSearching
+                                ? TextField(
+                                    key: const ValueKey("searchField"),
+                                    controller: _searchController,
+                                    autofocus: true,
+                                    decoration: InputDecoration(
+                                      hintText: 'Search measurements...',
+                                      border: InputBorder.none,
+                                      hintStyle: textTheme.titleMedium,
+                                    ),
+                                    style: textTheme.bodyMedium,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        // TODO: filter list with `value`
+                                      });
                                     },
+                                  )
+                                : Text(
+                                    "",
+                                    key: const ValueKey("title"),
+                                    style: textTheme.titleLarge,
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        IconButton(
+                          icon: Icon(
+                            _isSearching ? Icons.close : Icons.search,
+                            color: colorScheme.primary,
+                            size: 24,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isSearching = !_isSearching;
+                              if (!_isSearching) {
+                                _searchController.clear();
+                              }
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 0),
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(8),
+                    itemCount: state.client.measurements.length,
+                    itemBuilder: (context, index) {
+                      final measurement = state.client.measurements[index];
+                      return Card(
+                        elevation: 0,
+                        color: colorScheme.onPrimary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        margin: const EdgeInsets.only(bottom: 12),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    measurement.bodyPart, // e.g. "Chest"
+                                    style: textTheme.titleMedium!.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: AppTheme
+                                            .lightGrey, // or your preferred border color
+                                        width: .5,
+                                      ),
+                                      borderRadius: BorderRadius.circular(
+                                        16,
+                                      ), // adjust radius as needed
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        IconButton(
+                                          padding: const EdgeInsets.all(0),
+                                          icon: const Icon(
+                                            Icons.edit,
+                                            size: 20,
+                                          ),
+                                          onPressed: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) => BlocProvider.value(
+                                                  value: context
+                                                      .read<
+                                                        ClientCubit
+                                                      >(), // reuse existing cubit
+                                                  child:
+                                                      AddClientMeasurementScreen(
+                                                        clientMeasurement:
+                                                            measurement,
+                                                        client: state.client,
+                                                      ),
+                                                ),
+                                              ),
+                                            );
+                                            // Navigator.push(
+                                            //   context,
+                                            //   MaterialPageRoute(
+                                            //     builder: (context) =>
+                                            //         AddClientMeasurementScreen(
+                                            //           clientMeasurement: measurement,
+                                            //           clientUid: state.client.uid,
+                                            //         ),
+                                            //   ),
+                                            // );
+                                          },
+                                        ),
+                                        Container(
+                                          margin: const EdgeInsets.symmetric(
+                                            horizontal: 4,
+                                          ),
+                                          height: 16,
+                                          width: 1,
+                                          color: AppTheme
+                                              .lightGrey, // divider color
+                                        ),
+                                        IconButton(
+                                          padding: const EdgeInsets.all(0),
+                                          icon: const Icon(
+                                            Icons.delete,
+                                            size: 20,
+                                          ),
+                                          onPressed: () async {
+                                            final canDelete = await showDialog<bool>(
+                                              context: context,
+                                              builder: (ctx) => AlertDialog(
+                                                title: const Text(
+                                                  'Delete Measurement',
+                                                ),
+                                                content: const Text(
+                                                  'Are you sure you want to delete this measurement?',
+                                                ),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () =>
+                                                        Navigator.of(
+                                                          ctx,
+                                                        ).pop(false),
+                                                    child: const Text('Cancel'),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed: () =>
+                                                        Navigator.of(
+                                                          ctx,
+                                                        ).pop(true),
+                                                    style: TextButton.styleFrom(
+                                                      foregroundColor:
+                                                          Colors.red,
+                                                    ),
+                                                    child: const Text('Delete'),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+
+                                            if (canDelete == true) {
+                                              if (mounted) {
+                                                showDialog(
+                                                  context: context,
+                                                  barrierDismissible:
+                                                      false, // Prevent dismissing
+                                                  builder: (_) => const Center(
+                                                    child:
+                                                        CircularProgressIndicator(),
+                                                  ),
+                                                );
+                                              }
+
+                                              final List<ClientMeasurement>
+                                              measurements = List.from(
+                                                state.client.measurements,
+                                              );
+
+                                              final index = measurements
+                                                  .indexWhere(
+                                                    (m) =>
+                                                        m.bodyPart
+                                                            .toLowerCase() ==
+                                                        measurement.bodyPart
+                                                            .toLowerCase(),
+                                                  );
+                                              measurements.removeAt(index);
+
+                                              final updatedClient = state.client
+                                                  .copyWith(
+                                                    measurements: measurements,
+                                                  );
+
+                                              context
+                                                  .read<ClientCubit>()
+                                                  .updateClient(updatedClient);
+
+                                              _deleteMeasurement(updatedClient);
+                                            }
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              Row(
+                                children: [
+                                  Text(
+                                    "${measurement.measuredValue} cm", // e.g. "42 in"
+                                    style: textTheme.titleSmall,
                                   ),
                                   Container(
                                     margin: const EdgeInsets.symmetric(
-                                      horizontal: 4,
+                                      horizontal: 16,
                                     ),
                                     height: 16,
                                     width: 1,
                                     color: AppTheme.lightGrey, // divider color
                                   ),
-                                  IconButton(
-                                    padding: const EdgeInsets.all(0),
-                                    icon: const Icon(Icons.delete, size: 20),
-                                    onPressed: () async {
-                                      final canDelete = await showDialog<bool>(
-                                        context: context,
-                                        builder: (ctx) => AlertDialog(
-                                          title: const Text(
-                                            'Delete Measurement',
-                                          ),
-                                          content: const Text(
-                                            'Are you sure you want to delete this measurement?',
-                                          ),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () =>
-                                                  Navigator.of(ctx).pop(false),
-                                              child: const Text('Cancel'),
-                                            ),
-                                            TextButton(
-                                              onPressed: () =>
-                                                  Navigator.of(ctx).pop(true),
-                                              style: TextButton.styleFrom(
-                                                foregroundColor: Colors.red,
-                                              ),
-                                              child: const Text('Delete'),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-
-                                      if (canDelete == true) {
-                                        if (mounted) {
-                                          showDialog(
-                                            context: context,
-                                            barrierDismissible:
-                                                false, // Prevent dismissing
-                                            builder: (_) => const Center(
-                                              child:
-                                                  CircularProgressIndicator(),
-                                            ),
-                                          );
-                                        }
-
-                                        final List<ClientMeasurement>
-                                        measurements = List.from(
-                                          state.client.measurements,
-                                        );
-
-                                        final index = measurements.indexWhere(
-                                          (m) =>
-                                              m.bodyPart.toLowerCase() ==
-                                              measurement.bodyPart
-                                                  .toLowerCase(),
-                                        );
-                                        measurements.removeAt(index);
-
-                                        final updatedClient = state.client
-                                            .copyWith(
-                                              measurements: measurements,
-                                            );
-
-                                        context
-                                            .read<ClientCubit>()
-                                            .updateClient(updatedClient);
-
-                                        _deleteMeasurement(updatedClient);
-                                      }
-                                    },
+                                  Text(
+                                    "${measurement.measuredValue} inches", // e.g. "42 in"
+                                    style: textTheme.titleSmall,
                                   ),
                                 ],
                               ),
-                            ),
-                          ],
-                        ),
+                              Row(
+                                children: [
+                                  Container(
+                                    margin: const EdgeInsets.symmetric(
+                                      vertical: 4,
+                                    ),
+                                    // divider color
+                                    child: Text(
+                                      measurement.notes ?? '',
+                                      style: textTheme.bodyMedium,
+                                    ),
+                                  ),
+                                ],
+                              ),
 
-                        Row(
-                          children: [
-                            Text(
-                              "${measurement.measuredValue} cm", // e.g. "42 in"
-                              style: textTheme.titleSmall,
-                            ),
-                            Container(
-                              margin: const EdgeInsets.symmetric(
-                                horizontal: 16,
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.calendar_month,
+                                    size: 18,
+                                    color: Colors.grey[600],
+                                  ),
+                                  Container(
+                                    margin: const EdgeInsets.symmetric(
+                                      horizontal: 2,
+                                    ),
+                                    height: 0,
+                                    width: 1,
+                                    color: AppTheme.lightGrey, // divider color
+                                  ),
+                                  Text(
+                                    DateFormat('yyyy-MM-dd').format(
+                                      measurement.updatedDate == null
+                                          ? DateTime.now()
+                                          : measurement.updatedDate!,
+                                    ),
+                                    style: textTheme.titleSmall!,
+                                  ),
+                                ],
                               ),
-                              height: 16,
-                              width: 1,
-                              color: AppTheme.lightGrey, // divider color
-                            ),
-                            Text(
-                              "${measurement.measuredValue} inches", // e.g. "42 in"
-                              style: textTheme.titleSmall,
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                        Row(
-                          children: [
-                            Container(
-                              margin: const EdgeInsets.symmetric(vertical: 4),
-                              // divider color
-                              child: Text(
-                                measurement.notes ?? '',
-                                style: textTheme.bodyMedium,
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.calendar_month,
-                              size: 18,
-                              color: Colors.grey[600],
-                            ),
-                            Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 2),
-                              height: 0,
-                              width: 1,
-                              color: AppTheme.lightGrey, // divider color
-                            ),
-                            Text(
-                              DateFormat('yyyy-MM-dd').format(
-                                measurement.updatedDate == null
-                                    ? DateTime.now()
-                                    : measurement.updatedDate!,
-                              ),
-                              style: textTheme.titleSmall!,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
-                );
-              },
+                ),
+              ],
             ),
             floatingActionButton: Hero(
               tag: 'add-measurement-button',
