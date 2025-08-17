@@ -11,7 +11,6 @@ import 'package:fashionista/presentation/screens/profile/widgets/date_picker_for
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_text_field_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
@@ -215,7 +214,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     Card(
                       color: colorScheme.onPrimary,
                       shape: RoundedRectangleBorder(
@@ -289,7 +288,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     Card(
                       color: colorScheme.onPrimary,
                       shape: RoundedRectangleBorder(
@@ -340,7 +339,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     Card(
                       color: colorScheme.onPrimary,
                       shape: RoundedRectangleBorder(

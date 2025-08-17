@@ -1,0 +1,33 @@
+import 'package:dartz/dartz.dart';
+import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/data/models/clients/client_model.dart';
+import 'package:fashionista/data/services/firebase_clients_service.dart';
+import 'package:fashionista/domain/repository/clients/clients_repository.dart';
+
+class ClientsRepositoryImpl extends ClientsRepository{
+  @override
+  Future<Either> addClientToFirestore(Client client) async {
+    return sl<FirebaseClientsService>().addClientToFirestore(client);
+  }
+
+  @override
+  Future<Either> fetchClientsFromFirestore(String uid) {
+    return sl<FirebaseClientsService>().fetchClientsFromFirestore(uid);
+  }
+
+  @override
+  Future<Either> updateClientToFirestore(Client client) {
+    return sl<FirebaseClientsService>().updateClientToFirestore(client);
+  }
+  
+  @override
+  Future<Either> deleteClientById(String clientId) {
+    return sl<FirebaseClientsService>().deleteClientById(clientId);    
+  }
+  
+  @override
+  Future<Either> findClientById(String clientId) {
+    return sl<FirebaseClientsService>().findClientById(clientId);
+  }
+
+}

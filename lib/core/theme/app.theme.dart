@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -98,4 +100,17 @@ class AppTheme {
     fontSize: 40,
     fontWeight: FontWeight.bold,
   );
+}
+
+final materialColorPairs = [
+  {'background': '90CAF9', 'foreground': '000000'},
+  {'background': 'A5D6A7', 'foreground': '000000'},
+  {'background': 'FFE082', 'foreground': '000000'},
+  {'background': 'EF9A9A', 'foreground': '000000'},
+  {'background': 'B0BEC5', 'foreground': '000000'}, // default grey[500]
+];
+
+Map<String, String> getRandomColorPair() {
+  final random = Random();
+  return materialColorPairs[random.nextInt(materialColorPairs.length)];
 }

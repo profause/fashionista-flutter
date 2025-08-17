@@ -15,7 +15,6 @@ import 'package:fashionista/presentation/screens/profile/widgets/profile_info_ca
 import 'package:fashionista/presentation/screens/settings/settings_screen.dart';
 import 'package:fashionista/presentation/widgets/scrollable_scafold_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';

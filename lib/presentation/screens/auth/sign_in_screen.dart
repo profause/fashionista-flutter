@@ -177,6 +177,7 @@ class _SignInScreenState extends State<SignInScreen> {
       //   },
       // );
     } on FirebaseAuthException catch (e) {
+      _buttonLoadingStateCubit.setLoading(false);
       debugPrint(e.toString());
       if (!mounted) return;
       ScaffoldMessenger.of(

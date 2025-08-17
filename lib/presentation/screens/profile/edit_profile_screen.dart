@@ -8,7 +8,6 @@ import 'package:fashionista/presentation/screens/profile/widgets/custom_chip_for
 import 'package:fashionista/presentation/screens/profile/widgets/date_picker_form_field_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_text_field_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
@@ -204,7 +203,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
                       Card(
                         color: colorScheme.onPrimary,
                         shape: RoundedRectangleBorder(
@@ -278,7 +277,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
                       Card(
                         color: colorScheme.onPrimary,
                         shape: RoundedRectangleBorder(
@@ -329,7 +328,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ),
                       ),
 
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
                       Card(
                         color: colorScheme.onPrimary,
                         shape: RoundedRectangleBorder(
