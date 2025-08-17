@@ -84,10 +84,20 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    EditClientScreen(client: state.client),
+                                builder: (_) => BlocProvider.value(
+                                  value: context.read<ClientCubit>(), // reuse existing cubit
+                                  child: EditClientScreen(client: state.client),
+                                ),
                               ),
                             );
+
+                            // Navigator.push(
+                            //   context,
+                            //   MaterialPageRoute(
+                            //     builder: (context) =>
+                            //         EditClientScreen(client: state.client),
+                            //   ),
+                            // );
                           },
                         ),
                       ],

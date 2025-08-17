@@ -1,6 +1,7 @@
 import 'package:fashionista/core/widgets/animated_primary_button.dart';
 import 'package:fashionista/core/widgets/bloc/button_loading_state_cubit.dart';
 import 'package:fashionista/data/models/clients/client_measurement_model.dart';
+import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/custom_chip_form_field_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_text_field_widget.dart';
 import 'package:flutter/material.dart';
@@ -8,11 +9,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AddClientMeasurementScreen extends StatefulWidget {
   final ClientMeasurement clientMeasurement;
-  final String clientUid;
+  final Client client;
   const AddClientMeasurementScreen({
     super.key,
     required this.clientMeasurement,
-    required this.clientUid,
+    required this.client,
   });
 
   @override
@@ -43,7 +44,9 @@ class _AddClientMeasurementScreenState
     _noteController.text = widget.clientMeasurement.notes == null
         ? ''
         : widget.clientMeasurement.notes!;
-    _measuringUnitController.text = widget.clientMeasurement.measuringUnit;
+    _measuringUnitController.text = widget.clientMeasurement.measuringUnit == ''
+        ? 'cm'
+        : widget.clientMeasurement.measuringUnit;
     super.initState();
   }
 
@@ -134,9 +137,9 @@ class _AddClientMeasurementScreenState
                         color: Colors.grey[300],
                       ),
                       CustomChipFormFieldWidget(
-                        initialValue: widget.clientMeasurement.measuringUnit,
+                        initialValue: _measuringUnitController.text,
                         label: 'Measuring Unit',
-                        items: ['Centimeter', 'Inch'],
+                        items: ['cm', 'inches'],
                         onChanged: (unit) {
                           _measuringUnitController.text = unit;
                         },
@@ -187,8 +190,7 @@ class _AddClientMeasurementScreenState
         child: AnimatedPrimaryButton(
           text: "Save",
           onPressed: () async {
-            final isValid = true;
-
+            final isValid = _bodyPartController.text.isNotEmpty;
             if (!isValid) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(

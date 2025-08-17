@@ -22,7 +22,7 @@ class ProfileInfoTextFieldWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    //final colorScheme = Theme.of(context).colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -31,7 +31,7 @@ class ProfileInfoTextFieldWidget extends StatelessWidget {
           label ?? '',
           style: textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.bold,
-            color: Colors.grey[700],
+            color: colorScheme.primary,
           ),
         ),
         //const SizedBox(height: 0),

@@ -83,13 +83,25 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) =>
-                                              AddClientMeasurementScreen(
-                                                clientMeasurement: measurement,
-                                                clientUid: state.client.uid,
-                                              ),
+                                          builder: (_) => BlocProvider.value(
+                                            value: context.read<ClientCubit>(), // reuse existing cubit
+                                            child: AddClientMeasurementScreen(
+                                              clientMeasurement: measurement,
+                                              client: state.client,
+                                            ),
+                                          ),
                                         ),
                                       );
+                                      // Navigator.push(
+                                      //   context,
+                                      //   MaterialPageRoute(
+                                      //     builder: (context) =>
+                                      //         AddClientMeasurementScreen(
+                                      //           clientMeasurement: measurement,
+                                      //           clientUid: state.client.uid,
+                                      //         ),
+                                      //   ),
+                                      // );
                                     },
                                   ),
                                   Container(
@@ -158,12 +170,25 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => AddClientMeasurementScreen(
-                          clientMeasurement: ClientMeasurement.empty(),
-                          clientUid: state.client.uid,
+                        builder: (_) => BlocProvider.value(
+                          value: context
+                              .read<ClientCubit>(), // reuse existing cubit
+                          child: AddClientMeasurementScreen(
+                            clientMeasurement: ClientMeasurement.empty(),
+                            client: state.client,
+                          ),
                         ),
                       ),
                     );
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(
+                    //     builder: (context) => AddClientMeasurementScreen(
+                    //       clientMeasurement: ClientMeasurement.empty(),
+                    //       clientUid: state.client.uid,
+                    //     ),
+                    //   ),
+                    // );
                   },
                   customBorder: const CircleBorder(),
                   child: SizedBox(

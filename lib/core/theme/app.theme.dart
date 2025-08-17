@@ -44,7 +44,7 @@ final ThemeData fashionistaLightTheme = ThemeData(
       statusBarBrightness: Brightness.light, // iOS icons
     ),
   ),
-  dividerColor: const Color(0xFFE0E0E0),
+  dividerColor: const Color(0xFFE8E8E8),
 );
 
 final ThemeData fashionistaDarkTheme = ThemeData(

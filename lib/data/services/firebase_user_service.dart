@@ -25,8 +25,8 @@ class FirebaseUserServiceImpl implements FirebaseUserService {
       DocumentReference docRef = firestore.collection('users').doc(uid);
       DocumentSnapshot doc = await docRef.get();
       User user = User.fromJson(doc.data() as Map<String, dynamic>);
-      debugPrint(doc.data().toString());
-      debugPrint(user.toString());
+      //debugPrint(doc.data().toString());
+      //debugPrint(user.toString());
       return Right(user);
     } on FirebaseException catch (e) {
       return Left(e.message);
