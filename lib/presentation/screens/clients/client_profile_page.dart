@@ -19,15 +19,14 @@ class _ClientProfilePageState extends State<ClientProfilePage> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return BlocProvider(
-      create: (context) => ClientCubit(widget.client),
-      child: BlocBuilder<ClientCubit, ClientState>(
-        builder: (context, state) {
-          if (state is ClientDeleted) {
-            if (mounted) {
-              Navigator.pop(context);
-            }
+    return BlocBuilder<ClientCubit, ClientState>(
+      builder: (context, state) {
+        if (state is ClientDeleted) {
+          if (mounted) {
+            Navigator.pop(context);
           }
+        }
+        if (state is ClientLoaded || state is ClientUpdated) {
           return Scaffold(
             backgroundColor: colorScheme.surface,
             body: Column(
@@ -111,8 +110,9 @@ class _ClientProfilePageState extends State<ClientProfilePage> {
               ],
             ),
           );
-        },
-      ),
+        }
+        return const Center(child: CircularProgressIndicator());
+      },
     );
   }
 }

@@ -6,6 +6,8 @@ import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/theme/theme_cubit.dart';
 import 'package:fashionista/core/widgets/bloc/button_loading_state_cubit.dart';
 import 'package:fashionista/core/widgets/bloc/previous_screen_state_cubit.dart';
+import 'package:fashionista/data/models/clients/bloc/client_cubit.dart';
+import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/settings/bloc/settings_bloc.dart';
 import 'package:fashionista/data/models/settings/models/settings_model.dart';
@@ -45,6 +47,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => PreviousScreenStateCubit()),
         BlocProvider(create: (_) => UserBloc()),
         BlocProvider(create: (_) => SettingsBloc()),
+        BlocProvider(create: (_) => ClientCubit(Client.empty())),
       ],
 
       child: BlocBuilder<SettingsBloc, Settings>(

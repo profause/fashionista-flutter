@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/clients/bloc/client_state.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
@@ -7,19 +9,29 @@ import 'package:fashionista/domain/usecases/clients/update_client_usecase.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ClientCubit extends Cubit<ClientState> {
-  ClientCubit(Client client) : super(ClientLoaded(client: client));
-  void clientUpdated(Client client) async {
-    var result = await sl<UpdateClientUsecase>().call(client);
-    result.fold((l) => (), (r) => emit(ClientUpdated(client: r)));
-  } // emit(clientState);
+  ClientCubit(Client client) : super(ClientLoaded(client: client.copyWith()));
 
-  void clientDelete(String clientId) async {
+  void updateClient(Client client) {
+    //var result = await sl<UpdateClientUsecase>().call(client);
+    //result.fold((l) => (), (r) => emit(ClientUpdated(client: r)));
+    emit(ClientLoading());
+    emit(ClientUpdated(client: client.copyWith()));
+  }
+
+  Future<void> deleteClient(String clientId) async {
     var result = await sl<DeleteClientUsecase>().call(clientId);
     result.fold((l) => null, (r) => emit(ClientDeleted(message: r)));
   }
 
-  void clientLoaded(String clientId) async {
+  Future<void> loadClient(String clientId) async {
     var result = await sl<FindClientByIdUsecase>().call(clientId);
-    result.fold((l) => null, (r) => emit(ClientLoaded(client: r)));
+    emit(ClientLoading());
+    result.fold((l) => null, (r) {
+      emit(ClientLoaded(client: r));
+    });
+  }
+
+  void clientLoading(){
+    emit(ClientLoading());
   }
 }

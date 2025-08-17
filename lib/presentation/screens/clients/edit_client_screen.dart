@@ -43,7 +43,6 @@ class _EditClientScreenState extends State<EditClientScreen> {
     _mobileNumberController = TextEditingController();
     _mobileNumberController.text = widget.client.mobileNumber;
     //}
-
     super.initState();
   }
 
@@ -59,15 +58,9 @@ class _EditClientScreenState extends State<EditClientScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    return BlocProvider(
-      create: (context) => ClientCubit(widget.client),
-      child: BlocBuilder<ClientCubit, ClientState>(
-        builder: (context, state) {
-          if (state is ClientDeleted) {
-            if (mounted) {
-              Navigator.pop(context);
-            }
-          }
+    return BlocBuilder<ClientCubit, ClientState>(
+      builder: (context, state) {
+        if (state is ClientLoaded || state is ClientUpdated) {
           return Scaffold(
             backgroundColor: colorScheme.surface,
             appBar: AppBar(
@@ -177,6 +170,26 @@ class _EditClientScreenState extends State<EditClientScreen> {
               child: AnimatedPrimaryButton(
                 text: "Save",
                 onPressed: () async {
+                  final fullName = _fullNameController.text.trim();
+                  final gender = _genderController.text.trim();
+                  final mobileNumber = _mobileNumberController.text.trim();
+
+                  final fullNameInit = fullName.substring(0, 2);
+
+                  final materialColorPair = getRandomColorPair();
+                  final bg = materialColorPair['background']!;
+                  final fg = materialColorPair['foreground']!;
+
+                  final imageUrl =
+                      'https://dummyimage.com/128.png/$bg/$fg&text=$fullNameInit';
+
+                  final updatedClient = state.client.copyWith(
+                    fullName: fullName,
+                    gender: gender,
+                    mobileNumber: mobileNumber,
+                    imageUrl: imageUrl,
+                  );
+                  context.read<ClientCubit>().updateClient(updatedClient);
                   final number = _mobileNumberController.text.trim();
                   final isValid = RegExp(
                     r'^(\+?\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$',
@@ -196,12 +209,16 @@ class _EditClientScreenState extends State<EditClientScreen> {
               ),
             ),
           );
-        },
-      ),
+        }
+        return const Center(child: CircularProgressIndicator());
+      },
     );
   }
 
   Future<void> _saveClient(Client client) async {
+    context.read<ClientCubit>().stream.listen(
+      (state) => debugPrint('from state: ' + state.toString()),
+    );
     try {
       _buttonLoadingStateCubit.setLoading(true);
       final fullName = _fullNameController.text.trim();

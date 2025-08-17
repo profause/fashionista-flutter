@@ -41,7 +41,7 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
       final clients = querySnapshot.docs
           .map((doc) => Client.fromJson(doc.data()))
           .toList();
-      debugPrint(clients.toString());
+      //debugPrint(clients.toString());
       return Right(clients);
     } on FirebaseException catch (e) {
       return Left(e.message ?? 'An unknown Firebase error occurred');
@@ -71,7 +71,7 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
       DocumentReference docRef = firestore.collection('clients').doc(uid);
       DocumentSnapshot doc = await docRef.get();
       Client client = Client.fromJson(doc.data() as Map<String, dynamic>);
-      debugPrint(doc.data().toString());
+      //debugPrint(doc.data().toString());
       return Right(client);
     } on FirebaseException catch (e) {
       return Left(e.message);
@@ -90,7 +90,7 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
       final clients = querySnapshot.docs
           .map((doc) => Client.fromJson(doc.data()))
           .toList();
-      debugPrint(clients.toString());
+      //debugPrint(clients.toString());
       return Right(clients);
     } on FirebaseException catch (e) {
       return Left(e.message ?? 'An unknown Firebase error occurred');

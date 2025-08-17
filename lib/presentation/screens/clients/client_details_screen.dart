@@ -23,11 +23,10 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
   @override
   void initState() {
     _isUploading = false;
+    context.read<ClientCubit>().updateClient(widget.client);
     super.initState();
   }
 
-  @override
-  @override
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -39,15 +38,15 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
 
     return DefaultTabController(
       length: 2,
-      child: BlocProvider(
-        create: (context) => ClientCubit(widget.client),
-        child: BlocBuilder<ClientCubit, ClientState>(
-          builder: (context, state) {
-            if (state is ClientDeleted) {
-              if (mounted) {
-                Navigator.pop(context);
-              }
+      child: BlocBuilder<ClientCubit, ClientState>(
+        builder: (context, state) {
+          if (state is ClientDeleted) {
+            if (mounted) {
+              Navigator.pop(context);
             }
+          }
+
+          if (state is ClientLoaded || state is ClientUpdated) {
             return Scaffold(
               backgroundColor: colorScheme.surface,
               body: NestedScrollView(
@@ -118,7 +117,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                                           radius: avatarRadius,
                                           backgroundColor: AppTheme.lightGrey,
                                           backgroundImage:
-                                              state.client.imageUrl != ''
+                                              state.client.imageUrl != null
                                               ? NetworkImage(
                                                   state.client.imageUrl!,
                                                 )
@@ -222,8 +221,10 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                 ),
               ),
             );
-          },
-        ),
+          } else {
+            return const Center(child: CircularProgressIndicator());
+          }
+        },
       ),
     );
   }

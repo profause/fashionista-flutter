@@ -1,6 +1,8 @@
+import 'package:fashionista/data/models/clients/bloc/client_cubit.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/presentation/screens/clients/client_details_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ClientInfoCardWidget extends StatefulWidget {
   final Client clientInfo;
@@ -31,6 +33,7 @@ class _ClientInfoCardWidgetState extends State<ClientInfoCardWidget> {
       onTap:
           widget.onTap ??
           () {
+            //context.read<ClientCubit>().updateClient(widget.clientInfo);
             // Example: Navigate to Client Details Screen
             Navigator.push(
               context,
