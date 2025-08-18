@@ -20,6 +20,9 @@ class _ClientsScreenState extends State<ClientsScreen> {
   late AuthProviderCubit _authProviderCubit;
   //bool _isLoading = false;
   final collectionRef = FirebaseFirestore.instance.collection('clients');
+  bool _isSearching = false;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchText = "";
 
   @override
   void initState() {
@@ -62,11 +65,79 @@ class _ClientsScreenState extends State<ClientsScreen> {
       appBar: AppBar(
         foregroundColor: colorScheme.primary,
         backgroundColor: colorScheme.onPrimary,
-        title: Text(
-          'Clients',
-          style: textTheme.headlineSmall!.copyWith(fontWeight: FontWeight.bold),
+        title: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          transitionBuilder: (child, animation) {
+            // Incoming: slide in from right
+            final inAnimation = Tween<Offset>(
+              begin: const Offset(1.0, 0.0), // from right
+              end: Offset.zero,
+            ).animate(animation);
+
+            // Outgoing: shrink/slide away from center
+            final outAnimation = Tween<Offset>(
+              begin: Offset.zero, // start at center
+              end: const Offset(0.0, 0.0), // move slightly up
+            ).animate(animation);
+
+            if (child.key == const ValueKey("searchField")) {
+              return FadeTransition(
+                opacity: animation,
+                child: SlideTransition(position: inAnimation, child: child),
+              );
+            } else {
+              return FadeTransition(
+                opacity: animation,
+                child: SlideTransition(position: outAnimation, child: child),
+              );
+            }
+          },
+          child: _isSearching
+              ? TextField(
+                  key: const ValueKey("searchField"),
+                  controller: _searchController,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText: 'Search clients...',
+                    border: InputBorder.none,
+                    hintStyle: textTheme.titleMedium,
+                  ),
+                  style: textTheme.bodyMedium,
+                  onChanged: (value) {
+                    setState(() => _searchText = value);
+                  },
+                )
+              : Text(
+                  'Clients',
+                  key: const ValueKey("title"),
+                  style: textTheme.headlineSmall!.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
         ),
+
         elevation: 0,
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            child: IconButton(
+              icon: Icon(
+                _isSearching ? Icons.close : Icons.search,
+                size: 30,
+                color: colorScheme.primary,
+              ),
+              onPressed: () {
+                setState(() {
+                  if (_isSearching) {
+                    _searchText = "";
+                    _searchController.clear();
+                  }
+                  _isSearching = !_isSearching;
+                });
+              },
+            ),
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: refreshClients,
@@ -96,12 +167,20 @@ class _ClientsScreenState extends State<ClientsScreen> {
                 ],
               );
             }
+            // inside your build method
+            final filteredClients = _searchText.isEmpty
+                ? clients
+                : clients.where((clientSnap) {
+                    final client = clientSnap.data();
+                    final name = client.fullName.toLowerCase(); // adjust field
+                    return name.contains(_searchText.toLowerCase());
+                  }).toList();
             return ListView.builder(
               padding: const EdgeInsets.all(8.0),
               physics: const AlwaysScrollableScrollPhysics(),
-              itemCount: clients.length,
+              itemCount: filteredClients.length,
               itemBuilder: (context, index) {
-                final client = clients[index].data();
+                final client = filteredClients[index].data();
                 return ClientInfoCardWidget(clientInfo: client);
               },
             );
@@ -133,5 +212,11 @@ class _ClientsScreenState extends State<ClientsScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 }

@@ -39,6 +39,7 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    String _searchText = "";
     return BlocBuilder<ClientCubit, ClientState>(
       builder: (context, state) {
         if (state is ClientDeleted) {
@@ -47,6 +48,13 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
           }
         }
         if (state is ClientLoaded || state is ClientUpdated) {
+          // final measurements = state.client.measurements
+          //     .where(
+          //       (m) => m.bodyPart.toLowerCase().contains(
+          //         _searchText.toLowerCase(),
+          //       ),
+          //     )
+          //     .toList();
           return Scaffold(
             backgroundColor: colorScheme.surface,
             body: Column(
@@ -83,9 +91,7 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
                                     ),
                                     style: textTheme.bodyMedium,
                                     onChanged: (value) {
-                                      setState(() {
-                                        // TODO: filter list with `value`
-                                      });
+                                      setState(() => _searchText = value);
                                     },
                                   )
                                 : Text(

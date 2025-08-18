@@ -37,7 +37,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
 
     const double maxAvatarRadius = 60;
     const double minAvatarRadius = 32;
-    const double expandedHeight = 280;
+    const double expandedHeight = 250;
 
     return DefaultTabController(
       length: 2,
