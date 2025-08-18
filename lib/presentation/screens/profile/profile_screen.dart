@@ -307,6 +307,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final userBloc = context.read<UserBloc>();
       final uid = userBloc.state.uid;
+
+      if(uid != null) return;
       showDialog(
         context: context,
         barrierDismissible: false, // Prevent dismissing
