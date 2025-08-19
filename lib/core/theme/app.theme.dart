@@ -44,6 +44,29 @@ final ThemeData fashionistaLightTheme = ThemeData(
       statusBarBrightness: Brightness.light, // iOS icons
     ),
   ),
+  iconTheme: IconThemeData(
+    color: const Color(0xFF36454f), // Default for light mode
+    size: 24,
+  ),
+  iconButtonTheme: IconButtonThemeData(
+    style: IconButton.styleFrom(
+      foregroundColor: const Color(0xFF36454f), // Default for light mode
+    )
+  ),
+textTheme: const TextTheme(
+    headlineLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.black),
+    headlineMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.w600, color: Colors.black87),
+    headlineSmall: TextStyle(fontSize: 24, fontWeight: FontWeight.w500, color: Colors.black87),
+    titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: Colors.black87),
+    titleMedium: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: Color(0xFF36454f)),
+    titleSmall: TextStyle(fontSize: 16, fontWeight: FontWeight.w400, color: Color(0xFF36454f)),
+    bodyLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: Color(0xFF36454f)),
+    bodyMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: Color(0xFF36454f)),
+    bodySmall: TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: Color(0xFF36454f)),
+    labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF36454f)),
+    labelMedium: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF36454f)),
+    labelSmall: TextStyle(fontSize: 10, fontWeight: FontWeight.w400, color:  Color(0xFF36454f)),
+  ),
   dividerColor: const Color(0xFFE8E8E8),
 );
 
@@ -80,6 +103,24 @@ final ThemeData fashionistaDarkTheme = ThemeData(
     foregroundColor: Colors.white,
     elevation: 0,
     scrolledUnderElevation: 0,
+  ),
+  iconTheme: IconThemeData(
+    color: Colors.white70, // Default for dark mode
+    size: 24,
+  ),
+  textTheme: const TextTheme(
+    headlineLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
+    headlineMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.w600, color: Colors.white70),
+    headlineSmall: TextStyle(fontSize: 24, fontWeight: FontWeight.w500, color: Colors.white70),
+    titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: Colors.white70),
+    titleMedium: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: Colors.white70),
+    titleSmall: TextStyle(fontSize: 16, fontWeight: FontWeight.w400, color: Colors.white70),
+    bodyLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: Colors.white70),
+    bodyMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: Colors.white70),
+    bodySmall: TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: Colors.white60),
+    labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+    labelMedium: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.white70),
+    labelSmall: TextStyle(fontSize: 10, fontWeight: FontWeight.w400, color: Colors.white60),
   ),
   dividerColor: const Color(0xFF2C2C2C),
 );

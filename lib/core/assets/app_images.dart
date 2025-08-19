@@ -6,6 +6,6 @@ class AppImages {
   static const String appLogo = '${basePath}app_logo$format';
   static const String avatar = '${basePath}avatar$format';
 
-  static const String closet_light = '${basePath}closet_light$format';
-  static const String closet_dark = '${basePath}closet_dark$format';
+  static const String closetLight = '${basePath}closet_light$format';
+  static const String closetDark = '${basePath}closet_dark$format';
 }

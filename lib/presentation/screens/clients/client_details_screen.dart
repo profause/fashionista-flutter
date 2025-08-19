@@ -1,4 +1,4 @@
-import 'package:fashionista/core/assets/app_images.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/clients/bloc/client_cubit.dart';
@@ -8,6 +8,7 @@ import 'package:fashionista/data/services/firebase_clients_service.dart';
 import 'package:fashionista/presentation/screens/client_measurement/client_measurement_screen.dart';
 import 'package:fashionista/presentation/screens/clients/client_profile_page.dart';
 import 'package:fashionista/presentation/screens/clients/edit_client_screen.dart';
+import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -21,11 +22,11 @@ class ClientDetailsScreen extends StatefulWidget {
 }
 
 class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
-  bool _isUploading = false;
+// bool _isUploading = false;
 
   @override
   void initState() {
-    _isUploading = false;
+   // _isUploading = false;
     context.read<ClientCubit>().updateClient(widget.client);
     super.initState();
   }
@@ -57,84 +58,88 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                       elevation: 0,
                       title: Text(
                         state.client.fullName,
-                        style: textTheme.headlineSmall!.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: textTheme.titleLarge!,
                       ),
                       actions: [
-                        IconButton(
-                          padding: EdgeInsets.zero, // removes default padding
-                          icon: Icon(
-                            Icons.delete,
-                            size: 24,
-                            color: colorScheme.primary,
-                          ),
-                          onPressed: () async {
-                            final canDelete = await showDialog<bool>(
-                              context: context,
-                              builder: (ctx) => AlertDialog(
-                                title: const Text('Delete Client'),
-                                content: const Text(
-                                  'Are you sure you want to delete this client?',
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.of(ctx).pop(false),
-                                    child: const Text('Cancel'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.of(ctx).pop(true),
-                                    style: TextButton.styleFrom(
-                                      foregroundColor: Colors.red,
+                        Padding(
+                          padding: const EdgeInsets.only(right: 18),
+                          child: Row(
+                            children: [
+                              CustomIconButtonRounded(
+                                size: 24,
+                                icon: Icons.delete,
+                                onPressed: () async {
+                                  final canDelete = await showDialog<bool>(
+                                    context: context,
+                                    builder: (ctx) => AlertDialog(
+                                      title: const Text('Delete Client'),
+                                      content: const Text(
+                                        'Are you sure you want to delete this client?',
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.of(ctx).pop(false),
+                                          child: const Text('Cancel'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.of(ctx).pop(true),
+                                          style: TextButton.styleFrom(
+                                            foregroundColor: Colors.red,
+                                          ),
+                                          child: const Text('Delete'),
+                                        ),
+                                      ],
                                     ),
-                                    child: const Text('Delete'),
-                                  ),
-                                ],
+                                  );
+                          
+                                  if (canDelete == true) {
+                                    if (mounted) {
+                                      showDialog(
+                                        context: context,
+                                        barrierDismissible:
+                                            false, // Prevent dismissing
+                                        builder: (_) => const Center(
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                      );
+                                    }
+                                    _deleteClient(state.client);
+                                  }
+                                },
                               ),
-                            );
-
-                            if (canDelete == true) {
-                              if (mounted) {
-                                showDialog(
-                                  context: context,
-                                  barrierDismissible:
-                                      false, // Prevent dismissing
-                                  builder: (_) => const Center(
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                );
-                              }
-                              _deleteClient(state.client);
-                            }
-                          },
-                          splashRadius: 24,
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.edit),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => BlocProvider.value(
-                                  value: context
-                                      .read<
-                                        ClientCubit
-                                      >(), // reuse existing cubit
-                                  child: EditClientScreen(client: state.client),
-                                ),
+                              const SizedBox(width: 8),
+                              CustomIconButtonRounded(
+                                size: 24,
+                                icon: Icons.edit,
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => BlocProvider.value(
+                                        value: context
+                                            .read<
+                                              ClientCubit
+                                            >(), // reuse existing cubit
+                                        child: EditClientScreen(
+                                          client: state.client,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                          
+                                  // Navigator.push(
+                                  //   context,
+                                  //   MaterialPageRoute(
+                                  //     builder: (context) =>
+                                  //         EditClientScreen(client: state.client),
+                                  //   ),
+                                  // );
+                                },
                               ),
-                            );
-
-                            // Navigator.push(
-                            //   context,
-                            //   MaterialPageRoute(
-                            //     builder: (context) =>
-                            //         EditClientScreen(client: state.client),
-                            //   ),
-                            // );
-                          },
+                            ],
+                          ),
                         ),
                       ],
                       flexibleSpace: LayoutBuilder(
@@ -162,15 +167,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                                         CircleAvatar(
                                           radius: avatarRadius,
                                           backgroundColor: AppTheme.lightGrey,
-                                          backgroundImage:
-                                              state.client.imageUrl != null
-                                              ? NetworkImage(
-                                                  state.client.imageUrl!,
-                                                )
-                                              : const AssetImage(
-                                                      AppImages.avatar,
-                                                    )
-                                                    as ImageProvider,
+                                          backgroundImage: CachedNetworkImageProvider(state.client.imageUrl!),
                                         ),
                                         Positioned(
                                           bottom: 4, // slight overlap
@@ -185,7 +182,6 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                                               icon: Icon(
                                                 Icons.camera_alt,
                                                 size: 24,
-                                                color: colorScheme.primary,
                                               ),
                                               onPressed: () {
                                                 // Handle camera click
@@ -260,7 +256,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                             // divider color
                             child: Text(
                               "Profile",
-                              style: textTheme.titleMedium!.copyWith(
+                              style: textTheme.bodyMedium!.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -274,7 +270,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                             // divider color
                             child: Text(
                               "Measurements",
-                              style: textTheme.titleMedium!.copyWith(
+                              style: textTheme.bodyMedium!.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                             ),

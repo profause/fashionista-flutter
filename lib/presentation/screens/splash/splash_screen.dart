@@ -1,5 +1,3 @@
-import 'package:fashionista/core/assets/app_images.dart';
-import 'package:fashionista/core/assets/rounded_image.dart';
 import 'package:fashionista/core/auth/auth_provider_cubit.dart';
 import 'package:fashionista/core/onboarding/onboarding_cubit.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
@@ -23,9 +21,9 @@ class _SplashScreenState extends State<SplashScreen>
   late AuthProviderCubit _authProviderCubit;
 
   late AnimationController _controller;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
-  late Animation<double> _scaleAnimation;
+  //late Animation<double> _fadeAnimation;
+  //late Animation<Offset> _slideAnimation;
+  //late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
@@ -35,27 +33,27 @@ class _SplashScreenState extends State<SplashScreen>
       duration: const Duration(microseconds: 1500),
     );
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
-      ),
-    );
+    // _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+    //   CurvedAnimation(
+    //     parent: _controller,
+    //     curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
+    //   ),
+    // );
 
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _controller,
-            curve: const Interval(0.3, 0.8, curve: Curves.easeOut),
-          ),
-        );
+    // _slideAnimation =
+    //     Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(
+    //       CurvedAnimation(
+    //         parent: _controller,
+    //         curve: const Interval(0.3, 0.8, curve: Curves.easeOut),
+    //       ),
+    //     );
 
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.4, 1.0, curve: Curves.easeOut),
-      ),
-    );
+    // _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+    //   CurvedAnimation(
+    //     parent: _controller,
+    //     curve: const Interval(0.4, 1.0, curve: Curves.easeOut),
+    //   ),
+    // );
 
     _controller.forward();
     Future.delayed(const Duration(milliseconds: 2500), () {

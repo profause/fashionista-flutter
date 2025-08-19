@@ -11,7 +11,6 @@ class AnimatedTitle extends StatefulWidget {
 class _AnimatedTitleState extends State<AnimatedTitle>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-
   final String _title = "Fashionista";
 
   @override
@@ -19,7 +18,7 @@ class _AnimatedTitleState extends State<AnimatedTitle>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 1), // total animation time
+      duration: const Duration(seconds: 1),
     )..forward();
   }
 
@@ -36,7 +35,7 @@ class _AnimatedTitleState extends State<AnimatedTitle>
       children: List.generate(_title.length, (index) {
         final char = _title[index];
 
-        // Each character animates in sequence (stagger effect)
+        // set each character to appear staggered
         final intervalStart = index / _title.length;
         final intervalEnd = (index + 1) / _title.length;
 
@@ -49,14 +48,13 @@ class _AnimatedTitleState extends State<AnimatedTitle>
           opacity: animation,
           child: SlideTransition(
             position: Tween<Offset>(
-              begin: const Offset(0.0, 1.0), // from bottom
+              begin: const Offset(1.5, 0), // from right
               end: Offset.zero,
             ).animate(animation),
             child: Text(
               char,
               style: AppTheme.appTitleStyle.copyWith(
-                color: AppTheme.lightGrey,
-              ),
+                color: AppTheme.lightGrey,),
             ),
           ),
         );

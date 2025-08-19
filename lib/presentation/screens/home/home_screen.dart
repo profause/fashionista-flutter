@@ -1,6 +1,5 @@
 import 'package:fashionista/presentation/screens/home/widgets/header.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

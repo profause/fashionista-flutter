@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fashionista/core/auth/auth_provider_cubit.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/presentation/screens/clients/add_client_screen.dart';
+import 'package:fashionista/presentation/widgets/appbar_title.dart';
+import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -21,8 +23,7 @@ class _TrendsScreenState extends State<TrendsScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchText = "";
 
-
-@override
+  @override
   void initState() {
     //_isLoading = false;
     //if (mounted) {
@@ -42,7 +43,6 @@ class _TrendsScreenState extends State<TrendsScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -53,8 +53,8 @@ class _TrendsScreenState extends State<TrendsScreen> {
     }
 
     return Scaffold(
-       backgroundColor: colorScheme.surface,
-      appBar:AppBar(
+      backgroundColor: colorScheme.surface,
+      appBar: AppBar(
         foregroundColor: colorScheme.primary,
         backgroundColor: colorScheme.onPrimary,
         title: AnimatedSwitcher(
@@ -99,15 +99,9 @@ class _TrendsScreenState extends State<TrendsScreen> {
                     setState(() => _searchText = value);
                   },
                 )
-              : Text(
-                  'Trends',
-                  key: const ValueKey("title"),
-                  style: textTheme.headlineSmall!.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+              : const AppBarTitle(title: "Trends"),
         ),
-
+        centerTitle: true,
         elevation: 0,
         actions: [
           Container(
@@ -134,16 +128,24 @@ class _TrendsScreenState extends State<TrendsScreen> {
       body: RefreshIndicator(
         onRefresh: refreshClients,
         child: StreamBuilder<QuerySnapshot<Client>>(
-          stream: query
-              .orderBy('created_date', descending: true)
-              .snapshots(),
+          stream: query.orderBy('created_date', descending: true).snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
 
             if (snapshot.hasError) {
-              return Center(child: Text("Error: ${snapshot.error}"));
+              return SizedBox(
+                    height: 400,
+                    child: Center(
+                      child: PageEmptyWidget(
+                        title: "No Trends Found",
+                        subtitle: "Error: ${snapshot.error}",
+                        icon: Icons.newspaper_outlined,
+                      ),
+                    ),
+                  );
+              //return Center(child: Text("Error: ${snapshot.error}"));
             }
 
             final clients = snapshot.data?.docs ?? [];
@@ -153,8 +155,14 @@ class _TrendsScreenState extends State<TrendsScreen> {
                 physics: const AlwaysScrollableScrollPhysics(),
                 children: const [
                   SizedBox(
-                    height: 300,
-                    child: Center(child: Text("No clients found")),
+                    height: 400,
+                    child: Center(
+                      child: PageEmptyWidget(
+                        title: "No Trends Found",
+                        subtitle: "Add new trend to see them here.",
+                        icon: Icons.newspaper_outlined,
+                      ),
+                    ),
                   ),
                 ],
               );
@@ -167,20 +175,37 @@ class _TrendsScreenState extends State<TrendsScreen> {
                     final name = client.fullName.toLowerCase(); // adjust field
                     return name.contains(_searchText.toLowerCase());
                   }).toList();
+            if (filteredClients.isEmpty) {
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: const [
+                  SizedBox(
+                    height: 400,
+                    child: Center(
+                      child: PageEmptyWidget(
+                        title: "No Trends Found",
+                        subtitle: "Add new trend to see them here.",
+                        icon: Icons.newspaper_outlined,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            }
             return ListView.builder(
               padding: const EdgeInsets.all(8.0),
               physics: const AlwaysScrollableScrollPhysics(),
               itemCount: filteredClients.length,
               itemBuilder: (context, index) {
-                final client = filteredClients[index].data();
-                return Container();//(clientInfo: client);
+                //final client = filteredClients[index].data();
+                return Container(); //(clientInfo: client);
               },
             );
           },
         ),
       ),
       floatingActionButton: Hero(
-        tag: 'add-client-button',
+        tag: 'add-trend-button',
         child: Material(
           color: Theme.of(context).colorScheme.primary,
           elevation: 6,
@@ -202,11 +227,11 @@ class _TrendsScreenState extends State<TrendsScreen> {
             ),
           ),
         ),
-      )
+      ),
     );
   }
 
-    @override
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();

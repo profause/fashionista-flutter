@@ -231,55 +231,58 @@ class _AddClientMeasurementScreenState
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: Hero(
         tag: 'add-measurement-button',
-        child: AnimatedPrimaryButton(
-          text: "Save",
-          onPressed: () async {
-            debugPrint(_tagsController.text.trim());
-            final isValid = _bodyPartController.text.isNotEmpty;
-            if (!isValid) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("All fields are required."),
-                  duration: Duration(seconds: 2),
-                ),
+        child: Container(
+          margin: const EdgeInsets.all(16),
+          child: AnimatedPrimaryButton(
+            text: "Save",
+            onPressed: () async {
+              debugPrint(_tagsController.text.trim());
+              final isValid = _bodyPartController.text.isNotEmpty;
+              if (!isValid) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("All fields are required."),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+                return; // Stop here if invalid
+              }
+          
+              final updatedMeasurement = widget.clientMeasurement.copyWith(
+                bodyPart: _bodyPartController.text.trim(),
+                measuredValue: double.parse(_measuredValueController.text.trim()),
+                notes: _noteController.text.trim(),
+                measuringUnit: _measuringUnitController.text.trim(),
+                updatedDate: DateTime.now(),
+                tags: _tagsController.text.trim(),
               );
-              return; // Stop here if invalid
-            }
-
-            final updatedMeasurement = widget.clientMeasurement.copyWith(
-              bodyPart: _bodyPartController.text.trim(),
-              measuredValue: double.parse(_measuredValueController.text.trim()),
-              notes: _noteController.text.trim(),
-              measuringUnit: _measuringUnitController.text.trim(),
-              updatedDate: DateTime.now(),
-              tags: _tagsController.text.trim(),
-            );
-            final List<ClientMeasurement> measurements = List.from(
-              widget.client.measurements,
-            );
-
-            // check if bodyPart already exists
-            final index = measurements.indexWhere(
-              (m) =>
-                  m.bodyPart.toLowerCase() ==
-                  updatedMeasurement.bodyPart.toLowerCase(),
-            );
-
-            if (index != -1) {
-              // update existing
-              measurements[index] = updatedMeasurement;
-            } else {
-              // add new
-              measurements.add(updatedMeasurement);
-            }
-            // now create updated client with new list
-            final updatedClient = widget.client.copyWith(
-              measurements: measurements,
-            );
-
-            context.read<ClientCubit>().updateClient(updatedClient);
-            _saveClientMeasurement(updatedClient);
-          },
+              final List<ClientMeasurement> measurements = List.from(
+                widget.client.measurements,
+              );
+          
+              // check if bodyPart already exists
+              final index = measurements.indexWhere(
+                (m) =>
+                    m.bodyPart.toLowerCase() ==
+                    updatedMeasurement.bodyPart.toLowerCase(),
+              );
+          
+              if (index != -1) {
+                // update existing
+                measurements[index] = updatedMeasurement;
+              } else {
+                // add new
+                measurements.add(updatedMeasurement);
+              }
+              // now create updated client with new list
+              final updatedClient = widget.client.copyWith(
+                measurements: measurements,
+              );
+          
+              context.read<ClientCubit>().updateClient(updatedClient);
+              _saveClientMeasurement(updatedClient);
+            },
+          ),
         ),
       ),
     );
@@ -318,53 +321,53 @@ class _AddClientMeasurementScreenState
     }
   }
 
-  Widget _tagWidget(BuildContext context, String text) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    return Container(
-      margin: const EdgeInsets.only(right: 12),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {},
-          borderRadius: BorderRadius.circular(30),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            decoration: BoxDecoration(
-              color: colorScheme.primary.withValues(alpha: 0.1),
-              border: Border.all(
-                color: colorScheme.primary.withValues(alpha: .5),
-                width: 1.0,
-              ),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  text,
-                  style: textTheme.bodyMedium!.copyWith(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () {
-                    // Handle tap here (e.g., remove chip or clear text)
-                    debugPrint("Close icon tapped");
-                  },
-                  child: Icon(
-                    Icons.close_rounded,
-                    color: colorScheme.primary,
-                    size: 16,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  // Widget _tagWidget(BuildContext context, String text) {
+  //   final colorScheme = Theme.of(context).colorScheme;
+  //   final textTheme = Theme.of(context).textTheme;
+  //   return Container(
+  //     margin: const EdgeInsets.only(right: 12),
+  //     child: Material(
+  //       color: Colors.transparent,
+  //       child: InkWell(
+  //         onTap: () {},
+  //         borderRadius: BorderRadius.circular(30),
+  //         child: Container(
+  //           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+  //           decoration: BoxDecoration(
+  //             color: colorScheme.primary.withValues(alpha: 0.1),
+  //             border: Border.all(
+  //               color: colorScheme.primary.withValues(alpha: .5),
+  //               width: 1.0,
+  //             ),
+  //             borderRadius: BorderRadius.circular(8),
+  //           ),
+  //           child: Row(
+  //             mainAxisSize: MainAxisSize.min,
+  //             children: [
+  //               Text(
+  //                 text,
+  //                 style: textTheme.bodyMedium!.copyWith(
+  //                   fontSize: 14,
+  //                   fontWeight: FontWeight.w600,
+  //                 ),
+  //               ),
+  //               const SizedBox(width: 8),
+  //               GestureDetector(
+  //                 onTap: () {
+  //                   // Handle tap here (e.g., remove chip or clear text)
+  //                   debugPrint("Close icon tapped");
+  //                 },
+  //                 child: Icon(
+  //                   Icons.close_rounded,
+  //                   color: colorScheme.primary,
+  //                   size: 16,
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 }

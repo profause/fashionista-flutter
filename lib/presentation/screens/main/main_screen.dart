@@ -81,7 +81,7 @@ class _MainScreenState extends State<MainScreen> {
 
   void _onPageChanged(int index) {
     setState(() {
-      _selectedIndex.value = index;
+      //_selectedIndex.value = index;
     });
   }
 
@@ -97,7 +97,7 @@ class _MainScreenState extends State<MainScreen> {
           PageView(
             controller: _pageController,
             onPageChanged: _onPageChanged,
-            //physics: const NeverScrollableScrollPhysics(),
+            physics: const NeverScrollableScrollPhysics(),
             children: _userBloc.state.accountType == 'Designer'
                 ? _designerPageList
                 : _regularUserPageList,

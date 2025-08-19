@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/assets/app_images.dart';
 import 'package:fashionista/core/auth/auth_provider_cubit.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
@@ -13,6 +14,7 @@ import 'package:fashionista/presentation/screens/auth/sign_in_screen.dart';
 import 'package:fashionista/presentation/screens/profile/edit_profile_screen.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_card_widget.dart';
 import 'package:fashionista/presentation/screens/settings/settings_screen.dart';
+import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -86,7 +88,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(8),
+          //padding: const EdgeInsets.all(8),
           child: BlocBuilder<UserBloc, User>(
             builder: (context, user) => Column(
               mainAxisAlignment: MainAxisAlignment.center, // center vertically
@@ -94,109 +96,121 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   CrossAxisAlignment.center, // center horizontally
               children: [
                 //const SizedBox(height: 8),
-                Center(
-                  // ensures horizontal centering
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(
-                        60,
-                      ), // match avatar shape
-                      onTap: () {},
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          // Avatar
-                          Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(60),
-                              onTap: () {},
-                              child: CircleAvatar(
-                                radius: 60,
-                                backgroundColor: AppTheme.lightGrey,
-                                backgroundImage: user.profileImage != ''
-                                    ? NetworkImage(user.profileImage)
-                                    : const AssetImage(AppImages.avatar)
-                                          as ImageProvider,
-                              ),
+                Stack(
+                  children: [
+                    Card(
+                      elevation: 0,
+                      color: colorScheme.onPrimary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(0),
+                      ),
+                      margin: const EdgeInsets.only(bottom: 6),
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 16.0, left: 16.0, top: 16.0, bottom: 32.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            CustomIconButtonRounded(
+                              size: 24,
+                              icon: Icons.edit,
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const EditProfileScreen(),
+                                  ),
+                                );
+                              },
                             ),
-                          ),
-
-                          // Camera button
-                          Positioned(
-                            bottom: 4, // slight overlap
-                            right: 4,
-                            child: CircleAvatar(
-                              radius: 18,
-                              backgroundColor: colorScheme.onPrimary,
-                              child: IconButton(
-                                padding:
-                                    EdgeInsets.zero, // removes default padding
-                                icon: Icon(
-                                  Icons.camera_alt,
-                                  size: 24,
-                                  color: colorScheme.primary,
-                                ),
-                                onPressed: () {
-                                  // Handle camera click
-                                  _chooseImageSource(context);
-                                },
-                                splashRadius: 24,
-                              ),
-                            ),
-                          ),
-                          // Centered loader overlay
-                          if (_isUploading)
-                            Positioned.fill(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.black.withValues(
-                                    alpha: 0.20,
-                                  ), // subtle dim
-                                ),
-                                alignment: Alignment.center,
-                                child: const SizedBox(
-                                  width: 36,
-                                  height: 36,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 3,
+                          ],
+                        ),
+                      ),
+                    ),
+                    Container(
+                      margin: EdgeInsets.only(top: 8),
+                      child: Center(
+                        // ensures horizontal centering
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(
+                              60,
+                            ), // match avatar shape
+                            onTap: () {},
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                // Avatar
+                                Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(60),
+                                    onTap: () {},
+                      
+                                    child: CircleAvatar(
+                                      radius: 60,
+                                      backgroundColor: AppTheme.lightGrey,
+                                      backgroundImage: user.profileImage != ''
+                                          ? CachedNetworkImageProvider(
+                                              user.profileImage,
+                                            )
+                                          : const AssetImage(AppImages.avatar)
+                                                as ImageProvider,
+                                    ),
                                   ),
                                 ),
-                              ),
+                      
+                                // Camera button
+                                Positioned(
+                                  bottom: 4, // slight overlap
+                                  right: 4,
+                                  child: CircleAvatar(
+                                    radius: 18,
+                                    backgroundColor: colorScheme.onPrimary,
+                                    child: IconButton(
+                                      padding: EdgeInsets
+                                          .zero, // removes default padding
+                                      icon: Icon(
+                                        Icons.camera_alt,
+                                        size: 24,
+                                        color: colorScheme.primary,
+                                      ),
+                                      onPressed: () {
+                                        // Handle camera click
+                                        _chooseImageSource(context);
+                                      },
+                                      splashRadius: 24,
+                                    ),
+                                  ),
+                                ),
+                                // Centered loader overlay
+                                if (_isUploading)
+                                  Positioned.fill(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.black.withValues(
+                                          alpha: 0.20,
+                                        ), // subtle dim
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: const SizedBox(
+                                        width: 36,
+                                        height: 36,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 3,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
-                        ],
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const EditProfileScreen(),
-                      ),
-                    );
-                  },
-                  style: TextButton.styleFrom(
-                    side: BorderSide(
-                      color: AppTheme.lightGrey,
-                    ), // Outline color
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8), // Rounded corners
-                    ),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 6,
-                    ), // Optional padding
-                  ),
-                  child: Text(
-                    'Edit profile',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
+                  ],
                 ),
                 const SizedBox(height: 8),
                 //personal info
@@ -308,7 +322,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final userBloc = context.read<UserBloc>();
       final uid = userBloc.state.uid;
 
-      //if (uid == null) return;
+      if (uid != null) return;
       showDialog(
         context: context,
         barrierDismissible: false, // Prevent dismissing

@@ -144,7 +144,7 @@ class _TagInputFieldState extends State<TagInputField> {
               ),
               hintStyle: textTheme.titleSmall,
               filled: true,
-              fillColor: true ? Colors.transparent : Colors.grey[50],
+              fillColor:  Colors.transparent,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 4,
                 vertical: 0,

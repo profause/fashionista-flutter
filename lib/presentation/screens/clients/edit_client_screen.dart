@@ -1,13 +1,10 @@
-import 'package:fashionista/core/auth/auth_provider_cubit.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/widgets/animated_primary_button.dart';
 import 'package:fashionista/core/widgets/bloc/button_loading_state_cubit.dart';
 import 'package:fashionista/data/models/clients/bloc/client_cubit.dart';
 import 'package:fashionista/data/models/clients/bloc/client_state.dart';
-import 'package:fashionista/data/models/clients/client_measurement_model.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
-import 'package:fashionista/domain/usecases/clients/add_client_usecase.dart';
 import 'package:fashionista/domain/usecases/clients/update_client_usecase.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/custom_chip_form_field_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_text_field_widget.dart';
@@ -25,7 +22,7 @@ class EditClientScreen extends StatefulWidget {
 
 class _EditClientScreenState extends State<EditClientScreen> {
   final _formKey = GlobalKey<FormState>();
-  late AuthProviderCubit _authProviderCubit;
+  //late AuthProviderCubit _authProviderCubit;
   late TextEditingController _fullNameController;
   late TextEditingController _mobileNumberController;
   late TextEditingController _genderController;
@@ -34,7 +31,7 @@ class _EditClientScreenState extends State<EditClientScreen> {
   @override
   void initState() {
     //if (mounted) {
-    _authProviderCubit = context.read<AuthProviderCubit>();
+    //_authProviderCubit = context.read<AuthProviderCubit>();
     _buttonLoadingStateCubit = context.read<ButtonLoadingStateCubit>();
     _fullNameController = TextEditingController();
     _genderController = TextEditingController();
@@ -88,7 +85,7 @@ class _EditClientScreenState extends State<EditClientScreen> {
                         ),
                         elevation: 0,
                         child: Padding(
-                          padding: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(16),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -167,45 +164,48 @@ class _EditClientScreenState extends State<EditClientScreen> {
                 FloatingActionButtonLocation.centerFloat,
             floatingActionButton: Hero(
               tag: 'edit-client-button',
-              child: AnimatedPrimaryButton(
-                text: "Save",
-                onPressed: () async {
-                  final fullName = _fullNameController.text.trim();
-                  final gender = _genderController.text.trim();
-                  final mobileNumber = _mobileNumberController.text.trim();
-
-                  final fullNameInit = fullName.substring(0, 2);
-
-                  final materialColorPair = getRandomColorPair();
-                  final bg = materialColorPair['background']!;
-                  final fg = materialColorPair['foreground']!;
-
-                  final imageUrl =
-                      'https://dummyimage.com/128.png/$bg/$fg&text=$fullNameInit';
-
-                  final updatedClient = state.client.copyWith(
-                    fullName: fullName,
-                    gender: gender,
-                    mobileNumber: mobileNumber,
-                    imageUrl: imageUrl,
-                  );
-                  context.read<ClientCubit>().updateClient(updatedClient);
-                  final number = _mobileNumberController.text.trim();
-                  final isValid = RegExp(
-                    r'^(\+?\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$',
-                  ).hasMatch(number);
-
-                  if (!isValid) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Enter mobile number to proceed"),
-                        duration: Duration(seconds: 2),
-                      ),
+              child: Container(
+                margin: const EdgeInsets.all(16),
+                child: AnimatedPrimaryButton(
+                  text: "Save",
+                  onPressed: () async {
+                    final fullName = _fullNameController.text.trim();
+                    final gender = _genderController.text.trim();
+                    final mobileNumber = _mobileNumberController.text.trim();
+                
+                    final fullNameInit = fullName.substring(0, 2);
+                
+                    final materialColorPair = getRandomColorPair();
+                    final bg = materialColorPair['background']!;
+                    final fg = materialColorPair['foreground']!;
+                
+                    final imageUrl =
+                        'https://dummyimage.com/128.png/$bg/$fg&text=$fullNameInit';
+                
+                    final updatedClient = state.client.copyWith(
+                      fullName: fullName,
+                      gender: gender,
+                      mobileNumber: mobileNumber,
+                      imageUrl: imageUrl,
                     );
-                    return; // Stop here if invalid
-                  }
-                  _saveClient(state.client);
-                },
+                    context.read<ClientCubit>().updateClient(updatedClient);
+                    final number = _mobileNumberController.text.trim();
+                    final isValid = RegExp(
+                      r'^(\+?\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$',
+                    ).hasMatch(number);
+                
+                    if (!isValid) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Enter mobile number to proceed"),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                      return; // Stop here if invalid
+                    }
+                    _saveClient(state.client);
+                  },
+                ),
               ),
             ),
           );

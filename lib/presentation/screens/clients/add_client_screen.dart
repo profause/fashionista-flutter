@@ -79,7 +79,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                   ),
                   elevation: 0,
                   child: Padding(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -142,7 +142,6 @@ class _AddClientScreenState extends State<AddClientScreen> {
                           items: ['Male', 'Female'],
                           onChanged: (gender) {
                             _genderController.text = gender;
-                            //debugPrint('Selected gender: $gender');
                           },
                         ),
                       ],
@@ -157,25 +156,28 @@ class _AddClientScreenState extends State<AddClientScreen> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: Hero(
         tag: 'add-client-button',
-        child: AnimatedPrimaryButton(
-          text: "Save",
-          onPressed: () async {
-            final number = _mobileNumberController.text.trim();
-            final isValid = RegExp(
-              r'^(\+?\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$',
-            ).hasMatch(number);
-
-            if (!isValid) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("Enter mobile number to proceed"),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-              return; // Stop here if invalid
-            }
-            _saveClient(Client.empty());
-          },
+        child: Container(
+          margin: const EdgeInsets.all(16),
+          child: AnimatedPrimaryButton(
+            text: "Save",
+            onPressed: () async {
+              final number = _mobileNumberController.text.trim();
+              final isValid = RegExp(
+                r'^(\+?\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$',
+              ).hasMatch(number);
+          
+              if (!isValid) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Enter mobile number to proceed"),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+                return; // Stop here if invalid
+              }
+              _saveClient(Client.empty());
+            },
+          ),
         ),
       ),
     );
@@ -233,7 +235,6 @@ class _AddClientScreenState extends State<AddClientScreen> {
       );
     } on FirebaseException catch (e) {
       _buttonLoadingStateCubit.setLoading(false);
-      debugPrint(e.toString());
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,

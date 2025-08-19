@@ -1,11 +1,9 @@
-import 'dart:math';
 
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/clients/bloc/client_state.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/domain/usecases/clients/delete_client_usecase.dart';
 import 'package:fashionista/domain/usecases/clients/find_client_by_id_usecase.dart';
-import 'package:fashionista/domain/usecases/clients/update_client_usecase.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ClientCubit extends Cubit<ClientState> {

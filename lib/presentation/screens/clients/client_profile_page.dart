@@ -37,7 +37,7 @@ class _ClientProfilePageState extends State<ClientProfilePage> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(0),
                   ),
-                  margin: const EdgeInsets.all(4),
+                  margin: const EdgeInsets.symmetric(vertical: 2),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
@@ -46,11 +46,11 @@ class _ClientProfilePageState extends State<ClientProfilePage> {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.person, color: colorScheme.primary),
+                            Icon(Icons.person),
                             const SizedBox(width: 8),
                             Text(
                               state.client.fullName,
-                              style: textTheme.titleMedium!.copyWith(
+                              style: textTheme.bodyMedium!.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -61,11 +61,13 @@ class _ClientProfilePageState extends State<ClientProfilePage> {
                         const SizedBox(height: 12),
                         Row(
                           children: [
-                            Icon(Icons.phone, color: colorScheme.primary),
+                            Icon(Icons.phone),
                             const SizedBox(width: 8),
                             Text(
                               state.client.mobileNumber,
-                              style: textTheme.titleMedium!,
+                              style: textTheme.labelMedium!.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
@@ -75,13 +77,15 @@ class _ClientProfilePageState extends State<ClientProfilePage> {
                         Row(
                           children: [
                             Icon(
-                              Icons.person_outline,
-                              color: colorScheme.primary,
+                              state.client.gender == 'Male'
+                                  ? Icons.man
+                                  : Icons.woman,
+                              size: 26,
                             ),
                             const SizedBox(width: 8),
                             Text(
                               state.client.gender,
-                              style: textTheme.titleMedium!,
+                              style: textTheme.labelMedium!,
                             ),
                           ],
                         ),
@@ -90,16 +94,13 @@ class _ClientProfilePageState extends State<ClientProfilePage> {
                         const SizedBox(height: 12),
                         Row(
                           children: [
-                            Icon(
-                              Icons.calendar_today,
-                              color: colorScheme.primary,
-                            ),
+                            Icon(Icons.calendar_month),
                             const SizedBox(width: 8),
                             Text(
                               DateFormat(
                                 'yyyy-MM-dd',
                               ).format(state.client.createdDate!),
-                              style: textTheme.titleSmall!,
+                              style: textTheme.labelMedium!,
                             ),
                           ],
                         ),

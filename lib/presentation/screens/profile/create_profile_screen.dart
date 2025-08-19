@@ -35,38 +35,38 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
 
   StreamSubscription<firebase_auth.User?>? _userChangesSubscription;
 
-  bool _hasMissingRequiredFields() {
-    return _fullNameController.text.isEmpty ||
-        _userNameController.text.isEmpty ||
-        _genderController.text.isEmpty ||
-        _accountTypeController.text.isEmpty;
-  }
+  // bool _hasMissingRequiredFields() {
+  //   return _fullNameController.text.isEmpty ||
+  //       _userNameController.text.isEmpty ||
+  //       _genderController.text.isEmpty ||
+  //       _accountTypeController.text.isEmpty;
+  // }
 
-  Future<bool> _showIncompleteDialog() async {
-    if (_hasMissingRequiredFields()) {
-      final shouldLeave = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Incomplete Profile'),
-          content: const Text(
-            'Please fill in Full Name, Username, Gender, and Account Type before leaving.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false), // Stay
-              child: const Text('Stay'),
-            ),
-            // TextButton(
-            //   onPressed: () => Navigator.of(context).pop(true), // Leave anyway
-            //   child: const Text('Leave'),
-            // ),
-          ],
-        ),
-      );
-      return shouldLeave ?? false;
-    }
-    return true; // Allow pop
-  }
+  // Future<bool> _showIncompleteDialog() async {
+  //   if (_hasMissingRequiredFields()) {
+  //     final shouldLeave = await showDialog<bool>(
+  //       context: context,
+  //       builder: (context) => AlertDialog(
+  //         title: const Text('Incomplete Profile'),
+  //         content: const Text(
+  //           'Please fill in Full Name, Username, Gender, and Account Type before leaving.',
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () => Navigator.of(context).pop(false), // Stay
+  //             child: const Text('Stay'),
+  //           ),
+  //           // TextButton(
+  //           //   onPressed: () => Navigator.of(context).pop(true), // Leave anyway
+  //           //   child: const Text('Leave'),
+  //           // ),
+  //         ],
+  //       ),
+  //     );
+  //     return shouldLeave ?? false;
+  //   }
+  //   return true; // Allow pop
+  // }
 
   @override
   void initState() {

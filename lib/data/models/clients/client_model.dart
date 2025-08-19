@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fashionista/data/models/clients/client_measurement_model.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -43,13 +42,13 @@ class Client extends Equatable {
 
   Map<String, dynamic> toJson() => _$ClientToJson(this);
 
-  static DateTime _fromTimestamp(dynamic ts) {
-    if (ts is Timestamp) return ts.toDate();
-    if (ts is DateTime) return ts;
-    throw ArgumentError('Invalid timestamp value: $ts');
-  }
+  // static DateTime _fromTimestamp(dynamic ts) {
+  //   if (ts is Timestamp) return ts.toDate();
+  //   if (ts is DateTime) return ts;
+  //   throw ArgumentError('Invalid timestamp value: $ts');
+  // }
 
-  static Timestamp _toTimestamp(DateTime date) => Timestamp.fromDate(date);
+  //static Timestamp _toTimestamp(DateTime date) => Timestamp.fromDate(date);
 
   Client copyWith({
     String? uid,

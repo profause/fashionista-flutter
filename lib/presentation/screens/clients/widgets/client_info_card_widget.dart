@@ -1,3 +1,5 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/presentation/screens/clients/client_details_screen.dart';
 import 'package:flutter/material.dart';
@@ -13,11 +15,11 @@ class ClientInfoCardWidget extends StatefulWidget {
 }
 
 class _ClientInfoCardWidgetState extends State<ClientInfoCardWidget> {
-  bool _isImageLoading = false;
+  //bool _isImageLoading = false;
 
   @override
   void initState() {
-    _isImageLoading = false;
+    //_isImageLoading = false;
     super.initState();
   }
 
@@ -55,27 +57,12 @@ class _ClientInfoCardWidgetState extends State<ClientInfoCardWidget> {
                 child:
                     widget.clientInfo.imageUrl != null &&
                         widget.clientInfo.imageUrl!.isNotEmpty
-                    ? Image.network(
-                        widget.clientInfo.imageUrl!,
-                        width: 50,
-                        height: 50,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return SizedBox(
-                            width: 50,
-                            height: 50,
-                            child: Center(
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: colorScheme.primary,
-                              ),
-                            ),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          return _buildInitialsAvatar(colorScheme);
-                        },
+                    ? CircleAvatar(
+                        radius: 32,
+                        backgroundColor: AppTheme.lightGrey,
+                        backgroundImage: CachedNetworkImageProvider(
+                          widget.clientInfo.imageUrl!,
+                        ),
                       )
                     : _buildInitialsAvatar(colorScheme),
               ),
@@ -89,7 +76,7 @@ class _ClientInfoCardWidgetState extends State<ClientInfoCardWidget> {
                       children: [
                         Text(
                           widget.clientInfo.fullName,
-                          style: textTheme.titleMedium?.copyWith(
+                          style: textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -114,17 +101,12 @@ class _ClientInfoCardWidgetState extends State<ClientInfoCardWidget> {
                     const SizedBox(height: 4),
                     Text(
                       widget.clientInfo.mobileNumber,
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurface.withValues(alpha: 0.7),
+                      style: textTheme.bodySmall!.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      widget.clientInfo.gender,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.primary,
-                      ),
-                    ),
+                    Text(widget.clientInfo.gender, style: textTheme.bodySmall),
                   ],
                 ),
               ),
@@ -147,8 +129,8 @@ class _ClientInfoCardWidgetState extends State<ClientInfoCardWidget> {
         : '?';
 
     return Container(
-      width: 50,
-      height: 50,
+      width: 62,
+      height: 62,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: colorScheme.primary.withValues(alpha: 0.1),

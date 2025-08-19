@@ -6,7 +6,6 @@ import 'package:dartz/dartz.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/widgets.dart';
 import 'package:image_cropper/image_cropper.dart';
 
 abstract class FirebaseUserService {

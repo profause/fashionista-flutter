@@ -8,6 +8,7 @@ class BottomNavItem extends StatelessWidget {
   final String label;
   final ValueNotifier<int> selectedIndex;
   final ValueChanged<int> onTap;
+  final double? iconSize;
 
   const BottomNavItem({
     super.key,
@@ -17,6 +18,7 @@ class BottomNavItem extends StatelessWidget {
     required this.label,
     required this.selectedIndex,
     required this.onTap,
+    this.iconSize = 26,
   });
 
   @override
@@ -47,7 +49,7 @@ class BottomNavItem extends StatelessWidget {
                   color: isSelected
                       ? colorScheme.onPrimary
                       : colorScheme.primary,
-                  size: 24,
+                  size: iconSize,
                 ),
                 const SizedBox(height: 4),
                 // Text(

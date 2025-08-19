@@ -3,6 +3,8 @@ import 'package:fashionista/core/auth/auth_provider_cubit.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/presentation/screens/clients/add_client_screen.dart';
 import 'package:fashionista/presentation/screens/clients/widgets/client_info_card_widget.dart';
+import 'package:fashionista/presentation/widgets/appbar_title.dart';
+import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -37,7 +39,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
             );
 
     query = collectionRef
-        .where('created_by', isEqualTo: _authProviderCubit.state.uid)
+        .where('created_by', isEqualTo: '1')
         .orderBy('created_date', descending: true)
         .withConverter(
           fromFirestore: (snapshot, _) => Client.fromJson(snapshot.data()!),
@@ -106,13 +108,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                     setState(() => _searchText = value);
                   },
                 )
-              : Text(
-                  'Clients',
-                  key: const ValueKey("title"),
-                  style: textTheme.headlineSmall!.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+              : const AppBarTitle(title: "Clients"),
         ),
 
         elevation: 0,
@@ -142,15 +138,26 @@ class _ClientsScreenState extends State<ClientsScreen> {
         onRefresh: refreshClients,
         child: StreamBuilder<QuerySnapshot<Client>>(
           stream: collection
+              .where('created_by', isEqualTo: _authProviderCubit.state.uid)
               .orderBy('created_date', descending: true)
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
-
             if (snapshot.hasError) {
-              return Center(child: Text("Error: ${snapshot.error}"));
+              debugPrint("Error: ${snapshot.error}");
+              return SizedBox(
+                    height: 400,
+                    child: Center(
+                      child: PageEmptyWidget(
+                        title: "No Clients Found",
+                        subtitle: "Error: ${snapshot.error}",
+                        icon: Icons.newspaper_outlined,
+                      ),
+                    ),
+                  );
+              //return Center(child: Text("Error: ${snapshot.error}"));
             }
 
             final clients = snapshot.data?.docs ?? [];
@@ -160,8 +167,14 @@ class _ClientsScreenState extends State<ClientsScreen> {
                 physics: const AlwaysScrollableScrollPhysics(),
                 children: const [
                   SizedBox(
-                    height: 300,
-                    child: Center(child: Text("No clients found")),
+                    height: 400,
+                    child: Center(
+                      child: PageEmptyWidget(
+                        title: "No Clients Found",
+                        subtitle: "Add new clients to see them here.",
+                        icon: Icons.people_outline,
+                      ),
+                    ),
                   ),
                 ],
               );
@@ -174,8 +187,25 @@ class _ClientsScreenState extends State<ClientsScreen> {
                     final name = client.fullName.toLowerCase(); // adjust field
                     return name.contains(_searchText.toLowerCase());
                   }).toList();
+            if (filteredClients.isEmpty) {
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: const [
+                  SizedBox(
+                    height: 400,
+                    child: Center(
+                      child: PageEmptyWidget(
+                        title: "No Clients Found",
+                        subtitle: "Add new clients to see them here.",
+                        icon: Icons.people_outline,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            }
             return ListView.builder(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(4.0),
               physics: const AlwaysScrollableScrollPhysics(),
               itemCount: filteredClients.length,
               itemBuilder: (context, index) {
