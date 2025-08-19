@@ -308,7 +308,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final userBloc = context.read<UserBloc>();
       final uid = userBloc.state.uid;
 
-      if(uid != null) return;
+      //if (uid == null) return;
       showDialog(
         context: context,
         barrierDismissible: false, // Prevent dismissing
@@ -498,6 +498,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
             builder: (_) => const Center(child: CircularProgressIndicator()),
           );
           sl<SignOutUsecase>().call('');
+
+          Navigator.pushAndRemoveUntil(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  SignInScreen(),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+              transitionDuration: const Duration(milliseconds: 800),
+            ),
+            (route) => false,
+          );
         }
       }
     }

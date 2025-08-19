@@ -56,6 +56,7 @@ class _SignInScreenState extends State<SignInScreen> {
           mobileNumber: '233543756168',
           uid: 'La9DWF9gv9YEqpWzTrYVBiUzGHf1',
         );
+        _userBloc.clear();
         _userBloc.add(UpdateUser(loggedInUser));
       }
     }

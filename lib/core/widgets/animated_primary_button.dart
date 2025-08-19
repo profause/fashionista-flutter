@@ -7,6 +7,8 @@ class AnimatedPrimaryButton extends StatefulWidget {
   final Future<void> Function() onPressed;
   final Color? backgroundColor;
   final Color? foregroundColor;
+  final double? width;
+  final double? elevation;
 
   const AnimatedPrimaryButton({
     super.key,
@@ -14,6 +16,8 @@ class AnimatedPrimaryButton extends StatefulWidget {
     required this.onPressed,
     this.backgroundColor,
     this.foregroundColor,
+    this.width = double.infinity,
+    this.elevation = 2,
   });
 
   @override
@@ -68,53 +72,56 @@ class _AnimatedPrimaryButtonState extends State<AnimatedPrimaryButton>
             //_handlePress();
           },
           onTapCancel: () => setState(() => _isPressed = false),
-          child: AnimatedScale(
-            scale: _isPressed ? 0.96 : 1.0,
-            duration: const Duration(milliseconds: 120),
-            curve: Curves.easeOut,
-            child: AnimatedOpacity(
-              opacity: _isPressed ? 0.85 : 1.0,
+          child: SizedBox(
+            width: widget.width,
+            child: AnimatedScale(
+              scale: _isPressed ? 0.96 : 1.0,
               duration: const Duration(milliseconds: 120),
               curve: Curves.easeOut,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      widget.backgroundColor ?? colorScheme.primary,
-                  foregroundColor:
-                      widget.foregroundColor ?? colorScheme.onPrimary,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 32,
-                    vertical: 14,
+              child: AnimatedOpacity(
+                opacity: _isPressed ? 0.85 : 1.0,
+                duration: const Duration(milliseconds: 120),
+                curve: Curves.easeOut,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        widget.backgroundColor ?? colorScheme.primary,
+                    foregroundColor:
+                        widget.foregroundColor ?? colorScheme.onPrimary,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 14,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: widget.elevation,
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 6,
-                ),
-                onPressed: _handlePress,
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 250),
-                  switchInCurve: Curves.easeOut,
-                  switchOutCurve: Curves.easeIn,
-                  transitionBuilder: (child, animation) =>
-                      FadeTransition(opacity: animation, child: child),
-                  child: _isLoading
-                      ? SizedBox(
-                          key: const ValueKey("spinner"),
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              widget.foregroundColor ?? colorScheme.onPrimary,
+                  onPressed: _handlePress,
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 250),
+                    switchInCurve: Curves.easeOut,
+                    switchOutCurve: Curves.easeIn,
+                    transitionBuilder: (child, animation) =>
+                        FadeTransition(opacity: animation, child: child),
+                    child: _isLoading
+                        ? SizedBox(
+                            key: const ValueKey("spinner"),
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                widget.foregroundColor ?? colorScheme.onPrimary,
+                              ),
                             ),
+                          )
+                        : Text(
+                            widget.text,
+                            key: const ValueKey("text"),
+                            style: const TextStyle(fontSize: 18),
                           ),
-                        )
-                      : Text(
-                          widget.text,
-                          key: const ValueKey("text"),
-                          style: const TextStyle(fontSize: 18),
-                        ),
+                  ),
                 ),
               ),
             ),

@@ -6,6 +6,7 @@ import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/presentation/screens/auth/sign_in_screen.dart';
 import 'package:fashionista/presentation/screens/main/main_screen.dart';
 import 'package:fashionista/presentation/screens/onboarding/onboarding_screen.dart';
+import 'package:fashionista/presentation/screens/splash/widgets/animated_title.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -31,7 +32,7 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(microseconds: 2000),
+      duration: const Duration(microseconds: 1500),
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -95,51 +96,53 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.charcoal,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            FadeTransition(
-              opacity: _fadeAnimation,
-              child: SlideTransition(
-                position: _slideAnimation,
-                child: ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: Container(
-                    width: 120,
-                    height: 120,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppTheme.white.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: AppTheme.white,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: RoundedImage(
-                        imageUrl: AppImages.appLogo,
-                        isAsset: true,
-                        borderRadius: 30,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            // FadeTransition(
+            //   opacity: _fadeAnimation,
+            //   child: SlideTransition(
+            //     position: _slideAnimation,
+            //     child: ScaleTransition(
+            //       scale: _scaleAnimation,
+            //       child: Container(
+            //         width: 120,
+            //         height: 120,
+            //         padding: const EdgeInsets.all(12),
+            //         decoration: BoxDecoration(
+            //           color: AppTheme.white.withValues(alpha: 0.1),
+            //           borderRadius: BorderRadius.circular(30),
+            //         ),
+            //         child: Container(
+            //           decoration: BoxDecoration(
+            //             color: AppTheme.white,
+            //             borderRadius: BorderRadius.circular(20),
+            //           ),
+            //           child: RoundedImage(
+            //             imageUrl: AppImages.appLogo,
+            //             isAsset: true,
+            //             borderRadius: 30,
+            //           ),
+            //         ),
+            //       ),
+            //     ),
+            //   ),
+            // ),
 
             const SizedBox(height: 24),
-            FadeTransition(
-              opacity: _fadeAnimation,
-              child: SlideTransition(
-                position: _slideAnimation,
-                child: Hero(
-                  tag: "getStartedButton",
-                  child: Text("Fashionista", style: AppTheme.appTitleStyle),
-                ),
-              ),
-            ),
+            AnimatedTitle(),
+            // FadeTransition(
+            //   opacity: _fadeAnimation,
+            //   child: SlideTransition(
+            //     position: _slideAnimation,
+            //     child: Hero(
+            //       tag: "getStartedButton",
+            //       child: Text("Fashionista", style: AppTheme.appTitleStyle),
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       ),
