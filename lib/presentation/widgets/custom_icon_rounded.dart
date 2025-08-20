@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 
-class CustomIconButtonRounded extends StatelessWidget {
-  final VoidCallback onPressed;
+class CustomIconRounded extends StatelessWidget {
   final IconData icon;
   final double? size;
-  const CustomIconButtonRounded({
+  const CustomIconRounded({
     super.key,
-    required this.onPressed,
     required this.icon, 
     this.size = 24,
   });
@@ -19,7 +17,6 @@ class CustomIconButtonRounded extends StatelessWidget {
      // borderRadius: BorderRadius.circular(size! / 2), // makes it round
       child: InkWell(
         borderRadius: BorderRadius.circular(50), // ripple matches shape
-        onTap: onPressed,
         child: Padding(
           padding: EdgeInsets.all(6), // space around icon
           child: Icon(icon, size: size),
