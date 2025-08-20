@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/presentation/screens/clients/client_details_screen.dart';
+import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:flutter/material.dart';
 
 class ClientInfoCardWidget extends StatefulWidget {
@@ -53,19 +54,20 @@ class _ClientInfoCardWidgetState extends State<ClientInfoCardWidget> {
           child: Row(
             children: [
               // Avatar
-              ClipOval(
-                child:
-                    widget.clientInfo.imageUrl != null &&
-                        widget.clientInfo.imageUrl!.isNotEmpty
-                    ? CircleAvatar(
-                        radius: 32,
-                        backgroundColor: AppTheme.lightGrey,
-                        backgroundImage: CachedNetworkImageProvider(
-                          widget.clientInfo.imageUrl!,
-                        ),
-                      )
-                    : _buildInitialsAvatar(colorScheme),
-              ),
+              DefaultProfileAvatar(name:null,size: 60,uid: widget.clientInfo.uid,),
+              // ClipOval(
+              //   child:
+              //       widget.clientInfo.imageUrl != null &&
+              //           widget.clientInfo.imageUrl!.isNotEmpty
+              //       ? CircleAvatar(
+              //           radius: 30,
+              //           backgroundColor: AppTheme.lightGrey,
+              //           backgroundImage: CachedNetworkImageProvider(
+              //             widget.clientInfo.imageUrl!,
+              //           ),
+              //         )
+              //       : _buildInitialsAvatar(colorScheme),
+              // ),
               const SizedBox(width: 12),
               // Client info
               Expanded(

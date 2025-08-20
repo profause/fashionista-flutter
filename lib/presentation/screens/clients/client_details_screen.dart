@@ -9,6 +9,7 @@ import 'package:fashionista/presentation/screens/client_measurement/client_measu
 import 'package:fashionista/presentation/screens/clients/client_profile_page.dart';
 import 'package:fashionista/presentation/screens/clients/edit_client_screen.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
+import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -164,11 +165,12 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                                     child: Stack(
                                       alignment: Alignment.center,
                                       children: [
-                                        CircleAvatar(
-                                          radius: avatarRadius,
-                                          backgroundColor: AppTheme.lightGrey,
-                                          backgroundImage: CachedNetworkImageProvider(state.client.imageUrl!),
-                                        ),
+                                        DefaultProfileAvatar(name:null,size: 120,uid:state.client.uid,),
+                                        // CircleAvatar(
+                                        //   radius: avatarRadius,
+                                        //   backgroundColor: AppTheme.lightGrey,
+                                        //   backgroundImage: CachedNetworkImageProvider(state.client.imageUrl!),
+                                        // ),
                                         Positioned(
                                           bottom: 4, // slight overlap
                                           right: 4,
