@@ -68,7 +68,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                             children: [
                               CustomIconButtonRounded(
                                 size: 24,
-                                icon: Icons.delete,
+                                iconData: Icons.delete,
                                 onPressed: () async {
                                   final canDelete = await showDialog<bool>(
                                     context: context,
@@ -113,7 +113,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                               const SizedBox(width: 8),
                               CustomIconButtonRounded(
                                 size: 24,
-                                icon: Icons.edit,
+                                iconData: Icons.edit,
                                 onPressed: () {
                                   Navigator.push(
                                     context,

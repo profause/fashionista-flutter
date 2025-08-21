@@ -95,7 +95,7 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
                         Padding(
                           padding: const EdgeInsets.only(right: 12),
                           child: CustomIconButtonRounded(
-                            icon: _isSearching ? Icons.close : Icons.search,
+                            iconData: _isSearching ? Icons.close : Icons.search,
                             onPressed: () {
                               setState(() {
                                 _isSearching = !_isSearching;

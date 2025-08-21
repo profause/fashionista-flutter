@@ -1,6 +1,7 @@
 import 'package:fashionista/data/models/settings/bloc/settings_bloc.dart';
 import 'package:fashionista/data/models/settings/models/settings_model.dart';
 import 'package:fashionista/presentation/widgets/appbar_title.dart';
+import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -50,8 +51,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               Text(
                                 "Display mode",
                                 style: textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey[700],
+                                  fontWeight: FontWeight.bold
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -67,7 +67,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ],
                           ),
                           const Spacer(), // Space between buttons
-                          IconButton(
+                          CustomIconButtonRounded(
                             onPressed: () {
                               //setState(() {
                               themeMode = themeMode == ThemeMode.light
@@ -81,6 +81,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               );
                               //});
                             },
+                            iconData: Icons.brightness_2_outlined,
                             icon: AnimatedSwitcher(
                               duration: const Duration(milliseconds: 250),
                               transitionBuilder:
@@ -98,7 +99,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                           .wb_sunny_outlined, // sun for dark mode
                                 key: ValueKey(
                                   themeMode,
-                                ), // important for AnimatedSwitcher to detect changes
+                                ),
+                                //color: colorScheme.onPrimary, // important for AnimatedSwitcher to detect changes
                               ),
                             ),
                           ),

@@ -1,6 +1,12 @@
+import 'package:fashionista/core/auth/auth_provider_cubit.dart';
+import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
+import 'package:fashionista/domain/usecases/auth/signout_usecase.dart';
+import 'package:fashionista/presentation/screens/auth/sign_in_screen.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_card_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 class UserProfilePage extends StatelessWidget {
@@ -40,11 +46,7 @@ class UserProfilePage extends StatelessWidget {
                   title: 'Mobile number',
                   value: user.mobileNumber,
                 ),
-                ProfileInfoItem(
-                  Icons.email,
-                  title: 'Email',
-                  value: user.email,
-                ),
+                ProfileInfoItem(Icons.email, title: 'Email', value: user.email),
                 ProfileInfoItem(
                   Icons.location_city,
                   title: 'Location',
@@ -89,9 +91,90 @@ class UserProfilePage extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
+            Card(
+              color: colorScheme.onPrimary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              elevation: 0,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        _signOut(context);
+                      },
+                      style: TextButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      child: Text(
+                        'Sign out',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodyLarge?.copyWith(color: Colors.red),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _signOut(BuildContext context) async {
+    if (context.mounted) {
+      final shouldSignOut = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Sign Out'),
+          content: const Text('Are you sure you want to sign out?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Sign out'),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldSignOut == true) {
+        if (context.mounted) {
+          context.read<UserBloc>().clear();
+          context.read<AuthProviderCubit>().setAuthState('', '', '', false);
+          showDialog(
+            context: context,
+            barrierDismissible: false, // Prevent dismissing
+            builder: (_) => const Center(child: CircularProgressIndicator()),
+          );
+          sl<SignOutUsecase>().call('');
+
+          Navigator.pushAndRemoveUntil(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  SignInScreen(),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+              transitionDuration: const Duration(milliseconds: 800),
+            ),
+            (route) => false,
+          );
+        }
+      }
+    }
   }
 }

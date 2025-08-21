@@ -7,12 +7,12 @@ import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/services/firebase_user_service.dart';
-import 'package:fashionista/domain/usecases/auth/signout_usecase.dart';
 import 'package:fashionista/domain/usecases/profile/fetch_user_profile_usecase.dart';
 import 'package:fashionista/presentation/screens/auth/sign_in_screen.dart';
 import 'package:fashionista/presentation/screens/designers/designer_profile_page.dart';
 import 'package:fashionista/presentation/screens/profile/edit_profile_screen.dart';
 import 'package:fashionista/presentation/screens/profile/user_profile_page.dart';
+import 'package:fashionista/presentation/screens/settings/settings_screen.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:flutter/material.dart';
@@ -97,7 +97,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             children: [
                               CustomIconButtonRounded(
                                 size: 20,
-                                icon: Icons.edit,
+                                iconData: Icons.edit,
                                 onPressed: () {
                                   Navigator.push(
                                     context,
@@ -116,7 +116,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               const SizedBox(width: 8),
                               CustomIconButtonRounded(
                                 size: 20,
-                                icon: Icons.settings,
+                                iconData: Icons.settings,
                                 onPressed: () {
                                   Navigator.push(
                                     context,
@@ -126,7 +126,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                             .read<
                                               UserBloc
                                             >(), // reuse existing cubit
-                                        child: EditProfileScreen(),
+                                        child: SettingsScreen(),
                                       ),
                                     ),
                                   );
@@ -185,23 +185,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         Positioned(
                                           bottom: 4, // slight overlap
                                           right: 4,
-                                          child: CircleAvatar(
-                                            radius: 18,
-                                            backgroundColor:
-                                                colorScheme.onPrimary,
-                                            child: IconButton(
-                                              padding: EdgeInsets
-                                                  .zero, // removes default padding
-                                              icon: Icon(
-                                                Icons.camera_alt,
-                                                size: 24,
-                                              ),
-                                              onPressed: () {
-                                                // Handle camera click
-                                                _chooseImageSource(context);
-                                              },
-                                              splashRadius: 24,
-                                            ),
+
+                                          child: CustomIconButtonRounded(
+                                            onPressed: () {
+                                              _chooseImageSource(context);
+                                            },
+                                            iconData: Icons.camera_alt,
                                           ),
                                         ),
                                         if (_isUploading)
@@ -284,7 +273,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ];
                 },
                 body: TabBarView(
-                  children: [UserProfilePage(user: user,), DesignerProfilePage()],
+                  children: [
+                    UserProfilePage(user: user),
+                    DesignerProfilePage(),
+                  ],
                 ),
               ),
             );
@@ -458,56 +450,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _imageFile = null;
       _croppedFile = null;
     });
-  }
-
-  Future<void> _signOut(BuildContext context) async {
-    if (mounted) {
-      final shouldSignOut = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Sign Out'),
-          content: const Text('Are you sure you want to sign out?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(true),
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Sign out'),
-            ),
-          ],
-        ),
-      );
-
-      if (shouldSignOut == true) {
-        if (mounted) {
-          context.read<UserBloc>().clear();
-          context.read<AuthProviderCubit>().setAuthState('', '', '', false);
-          showDialog(
-            context: context,
-            barrierDismissible: false, // Prevent dismissing
-            builder: (_) => const Center(child: CircularProgressIndicator()),
-          );
-          sl<SignOutUsecase>().call('');
-
-          Navigator.pushAndRemoveUntil(
-            context,
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) =>
-                  SignInScreen(),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
-              transitionDuration: const Duration(milliseconds: 800),
-            ),
-            (route) => false,
-          );
-        }
-      }
-    }
   }
 }
 
