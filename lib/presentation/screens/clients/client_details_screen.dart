@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/clients/bloc/client_cubit.dart';
@@ -37,8 +36,8 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    const double maxAvatarRadius = 60;
-    const double minAvatarRadius = 32;
+    //const double maxAvatarRadius = 60;
+    //const double minAvatarRadius = 32;
     const double expandedHeight = 250;
 
     return DefaultTabController(
@@ -147,14 +146,14 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                         builder: (context, constraints) {
                           final double shrinkOffset =
                               expandedHeight - constraints.maxHeight;
-                          final double shrinkFactor =
+                          //final double shrinkFactor =
                               (shrinkOffset / (expandedHeight - kToolbarHeight))
                                   .clamp(0.0, 1.0);
 
-                          final double avatarRadius =
-                              maxAvatarRadius -
-                              (maxAvatarRadius - minAvatarRadius) *
-                                  shrinkFactor;
+                          // final double avatarRadius =
+                          //     maxAvatarRadius -
+                          //     (maxAvatarRadius - minAvatarRadius) *
+                          //         shrinkFactor;
                           return FlexibleSpaceBar(
                             collapseMode: CollapseMode.parallax,
                             background: SafeArea(

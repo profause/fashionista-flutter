@@ -70,8 +70,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    const double maxAvatarRadius = 60;
-    const double minAvatarRadius = 32;
+    //const double maxAvatarRadius = 60;
+    //const double minAvatarRadius = 32;
     const double expandedHeight = 250;
     return DefaultTabController(
       length: 2,
@@ -89,7 +89,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       backgroundColor: colorScheme.onPrimary,
                       foregroundColor: colorScheme.primary,
                       elevation: 0,
-                      title: Text(user.fullName, style: textTheme.titleLarge!),
+                      title: Text(user.fullName, style: textTheme.labelLarge!),
                       actions: [
                         Padding(
                           padding: const EdgeInsets.only(right: 18),
@@ -140,13 +140,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         builder: (context, constraints) {
                           final double shrinkOffset =
                               expandedHeight - constraints.maxHeight;
-                          final double shrinkFactor =
+                          //final double shrinkFactor =
                               (shrinkOffset / (expandedHeight - kToolbarHeight))
                                   .clamp(0.0, 1.0);
-                          final double avatarRadius =
-                              maxAvatarRadius -
-                              (maxAvatarRadius - minAvatarRadius) *
-                                  shrinkFactor;
+                          // final double avatarRadius =
+                          //     maxAvatarRadius -
+                          //     (maxAvatarRadius - minAvatarRadius) *
+                          //         shrinkFactor;
                           return FlexibleSpaceBar(
                             collapseMode: CollapseMode.parallax,
                             background: SafeArea(

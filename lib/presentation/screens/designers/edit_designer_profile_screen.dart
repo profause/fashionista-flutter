@@ -6,14 +6,14 @@ import 'package:fashionista/data/models/designers/bloc/designer_state.dart';
 import 'package:fashionista/data/models/designers/designer_model.dart';
 import 'package:fashionista/data/models/designers/social_handle_model.dart';
 import 'package:fashionista/domain/usecases/designers/update_designer_usecase.dart';
+import 'package:fashionista/presentation/screens/designers/widgets/featured_images_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_text_field_widget.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_rounded.dart';
-import 'package:fashionista/presentation/widgets/deletable_image_widget.dart';
-import 'package:fashionista/presentation/widgets/fullscreen_gallery_widget.dart';
 import 'package:fashionista/presentation/widgets/social_handle_field_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 
 class EditDesignerProfileScreen extends StatefulWidget {
   final Designer designer;
@@ -240,82 +240,7 @@ class _EditDesignerProfileScreenState extends State<EditDesignerProfileScreen> {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Card(
-                        color: colorScheme.onPrimary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(0),
-                        ),
-                        elevation: 0,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    'Featured Images',
-                                    style: textTheme.titleSmall,
-                                  ),
-                                  if (widget.designer.featuredImages!.length <
-                                      4) ...[
-                                    const Spacer(),
-                                    CustomIconButtonRounded(
-                                      iconData: Icons.add_a_photo_outlined,
-                                      onPressed: () {
-                                        //handle upload image
-                                      },
-                                    ),
-                                  ],
-                                ],
-                              ),
-                              const SizedBox(height: 16),
-                              SizedBox(
-                                height: 100,
-                                child: ListView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount:
-                                      widget.designer.featuredImages!.length,
-                                  itemBuilder: (context, index) {
-                                    final imagePath =
-                                        widget.designer.featuredImages![index];
-                                    return Padding(
-                                      padding: const EdgeInsets.only(right: 8),
-                                      child: InkWell(
-                                        borderRadius: BorderRadius.circular(12),
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (_) =>
-                                                  FullscreenGalleryWidget(
-                                                    images: widget
-                                                        .designer
-                                                        .featuredImages!,
-                                                    initialIndex: index,
-                                                  ),
-                                            ),
-                                          );
-                                        },
-                                        child: Hero(
-                                          tag: imagePath,
-                                          child: DeletableImageWidget(
-                                            imagePath: imagePath,
-                                            onDelete: () {
-                                              //print("Deleted network image at index $index");
-                                              //widget.designer.featuredImages!.removeAt(index);
-                                            },
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+                      FeaturedImagesWidget(designer: widget.designer),
                       const SizedBox(height: 4),
                       Card(
                         color: colorScheme.onPrimary,
@@ -340,9 +265,7 @@ class _EditDesignerProfileScreenState extends State<EditDesignerProfileScreen> {
                                 label: '',
                                 hint:
                                     'Type and press Enter, Space or Comma to add a tag',
-                                valueIn: widget.designer.tags == null
-                                    ? []
-                                    : widget.designer.tags == ''
+                                valueIn: widget.designer.tags == ''
                                     ? []
                                     : widget.designer.tags.split('|'),
                                 valueOut: (value) =>
@@ -567,5 +490,64 @@ class _EditDesignerProfileScreenState extends State<EditDesignerProfileScreen> {
         );
       },
     );
+  }
+
+  _chooseImageSource(BuildContext context) {
+    if (mounted) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Upload Image'),
+          content: const Text('Choose your image source:'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                _pickImage(ImageSource.camera);
+              },
+              child: const Text('Camera'),
+            ),
+            TextButton(
+              onPressed: () {
+                // _pickImage(ImageSource.gallery);
+                _pickImageMultiple();
+              },
+              child: const Text('Gallery'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  XFile? _imageFile;
+  //CroppedFile? _croppedFile;
+  Future<void> _pickImage(ImageSource source) async {
+    final pickedFile = await ImagePicker().pickImage(source: source);
+    setState(() {
+      if (pickedFile != null) {
+        _imageFile = pickedFile;
+      }
+    });
+    if (mounted) {
+      // Dismiss the dialog manually
+      Navigator.of(context, rootNavigator: true).pop();
+    }
+    //_cropImage();
+  }
+
+  Future<void> _pickImageMultiple() async {
+    // Pick multiple images.
+
+    final List<XFile> imageFiles = await ImagePicker().pickMultiImage(
+      limit: 4,
+      requestFullMetadata: true,
+    );
+
+    setState(() {});
+    if (mounted) {
+      // Dismiss the dialog manually
+      Navigator.of(context, rootNavigator: true).pop();
+    }
+    //_uploadImages(imageFiles);
   }
 }

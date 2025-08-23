@@ -1,13 +1,12 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/assets/app_icons.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_bloc.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_event.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_state.dart';
 import 'package:fashionista/presentation/screens/designers/edit_designer_profile_screen.dart';
+import 'package:fashionista/presentation/screens/designers/widgets/featured_images_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_card_widget.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_rounded.dart';
-import 'package:fashionista/presentation/widgets/fullscreen_gallery_widget.dart';
 import 'package:fashionista/presentation/widgets/rating_input_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -58,7 +57,7 @@ class _DesignerProfilePageState extends State<DesignerProfilePage> {
                           title: 'Mobile Number',
                           value: designer.mobileNumber,
                           suffix: CustomIconButtonRounded(
-                            iconData: Icons.arrow_right_alt,
+                            iconData: Icons.arrow_right,
                             size: 24,
                             onPressed: () {
                               Navigator.push(
@@ -85,7 +84,7 @@ class _DesignerProfilePageState extends State<DesignerProfilePage> {
                               ? 'No business name'
                               : designer.businessName,
                           suffix: CustomIconButtonRounded(
-                            iconData: Icons.arrow_right_alt,
+                            iconData: Icons.arrow_right,
                             size: 24,
                             onPressed: () {
                               Navigator.push(
@@ -125,112 +124,7 @@ class _DesignerProfilePageState extends State<DesignerProfilePage> {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    if (designer.featuredImages!.isNotEmpty) ...[
-                      Card(
-                        color: colorScheme.onPrimary,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.zero, // instead of circular(0)
-                        ),
-                        elevation: 0,
-                        margin: const EdgeInsets.symmetric(vertical: 2),
-                        child: SizedBox(
-                          width:
-                              double.infinity, // 👈 makes the card full width
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      'Featured Images',
-                                      style: textTheme.titleSmall,
-                                    ),
-                                    if (designer.featuredImages!.length <
-                                        4) ...[
-                                      const Spacer(),
-                                      CustomIconButtonRounded(
-                                        iconData: Icons.add_a_photo_outlined,
-                                        onPressed: () {
-                                          //handle upload image
-                                        },
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-                                SizedBox(
-                                  height: 100,
-                                  child: ListView.builder(
-                                    scrollDirection: Axis.horizontal,
-                                    itemCount: designer.featuredImages!.length,
-                                    itemBuilder: (context, index) {
-                                      final imagePath =
-                                          designer.featuredImages![index];
-                                      return Padding(
-                                        padding: const EdgeInsets.only(
-                                          right: 8,
-                                        ),
-                                        child: InkWell(
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                          onTap: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (_) =>
-                                                    FullscreenGalleryWidget(
-                                                      images: designer
-                                                          .featuredImages!,
-                                                      initialIndex: index,
-                                                    ),
-                                              ),
-                                            );
-                                          },
-                                          child: Hero(
-                                            tag: imagePath,
-                                            child: ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                              child: CachedNetworkImage(
-                                                imageUrl: imagePath,
-                                                fit: BoxFit.cover,
-                                                height: 100,
-                                                width: 100,
-                                                placeholder: (context, url) =>
-                                                    const Center(
-                                                      child: SizedBox(
-                                                        height: 24,
-                                                        width: 24,
-                                                        child:
-                                                            CircularProgressIndicator(
-                                                              strokeWidth: 2,
-                                                            ),
-                                                      ),
-                                                    ),
-                                                errorWidget:
-                                                    (context, url, error) =>
-                                                        const Icon(
-                                                          Icons.broken_image,
-                                                          size: 40,
-                                                        ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ], //here
+                    FeaturedImagesWidget(designer: designer),
                     const SizedBox(height: 8),
                     Card(
                       color: colorScheme.onPrimary,
@@ -380,6 +274,7 @@ class _DesignerProfilePageState extends State<DesignerProfilePage> {
                         ),
                       ),
                     ),
+                    //MultiImageUploader(userId: designer.uid),
                   ],
                 ),
               );

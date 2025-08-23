@@ -117,33 +117,33 @@ class _ClientInfoCardWidgetState extends State<ClientInfoCardWidget> {
     );
   }
 
-  Widget _buildInitialsAvatar(ColorScheme colorScheme) {
-    String initials = widget.clientInfo.fullName.isNotEmpty
-        ? widget.clientInfo.fullName
-              .trim()
-              .split(' ')
-              .map((word) => word.isNotEmpty ? word[0] : '')
-              .take(2)
-              .join()
-              .toUpperCase()
-        : '?';
+  // Widget _buildInitialsAvatar(ColorScheme colorScheme) {
+  //   String initials = widget.clientInfo.fullName.isNotEmpty
+  //       ? widget.clientInfo.fullName
+  //             .trim()
+  //             .split(' ')
+  //             .map((word) => word.isNotEmpty ? word[0] : '')
+  //             .take(2)
+  //             .join()
+  //             .toUpperCase()
+  //       : '?';
 
-    return Container(
-      width: 62,
-      height: 62,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: colorScheme.primary.withValues(alpha: 0.1),
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        initials,
-        style: TextStyle(
-          color: colorScheme.primary,
-          fontWeight: FontWeight.bold,
-          fontSize: 18,
-        ),
-      ),
-    );
-  }
+  //   return Container(
+  //     width: 62,
+  //     height: 62,
+  //     decoration: BoxDecoration(
+  //       shape: BoxShape.circle,
+  //       color: colorScheme.primary.withValues(alpha: 0.1),
+  //     ),
+  //     alignment: Alignment.center,
+  //     child: Text(
+  //       initials,
+  //       style: TextStyle(
+  //         color: colorScheme.primary,
+  //         fontWeight: FontWeight.bold,
+  //         fontSize: 18,
+  //       ),
+  //     ),
+  //   );
+  // }
 }
