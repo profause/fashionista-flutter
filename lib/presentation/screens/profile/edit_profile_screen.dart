@@ -145,7 +145,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
             body: SafeArea(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(0),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -154,7 +154,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       Card(
                         color: colorScheme.onPrimary,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(0),
                         ),
                         elevation: 0,
                         child: Padding(
@@ -207,7 +207,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       Card(
                         color: colorScheme.onPrimary,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(0),
                         ),
                         elevation: 0,
                         child: Padding(
@@ -281,7 +281,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       Card(
                         color: colorScheme.onPrimary,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(0),
                         ),
                         elevation: 0,
                         child: Padding(
@@ -332,7 +332,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       Card(
                         color: colorScheme.onPrimary,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(0),
                         ),
                         elevation: 0,
                         child: Padding(

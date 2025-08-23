@@ -10,8 +10,12 @@ Designer _$DesignerFromJson(Map<String, dynamic> json) => Designer(
   uid: json['uid'] as String,
   name: json['name'] as String,
   location: json['location'] as String,
+  bio: json['bio'] as String?,
   mobileNumber: json['mobile_number'] as String,
-  images: (json['images'] as List<dynamic>?)?.map((e) => e as String).toList(),
+  profileImage: json['profile_image'] as String?,
+  featuredImages: (json['featured_images'] as List<dynamic>?)
+      ?.map((e) => e as String)
+      .toList(),
   tags: json['tags'] as String,
   businessName: json['business_name'] as String,
   socialHandles: (json['social_handles'] as List<dynamic>?)
@@ -24,8 +28,10 @@ Map<String, dynamic> _$DesignerToJson(Designer instance) => <String, dynamic>{
   'uid': instance.uid,
   'name': instance.name,
   'location': instance.location,
+  'bio': instance.bio,
+  'profile_image': instance.profileImage,
   'mobile_number': instance.mobileNumber,
-  'images': instance.images,
+  'featured_images': instance.featuredImages,
   'tags': instance.tags,
   'business_name': instance.businessName,
   'social_handles': instance.socialHandles?.map((e) => e.toJson()).toList(),

@@ -467,7 +467,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
       );
 
       //sync with firestore
-
+      
       await Future.delayed(const Duration(seconds: 2)); // Simulate saving delay
 
       if (!mounted) return;

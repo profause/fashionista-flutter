@@ -9,10 +9,15 @@ class Designer extends Equatable {
   final String uid;
   final String name;
   final String location;
+  final String? bio;
+  @JsonKey(name: 'profile_image')
+  final String? profileImage;
 
   @JsonKey(name: 'mobile_number')
   final String mobileNumber;
-  final List<String>? images;
+
+  @JsonKey(name: 'featured_images')
+  final List<String>? featuredImages;
   final String tags;
 
   @JsonKey(name: 'business_name')
@@ -26,8 +31,10 @@ class Designer extends Equatable {
     required this.uid,
     required this.name,
     required this.location,
+    this.bio,
     required this.mobileNumber,
-    this.images,
+    this.profileImage,
+    this.featuredImages,
     required this.tags,
     required this.businessName,
     this.socialHandles,
@@ -43,8 +50,10 @@ class Designer extends Equatable {
     String? uid,
     String? name,
     String? location,
+    String? bio,
     String? mobileNumber,
-    List<String>? images,
+    String? profileImage,
+    List<String>? featuredImages,
     String? tags,
     String? businessName,
     List<SocialHandle>? socialHandles,
@@ -54,8 +63,10 @@ class Designer extends Equatable {
       uid: uid ?? this.uid,
       name: name ?? this.name,
       location: location ?? this.location,
+      bio: bio ?? this.bio,
       mobileNumber: mobileNumber ?? this.mobileNumber,
-      images: images ?? this.images,
+      profileImage: profileImage ?? this.profileImage,
+      featuredImages: featuredImages ?? this.featuredImages,
       tags: tags ?? this.tags,
       businessName: businessName ?? this.businessName,
       socialHandles: socialHandles ?? this.socialHandles,
@@ -68,7 +79,10 @@ class Designer extends Equatable {
       uid: '',
       name: '',
       location: '',
+      bio: '',
       mobileNumber: '',
+      profileImage: '',
+      featuredImages: [],
       tags: '',
       businessName: '',
     );
@@ -79,8 +93,10 @@ class Designer extends Equatable {
     uid,
     name,
     location,
+    bio,
     mobileNumber,
-    images,
+    profileImage,
+    featuredImages,
     tags,
     businessName,
     socialHandles,

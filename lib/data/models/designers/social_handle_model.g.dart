@@ -7,14 +7,14 @@ part of 'social_handle_model.dart';
 // **************************************************************************
 
 SocialHandle _$SocialHandleFromJson(Map<String, dynamic> json) => SocialHandle(
-  name: json['name'] as String,
+  handle: json['handle'] as String,
   url: json['url'] as String,
   provider: json['provider'] as String,
 );
 
 Map<String, dynamic> _$SocialHandleToJson(SocialHandle instance) =>
     <String, dynamic>{
-      'name': instance.name,
+      'handle': instance.handle,
       'url': instance.url,
       'provider': instance.provider,
     };

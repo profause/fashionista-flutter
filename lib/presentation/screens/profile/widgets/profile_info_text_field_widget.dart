@@ -49,7 +49,7 @@ class ProfileInfoTextFieldWidget extends StatelessWidget {
           ] : null,
           obscureText: isPassword,
           enabled: enabled,
-          style: textTheme.bodyLarge,
+          style: textTheme.titleSmall,
           decoration: InputDecoration(
             hintText: hint,
             border: OutlineInputBorder(

@@ -275,7 +275,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 body: TabBarView(
                   children: [
                     UserProfilePage(user: user),
-                    DesignerProfilePage(),
+                    DesignerProfilePage(designerUid: user.uid!),
                   ],
                 ),
               ),

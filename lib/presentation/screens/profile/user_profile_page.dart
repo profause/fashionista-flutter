@@ -26,12 +26,12 @@ class UserProfilePage extends StatelessWidget {
             ProfileInfoCardWidget(
               items: [
                 ProfileInfoItem(
-                  Icons.person,
+                  icon:Icons.person,
                   title: 'Full name',
                   value: user.fullName,
                 ),
                 ProfileInfoItem(
-                  Icons.person_outline_outlined,
+                  icon:Icons.person_outline_outlined,
                   title: 'User name',
                   value: user.userName,
                 ),
@@ -42,13 +42,13 @@ class UserProfilePage extends StatelessWidget {
             ProfileInfoCardWidget(
               items: [
                 ProfileInfoItem(
-                  Icons.phone,
+                  icon:Icons.phone,
                   title: 'Mobile number',
                   value: user.mobileNumber,
                 ),
-                ProfileInfoItem(Icons.email, title: 'Email', value: user.email),
+                ProfileInfoItem(icon:Icons.email, title: 'Email', value: user.email),
                 ProfileInfoItem(
-                  Icons.location_city,
+                  icon:Icons.location_city,
                   title: 'Location',
                   value: user.location,
                 ),
@@ -59,12 +59,12 @@ class UserProfilePage extends StatelessWidget {
             ProfileInfoCardWidget(
               items: [
                 ProfileInfoItem(
-                  Icons.female,
+                  icon:Icons.female,
                   title: 'Gender',
                   value: user.gender,
                 ),
                 ProfileInfoItem(
-                  Icons.calendar_month,
+                  icon:Icons.calendar_month,
                   title: 'Date of birth',
                   value: user.dateOfBirth == null
                       ? ''
@@ -77,12 +77,12 @@ class UserProfilePage extends StatelessWidget {
             ProfileInfoCardWidget(
               items: [
                 ProfileInfoItem(
-                  Icons.account_box,
+                  icon:Icons.account_box,
                   title: 'Account type',
                   value: user.gender,
                 ),
                 ProfileInfoItem(
-                  Icons.calendar_today,
+                  icon:Icons.calendar_today,
                   title: 'Joined',
                   value: user.joinedDate == null
                       ? ''

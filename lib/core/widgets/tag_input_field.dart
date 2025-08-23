@@ -113,14 +113,15 @@ class _TagInputFieldState extends State<TagInputField> {
           }).toList(),
         ),
         const SizedBox(height: 16),
-
-        Text(
-          widget.label ?? '',
-          style: textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: colorScheme.primary,
+        if (widget.label!.isNotEmpty) ...[
+          Text(
+            widget.label ?? '',
+            style: textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: colorScheme.primary,
+            ),
           ),
-        ),
+        ],
         // FIX: use different focus node here
         KeyboardListener(
           focusNode: _keyboardFocusNode,
@@ -144,7 +145,7 @@ class _TagInputFieldState extends State<TagInputField> {
               ),
               hintStyle: textTheme.titleSmall,
               filled: true,
-              fillColor:  Colors.transparent,
+              fillColor: Colors.transparent,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 4,
                 vertical: 0,

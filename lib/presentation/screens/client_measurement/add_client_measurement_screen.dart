@@ -236,7 +236,7 @@ class _AddClientMeasurementScreenState
           child: AnimatedPrimaryButton(
             text: "Save",
             onPressed: () async {
-              debugPrint(_tagsController.text.trim());
+              //debugPrint(_tagsController.text.trim());
               final isValid = _bodyPartController.text.isNotEmpty;
               if (!isValid) {
                 ScaffoldMessenger.of(context).showSnackBar(

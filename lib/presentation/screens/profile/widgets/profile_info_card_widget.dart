@@ -24,13 +24,19 @@ class ProfileInfoCardWidget extends StatelessWidget {
           children: List.generate(items.length * 2 - 1, (index) {
             if (index.isOdd) {
               // Divider between items
-              return Divider(height: 16, thickness: 1, color: Colors.grey[300]);
+              return Divider(
+                height: 16,
+                thickness: 1,
+                color: Colors.grey[300],
+                indent: 48,
+              );
             }
 
             final itemIndex = index ~/ 2;
             final title = items[itemIndex].title;
             final value = items[itemIndex].value;
             final IconData? icon = items[itemIndex].icon;
+            final Widget? suffix = items[itemIndex].suffix;
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,9 +49,12 @@ class ProfileInfoCardWidget extends StatelessWidget {
                     //child:
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(title, style: textTheme.titleSmall),
-                        const SizedBox(height: 4),
+                        if (title.isNotEmpty) ...[
+                          Text(title, style: textTheme.titleSmall),
+                          const SizedBox(height: 4),
+                        ],
                         Text(
                           value,
                           style: textTheme.labelLarge!.copyWith(
@@ -55,6 +64,7 @@ class ProfileInfoCardWidget extends StatelessWidget {
                       ],
                     ),
                     //),
+                    if (suffix != null) ...[const Spacer(), suffix],
                   ],
                 ),
               ],
@@ -70,6 +80,12 @@ class ProfileInfoItem {
   final String title;
   final String value;
   final IconData? icon;
+  final Widget? suffix;
 
-  ProfileInfoItem(this.icon, {required this.title, required this.value});
+  const ProfileInfoItem({
+    this.icon,
+    this.suffix,
+    required this.title,
+    required this.value,
+  });
 }

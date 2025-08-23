@@ -5,12 +5,12 @@ part 'social_handle_model.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class SocialHandle extends Equatable {
-  final String name;
+  final String handle;
   final String url;
   final String provider;
 
   const SocialHandle({
-    required this.name,
+    required this.handle,
     required this.url,
     required this.provider,
   });
@@ -21,17 +21,30 @@ class SocialHandle extends Equatable {
   Map<String, dynamic> toJson() => _$SocialHandleToJson(this);
 
   factory SocialHandle.empty() {
-    return const SocialHandle(name: '', url: '', provider: '');
+    return const SocialHandle(handle: '', url: '', provider: '');
   }
 
   static List<SocialHandle> defaults() {
     return [
-      SocialHandle(name: '', url: '', provider: 'Facebook'),
-      SocialHandle(name: '', url: '', provider: 'Instagram'),
-      SocialHandle(name: '', url: '', provider: 'X'),
+      SocialHandle(handle: '', url: '', provider: 'Facebook'),
+      SocialHandle(handle: '', url: '', provider: 'Instagram'),
+      SocialHandle(handle: '', url: '', provider: 'X'),
+      SocialHandle(handle: '', url: '', provider: 'TikTok'),
     ];
   }
 
+  SocialHandle copyWith({
+    String? handle,
+    String? url,
+    String? provider,
+  }) {
+    return SocialHandle(
+      handle: handle ?? this.handle,
+      url: url ?? this.url,
+      provider: provider ?? this.provider,
+    );
+  }
+
   @override
-  List<Object?> get props => [name, url, provider];
+  List<Object?> get props => [handle, url, provider];
 }
