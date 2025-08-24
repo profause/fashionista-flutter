@@ -30,7 +30,6 @@ class _FeaturedImagesWidgetState extends State<FeaturedImagesWidget> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
   }
 

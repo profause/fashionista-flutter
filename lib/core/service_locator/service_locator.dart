@@ -19,9 +19,11 @@ import 'package:fashionista/domain/usecases/clients/fetch_clients_usecase.dart';
 import 'package:fashionista/domain/usecases/clients/find_client_by_id_usecase.dart';
 import 'package:fashionista/domain/usecases/clients/update_client_usecase.dart';
 import 'package:fashionista/domain/usecases/designers/add_designer_usecase.dart';
+import 'package:fashionista/domain/usecases/designers/add_or_remove_favourite_usecase.dart';
 import 'package:fashionista/domain/usecases/designers/delete_designer_usecase.dart';
 import 'package:fashionista/domain/usecases/designers/find_designer_by_id_usecase.dart';
 import 'package:fashionista/domain/usecases/designers/find_designers_usecase.dart';
+import 'package:fashionista/domain/usecases/designers/is_favourite_usecase.dart';
 import 'package:fashionista/domain/usecases/designers/update_designer_usecase.dart';
 import 'package:fashionista/domain/usecases/profile/fetch_user_profile_usecase.dart';
 import 'package:fashionista/domain/usecases/profile/update_user_profile_usecase.dart';
@@ -59,5 +61,8 @@ Future<void> initialiseDependencies() async {
   sl.registerSingleton<UpdateDesignerUsecase>(UpdateDesignerUsecase());
   sl.registerSingleton<DeleteDesignerUsecase>(DeleteDesignerUsecase());
   sl.registerSingleton<FindDesignersUsecase>(FindDesignersUsecase());
-
+  sl.registerSingleton<AddOrRemoveFavouriteUsecase>(
+    AddOrRemoveFavouriteUsecase(),
+  );
+  sl.registerSingleton<IsFavouriteUsecase>(IsFavouriteUsecase());
 }

@@ -5,6 +5,8 @@ abstract class DesignersRepository {
   Future<Either> fetchDesigners();
   Future<Either> addDesignerToFirestore(Designer designer);
   Future<Either> updateDesignerToFirestore(Designer designer);
-  Future<Either> deleteDesignerById(String clientId);
-  Future<Either> findDesignerById(String clientId);
+  Future<Either> deleteDesignerById(String uid);
+  Future<Either> findDesignerById(String uid);
+  Future<Either> addOrRemoveFavouriteDesigner(String designerId);
+  Future<bool> isFavouriteDesigner(String designerId);
 }

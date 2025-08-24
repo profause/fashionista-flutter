@@ -357,7 +357,6 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                               items: ['Regular', 'Designer'],
                               onChanged: (value) {
                                 _accountTypeController.text = value;
-                                debugPrint('Selected account type: $value');
                               },
                             ),
                           ],

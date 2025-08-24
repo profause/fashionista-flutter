@@ -346,7 +346,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 items: ['Regular', 'Designer'],
                                 onChanged: (value) {
                                   _accountTypeController.text = value;
-                                  debugPrint('Selected account type: $value');
                                 },
                               ),
                             ],

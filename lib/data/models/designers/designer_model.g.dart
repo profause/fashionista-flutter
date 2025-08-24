@@ -22,6 +22,11 @@ Designer _$DesignerFromJson(Map<String, dynamic> json) => Designer(
       ?.map((e) => SocialHandle.fromJson(e as Map<String, dynamic>))
       .toList(),
   ratings: (json['ratings'] as num?)?.toDouble() ?? 0.0,
+  bannerImage: json['banner_image'] as String?,
+  isFavourite: json['isFavourite'] as bool? ?? false,
+  createdDate: json['created_date'] == null
+      ? null
+      : DateTime.parse(json['created_date'] as String),
 );
 
 Map<String, dynamic> _$DesignerToJson(Designer instance) => <String, dynamic>{
@@ -30,10 +35,13 @@ Map<String, dynamic> _$DesignerToJson(Designer instance) => <String, dynamic>{
   'location': instance.location,
   'bio': instance.bio,
   'profile_image': instance.profileImage,
+  'banner_image': instance.bannerImage,
   'mobile_number': instance.mobileNumber,
   'featured_images': instance.featuredImages,
   'tags': instance.tags,
   'business_name': instance.businessName,
   'social_handles': instance.socialHandles?.map((e) => e.toJson()).toList(),
   'ratings': instance.ratings,
+  'isFavourite': instance.isFavourite,
+  'created_date': instance.createdDate?.toIso8601String(),
 };

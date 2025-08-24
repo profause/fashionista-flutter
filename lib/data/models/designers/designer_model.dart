@@ -13,6 +13,9 @@ class Designer extends Equatable {
   @JsonKey(name: 'profile_image')
   final String? profileImage;
 
+  @JsonKey(name: 'banner_image')
+  final String? bannerImage;
+
   @JsonKey(name: 'mobile_number')
   final String mobileNumber;
 
@@ -27,6 +30,11 @@ class Designer extends Equatable {
   final List<SocialHandle>? socialHandles;
   final double? ratings;
 
+  final bool? isFavourite;
+
+  @JsonKey(name: 'created_date')
+  final DateTime? createdDate;
+
   const Designer({
     required this.uid,
     required this.name,
@@ -39,6 +47,9 @@ class Designer extends Equatable {
     required this.businessName,
     this.socialHandles,
     this.ratings = 0.0,
+    this.bannerImage,
+    this.isFavourite = false,
+    this.createdDate,
   });
 
   factory Designer.fromJson(Map<String, dynamic> json) =>
@@ -58,6 +69,9 @@ class Designer extends Equatable {
     String? businessName,
     List<SocialHandle>? socialHandles,
     double? ratings,
+    String? bannerImage,
+    bool? isFavourite,
+    DateTime? createdDate,
   }) {
     return Designer(
       uid: uid ?? this.uid,
@@ -71,11 +85,14 @@ class Designer extends Equatable {
       businessName: businessName ?? this.businessName,
       socialHandles: socialHandles ?? this.socialHandles,
       ratings: ratings ?? this.ratings,
+      bannerImage: bannerImage ?? this.bannerImage,
+      isFavourite: isFavourite ?? this.isFavourite,
+      createdDate: createdDate ?? this.createdDate,
     );
   }
 
   factory Designer.empty() {
-    return const Designer(
+    return Designer(
       uid: '',
       name: '',
       location: '',
@@ -85,6 +102,10 @@ class Designer extends Equatable {
       featuredImages: [],
       tags: '',
       businessName: '',
+      socialHandles: [],
+      ratings: 0.0,
+      bannerImage: 'https://picsum.photos/300/200?grayscale',
+      isFavourite: false,
     );
   }
 
@@ -101,5 +122,8 @@ class Designer extends Equatable {
     businessName,
     socialHandles,
     ratings,
+    bannerImage,
+    isFavourite,
+    createdDate,
   ];
 }

@@ -29,4 +29,16 @@ class DesignersRepositoryImpl extends DesignersRepository {
   Future<Either> updateDesignerToFirestore(Designer designer) {
     return sl<FirebaseDesignersService>().updateDesignerToFirestore(designer);
   }
+
+  @override
+  Future<Either> addOrRemoveFavouriteDesigner(String designerId) {
+    return sl<FirebaseDesignersService>().addOrRemoveFavouriteDesigner(
+      designerId,
+    );
+  }
+
+  @override
+  Future<bool> isFavouriteDesigner(designerId) {
+    return sl<FirebaseDesignersService>().isFavouriteDesigner(designerId);
+  }
 }

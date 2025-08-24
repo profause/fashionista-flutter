@@ -14,6 +14,9 @@ class User extends Equatable {
   @JsonKey(name: 'profile_image')
   final String profileImage;
 
+  @JsonKey(name: 'banner_image')
+  final String? bannerImage;
+
   @JsonKey(name: 'account_type')
   final String accountType;
 
@@ -45,6 +48,7 @@ class User extends Equatable {
     this.dateOfBirth,
     this.joinedDate,
     this.uid,
+    this.bannerImage
   });
 
   /// Empty constructor for initial state
@@ -60,7 +64,8 @@ class User extends Equatable {
       location: '',
       dateOfBirth: null,
       uid: '',
-      joinedDate: null
+      joinedDate: null,
+      bannerImage: ''
     );
   }
 
@@ -80,7 +85,8 @@ class User extends Equatable {
     String? location,
     DateTime? dateOfBirth,
     String? uid,
-    DateTime? joinedDate
+    DateTime? joinedDate,
+    String? bannerImage,
   }) {
     return User(
       fullName: fullName ?? this.fullName,
@@ -94,6 +100,7 @@ class User extends Equatable {
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
       uid: uid ?? this.uid,
       joinedDate: joinedDate ?? this.joinedDate
+      ,bannerImage: bannerImage ?? this.bannerImage
     );
   }
 
@@ -110,5 +117,6 @@ class User extends Equatable {
         dateOfBirth,
         uid,
         joinedDate,
+        bannerImage,
       ];
 }

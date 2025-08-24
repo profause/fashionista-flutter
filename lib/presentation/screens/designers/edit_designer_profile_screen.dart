@@ -8,6 +8,7 @@ import 'package:fashionista/data/models/designers/social_handle_model.dart';
 import 'package:fashionista/domain/usecases/designers/update_designer_usecase.dart';
 import 'package:fashionista/presentation/screens/designers/widgets/featured_images_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_text_field_widget.dart';
+import 'package:fashionista/presentation/widgets/banner_image_widget.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_rounded.dart';
 import 'package:fashionista/presentation/widgets/social_handle_field_widget.dart';
@@ -129,12 +130,18 @@ class _EditDesignerProfileScreenState extends State<EditDesignerProfileScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      
+                      BannerImageWidget(uid: widget.designer.uid, url: ValueNotifier(widget.designer.bannerImage!)),
+
+                      const SizedBox(height: 4),
                       Padding(
                         padding: EdgeInsetsGeometry.all(16),
                         child: Text(
                           "Your next client is looking — make sure they see your best.",
                         ),
                       ),
+
+                      //const SizedBox(height: 4),
                       Card(
                         color: colorScheme.onPrimary,
                         shape: RoundedRectangleBorder(

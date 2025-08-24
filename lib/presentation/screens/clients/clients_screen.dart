@@ -31,15 +31,14 @@ class _ClientsScreenState extends State<ClientsScreen> {
     //if (mounted) {
     _authProviderCubit = context.read<AuthProviderCubit>();
     collection =
-        collectionRef //.orderBy('createdDate', descending: true)
-            //.where('createdBy', isEqualTo: _authProviderCubit.state.uid).get()
+        collectionRef
             .withConverter<Client>(
               fromFirestore: (snapshot, _) => Client.fromJson(snapshot.data()!),
               toFirestore: (client, _) => client.toJson(),
             );
 
     query = collectionRef
-        .where('created_by', isEqualTo: '1')
+        .where('created_by', isEqualTo: _authProviderCubit.state.uid)
         .orderBy('created_date', descending: true)
         .withConverter(
           fromFirestore: (snapshot, _) => Client.fromJson(snapshot.data()!),
