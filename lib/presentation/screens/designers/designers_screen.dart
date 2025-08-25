@@ -37,11 +37,10 @@ class _DesignersScreenState extends State<DesignersScreen> {
       toFirestore: (designer, _) => designer.toJson(),
     );
 
-    query = collectionRef
-        .withConverter<Designer>(
-          fromFirestore: (snapshot, _) => Designer.fromJson(snapshot.data()!),
-          toFirestore: (designer, _) => designer.toJson(),
-        );
+    query = collectionRef.withConverter<Designer>(
+      fromFirestore: (snapshot, _) => Designer.fromJson(snapshot.data()!),
+      toFirestore: (designer, _) => designer.toJson(),
+    );
 
     //}
     setState(() {
@@ -153,7 +152,7 @@ class _DesignersScreenState extends State<DesignersScreen> {
                     onSelect: (title) {
                       setState(() {
                         selectedFilter = title;
-                        query = queryBuilder('All');
+                        query = queryBuilder(title);
                       });
                     },
                   );
@@ -254,13 +253,35 @@ class _DesignersScreenState extends State<DesignersScreen> {
     );
   }
 
-  Query<Designer> queryBuilder(filter) {
-    final query = collectionRef
-        .withConverter<Designer>(
-          fromFirestore: (snapshot, _) => Designer.fromJson(snapshot.data()!),
-          toFirestore: (designer, _) => designer.toJson(),
-        );
+  Query<Designer> queryBuilder(String filter) {
+    final query = collectionRef.withConverter<Designer>(
+      fromFirestore: (snapshot, _) => Designer.fromJson(snapshot.data()!),
+      toFirestore: (designer, _) => designer.toJson(),
+    );
 
+    switch (filter) {
+      //['All', 'Trending', 'Newest', 'Top Rated', 'Favourites']
+      case 'Newest':
+        query.orderBy('created_date', descending: true);
+        break;
+      case 'Trending':
+        query
+            .where('ratings', isGreaterThan: 1)
+            .orderBy('created_date', descending: true);
+        break;
+      case 'Top Rated':
+        query
+            .where('ratings', isGreaterThan: 1)
+            .orderBy('created_date', descending: true);
+        break;
+      case 'Favourites':
+        query
+            .where('favourites', arrayContains: _authProviderCubit.state.uid)
+            .orderBy('created_date', descending: true);
+        break;
+      default:
+        query.orderBy('created_date', descending: true);
+    }
     return query;
   }
 

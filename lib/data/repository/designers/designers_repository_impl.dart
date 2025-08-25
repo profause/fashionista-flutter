@@ -41,4 +41,9 @@ class DesignersRepositoryImpl extends DesignersRepository {
   Future<bool> isFavouriteDesigner(designerId) {
     return sl<FirebaseDesignersService>().isFavouriteDesigner(designerId);
   }
+  
+  @override
+  Future<Either> fetchFavouriteDesigners(List<String> designerIds) {
+    return sl<FirebaseDesignersService>().fetchFavouriteDesigners(designerIds);
+  }
 }

@@ -444,7 +444,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         },
       );
 
-      //sync with firestore
       if (!mounted) return;
 
       Navigator.pop(context); // Go back to previous page

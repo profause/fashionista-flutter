@@ -9,4 +9,5 @@ abstract class DesignersRepository {
   Future<Either> findDesignerById(String uid);
   Future<Either> addOrRemoveFavouriteDesigner(String designerId);
   Future<bool> isFavouriteDesigner(String designerId);
+  Future<Either> fetchFavouriteDesigners(List<String> designerIds);
 }

@@ -14,7 +14,6 @@ class BannerImageWidget extends StatefulWidget {
   final ValueNotifier<String> url;
   final bool? isEditable;
   final double? height;
-  
 
   const BannerImageWidget({
     super.key,
@@ -43,7 +42,7 @@ class _BannerImageWidgetState extends State<BannerImageWidget> {
       valueListenable: widget.url,
       builder: (_, currentUrl, __) {
         return SizedBox(
-          width: double.infinity,// make it stretch
+          width: double.infinity, // make it stretch
           height: widget.height,
           child: Stack(
             children: [
@@ -61,8 +60,12 @@ class _BannerImageWidgetState extends State<BannerImageWidget> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       ),
                     ),
-                    errorWidget: (context, url, error) =>
-                        const Icon(Icons.broken_image, size: 40),
+                    errorWidget: (context, url, error) => CachedNetworkImage(
+                      imageUrl: 'https://picsum.photos/300/200?grayscale',
+                      fit: BoxFit.cover,
+                      height: widget.height,
+                    ),
+                    //const Icon(Icons.broken_image, size: 40),
                   ),
                 ),
               ),

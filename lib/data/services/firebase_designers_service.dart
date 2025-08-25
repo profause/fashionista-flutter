@@ -18,6 +18,7 @@ abstract class FirebaseDesignersService {
   Future<Either> uploadBannerImage(String uid, CroppedFile croppedFile);
   Future<Either> addOrRemoveFavouriteDesigner(String designerId);
   Future<bool> isFavouriteDesigner(String designerId);
+  Future<Either> fetchFavouriteDesigners(List<String> designerIds);
 }
 
 class FirebaseDesignersServiceImpl implements FirebaseDesignersService {
@@ -91,6 +92,7 @@ class FirebaseDesignersServiceImpl implements FirebaseDesignersService {
           uid: user.uid,
           profileImage: user.profileImage,
           bannerImage: user.bannerImage,
+          createdDate: DateTime.now(),
         );
 
         //debugPrint(designer.toString());
@@ -195,8 +197,11 @@ class FirebaseDesignersServiceImpl implements FirebaseDesignersService {
             .collection('users')
             .doc(uid)
             .collection('favourite_designers')
-            //.doc(designerId)
-            .add({'designer_id': designerId, 'created_at': Timestamp.now()});
+            .doc(designerId)
+            .set({
+              'designer_id': designerId,
+              'created_at': Timestamp.now(),
+            }, SetOptions(merge: true));
         isFavourite = true;
       } else {
         await querySnapshot.docs.first.reference.delete();
@@ -233,6 +238,40 @@ class FirebaseDesignersServiceImpl implements FirebaseDesignersService {
       return isFavourite;
     } catch (e) {
       return false;
+    }
+  }
+
+  @override
+  Future<Either> fetchFavouriteDesigners(List<String> designerIds) async {
+    try {
+      if (designerIds.isEmpty) return Right([]);
+
+      final chunks = <List<String>>[];
+      for (var i = 0; i < designerIds.length; i += 10) {
+        chunks.add(
+          designerIds.sublist(
+            i,
+            i + 10 > designerIds.length ? designerIds.length : i + 10,
+          ),
+        );
+      }
+      final results = await Future.wait(
+        chunks.map((chunk) {
+          return FirebaseFirestore.instance
+              .collection('designers')
+              .where(FieldPath.documentId, whereIn: chunk)
+              .get();
+        }),
+      );
+
+      final designers = results
+          .expand((querySnapshot) => querySnapshot.docs)
+          .map((doc) => Designer.fromJson(doc.data()))
+          .toList();
+
+      return Right(designers);
+    } on FirebaseException catch (e) {
+      return Left(e.toString());
     }
   }
 }

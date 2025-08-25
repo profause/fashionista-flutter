@@ -23,6 +23,7 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
       : DateTime.parse(json['joined_date'] as String),
   uid: json['uid'] as String?,
   bannerImage: json['banner_image'] as String?,
+  deviceId: json['device_id'] as String? ?? '',
 );
 
 Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
@@ -38,4 +39,5 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
   'date_of_birth': instance.dateOfBirth?.toIso8601String(),
   'joined_date': instance.joinedDate?.toIso8601String(),
   'uid': instance.uid,
+  'device_id': instance.deviceId,
 };

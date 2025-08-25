@@ -4,7 +4,9 @@ import 'package:fashionista/core/auth/auth_provider_cubit.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
+import 'package:fashionista/data/services/firebase_user_service.dart';
 import 'package:fashionista/domain/usecases/profile/fetch_user_profile_usecase.dart';
+import 'package:fashionista/domain/usecases/profile/update_user_profile_usecase.dart';
 import 'package:fashionista/presentation/screens/main/main_screen.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/custom_chip_form_field_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/date_picker_form_field_widget.dart';
@@ -454,6 +456,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
             ? DateTime.parse(_dateOfBirthController.text)
             : null,
         accountType: _accountTypeController.text,
+        bannerImage: 'https://picsum.photos/300/200?grayscale',
       );
 
       context.read<UserBloc>().add(UpdateUser(updatedUser));
@@ -466,14 +469,36 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
       );
 
       //sync with firestore
-      
-      await Future.delayed(const Duration(seconds: 2)); // Simulate saving delay
+      final updateUserResult = await sl<UpdateUserProfileUsecase>().call(
+        updatedUser,
+      );
+
+      updateUserResult.fold(
+        (ifLeft) {
+          if (mounted) {
+            // Dismiss the dialog manually
+            //Navigator.of(context, rootNavigator: true).pop();
+            Navigator.of(context).pop();
+          }
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(ifLeft)));
+        },
+        (ifRight) {
+          // await sl<FirebaseUserService>().updateUserDisplayName(
+          //   updatedUser.fullName,
+          // );
+          if (mounted) {
+            // Dismiss the dialog manually
+            //Navigator.of(context, rootNavigator: true).pop();
+            Navigator.of(context).pop();
+          }
+        },
+      );
 
       if (!mounted) return;
-
-      // Close progress dialog
-      Navigator.of(context).pop();
-
+      // // Close progress dialog
+      //Navigator.of(context).pop();
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const MainScreen()),
         (route) => false,

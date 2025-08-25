@@ -370,21 +370,6 @@ class _EditDesignerProfileScreenState extends State<EditDesignerProfileScreen> {
                                       : socialHandles.add(value);
                                 },
                               ),
-                              SocialHandleFieldWidget(
-                                provider: "LinkedIn",
-                                socialHandles: socialHandles,
-                                valueOut: (value) {
-                                  final index = socialHandles.indexWhere(
-                                    (h) =>
-                                        h.provider.toLowerCase() ==
-                                        value.provider.toLowerCase(),
-                                  );
-                                  index != -1
-                                      ? socialHandles[index] = value
-                                      : socialHandles.add(value);
-                                  //socialHandles.add(value);
-                                },
-                              ),
                             ],
                           ),
                         ),
@@ -460,6 +445,7 @@ class _EditDesignerProfileScreenState extends State<EditDesignerProfileScreen> {
       businessName: businessName,
       tags: tags,
       socialHandles: socials,
+
     );
 
     //debugPrint("Designer: $designerCopy");

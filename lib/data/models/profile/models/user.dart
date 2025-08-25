@@ -36,6 +36,9 @@ class User extends Equatable {
 
   final String? uid;
 
+  @JsonKey(name: 'device_id')
+  final String? deviceId;
+
   const User({
     required this.fullName,
     required this.userName,
@@ -48,7 +51,9 @@ class User extends Equatable {
     this.dateOfBirth,
     this.joinedDate,
     this.uid,
-    this.bannerImage
+    this.bannerImage,
+    this.deviceId = '',
+
   });
 
   /// Empty constructor for initial state
@@ -65,7 +70,8 @@ class User extends Equatable {
       dateOfBirth: null,
       uid: '',
       joinedDate: null,
-      bannerImage: ''
+      bannerImage: '',
+      deviceId: '',
     );
   }
 
@@ -87,6 +93,7 @@ class User extends Equatable {
     String? uid,
     DateTime? joinedDate,
     String? bannerImage,
+    String? deviceId
   }) {
     return User(
       fullName: fullName ?? this.fullName,
@@ -100,7 +107,8 @@ class User extends Equatable {
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
       uid: uid ?? this.uid,
       joinedDate: joinedDate ?? this.joinedDate
-      ,bannerImage: bannerImage ?? this.bannerImage
+      ,bannerImage: bannerImage ?? this.bannerImage,
+      deviceId: deviceId ?? this.deviceId
     );
   }
 
@@ -118,5 +126,6 @@ class User extends Equatable {
         uid,
         joinedDate,
         bannerImage,
+        deviceId,
       ];
 }

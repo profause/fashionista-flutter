@@ -9,6 +9,7 @@ import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/services/firebase_user_service.dart';
 import 'package:fashionista/domain/usecases/profile/fetch_user_profile_usecase.dart';
 import 'package:fashionista/presentation/screens/auth/sign_in_screen.dart';
+import 'package:fashionista/presentation/screens/designers/designer_details_screen.dart';
 import 'package:fashionista/presentation/screens/designers/designer_profile_page.dart';
 import 'package:fashionista/presentation/screens/profile/edit_profile_screen.dart';
 import 'package:fashionista/presentation/screens/profile/user_profile_page.dart';
@@ -46,13 +47,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           .listen((firebase_auth.User? user) {
             if (user == null && !_authProviderCubit.state.isAuthenticated) {
               // User signed out → redirect to login
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                Navigator.of(context, rootNavigator: true).pop();
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const SignInScreen()),
-                  (route) => false,
-                );
-              });
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const SignInScreen()),
+                (route) => false,
+              );
             } else {
               _getUserDetails();
             }
@@ -74,7 +72,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     const double maxAvatarRadius = 40;
     const double minAvatarRadius = 32;
     //const double avatarRadius = 40;
-    const double expandedHeight = 170;
+    const double expandedHeight = 180;
     return BlocBuilder<UserBloc, User>(
       builder: (context, user) {
         if (user.uid != null) {
@@ -143,9 +141,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           final double shrinkOffset =
                               expandedHeight - constraints.maxHeight;
                           final double shrinkFactor =
-                          (shrinkOffset / (expandedHeight - kToolbarHeight))
-                              .clamp(0.0, 1.0);
-                           double avatarRadius =
+                              (shrinkOffset / (expandedHeight - kToolbarHeight))
+                                  .clamp(0.0, 1.0);
+                          double avatarRadius =
                               maxAvatarRadius -
                               (maxAvatarRadius - minAvatarRadius) *
                                   shrinkFactor;
@@ -161,129 +159,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   isEditable: false,
                                 ),
                                 Positioned(
-                                  top: (expandedHeight / 2) + (avatarRadius / 2),
+                                  top:
+                                      (expandedHeight / 2) + (avatarRadius / 2),
                                   left: 16,
                                   child: buildProfileAvatar(avatarRadius, user),
                                 ),
                               ],
                             ),
-
-                            // SafeArea(
-                            //   child: Column(
-                            //     children: [
-                            //       const SizedBox(height: 56),
-                            //       Stack(
-                            //         alignment: Alignment.center,
-                            //         children: [
-                            //           BannerImageWidget(
-                            //             uid: user.uid!,
-                            //             url: ValueNotifier(user.bannerImage!),
-                            //           ),
-                            //           Positioned(
-                            //             top: 70,
-                            //             left: 8,
-                            //             child: Stack(
-                            //               alignment: Alignment.center,
-                            //               children: [
-                            //                 Material(
-                            //                   color: Colors.transparent,
-                            //                   borderOnForeground: true,
-                            //                   child: InkWell(
-                            //                     borderRadius:
-                            //                         BorderRadius.circular(60),
-                            //                     onTap: () {},
-                            //                     child: user.profileImage != ''
-                            //                         ? CircleAvatar(
-                            //                             radius: 50,
-                            //                             backgroundColor:
-                            //                                 AppTheme.lightGrey,
-                            //                             backgroundImage:
-                            //                                 CachedNetworkImageProvider(
-                            //                                   user.profileImage,
-                            //                                 ),
-                            //                           )
-                            //                         : DefaultProfileAvatar(
-                            //                             name: null,
-                            //                             size: 100,
-                            //                             uid: user.uid!,
-                            //                           ),
-                            //                   ),
-                            //                 ),
-                            //                 Positioned(
-                            //                   bottom: 4, // slight overlap
-                            //                   right: 4,
-                            //                   child: CustomIconButtonRounded(
-                            //                     onPressed: () {
-                            //                       _chooseImageSource(context);
-                            //                     },
-                            //                     iconData: Icons.camera_alt,
-                            //                   ),
-                            //                 ),
-                            //                 if (_isUploading)
-                            //                   Positioned.fill(
-                            //                     child: Container(
-                            //                       decoration: BoxDecoration(
-                            //                         shape: BoxShape.circle,
-                            //                         color: Colors.black
-                            //                             .withValues(
-                            //                               alpha: 0.20,
-                            //                             ), // subtle dim
-                            //                       ),
-                            //                       alignment: Alignment.center,
-                            //                       child: const SizedBox(
-                            //                         width: 36,
-                            //                         height: 36,
-                            //                         child:
-                            //                             CircularProgressIndicator(
-                            //                               strokeWidth: 3,
-                            //                             ),
-                            //                       ),
-                            //                     ),
-                            //                   ),
-                            //               ],
-                            //             ),
-                            //           ),
-                            //         ],
-                            //       ),
-                            //     ],
-                            //   ),
-                            // ),
                           );
                         },
                       ),
-                      bottom: TabBar(
-                        labelColor: colorScheme.primary,
-                        unselectedLabelColor: AppTheme.darkGrey,
-                        indicatorColor: colorScheme.primary,
-                        dividerColor: AppTheme.lightGrey,
-                        dividerHeight: 0,
-                        indicatorWeight: 2,
-                        indicator: UnderlineTabIndicator(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(
-                            width: 4,
-                            color: colorScheme.primary,
-                          ),
-                          insets: EdgeInsets.symmetric(
-                            horizontal: 50,
-                          ), // adjust for fixed width
-                        ),
-                        tabs: [
-                          Container(
-                            margin: const EdgeInsets.symmetric(
-                              vertical: 8,
-                              horizontal: 8,
+                      bottom: PreferredSize(
+                        preferredSize: const Size.fromHeight(
+                          0,
+                        ), // set your desired height
+                        child: TabBar(
+                          labelColor: colorScheme.primary,
+                          unselectedLabelColor: AppTheme.darkGrey,
+                          indicatorColor: colorScheme.primary,
+                          dividerColor: AppTheme.lightGrey,
+                          dividerHeight: 0,
+                          indicatorWeight: 2,
+                          tabAlignment: TabAlignment.center,
+                          labelPadding: const EdgeInsets.all(0),
+                          //padding: const EdgeInsets.all(64),
+                          isScrollable: false,
+                          indicator: UnderlineTabIndicator(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(
+                              width: 4,
+                              color: colorScheme.primary,
                             ),
-                            // divider color
-                            child: Text(
-                              "Profile",
-                              style: textTheme.bodyMedium!.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            // insets: EdgeInsets.symmetric(
+                            //   horizontal: 60,
+                            // ), // adjust for fixed width
                           ),
-                          //Tab(text: "Profile"),
-                          if (user.accountType.toLowerCase() == "designer") ...[
+                          tabs: [
                             Container(
                               margin: const EdgeInsets.symmetric(
                                 vertical: 8,
@@ -291,14 +202,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                               // divider color
                               child: Text(
-                                "Designer Card",
+                                "Profile",
                                 style: textTheme.bodyMedium!.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
+                            //Tab(text: "Profile"),
+                            if (user.accountType.toLowerCase() ==
+                                "designer") ...[
+                              Container(
+                                margin: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                  horizontal: 8,
+                                ),
+                                // divider color
+                                child: Text(
+                                  "Designer Card",
+                                  style: textTheme.bodyMedium!.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                     ),
                   ];
@@ -342,7 +270,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         user.profileImage,
                       ),
                     )
-                  : DefaultProfileAvatar(name: null, size: 100, uid: user.uid!),
+                  : DefaultProfileAvatar(
+                      name: null,
+                      size: radius * 1.8,
+                      uid: user.uid!,
+                    ),
             ),
           ),
         ),
@@ -352,27 +284,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: CustomIconButtonRounded(
             size: 20,
             onPressed: () {
-              _chooseImageSource(context);
+              //_chooseImageSource(context);
+              _showImageSourceDialog();
             },
             iconData: Icons.camera_alt,
           ),
         ),
+        if (_isUploading) ...[
+          const Positioned(
+            bottom: -2,
+            right: -2,
+            child: CircularProgressIndicator(strokeWidth: 3),
+          ),
+        ],
       ],
     );
   }
 
   Future<void> _getUserDetails() async {
     try {
-      final userBloc = context.read<UserBloc>();
-      final uid = userBloc.state.uid;
-
-      if (uid != null) return;
       showDialog(
         context: context,
         barrierDismissible: false, // Prevent dismissing
         builder: (_) => const Center(child: CircularProgressIndicator()),
       );
-      final result = await sl<FetchUserProfileUsecase>().call(uid!);
+      final userBloc = context.read<UserBloc>();
+      String uid =
+          //firebase_auth.FirebaseAuth.instance.currentUser.uid ??
+          userBloc.state.uid!;
+
+      if (uid.isEmpty) {
+        uid = userBloc.state.uid!;
+      }
+     // if (uid.isEmpty) return;
+
+      final result = await sl<FetchUserProfileUsecase>().call(uid);
       result.fold(
         (ifLeft) {
           if (mounted) {
@@ -386,6 +332,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         (ifRight) {
           userBloc.clear();
           userBloc.add(UpdateUser(ifRight));
+
           if (mounted) {
             // Dismiss the dialog manually
             Navigator.of(context, rootNavigator: true).pop();
@@ -396,6 +343,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) {
         // Dismiss the dialog manually
         Navigator.of(context, rootNavigator: true).pop();
+        debugPrint(e.toString());
       }
     }
   }
@@ -429,57 +377,115 @@ class _ProfileScreenState extends State<ProfileScreen> {
   XFile? _imageFile;
   CroppedFile? _croppedFile;
   Future<void> _pickImage(ImageSource source) async {
-    final pickedFile = await ImagePicker().pickImage(source: source);
-    setState(() {
-      if (pickedFile != null) {
-        _imageFile = pickedFile;
+    try {
+      final pickedFile = await ImagePicker().pickImage(source: source);
+
+      if (pickedFile == null) {
+        // User canceled → just close the dialog if it's still open
+        if (mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
+        return;
       }
-    });
-    if (mounted) {
-      // Dismiss the dialog manually
-      Navigator.of(context, rootNavigator: true).pop();
+
+      setState(() {
+        _imageFile = pickedFile;
+      });
+
+      if (mounted) {
+        // Dismiss the dialog manually (only when successful)
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+
+      await _cropImage();
+    } catch (e) {
+      // Optionally show an error message
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Failed to pick image: $e")));
+      }
     }
-    _cropImage();
+  }
+
+  Future<void> _showImageSourceDialog() async {
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Choose Image Source"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text("Gallery"),
+              onTap: () => _pickImage(ImageSource.gallery),
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text("Camera"),
+              onTap: () => _pickImage(ImageSource.camera),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _cropImage() async {
-    final colorScheme = Theme.of(context).colorScheme;
-    final croppedFile = await ImageCropper().cropImage(
-      sourcePath: _imageFile!.path,
-      aspectRatio: CropAspectRatio(ratioX: 1.0, ratioY: 1.0),
-      compressFormat: ImageCompressFormat.jpg,
-      compressQuality: 40,
-      uiSettings: [
-        AndroidUiSettings(
-          toolbarTitle: 'Crop Image',
-          toolbarColor: colorScheme.surface,
-          toolbarWidgetColor: colorScheme.primary,
-          initAspectRatio: CropAspectRatioPreset.square,
-          lockAspectRatio: false,
-          aspectRatioPresets: [
-            CropAspectRatioPreset.original,
-            CropAspectRatioPreset.square,
-            CropAspectRatioPreset.ratio4x3,
-            CropAspectRatioPresetCustom(),
-          ],
-        ),
-        IOSUiSettings(
-          title: 'Crop Image',
-          aspectRatioPresets: [
-            CropAspectRatioPreset.original,
-            CropAspectRatioPreset.square,
-            CropAspectRatioPreset.ratio4x3,
-            CropAspectRatioPresetCustom(),
-          ],
-        ),
-      ],
-    );
+    try {
+      final colorScheme = Theme.of(context).colorScheme;
 
-    setState(() {
-      _croppedFile = croppedFile ?? _croppedFile;
-    });
+      final croppedFile = await ImageCropper().cropImage(
+        sourcePath: _imageFile!.path,
+        aspectRatio: const CropAspectRatio(ratioX: 1.0, ratioY: 1.0),
+        compressFormat: ImageCompressFormat.jpg,
+        compressQuality: 40,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Crop Image',
+            toolbarColor: colorScheme.surface,
+            toolbarWidgetColor: colorScheme.primary,
+            initAspectRatio: CropAspectRatioPreset.square,
+            lockAspectRatio: false,
+            aspectRatioPresets: [
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.square,
+              CropAspectRatioPreset.ratio4x3,
+              CropAspectRatioPresetCustom(),
+            ],
+          ),
+          IOSUiSettings(
+            title: 'Crop Image',
+            aspectRatioPresets: [
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.square,
+              CropAspectRatioPreset.ratio4x3,
+              CropAspectRatioPresetCustom(),
+            ],
+          ),
+        ],
+      );
 
-    _uploadImage();
+      if (croppedFile == null) {
+        // User cancelled → just return without uploading
+        return;
+      }
+
+      if (mounted) {
+        setState(() {
+          _croppedFile = croppedFile;
+        });
+      }
+
+      await _uploadImage();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Failed to crop image: $e")));
+      }
+    }
   }
 
   Future<void> _uploadImage() async {

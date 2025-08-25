@@ -16,6 +16,7 @@ abstract class FirebaseUserService {
   Future<Either> updateUserEmail(String email);
   Future<Either> uploadProfileImage(CroppedFile croppedFile);
   Future<Either> uploadBannerImage(CroppedFile croppedFile);
+  Future<Either> findFavouriteDesignerIds(String uid);
 }
 
 class FirebaseUserServiceImpl implements FirebaseUserService {
@@ -172,12 +173,30 @@ class FirebaseUserServiceImpl implements FirebaseUserService {
       } catch (e) {
         debugPrint(e.toString());
       }
-      
+
       return Right(link);
     } on FirebaseException catch (e) {
       return Left(e.message ?? 'Upload failed');
     } catch (e) {
       return Left(e.toString());
+    }
+  }
+
+  @override
+  Future<Either> findFavouriteDesignerIds(String uid) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final designerIdsQuery = await firestore
+          .collection('users')
+          .doc(uid)
+          .collection('favourite_designers')
+          .get();
+      final designerIds = designerIdsQuery.docs
+          .map((e) => e.data()['designer_id'].toString())
+          .toList();
+      return Right(designerIds);
+    } on FirebaseException catch (e) {
+      return Left(e.message);
     }
   }
 }
