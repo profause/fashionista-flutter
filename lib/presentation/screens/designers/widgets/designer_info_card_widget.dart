@@ -43,7 +43,7 @@ class _DesignerInfoCardWidgetState extends State<DesignerInfoCardWidget> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => DesignerDetailsScreen(),
+                  builder: (context) => DesignerDetailsScreen(designer: widget.designerInfo,),
                 ),
               );
             },
@@ -52,12 +52,14 @@ class _DesignerInfoCardWidgetState extends State<DesignerInfoCardWidget> {
           children: [
             Card(
               color: colorScheme.onPrimary,
-              elevation: 0,
+              elevation: .1,
               margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(12),
                   bottomRight: Radius.circular(12),
+                  topLeft: Radius.circular(12),
+                  topRight: Radius.circular(12),
                 ),
               ),
               child: Column(
@@ -83,29 +85,32 @@ class _DesignerInfoCardWidgetState extends State<DesignerInfoCardWidget> {
                       Positioned(
                         bottom: -(radius / 2),
                         left: 16,
-                        child: Material(
-                          color: Colors.white,
-                          borderOnForeground: true,
-                          borderRadius: BorderRadius.circular(radius),
-                          child: Padding(
-                            padding: const EdgeInsets.all(4.0),
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(radius),
-                              onTap: () {},
-                              child: widget.designerInfo.profileImage != ''
-                                  ? CircleAvatar(
-                                      radius: 30,
-                                      backgroundColor: AppTheme.lightGrey,
-                                      backgroundImage:
-                                          CachedNetworkImageProvider(
-                                            widget.designerInfo.profileImage!,
-                                          ),
-                                    )
-                                  : DefaultProfileAvatar(
-                                      name: null,
-                                      size: 100,
-                                      uid: widget.designerInfo.uid,
-                                    ),
+                        child: Hero(
+                          tag: widget.designerInfo.uid,
+                          child: Material(
+                            color: Colors.white,
+                            borderOnForeground: true,
+                            borderRadius: BorderRadius.circular(radius),
+                            child: Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(radius),
+                                onTap: () {},
+                                child: widget.designerInfo.profileImage != ''
+                                    ? CircleAvatar(
+                                        radius: 30,
+                                        backgroundColor: AppTheme.lightGrey,
+                                        backgroundImage:
+                                            CachedNetworkImageProvider(
+                                              widget.designerInfo.profileImage!,
+                                            ),
+                                      )
+                                    : DefaultProfileAvatar(
+                                        name: null,
+                                        size: 100,
+                                        uid: widget.designerInfo.uid,
+                                      ),
+                              ),
                             ),
                           ),
                         ),

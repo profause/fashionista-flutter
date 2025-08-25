@@ -104,6 +104,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     return BlocBuilder<UserBloc, User>(
       builder: (context, user) {
+        debugPrint('User: $user');
         _fullNameController.text = user.fullName;
         _userNameController.text = user.userName;
         _mobileNumberController.text = user.mobileNumber;
@@ -303,7 +304,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             CustomChipFormFieldWidget(
-                              initialValue: user.gender,
+                              initialValue: user.gender.trim(),
                               label: 'Gender',
                               items: ['Male', 'Female'],
                               onChanged: (gender) {
@@ -354,7 +355,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             CustomChipFormFieldWidget(
-                              initialValue: user.accountType,
+                              initialValue: user.accountType.trim(),
                               label: 'Account Type',
                               items: ['Regular', 'Designer'],
                               onChanged: (value) {

@@ -1,9 +1,11 @@
 import 'package:fashionista/core/auth/auth_provider_cubit.dart';
 import 'package:fashionista/core/onboarding/onboarding_cubit.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
+import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/presentation/screens/auth/sign_in_screen.dart';
 import 'package:fashionista/presentation/screens/main/main_screen.dart';
 import 'package:fashionista/presentation/screens/onboarding/onboarding_screen.dart';
+import 'package:fashionista/presentation/screens/profile/create_profile_screen.dart';
 import 'package:fashionista/presentation/screens/splash/widgets/animated_title.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -19,6 +21,7 @@ class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late OnboardingCubit _onboardingCubit;
   late AuthProviderCubit _authProviderCubit;
+  late UserBloc _userBloc;
 
   late AnimationController _controller;
   //late Animation<double> _fadeAnimation;
@@ -60,12 +63,16 @@ class _SplashScreenState extends State<SplashScreen>
       if (mounted) {
         _onboardingCubit = context.read<OnboardingCubit>();
         _authProviderCubit = context.read<AuthProviderCubit>();
+        _userBloc = context.read<UserBloc>();
         Widget nextScreen;
 
         if (!_onboardingCubit.hasCompletedOnboarding) {
           nextScreen = const OnboardingScreen();
         } else if (!_authProviderCubit.authState.isAuthenticated) {
           nextScreen = const SignInScreen();
+        } else if (_userBloc.state.accountType.isEmpty ||
+            _userBloc.state.gender.isEmpty) {
+          nextScreen = const CreateProfileScreen();
         } else {
           nextScreen = const MainScreen();
         }
@@ -128,7 +135,6 @@ class _SplashScreenState extends State<SplashScreen>
             //     ),
             //   ),
             // ),
-
             const SizedBox(height: 24),
             AnimatedTitle(),
             // FadeTransition(

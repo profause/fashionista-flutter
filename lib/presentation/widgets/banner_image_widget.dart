@@ -3,6 +3,7 @@ import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/services/firebase_designers_service.dart';
+import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -60,11 +61,7 @@ class _BannerImageWidgetState extends State<BannerImageWidget> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       ),
                     ),
-                    errorWidget: (context, url, error) => CachedNetworkImage(
-                      imageUrl: 'https://picsum.photos/300/200?grayscale',
-                      fit: BoxFit.cover,
-                      height: widget.height,
-                    ),
+                    errorWidget: (context, url, error) => CustomColoredBanner(text: "Welcome to Fashionista!"),
                     //const Icon(Icons.broken_image, size: 40),
                   ),
                 ),

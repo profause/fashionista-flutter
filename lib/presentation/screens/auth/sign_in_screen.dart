@@ -103,6 +103,18 @@ class _SignInScreenState extends State<SignInScreen> {
         otpString = verificationId;
         debugPrint("otpString: $otpString");
         return Scaffold(
+          appBar: AppBar(
+            automaticallyImplyLeading: false,
+            foregroundColor: colorScheme.primary,
+            backgroundColor: colorScheme.onPrimary,
+            title: Text(
+              'Sign In',
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall!.copyWith(fontWeight: FontWeight.bold),
+            ),
+            elevation: 0,
+          ),
           backgroundColor: colorScheme.surface,
           body: SafeArea(
             //tag: "getStartedButton",

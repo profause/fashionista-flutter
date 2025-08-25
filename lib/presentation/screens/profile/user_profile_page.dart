@@ -169,17 +169,17 @@ class UserProfilePage extends StatelessWidget {
       context.read<AuthProviderCubit>().setAuthState('', '', '', false);
 
       // ✅ show loading safely
-      await _showLoadingDialog(context);
+      //await _showLoadingDialog(context);
 
       await sl<SignOutUsecase>().call('');
 
       // ✅ remove loading dialog safely
-      if (context.mounted) {
-        Navigator.of(context, rootNavigator: true).maybePop();
-      }
+      //if (context.mounted) {
+        //Navigator.of(context, rootNavigator: true).maybePop();
+      //}
 
       // ✅ navigate to sign in
-      if (context.mounted) {
+     // if (context.mounted) {
         Navigator.pushAndRemoveUntil(
           context,
           PageRouteBuilder(
@@ -188,11 +188,11 @@ class UserProfilePage extends StatelessWidget {
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
               return FadeTransition(opacity: animation, child: child);
             },
-            transitionDuration: const Duration(milliseconds: 800),
+            transitionDuration: const Duration(milliseconds: 400),
           ),
           (route) => false,
         );
-      }
+      //}
     }
   }
 }

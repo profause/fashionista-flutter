@@ -104,7 +104,7 @@ class Designer extends Equatable {
       businessName: '',
       socialHandles: [],
       ratings: 0.0,
-      bannerImage: 'https://picsum.photos/300/200?grayscale',
+      bannerImage: '',
       isFavourite: false,
     );
   }

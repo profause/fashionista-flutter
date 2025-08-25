@@ -25,6 +25,7 @@ class _CustomChipFormFieldState extends State<CustomChipFormFieldWidget> {
   void initState() {
     super.initState();
     selectedValue = widget.initialValue ?? '';
+    selectValue(selectedValue);
   }
 
   void selectValue(String initialValue) {

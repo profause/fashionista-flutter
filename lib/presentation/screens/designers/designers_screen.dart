@@ -142,21 +142,34 @@ class _DesignersScreenState extends State<DesignersScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 12),
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: filters.map((filter) {
-                  final isSelected =
-                      filter == selectedFilter ||
-                      (selectedFilter == '' && filter == 'All');
-                  return CustomFilterButton(
-                    title: filter,
-                    isSelectedNotifier: ValueNotifier(isSelected),
-                    onSelect: (title) {
+                children: [
+                  CustomFilterButton(
+                    items: filters,
+                    initialValue: 'All',
+                    onSelect: (filter) {
                       setState(() {
-                        selectedFilter = title;
-                        query = queryBuilder(title);
+                        selectedFilter = filter;
+                        query = queryBuilder(filter);
                       });
                     },
-                  );
-                }).toList(),
+                  ),
+                ],
+
+                // children: filters.map((filter) {
+                //   final isSelected =
+                //       filter == selectedFilter ||
+                //       (selectedFilter == '' && filter == 'All');
+                //   return CustomFilterButton(
+                //     title: filter,
+                //     isSelectedNotifier: ValueNotifier(isSelected),
+                //     onSelect: (title) {
+                //       setState(() {
+                //         selectedFilter = title;
+                //         query = queryBuilder(title);
+                //       });
+                //     },
+                //   );
+                // }).toList(),
               ),
             ),
           ),

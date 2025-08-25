@@ -9,7 +9,6 @@ import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/services/firebase_user_service.dart';
 import 'package:fashionista/domain/usecases/profile/fetch_user_profile_usecase.dart';
 import 'package:fashionista/presentation/screens/auth/sign_in_screen.dart';
-import 'package:fashionista/presentation/screens/designers/designer_details_screen.dart';
 import 'package:fashionista/presentation/screens/designers/designer_profile_page.dart';
 import 'package:fashionista/presentation/screens/profile/edit_profile_screen.dart';
 import 'package:fashionista/presentation/screens/profile/user_profile_page.dart';
@@ -330,7 +329,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ).showSnackBar(SnackBar(content: Text(ifLeft)));
         },
         (ifRight) {
-          userBloc.clear();
+          
           userBloc.add(UpdateUser(ifRight));
 
           if (mounted) {
