@@ -10,6 +10,7 @@ class DesignCollectionBloc
 
   DesignCollectionBloc() : super(const DesignCollectionInitial()) {
     on<LoadDesignCollection>(_onLoadDesignCollection);
+    on<LoadDesignCollections>(_onLoadDesignCollections);
     on<UpdateDesignCollection>(
       (event, emit) => emit(DesignCollectionLoaded(event.designCollection)),
     );
@@ -27,7 +28,21 @@ class DesignCollectionBloc
 
     result.fold(
       (failure) => emit(DesignCollectionError(failure.toString())),
-      (designer) => emit(DesignCollectionLoaded(designer)),
+      (designCollection) => emit(DesignCollectionLoaded(designCollection)),
+    );
+  }
+
+    Future<void> _onLoadDesignCollections(
+    LoadDesignCollections event,
+    Emitter<DesignCollectionState> emit,
+  ) async {
+    emit(const DesignCollectionLoading());
+
+    final result = await sl<FindDesignerByIdUsecase>().call(event.uid);
+
+    result.fold(
+      (failure) => emit(DesignCollectionError(failure.toString())),
+      (designCollections) => emit(DesignCollectionsLoaded(designCollections)),
     );
   }
 }

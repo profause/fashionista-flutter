@@ -30,6 +30,7 @@ class Designer extends Equatable {
   final List<SocialHandle>? socialHandles;
   final double? ratings;
 
+  @JsonKey(includeFromJson: false, includeToJson: false)
   final bool? isFavourite;
 
   @JsonKey(name: 'created_date')

@@ -23,6 +23,14 @@ class DesignCollectionLoaded extends DesignCollectionState {
   List<Object?> get props => [designCollection];
 }
 
+class DesignCollectionsLoaded extends DesignCollectionState {
+  final List<DesignCollectionModel> designCollections;
+  const DesignCollectionsLoaded(this.designCollections);
+
+  @override
+  List<Object?> get props => [designCollections];
+}
+
 class DesignCollectionError extends DesignCollectionState {
   final String message;
   const DesignCollectionError(this.message);

@@ -15,6 +15,14 @@ class LoadDesignCollection extends DesignCollectionBlocEvent {
   List<Object?> get props => [uid];
 }
 
+class LoadDesignCollections extends DesignCollectionBlocEvent {
+  final String uid;
+  const LoadDesignCollections(this.uid);
+
+  @override
+  List<Object?> get props => [uid];
+}
+
 class UpdateDesignCollection extends DesignCollectionBlocEvent {
   final DesignCollectionModel designCollection;
   const UpdateDesignCollection(this.designCollection);

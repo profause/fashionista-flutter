@@ -24,7 +24,10 @@ class DesignCollectionModel extends Equatable {
 
   @JsonKey(name: 'updated_at')
   final int? updatedAt;
-  final String credits;
+  final String? credits;
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final bool? isBookmarked;
 
   const DesignCollectionModel({
     this.uid,
@@ -38,6 +41,7 @@ class DesignCollectionModel extends Equatable {
     this.createdAt,
     this.updatedAt,
     required this.credits,
+    this.isBookmarked = false,
   });
 
   factory DesignCollectionModel.fromJson(Map<String, dynamic> json) =>

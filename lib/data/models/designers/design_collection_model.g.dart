@@ -21,7 +21,7 @@ DesignCollectionModel _$DesignCollectionModelFromJson(
   author: AuthorModel.fromJson(json['author'] as Map<String, dynamic>),
   createdAt: (json['created_at'] as num?)?.toInt(),
   updatedAt: (json['updated_at'] as num?)?.toInt(),
-  credits: json['credits'] as String,
+  credits: json['credits'] as String?,
 );
 
 Map<String, dynamic> _$DesignCollectionModelToJson(
