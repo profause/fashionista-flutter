@@ -1,0 +1,28 @@
+import 'package:equatable/equatable.dart';
+import 'package:fashionista/data/models/designers/design_collection_model.dart';
+abstract class DesignCollectionBlocEvent extends Equatable {
+  const DesignCollectionBlocEvent();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class LoadDesignCollection extends DesignCollectionBlocEvent {
+  final String uid;
+  const LoadDesignCollection(this.uid);
+
+  @override
+  List<Object?> get props => [uid];
+}
+
+class UpdateDesignCollection extends DesignCollectionBlocEvent {
+  final DesignCollectionModel designCollection;
+  const UpdateDesignCollection(this.designCollection);
+
+  @override
+  List<Object?> get props => [designCollection];
+}
+
+class ClearDesignCollection extends DesignCollectionBlocEvent {
+  const ClearDesignCollection();
+}

@@ -166,7 +166,7 @@ class _DesignerDetailsScreenState extends State<DesignerDetailsScreen> {
                           ),
                         ),
                       ),
-                    
+
                       Container(
                         margin: const EdgeInsets.symmetric(
                           vertical: 8,
