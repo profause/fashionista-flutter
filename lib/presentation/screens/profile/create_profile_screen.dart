@@ -11,6 +11,7 @@ import 'package:fashionista/presentation/screens/main/main_screen.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/custom_chip_form_field_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/date_picker_form_field_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_text_field_widget.dart';
+import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -140,20 +141,15 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                 padding: const EdgeInsets.only(
                   right: 12.0,
                 ), // match iOS trailing spacing
-                child: GestureDetector(
-                  onTap: () async {
-                    // Handle save action
-                    await _saveProfile(user);
-                  },
-                  child: Text(
-                    'Save',
-                    style: TextStyle(
-                      fontSize: 17, // iOS standard nav bar font size
-                      fontWeight: FontWeight.w600, // semi-bold
-                      color: colorScheme.primary, // accent color
-                    ),
+                child: CustomIconButtonRounded(
+                    onPressed: () async {
+                      if (_formKey.currentState!.validate()) {
+                        await _saveProfile(user);
+                        //Navigator.of(context).pop();
+                      }
+                    },
+                    iconData: Icons.check,
                   ),
-                ),
               ),
             ],
           ),

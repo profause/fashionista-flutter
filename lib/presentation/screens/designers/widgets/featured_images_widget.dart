@@ -5,6 +5,7 @@ import 'package:fashionista/data/models/designers/designer_model.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/deletable_image_widget.dart';
 import 'package:fashionista/presentation/widgets/fullscreen_gallery_widget.dart';
+import 'package:fashionista/presentation/widgets/view_only_image_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:io';
@@ -14,7 +15,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FeaturedImagesWidget extends StatefulWidget {
   final Designer designer;
-  const FeaturedImagesWidget({super.key, required this.designer});
+  final bool? isEditable;
+  const FeaturedImagesWidget({
+    super.key,
+    required this.designer,
+    this.isEditable = true,
+  });
 
   @override
   State<FeaturedImagesWidget> createState() => _FeaturedImagesWidgetState();
@@ -63,13 +69,15 @@ class _FeaturedImagesWidgetState extends State<FeaturedImagesWidget> {
                             if (isUploading) ...[
                               CircularProgressIndicator(strokeWidth: 3),
                             ],
-                            CustomIconButtonRounded(
-                              iconData: Icons.add_photo_alternate,
-                              onPressed: () {
-                                if (isUploading) return;
-                                pickImages(context);
-                              },
-                            ),
+                            if (widget.isEditable!) ...[
+                              CustomIconButtonRounded(
+                                iconData: Icons.add_photo_alternate,
+                                onPressed: () {
+                                  if (isUploading) return;
+                                  pickImages(context);
+                                },
+                              ),
+                            ],
                           ],
                         ),
                       ],
@@ -104,11 +112,15 @@ class _FeaturedImagesWidgetState extends State<FeaturedImagesWidget> {
                                 tag: imagePath,
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(12),
-                                  child: DeletableImageWidget(
-                                    imagePath: imagePath,
-                                    onDelete: () =>
-                                        deleteImage(imagePath, context),
-                                  ),
+                                  child: widget.isEditable!
+                                      ? DeletableImageWidget(
+                                          imagePath: imagePath,
+                                          onDelete: () =>
+                                              deleteImage(imagePath, context),
+                                        )
+                                      : ViewOnlyImageWidget(
+                                          imagePath: imagePath,
+                                        ),
                                 ),
                               ),
                             ),
@@ -223,7 +235,6 @@ class _FeaturedImagesWidgetState extends State<FeaturedImagesWidget> {
         context,
       ).showSnackBar(const SnackBar(content: Text("🗑️ Image deleted")));
       context.read<DesignerBloc>().add(LoadDesigner(widget.designer.uid));
-
     } catch (e) {
       ScaffoldMessenger.of(
         context,
