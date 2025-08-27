@@ -31,6 +31,10 @@ class DesignCollectionsLoaded extends DesignCollectionState {
   List<Object?> get props => [designCollections];
 }
 
+class DesignCollectionsEmpty extends DesignCollectionState {
+  const DesignCollectionsEmpty();
+}
+
 class DesignCollectionError extends DesignCollectionState {
   final String message;
   const DesignCollectionError(this.message);

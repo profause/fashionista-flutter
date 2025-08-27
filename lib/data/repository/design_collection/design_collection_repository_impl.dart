@@ -15,8 +15,8 @@ class DesignCollectionRepositoryImpl extends DesignCollectionRepository {
   }
 
   @override
-  Future<Either> addOrRemoveBookmarkDesign(String uid) {
-    return sl<FirebaseDesignCollectionService>().addOrRemoveBookmarkDesign(uid);
+  Future<Either> addOrRemoveBookmarkDesignCollection(String uid) {
+    return sl<FirebaseDesignCollectionService>().addOrRemoveBookmarkDesignCollection(uid);
   }
 
   @override

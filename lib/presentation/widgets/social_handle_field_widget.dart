@@ -53,9 +53,7 @@ class _SocialHandleFieldWidgetState extends State<SocialHandleFieldWidget> {
       final url = buildSocialProfileUrl(s.provider, value);
       final ss = s.copyWith(url: url, handle: value, provider: widget.provider);
       widget.socialHandles[index] = ss;
-      // debugPrint(
-      //   "Updated URL:index: $index, provider: ${widget.provider}, value: $value -> ${ss.toString()}",
-      // );
+ 
       setState(() {
         widget.valueOut?.call(ss);
       });
@@ -66,14 +64,10 @@ class _SocialHandleFieldWidgetState extends State<SocialHandleFieldWidget> {
         "provider": widget.provider,
       });
       widget.socialHandles.add(s);
-      // debugPrint(
-      //   "Added URL:index: $index, provider: ${widget.provider}, value: $value -> ${s.toString()}",
-      // );
       setState(() {
         widget.valueOut?.call(s);
       });
     }
-    //debugPrint("Updated URL:index: $index, provider: ${widget.provider}, value: $value"); // Debug log
   }
 
   @override

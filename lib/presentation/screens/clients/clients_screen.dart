@@ -145,7 +145,6 @@ class _ClientsScreenState extends State<ClientsScreen> {
               return const Center(child: CircularProgressIndicator());
             }
             if (snapshot.hasError) {
-              debugPrint("Error: ${snapshot.error}");
               return SizedBox(
                     height: 400,
                     child: Center(

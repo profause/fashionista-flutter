@@ -14,9 +14,19 @@ class UserRepositoryImpl implements UserRepository {
   Future<Either> updateUserDetails(User user) async {
     return await sl<FirebaseUserService>().updateUserDetails(user);
   }
-  
+
   @override
-  Future<Either> findFavouriteDesignerIds(String uid) async{
-    return await sl<FirebaseUserService>().findFavouriteDesignerIds(uid);
+  Future<Either> findFavouriteDesignerIds() async {
+    return await sl<FirebaseUserService>().findFavouriteDesignerIds();
+  }
+
+  @override
+  Future<Either> findBookmarkedDesignCollectionIds() async {
+    return await sl<FirebaseUserService>().findBookmarkedDesignCollectionIds();
+  }
+
+  @override
+  Future<bool> hasBookmarkedDesignCollection() async {
+    return await sl<FirebaseUserService>().hasBookmarkedDesignCollection();
   }
 }

@@ -95,7 +95,6 @@ class FirebaseDesignersServiceImpl implements FirebaseDesignersService {
           createdDate: DateTime.now(),
         );
 
-        //debugPrint(designer.toString());
         return Right(designer);
       }
 
@@ -232,10 +231,11 @@ class FirebaseDesignersServiceImpl implements FirebaseDesignersService {
 
       if (querySnapshot.docs.isEmpty) {
         isFavourite = false;
+        return isFavourite;
       } else {
         isFavourite = true;
+        return isFavourite;
       }
-      return isFavourite;
     } catch (e) {
       return false;
     }

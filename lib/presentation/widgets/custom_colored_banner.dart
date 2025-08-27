@@ -54,7 +54,7 @@ class _CustomColoredBannerState extends State<CustomColoredBanner> {
         borderRadius: BorderRadius.circular(widget.borderRadius),
         boxShadow: [
           BoxShadow(
-            color: _color.withValues(alpha: 0.4),
+            color: _color.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),

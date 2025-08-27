@@ -27,24 +27,19 @@ class FirebaseAuthServiceImpl implements FirebaseAuthService {
         phoneNumber: mobileNumber,
         timeout: Duration(seconds: 60),
         verificationCompleted: (phoneAuthCredential) {
-          //response = "verificationCompleted";
         },
         verificationFailed: (error) {
-          //response = error.toString();
           Left(error.toString());
         },
         codeSent: (String verificationId, int? resendToken) {
           sendCode.value = verificationId;
-          debugPrint("Code sent $verificationId");
         },
         codeAutoRetrievalTimeout: (String verificationId) {
-          debugPrint("Timeout");
           Right(verificationId);
         },
       );
       return const Right('code sent');
     } on FirebaseAuthException catch (e) {
-      debugPrint(e.toString());
       return Left(e.message);
     }
   }
@@ -59,7 +54,6 @@ class FirebaseAuthServiceImpl implements FirebaseAuthService {
       );
       return Right(userCredential.user);
     } on FirebaseAuthException catch (e) {
-      debugPrint(e.toString());
       return Left(e.message ?? 'Unknown error');
     }
   }
@@ -86,18 +80,15 @@ class FirebaseAuthServiceImpl implements FirebaseAuthService {
           completer.complete(Left(error.message ?? 'Verification failed'));
         },
         codeSent: (String verificationId, int? resendToken) {
-          debugPrint("Code sent: $verificationId");
           completer.complete(Right(verificationId));
         },
         codeAutoRetrievalTimeout: (String verificationId) {
-          debugPrint("Timeout: $verificationId");
           // You can decide if you want to return timeout here
         },
       );
 
       return completer.future;
     } on FirebaseAuthException catch (e) {
-      debugPrint(e.toString());
       return Left(e.message ?? 'Unknown error');
     }
   }

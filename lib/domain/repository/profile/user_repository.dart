@@ -4,5 +4,7 @@ import 'package:fashionista/data/models/profile/models/user.dart';
 abstract class UserRepository {
   Future<Either> fetchUserDetailsFromFirestore(String uid);
   Future<Either> updateUserDetails(User user);
-  Future<Either> findFavouriteDesignerIds(String uid);
+  Future<Either> findFavouriteDesignerIds();
+  Future<Either> findBookmarkedDesignCollectionIds();
+  Future<bool> hasBookmarkedDesignCollection();
 }

@@ -148,7 +148,6 @@ class _EditClientScreenState extends State<EditClientScreen> {
                                 items: ['Male', 'Female'],
                                 onChanged: (gender) {
                                   _genderController.text = gender;
-                                  //debugPrint('Selected gender: $gender');
                                 },
                               ),
                             ],
@@ -255,7 +254,6 @@ class _EditClientScreenState extends State<EditClientScreen> {
       );
     } on FirebaseException catch (e) {
       _buttonLoadingStateCubit.setLoading(false);
-      debugPrint(e.toString());
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,

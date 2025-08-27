@@ -16,7 +16,9 @@ abstract class FirebaseUserService {
   Future<Either> updateUserEmail(String email);
   Future<Either> uploadProfileImage(CroppedFile croppedFile);
   Future<Either> uploadBannerImage(CroppedFile croppedFile);
-  Future<Either> findFavouriteDesignerIds(String uid);
+  Future<Either> findFavouriteDesignerIds();
+  Future<bool> hasBookmarkedDesignCollection();
+  Future<Either> findBookmarkedDesignCollectionIds();
 }
 
 class FirebaseUserServiceImpl implements FirebaseUserService {
@@ -27,8 +29,6 @@ class FirebaseUserServiceImpl implements FirebaseUserService {
       DocumentReference docRef = firestore.collection('users').doc(uid);
       DocumentSnapshot doc = await docRef.get();
       User user = User.fromJson(doc.data() as Map<String, dynamic>);
-      //debugPrint(doc.data().toString());
-      //debugPrint(user.toString());
       return Right(user);
     } on FirebaseException catch (e) {
       return Left(e.message);
@@ -183,8 +183,13 @@ class FirebaseUserServiceImpl implements FirebaseUserService {
   }
 
   @override
-  Future<Either> findFavouriteDesignerIds(String uid) async {
+  Future<Either> findFavouriteDesignerIds() async {
     try {
+      String uid = 'La9DWF9gv9YEqpWzTrYVBiUzGHf1';
+      final us = firebase_auth.FirebaseAuth.instance.currentUser;
+      if (us != null) {
+        uid = firebase_auth.FirebaseAuth.instance.currentUser!.uid;
+      }
       final firestore = FirebaseFirestore.instance;
       final designerIdsQuery = await firestore
           .collection('users')
@@ -197,6 +202,58 @@ class FirebaseUserServiceImpl implements FirebaseUserService {
       return Right(designerIds);
     } on FirebaseException catch (e) {
       return Left(e.message);
+    }
+  }
+
+  @override
+  Future<Either> findBookmarkedDesignCollectionIds() async {
+    try {
+      String uid = 'La9DWF9gv9YEqpWzTrYVBiUzGHf1';
+      final us = firebase_auth.FirebaseAuth.instance.currentUser;
+      if (us != null) {
+        uid = firebase_auth.FirebaseAuth.instance.currentUser!.uid;
+      }
+      final firestore = FirebaseFirestore.instance;
+      final designerIdsQuery = await firestore
+          .collection('users')
+          .doc(uid)
+          .collection('favourite_designers')
+          .get();
+      final designerIds = designerIdsQuery.docs
+          .map((e) => e.data()['designer_id'].toString())
+          .toList();
+      return Right(designerIds);
+    } on FirebaseException catch (e) {
+      return Left(e.message);
+    }
+  }
+
+  @override
+  Future<bool> hasBookmarkedDesignCollection() async {
+    try {
+      String uid = 'La9DWF9gv9YEqpWzTrYVBiUzGHf1';
+      final us = firebase_auth.FirebaseAuth.instance.currentUser;
+      if (us != null) {
+        uid = firebase_auth.FirebaseAuth.instance.currentUser!.uid;
+      }
+      final firestore = FirebaseFirestore.instance;
+      late bool isBookmarked;
+      QuerySnapshot querySnapshot = await firestore
+          .collection('users')
+          .doc(uid)
+          .collection('bookmarked_design_collections')
+          //.where('design_collection_id', isEqualTo: designCollectionId)
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        isBookmarked = false;
+        return isBookmarked;
+      } else {
+        isBookmarked = true;
+        return isBookmarked;
+      }
+    } catch (e) {
+      return false;
     }
   }
 }

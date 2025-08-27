@@ -236,7 +236,6 @@ class _AddClientMeasurementScreenState
           child: AnimatedPrimaryButton(
             text: "Save",
             onPressed: () async {
-              //debugPrint(_tagsController.text.trim());
               final isValid = _bodyPartController.text.isNotEmpty;
               if (!isValid) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -289,7 +288,6 @@ class _AddClientMeasurementScreenState
   }
 
   Future<void> _saveClientMeasurement(Client client) async {
-    debugPrint(client.measurements.toString());
     try {
       _buttonLoadingStateCubit.setLoading(true);
 
@@ -313,7 +311,6 @@ class _AddClientMeasurementScreenState
       );
     } on FirebaseException catch (e) {
       _buttonLoadingStateCubit.setLoading(false);
-      debugPrint(e.toString());
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
@@ -321,53 +318,4 @@ class _AddClientMeasurementScreenState
     }
   }
 
-  // Widget _tagWidget(BuildContext context, String text) {
-  //   final colorScheme = Theme.of(context).colorScheme;
-  //   final textTheme = Theme.of(context).textTheme;
-  //   return Container(
-  //     margin: const EdgeInsets.only(right: 12),
-  //     child: Material(
-  //       color: Colors.transparent,
-  //       child: InkWell(
-  //         onTap: () {},
-  //         borderRadius: BorderRadius.circular(30),
-  //         child: Container(
-  //           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-  //           decoration: BoxDecoration(
-  //             color: colorScheme.primary.withValues(alpha: 0.1),
-  //             border: Border.all(
-  //               color: colorScheme.primary.withValues(alpha: .5),
-  //               width: 1.0,
-  //             ),
-  //             borderRadius: BorderRadius.circular(8),
-  //           ),
-  //           child: Row(
-  //             mainAxisSize: MainAxisSize.min,
-  //             children: [
-  //               Text(
-  //                 text,
-  //                 style: textTheme.bodyMedium!.copyWith(
-  //                   fontSize: 14,
-  //                   fontWeight: FontWeight.w600,
-  //                 ),
-  //               ),
-  //               const SizedBox(width: 8),
-  //               GestureDetector(
-  //                 onTap: () {
-  //                   // Handle tap here (e.g., remove chip or clear text)
-  //                   debugPrint("Close icon tapped");
-  //                 },
-  //                 child: Icon(
-  //                   Icons.close_rounded,
-  //                   color: colorScheme.primary,
-  //                   size: 16,
-  //                 ),
-  //               ),
-  //             ],
-  //           ),
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
 }

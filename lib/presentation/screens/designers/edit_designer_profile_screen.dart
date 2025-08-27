@@ -448,8 +448,6 @@ class _EditDesignerProfileScreenState extends State<EditDesignerProfileScreen> {
 
     );
 
-    //debugPrint("Designer: $designerCopy");
-
     showDialog(
       context: context,
       barrierDismissible: false, // Prevent dismissing

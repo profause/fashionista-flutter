@@ -320,7 +320,6 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
         },
       );
     } on FirebaseException catch (e) {
-      debugPrint(e.toString());
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,

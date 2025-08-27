@@ -270,7 +270,6 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
       );
     } on FirebaseException catch (e) {
       //_buttonLoadingStateCubit.setLoading(false);
-      debugPrint(e.toString());
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,

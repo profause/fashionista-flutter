@@ -38,6 +38,7 @@ import 'package:fashionista/domain/usecases/designers/find_favourite_designers_u
 import 'package:fashionista/domain/usecases/designers/is_favourite_usecase.dart';
 import 'package:fashionista/domain/usecases/designers/update_designer_usecase.dart';
 import 'package:fashionista/domain/usecases/profile/fetch_user_profile_usecase.dart';
+import 'package:fashionista/domain/usecases/profile/find_bookmarked_design_collection_ids_usecase.dart';
 import 'package:fashionista/domain/usecases/profile/find_favourite_designer_ids_usecase.dart';
 import 'package:fashionista/domain/usecases/profile/update_user_profile_usecase.dart';
 import 'package:get_it/get_it.dart';
@@ -85,6 +86,10 @@ Future<void> initialiseDependencies() async {
     FindFavouriteDesignerIdsUsecase(),
   );
 
+  sl.registerSingleton<FindBookmarkedDesignCollectionIdsUsecase>(
+    FindBookmarkedDesignCollectionIdsUsecase(),
+  );
+
   sl.registerSingleton<FirebaseDesignCollectionService>(
     FirebaseDesignCollectionServiceImpl(),
   );
@@ -116,9 +121,7 @@ Future<void> initialiseDependencies() async {
     FindDesignCollectionsUsecase(),
   );
 
-  sl.registerSingleton<IsBookmarkedUsecase>(
-    IsBookmarkedUsecase(),
-  );
+  sl.registerSingleton<IsBookmarkedUsecase>(IsBookmarkedUsecase());
 
   sl.registerSingleton<UpdateDesignCollectionUsecase>(
     UpdateDesignCollectionUsecase(),

@@ -146,7 +146,7 @@ class _DesignerDetailsScreenState extends State<DesignerDetailsScreen> {
                         ),
                         // divider color
                         child: Text(
-                          "Details",
+                          "About",
                           style: textTheme.bodyMedium!.copyWith(
                             fontWeight: FontWeight.bold,
                           ),

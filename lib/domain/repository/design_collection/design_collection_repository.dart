@@ -12,7 +12,7 @@ abstract class DesignCollectionRepository {
   );
   Future<Either> deleteDesignCollectionById(String uid);
   Future<Either> findDesignCollectionById(String uid);
-  Future<Either> addOrRemoveBookmarkDesign(String uid);
+  Future<Either> addOrRemoveBookmarkDesignCollection(String uid);
   Future<bool> isBookmarkedDesignCollection(String uid);
   Future<Either> fetchBookmarkedDesignCollections(List<String> uids);
 }

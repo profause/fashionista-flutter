@@ -4,6 +4,7 @@ import 'package:fashionista/data/models/designers/bloc/design_collection_state.d
 import 'package:fashionista/domain/usecases/design_collection/find_design_collection_by_id_usecase.dart';
 import 'package:fashionista/domain/usecases/design_collection/find_design_collections_usecase.dart';
 import 'package:fashionista/domain/usecases/designers/find_designer_by_id_usecase.dart';
+import 'package:flutter/widgets.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 class DesignCollectionBloc
@@ -42,9 +43,14 @@ class DesignCollectionBloc
 
     final result = await sl<FindDesignCollectionsUsecase>().call(event.uid);
 
-    result.fold(
-      (failure) => emit(DesignCollectionError(failure.toString())),
-      (designCollections) => emit(DesignCollectionsLoaded(designCollections)),
-    );
+    result.fold((failure) => emit(DesignCollectionError(failure.toString())), (
+      designCollections,
+    ) {
+      if (designCollections.isEmpty) {
+        emit(const DesignCollectionsEmpty());
+      } else {
+        emit(DesignCollectionsLoaded(designCollections));
+      }
+    });
   }
 }

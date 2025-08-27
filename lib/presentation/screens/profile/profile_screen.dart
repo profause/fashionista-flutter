@@ -342,7 +342,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) {
         // Dismiss the dialog manually
         Navigator.of(context, rootNavigator: true).pop();
-        debugPrint(e.toString());
       }
     }
   }
@@ -498,7 +497,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       result.fold(
         (error) {
-          debugPrint('Error: $error');
           _clearImageFile();
           setState(() {
             _isUploading = false;
@@ -513,7 +511,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           user = user.copyWith(profileImage: url);
           userBloc.add(UpdateUser(user));
 
-          debugPrint('Uploaded! Image URL: $url');
           _clearImageFile();
           setState(() {
             _isUploading = false;

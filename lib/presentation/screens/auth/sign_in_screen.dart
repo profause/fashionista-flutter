@@ -70,13 +70,11 @@ class _SignInScreenState extends State<SignInScreen> {
       MobileNumberAuthPage(
         controller: _pageController,
         onNumberSubmitted: (number) async {
-          debugPrint("Mobile number submitted: $number");
           await sendOtp(number);
         },
       ),
       OtpVerificationPage(
         onVerified: (otp) async {
-          debugPrint("otp submitted: $otp");
           await verifyOneTimePassword(otp);
         },
         onChangeNumber: () {
@@ -86,7 +84,6 @@ class _SignInScreenState extends State<SignInScreen> {
           );
         },
         onResend: () async {
-          debugPrint("OTP Resent");
           await Future.delayed(const Duration(seconds: 1));
         },
       ),
@@ -95,7 +92,6 @@ class _SignInScreenState extends State<SignInScreen> {
       valueListenable: _verificationId,
       builder: (context, verificationId, _) {
         otpString = verificationId;
-        debugPrint("otpString: $otpString");
         return Scaffold(
           appBar: AppBar(
             automaticallyImplyLeading: false,
@@ -140,13 +136,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
   Future<void> sendOtp(String number) async {
     try {
-      debugPrint("Mobile number submitted again: $number");
       _buttonLoadingStateCubit.setLoading(true);
-
-      // var result = await sl<FirebaseAuthService>().signInWithPhoneNumber2(
-      //   number,
-      //   _verificationId,
-      // );
       var result = await sl<SignInUsecase>().call(number);
 
       result.fold(
@@ -155,7 +145,6 @@ class _SignInScreenState extends State<SignInScreen> {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text(ifLeft)));
-          debugPrint(ifLeft);
         },
         (ifRight) {
           _buttonLoadingStateCubit.setLoading(false);
@@ -164,29 +153,8 @@ class _SignInScreenState extends State<SignInScreen> {
         },
       );
 
-      // await FirebaseAuth.instance.verifyPhoneNumber(
-      //   phoneNumber: number,
-      //   verificationCompleted: (PhoneAuthCredential credential) {
-      //     _buttonLoadingStateCubit.setLoading(false);
-      //   },
-      //   verificationFailed: (FirebaseAuthException e) {
-      //     debugPrint(e.toString());
-      //     _buttonLoadingStateCubit.setLoading(false);
-      //   },
-      //   codeSent: (String verificationId, int? resendToken) {
-      //     debugPrint("Code Sent $verificationId");
-      //     otpString = verificationId;
-      //     _buttonLoadingStateCubit.setLoading(false);
-      //     nextPage();
-      //   },
-      //   codeAutoRetrievalTimeout: (String verificationId) {
-      //     debugPrint("Timeout");
-      //     _buttonLoadingStateCubit.setLoading(false);
-      //   },
-      // );
     } on FirebaseAuthException catch (e) {
       _buttonLoadingStateCubit.setLoading(false);
-      debugPrint(e.toString());
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
@@ -214,9 +182,6 @@ class _SignInScreenState extends State<SignInScreen> {
         (ifRight) {
           if (!mounted) return;
           _buttonLoadingStateCubit.setLoading(false);
-          debugPrint("Verification Completed");
-          debugPrint("ifRight: $ifRight?.uid");
-          debugPrint(ifRight.toString());
           _authProviderCubit.setAuthState(
             ifRight?.displayName ?? 'Guest user',
             ifRight?.phoneNumber ?? '',
@@ -260,50 +225,6 @@ class _SignInScreenState extends State<SignInScreen> {
         },
       );
 
-      // await FirebaseAuth.instance.signInWithCredential(credential).then((
-      //   onValue,
-      // ) {
-      //   if (!mounted) return;
-      //   _buttonLoadingStateCubit.setLoading(false);
-      //   debugPrint("Verification Completed");
-      //   debugPrint(onValue.user.toString());
-      //   //final uid = onValue.user?.uid;
-      //   _authProviderCubit.setAuthState(
-      //     onValue.user?.displayName ?? 'Guest user',
-      //     onValue.user?.phoneNumber ?? '',
-      //     onValue.user?.uid ?? '',
-      //     true,
-      //   );
-
-      //   var loggedInUser = _userBloc.state.copyWith(
-      //     userName: onValue.user?.displayName ?? 'Guest user',
-      //     mobileNumber: onValue.user?.phoneNumber ?? '233543756168',
-      //     uid: onValue.user?.uid ?? '',
-      //   );
-      //   _userBloc.add(UpdateUser(loggedInUser));
-      //   final user = _userBloc.state;
-      //   final isFullNameEmpty = user.fullName.isEmpty;
-      //   final isUserNameEmpty = user.userName == 'Guest user';
-      //   final isAccountTypeEmpty = user.accountType.isEmpty;
-      //   final isGenderEmpty = user.gender.isEmpty;
-
-      //   if (isFullNameEmpty ||
-      //       isUserNameEmpty ||
-      //       isAccountTypeEmpty ||
-      //       isGenderEmpty) {
-      //     Navigator.push(
-      //       context,
-      //       MaterialPageRoute(
-      //         builder: (context) => const CreateProfileScreen(),
-      //       ),
-      //     );
-      //   } else {
-      //     Navigator.push(
-      //       context,
-      //       MaterialPageRoute(builder: (context) => const MainScreen()),
-      //     );
-      //   }
-      // });
     } on FirebaseAuthException catch (e) {
       _buttonLoadingStateCubit.setLoading(false);
       debugPrint(e.toString());

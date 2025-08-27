@@ -295,7 +295,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 items: ['Male', 'Female'],
                                 onChanged: (gender) {
                                   _genderController.text = gender;
-                                  debugPrint('Selected gender: $gender');
                                 },
                               ),
                               Divider(

@@ -6,7 +6,7 @@ import 'package:fashionista/domain/repository/design_collection/design_collectio
 class AddOrRemoveDesignCollectionBookmarkUsecase extends Usecase<Either,String>{
   @override
   Future<Either> call(String params) {
-    return sl<DesignCollectionRepository>().addOrRemoveBookmarkDesign(params);
+    return sl<DesignCollectionRepository>().addOrRemoveBookmarkDesignCollection(params);
   }
 
 }

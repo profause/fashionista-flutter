@@ -78,6 +78,8 @@ class DesignCollectionModel extends Equatable {
   );
 
   DesignCollectionModel copyWith({
+    String? uid,
+    String? createdBy,
     String? title,
     String? description,
     String? tags,
@@ -89,8 +91,8 @@ class DesignCollectionModel extends Equatable {
     String? credits,
   }) {
     return DesignCollectionModel(
-      uid: uid,
-      createdBy: createdBy,
+      uid: uid ?? this.uid,
+      createdBy: createdBy ?? this.createdBy,
       title: title ?? this.title,
       description: description ?? this.description,
       tags: tags ?? this.tags,

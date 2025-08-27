@@ -101,9 +101,8 @@ class _CustomFavouriteDesignerIconButtonState
   void getIsFavourite() async {
     if(!mounted) return;
     isFavourite = await sl<IsFavouriteUsecase>().call(widget.designerId);
-    //debugPrint('isFavourite: $isFavourite');
-    //setState(() {
+ 
       widget.isFavouriteNotifier!.value = isFavourite;
-   // });
+ 
   }
 }
