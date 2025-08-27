@@ -1,12 +1,21 @@
 import 'package:equatable/equatable.dart';
+import 'package:fashionista/core/models/hive/social_handle_model_hive_type.dart';
+import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:fashionista/core/models/hive/hive_type.dart' as hive;
 
 part 'social_handle_model.g.dart';
 
 @JsonSerializable(explicitToJson: true)
+@HiveType(typeId: hive.HiveType.socialHandleType)
 class SocialHandle extends Equatable {
+  @HiveField(SocialHandleModelHiveType.handle)
   final String handle;
+
+  @HiveField(SocialHandleModelHiveType.url)
   final String url;
+
+  @HiveField(SocialHandleModelHiveType.provider)
   final String provider;
 
   const SocialHandle({

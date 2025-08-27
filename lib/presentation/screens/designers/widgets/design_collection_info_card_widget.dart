@@ -111,7 +111,7 @@ class DesignCollectionInfoCardWidget extends StatelessWidget {
                 ),
                 CustomBookmarkDesignCollectionIconButton(
                   designerCollectionId: designCollectionInfo.uid!,
-                  isisBookmarkedNotifier: ValueNotifier(
+                  isBookmarkedNotifier: ValueNotifier(
                     designCollectionInfo.isBookmarked!,
                   ),
                 ),

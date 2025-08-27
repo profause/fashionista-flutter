@@ -24,7 +24,7 @@ class _DesignerDetailsProfilePageState
   @override
   void initState() {
     super.initState();
-    context.read<DesignerBloc>().add(UpdateDesigner(widget.designer));
+    //context.read<DesignerBloc>().add(UpdateDesigner(widget.designer));
   }
 
   @override
@@ -33,7 +33,7 @@ class _DesignerDetailsProfilePageState
     final textTheme = Theme.of(context).textTheme;
 
     return BlocProvider(
-      create: (_) => DesignerBloc(),
+      create: (_) => DesignerBloc()..add(UpdateDesigner(widget.designer)),
       child: BlocBuilder<DesignerBloc, DesignerState>(
         builder: (context, state) {
           switch (state) {

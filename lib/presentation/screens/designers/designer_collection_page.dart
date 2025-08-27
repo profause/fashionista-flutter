@@ -3,7 +3,6 @@ import 'package:fashionista/data/models/designers/bloc/design_collection_event.d
 import 'package:fashionista/data/models/designers/bloc/design_collection_state.dart';
 import 'package:fashionista/data/models/designers/designer_model.dart';
 import 'package:fashionista/presentation/screens/designers/add_design_collection_screen.dart';
-import 'package:fashionista/presentation/screens/designers/widgets/design_collection_info_card_widget.dart';
 import 'package:fashionista/presentation/screens/designers/widgets/design_collection_staggered_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +29,7 @@ class _DesignerCollectionPageState extends State<DesignerCollectionPage> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    //final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       backgroundColor: colorScheme.surface,
       body: BlocProvider(

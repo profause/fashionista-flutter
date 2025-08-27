@@ -1,39 +1,63 @@
 import 'package:equatable/equatable.dart';
+import 'package:fashionista/core/models/hive/designer_model_hive_type.dart';
+import 'package:fashionista/core/models/hive/hive_type.dart' as hive;
 import 'package:fashionista/data/models/designers/social_handle_model.dart';
+import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'designer_model.g.dart';
 
 @JsonSerializable(explicitToJson: true)
+@HiveType(typeId: hive.HiveType.designerType)
 class Designer extends Equatable {
+  @HiveField(DesignerModelHiveType.uid)
   final String uid;
+
+  @HiveField(DesignerModelHiveType.name)
   final String name;
+
+  @HiveField(DesignerModelHiveType.location)
   final String location;
+
+  @HiveField(DesignerModelHiveType.bio)
   final String? bio;
+
   @JsonKey(name: 'profile_image')
+  @HiveField(DesignerModelHiveType.profileImage)
   final String? profileImage;
 
   @JsonKey(name: 'banner_image')
+  @HiveField(DesignerModelHiveType.bannerImage)
   final String? bannerImage;
 
   @JsonKey(name: 'mobile_number')
+  @HiveField(DesignerModelHiveType.mobileNumber)
   final String mobileNumber;
 
   @JsonKey(name: 'featured_images')
+  @HiveField(DesignerModelHiveType.featuredImages)
   final List<String>? featuredImages;
+
+  @HiveField(DesignerModelHiveType.tags)
   final String tags;
 
   @JsonKey(name: 'business_name')
+  @HiveField(DesignerModelHiveType.businessName)
   final String businessName;
 
   @JsonKey(name: 'social_handles')
+  @HiveField(DesignerModelHiveType.socialHandles)
   final List<SocialHandle>? socialHandles;
+  
+  @HiveField(DesignerModelHiveType.ratings)
   final double? ratings;
 
   @JsonKey(includeFromJson: false, includeToJson: false)
+  @HiveField(DesignerModelHiveType.isFavourite)
   final bool? isFavourite;
 
   @JsonKey(name: 'created_date')
+  @HiveField(DesignerModelHiveType.createdDate)
   final DateTime? createdDate;
 
   const Designer({

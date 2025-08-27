@@ -16,8 +16,8 @@ class DesignersRepositoryImpl extends DesignersRepository {
   }
 
   @override
-  Future<Either> fetchDesigners() {
-    return sl<FirebaseDesignersService>().fetchDesigners();
+  Future<Either> findDesigners() {
+    return sl<FirebaseDesignersService>().findDesigners();
   }
 
   @override

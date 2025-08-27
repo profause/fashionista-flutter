@@ -6,6 +6,6 @@ import 'package:fashionista/domain/repository/designers/designers_repository.dar
 class FindDesignersUsecase extends Usecase<Either, String> {
   @override
   Future<Either> call(params) {
-    return sl<DesignersRepository>().fetchDesigners();
+    return sl<DesignersRepository>().findDesigners();
   }
 }

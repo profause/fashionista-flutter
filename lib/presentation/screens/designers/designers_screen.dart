@@ -1,5 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fashionista/core/auth/auth_provider_cubit.dart';
+import 'package:fashionista/data/models/designers/bloc/designer_bloc.dart';
+import 'package:fashionista/data/models/designers/bloc/designer_event.dart';
+import 'package:fashionista/data/models/designers/bloc/designer_state.dart';
 import 'package:fashionista/data/models/designers/designer_model.dart';
 import 'package:fashionista/presentation/screens/designers/widgets/designer_info_card_widget.dart';
 import 'package:fashionista/presentation/widgets/appbar_title.dart';
@@ -61,6 +64,7 @@ class _DesignersScreenState extends State<DesignersScreen> {
     }
 
     return Scaffold(
+      extendBody: true,
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
         foregroundColor: colorScheme.primary,
@@ -134,6 +138,7 @@ class _DesignersScreenState extends State<DesignersScreen> {
         ],
       ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const SizedBox(height: 8),
           SizedBox(
@@ -154,22 +159,6 @@ class _DesignersScreenState extends State<DesignersScreen> {
                     },
                   ),
                 ],
-
-                // children: filters.map((filter) {
-                //   final isSelected =
-                //       filter == selectedFilter ||
-                //       (selectedFilter == '' && filter == 'All');
-                //   return CustomFilterButton(
-                //     title: filter,
-                //     isSelectedNotifier: ValueNotifier(isSelected),
-                //     onSelect: (title) {
-                //       setState(() {
-                //         selectedFilter = title;
-                //         query = queryBuilder(title);
-                //       });
-                //     },
-                //   );
-                // }).toList(),
               ),
             ),
           ),
@@ -177,87 +166,77 @@ class _DesignersScreenState extends State<DesignersScreen> {
           Expanded(
             child: RefreshIndicator(
               onRefresh: refreshDesigners,
-              child: StreamBuilder<QuerySnapshot<Designer>>(
-                stream: query
-                    //.where('created_by', isEqualTo: _authProviderCubit.state.uid)
-                    .orderBy('ratings', descending: true)
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  if (snapshot.hasError) {
-                    debugPrint("Error: ${snapshot.error}");
-                    return SizedBox(
-                      height: 400,
-                      child: Center(
-                        child: PageEmptyWidget(
-                          title: "No Designers Found",
-                          subtitle: "Error: ${snapshot.error}",
-                          icon: Icons.newspaper_outlined,
-                        ),
-                      ),
-                    );
-                    //return Center(child: Text("Error: ${snapshot.error}"));
-                  }
-
-                  final designers = snapshot.data?.docs ?? [];
-                  if (designers.isEmpty) {
-                    return ListView(
-                      // Needed so pull-to-refresh still works
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      children: const [
-                        SizedBox(
-                          height: 400,
-                          child: Center(
-                            child: PageEmptyWidget(
-                              title: "No Designers Found",
-                              subtitle: "Refresh to try again",
-                              icon: Icons.people_outline,
+              child: BlocProvider(
+                create: (_) => DesignerBloc()..add(LoadDesigners()),
+                child: BlocBuilder<DesignerBloc, DesignerState>(
+                  builder: (context, state) {
+                    switch (state) {
+                      case DesignerLoading():
+                        return const Center(child: CircularProgressIndicator());
+                      case DesignersLoaded(:final designers):
+                        final filteredDesigners = _searchText.isEmpty
+                            ? designers
+                            : designers.where((designerSnap) {
+                                final designer = designerSnap;
+                                final name = designer.name
+                                    .toLowerCase(); // adjust field
+                                return name.contains(_searchText.toLowerCase());
+                              }).toList();
+                        // context.read<DesignerBloc>().add(
+                        //   UpdateDesigners(filteredDesigners),
+                        // );
+                        if (filteredDesigners.isEmpty) {
+                          return ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: const [
+                              SizedBox(
+                                height: 400,
+                                child: Center(
+                                  child: PageEmptyWidget(
+                                    title: "No Designers Found",
+                                    subtitle: "Refresh to try again",
+                                    icon: Icons.people_outline,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+                        return ListView.builder(
+                          padding: const EdgeInsets.all(0),
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          itemCount: filteredDesigners.length,
+                          itemBuilder: (context, index) {
+                            final designer = filteredDesigners[index];
+                            return DesignerInfoCardWidget(
+                              designerInfo: designer,
+                            );
+                          },
+                        );
+                      case DesignerError(:final message):
+                        debugPrint(message);
+                        return Center(child: Text("Error: $message"));
+                      default:
+                        //return const Center(child: Text("No designers found"));
+                        return ListView(
+                          // Needed so pull-to-refresh still works
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          children: const [
+                            SizedBox(
+                              height: 400,
+                              child: Center(
+                                child: PageEmptyWidget(
+                                  title: "No Designers Found",
+                                  subtitle: "Refresh to try again",
+                                  icon: Icons.people_outline,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                      ],
-                    );
-                  }
-
-                  // inside your build method
-                  final filteredDesigners = _searchText.isEmpty
-                      ? designers
-                      : designers.where((designerSnap) {
-                          final designer = designerSnap.data();
-                          final name = designer.name
-                              .toLowerCase(); // adjust field
-                          return name.contains(_searchText.toLowerCase());
-                        }).toList();
-                  if (filteredDesigners.isEmpty) {
-                    return ListView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      children: const [
-                        SizedBox(
-                          height: 400,
-                          child: Center(
-                            child: PageEmptyWidget(
-                              title: "No Designers Found",
-                              subtitle: "Refresh to try again",
-                              icon: Icons.people_outline,
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  }
-                  return ListView.builder(
-                    padding: const EdgeInsets.all(0),
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    itemCount: filteredDesigners.length,
-                    itemBuilder: (context, index) {
-                      final designer = filteredDesigners[index].data();
-                      return DesignerInfoCardWidget(designerInfo: designer);
-                    },
-                  );
-                },
+                          ],
+                        );
+                    }
+                  },
+                ),
               ),
             ),
           ),

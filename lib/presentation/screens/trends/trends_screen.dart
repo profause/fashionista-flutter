@@ -53,6 +53,7 @@ class _TrendsScreenState extends State<TrendsScreen> {
     }
 
     return Scaffold(
+      extendBody: true,
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
         foregroundColor: colorScheme.primary,
@@ -125,107 +126,21 @@ class _TrendsScreenState extends State<TrendsScreen> {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: refreshClients,
-        child: StreamBuilder<QuerySnapshot<Client>>(
-          stream: query.orderBy('created_date', descending: true).snapshots(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (snapshot.hasError) {
-              return SizedBox(
-                    height: 400,
-                    child: Center(
-                      child: PageEmptyWidget(
-                        title: "No Trends Found",
-                        subtitle: "Error: ${snapshot.error}",
-                        icon: Icons.newspaper_outlined,
-                      ),
-                    ),
-                  );
-              //return Center(child: Text("Error: ${snapshot.error}"));
-            }
-
-            final clients = snapshot.data?.docs ?? [];
-            if (clients.isEmpty) {
-              return ListView(
-                // Needed so pull-to-refresh still works
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: const [
-                  SizedBox(
-                    height: 400,
-                    child: Center(
-                      child: PageEmptyWidget(
-                        title: "No Trends Found",
-                        subtitle: "Add new trend to see them here.",
-                        icon: Icons.newspaper_outlined,
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            }
-            // inside your build method
-            final filteredClients = _searchText.isEmpty
-                ? clients
-                : clients.where((clientSnap) {
-                    final client = clientSnap.data();
-                    final name = client.fullName.toLowerCase(); // adjust field
-                    return name.contains(_searchText.toLowerCase());
-                  }).toList();
-            if (filteredClients.isEmpty) {
-              return ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: const [
-                  SizedBox(
-                    height: 400,
-                    child: Center(
-                      child: PageEmptyWidget(
-                        title: "No Trends Found",
-                        subtitle: "Add new trend to see them here.",
-                        icon: Icons.newspaper_outlined,
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            }
-            return ListView.builder(
-              padding: const EdgeInsets.all(8.0),
-              physics: const AlwaysScrollableScrollPhysics(),
-              itemCount: filteredClients.length,
-              itemBuilder: (context, index) {
-                //final client = filteredClients[index].data();
-                return Container(); //(clientInfo: client);
-              },
-            );
-          },
-        ),
-      ),
-      floatingActionButton: Hero(
-        tag: 'add-trend-button',
-        child: Material(
-          color: Theme.of(context).colorScheme.primary,
-          elevation: 6,
-          shape: const CircleBorder(),
-          child: InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AddClientScreen(),
+      body: SafeArea(
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: const [
+            SizedBox(
+              height: 400,
+              child: Center(
+                child: PageEmptyWidget(
+                  title: "No Trends Found",
+                  subtitle: "Add new trend to see them here.",
+                  icon: Icons.newspaper_outlined,
                 ),
-              );
-            },
-            customBorder: const CircleBorder(),
-            child: SizedBox(
-              width: 56,
-              height: 56,
-              child: Icon(Icons.add, color: colorScheme.onPrimary),
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

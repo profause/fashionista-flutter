@@ -6,11 +6,11 @@ import 'package:flutter/material.dart';
 
 class CustomBookmarkDesignCollectionIconButton extends StatefulWidget {
   final String designerCollectionId;
-  final ValueNotifier<bool>? isisBookmarkedNotifier;
+  final ValueNotifier<bool>? isBookmarkedNotifier;
   const CustomBookmarkDesignCollectionIconButton({
     super.key,
     required this.designerCollectionId,
-    this.isisBookmarkedNotifier,
+    this.isBookmarkedNotifier,
   });
 
   @override
@@ -27,8 +27,8 @@ class _CustomBookmarkDesignCollectionIconButtonState
 
   @override
   initState() {
-    getIsBookmarked();
-    widget.isisBookmarkedNotifier?.value = isBookmarked;
+    //getIsBookmarked();
+    //widget.isBookmarkedNotifier?.value = isBookmarked;
 
     _controller = AnimationController(
       vsync: this,
@@ -40,8 +40,8 @@ class _CustomBookmarkDesignCollectionIconButtonState
     //   end: 1.2,
     // ).chain(CurveTween(curve: Curves.elasticOut)).animate(_controller);
 
-    widget.isisBookmarkedNotifier!.addListener(() {
-      if (widget.isisBookmarkedNotifier!.value) {
+    widget.isBookmarkedNotifier!.addListener(() {
+      if (widget.isBookmarkedNotifier!.value) {
         if (!mounted) return;
         _controller.forward(from: 0); // restart burst animation
       }
@@ -53,12 +53,12 @@ class _CustomBookmarkDesignCollectionIconButtonState
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<bool>(
-      valueListenable: widget.isisBookmarkedNotifier!,
+      valueListenable: widget.isBookmarkedNotifier!,
       builder: (_, isBookmarked, __) {
         return CustomIconButtonRounded(
           iconData: Icons.bookmark_add_outlined,
           onPressed: () async {
-            widget.isisBookmarkedNotifier!.value = !isBookmarked;
+            widget.isBookmarkedNotifier!.value = !isBookmarked;
             setState(() {
               isBookmarked = !isBookmarked;
             });
@@ -66,7 +66,7 @@ class _CustomBookmarkDesignCollectionIconButtonState
               widget.designerCollectionId,
             );
             result.fold((l) {}, (r) {
-              widget.isisBookmarkedNotifier!.value = r;
+              widget.isBookmarkedNotifier!.value = r;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
@@ -115,6 +115,6 @@ class _CustomBookmarkDesignCollectionIconButtonState
     isBookmarked = await sl<IsBookmarkedUsecase>().call(
       widget.designerCollectionId,
     );
-    widget.isisBookmarkedNotifier!.value = isBookmarked;
+    widget.isBookmarkedNotifier!.value = isBookmarked;
   }
 }

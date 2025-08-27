@@ -89,6 +89,7 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
+      extendBody: true,
       backgroundColor: colorScheme.surface,
       body: ValueListenableBuilder<int>(
         valueListenable: _selectedIndex,

@@ -3,8 +3,6 @@ import 'package:fashionista/data/models/designers/bloc/design_collection_event.d
 import 'package:fashionista/data/models/designers/bloc/design_collection_state.dart';
 import 'package:fashionista/domain/usecases/design_collection/find_design_collection_by_id_usecase.dart';
 import 'package:fashionista/domain/usecases/design_collection/find_design_collections_usecase.dart';
-import 'package:fashionista/domain/usecases/designers/find_designer_by_id_usecase.dart';
-import 'package:flutter/widgets.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 class DesignCollectionBloc

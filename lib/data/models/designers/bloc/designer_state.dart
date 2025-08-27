@@ -31,3 +31,15 @@ class DesignerError extends DesignerState {
   @override
   List<Object?> get props => [message];
 }
+
+class DesignersLoaded extends DesignerState {
+  final List<Designer> designers;
+  const DesignersLoaded(this.designers);
+
+  @override
+  List<Object?> get props => [designers];
+}
+
+class DesignerEmpty extends DesignerState {
+  const DesignerEmpty();
+}

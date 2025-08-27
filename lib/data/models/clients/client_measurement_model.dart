@@ -1,27 +1,38 @@
 import 'package:equatable/equatable.dart';
+import 'package:fashionista/core/models/hive/client_measurement_model_hive_type.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:fashionista/core/models/hive/hive_type.dart' as hive;
+import 'package:hive/hive.dart';
 
 part 'client_measurement_model.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
+@HiveType(typeId: hive.HiveType.clientMeasurementType)
 class ClientMeasurement extends Equatable {
+  @HiveField(ClientMeasurementModelHiveType.bodyPart)
   @JsonKey(name: 'body_part')
   final String bodyPart;
 
   @JsonKey(name: 'measured_value')
+  @HiveField(ClientMeasurementModelHiveType.measuredValue)
   final double measuredValue;
 
   @JsonKey(name: 'measuring_unit')
+  @HiveField(ClientMeasurementModelHiveType.measuringUnit)
   final String measuringUnit;
 
   @JsonKey(name: 'updated_date')
+  @HiveField(ClientMeasurementModelHiveType.updatedDate)
   final DateTime? updatedDate;
 
+  @HiveField(ClientMeasurementModelHiveType.notes)
   final String? notes;
 
   @JsonKey(name: 'previous_values')
+  @HiveField(ClientMeasurementModelHiveType.previousValues)
   final List<double> previousValues;
 
+  @HiveField(ClientMeasurementModelHiveType.tags)
   @JsonKey(name: 'tags')
   final String? tags;
 

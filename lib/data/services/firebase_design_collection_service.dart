@@ -117,28 +117,32 @@ class FirebaseDesignCollectionServiceImpl
 
   @override
   Future<Either> findDesignCollections(String createdBy) async {
-    try {
-      //importCollections(sampleDesignCollections);
-      final firestore = FirebaseFirestore.instance;
-      final querySnapshot = await firestore
-          .collection('design_collections')
-          .where('created_by', isEqualTo: createdBy)
-          .where('visibility', isEqualTo: 'public')
-          .orderBy('created_at', descending: true)
-          .get();
-      // Map each document to a DesignCollection
-      final designCollections = querySnapshot.docs.map((doc) {
-        //bool isBookmarked = await isBookmarkedDesignCollection(doc.reference.id);
+  try {
+    final firestore = FirebaseFirestore.instance;
+    final querySnapshot = await firestore
+        .collection('design_collections')
+        .where('created_by', isEqualTo: createdBy)
+        .where('visibility', isEqualTo: 'public')
+        .orderBy('created_at', descending: true)
+        .get();
+
+    // Await all async maps
+    final designCollections = await Future.wait(
+      querySnapshot.docs.map((doc) async {
+        bool isBookmarked = await isBookmarkedDesignCollection(doc.reference.id);
         final d = DesignCollectionModel.fromJson(doc.data());
-        return d.copyWith(uid: doc.reference.id);
-      }).toList();
-      return Right(designCollections);
-    } on FirebaseException catch (e) {
-      return Left(e.message ?? 'An unknown Firebase error occurred');
-    } catch (e) {
-      return Left(e.toString());
-    }
+        return d.copyWith(uid: doc.reference.id, isBookmarked: isBookmarked);
+      }),
+    );
+
+    return Right(designCollections);
+  } on FirebaseException catch (e) {
+    return Left(e.message ?? 'An unknown Firebase error occurred');
+  } catch (e) {
+    return Left(e.toString());
   }
+}
+
 
   final List<Map<String, dynamic>> sampleDesignCollections = [
     {
@@ -267,7 +271,9 @@ class FirebaseDesignCollectionServiceImpl
   }
 
   @override
-  Future<Either> addOrRemoveBookmarkDesignCollection(String designCollectionId) async {
+  Future<Either> addOrRemoveBookmarkDesignCollection(
+    String designCollectionId,
+  ) async {
     try {
       String uid = 'La9DWF9gv9YEqpWzTrYVBiUzGHf1';
       final us = firebase_auth.FirebaseAuth.instance.currentUser;

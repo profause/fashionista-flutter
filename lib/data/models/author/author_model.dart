@@ -1,12 +1,21 @@
 import 'package:equatable/equatable.dart';
+import 'package:fashionista/core/models/hive/author_model_hive_type.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:fashionista/core/models/hive/hive_type.dart' as hive;
+import 'package:hive/hive.dart';
 
 part 'author_model.g.dart';
 
 @JsonSerializable(explicitToJson: true)
+@HiveType(typeId: hive.HiveType.authorType)
 class AuthorModel extends Equatable {
+  @HiveField(AuthorModelHiveType.name)
   final String? name;
+
+  @HiveField(AuthorModelHiveType.uid)
   final String? uid;
+
+  @HiveField(AuthorModelHiveType.avatar)
   final String? avatar;
 
   const AuthorModel({this.name, this.uid, this.avatar});

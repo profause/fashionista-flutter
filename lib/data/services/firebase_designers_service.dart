@@ -10,7 +10,7 @@ import 'package:flutter/foundation.dart';
 import 'package:image_cropper/image_cropper.dart';
 
 abstract class FirebaseDesignersService {
-  Future<Either> fetchDesigners();
+  Future<Either> findDesigners();
   Future<Either> addDesignerToFirestore(Designer designer);
   Future<Either> updateDesignerToFirestore(Designer designer);
   Future<Either> deleteDesignerById(String uid);
@@ -54,19 +54,24 @@ class FirebaseDesignersServiceImpl implements FirebaseDesignersService {
   }
 
   @override
-  Future<Either> fetchDesigners() async {
+  Future<Either> findDesigners() async {
     try {
       final firestore = FirebaseFirestore.instance;
       final querySnapshot = await firestore
           .collection('designers')
           //.where('created_by', isEqualTo: uid)
+          .orderBy('created_date', descending: true)
           .get();
       // Map each document to a Designer
-      final designers = querySnapshot.docs.map((doc) async {
+      // Await all async maps
+    final designers = await Future.wait(
+      querySnapshot.docs.map((doc) async {
         bool isFavourite = await isFavouriteDesigner(doc.reference.id);
         final d = Designer.fromJson(doc.data());
         return d.copyWith(isFavourite: isFavourite);
-      }).toList();
+      }),
+    );
+
       return Right(designers);
     } on FirebaseException catch (e) {
       return Left(e.message ?? 'An unknown Firebase error occurred');

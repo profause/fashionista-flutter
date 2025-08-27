@@ -1,4 +1,4 @@
-import 'package:fashionista/data/models/designers/designer_model.dart';
+import 'package:fashionista/domain/usecases/designers/find_designers_usecase.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/domain/usecases/designers/find_designer_by_id_usecase.dart';
@@ -6,15 +6,19 @@ import 'package:fashionista/domain/usecases/designers/find_designer_by_id_usecas
 import 'designer_event.dart';
 import 'designer_state.dart';
 
-class DesignerBloc extends HydratedBloc<DesignerBlocEvent, DesignerState> {
+class DesignerBloc extends Bloc<DesignerBlocEvent, DesignerState> {
   DesignerBloc() : super(const DesignerInitial()) {
     on<LoadDesigner>(_onLoadDesigner);
+    on<LoadDesigners>(_onLoadDesigners);
     on<UpdateDesigner>((event, emit) => emit(DesignerLoaded(event.designer)));
+    on<UpdateDesigners>((event, emit) => emit(DesignersLoaded(event.designers)));
     on<ClearDesigner>((event, emit) => emit(const DesignerInitial()));
   }
 
   Future<void> _onLoadDesigner(
-      LoadDesigner event, Emitter<DesignerState> emit) async {
+    LoadDesigner event,
+    Emitter<DesignerState> emit,
+  ) async {
     emit(const DesignerLoading());
     final result = await sl<FindDesignerByIdUsecase>().call(event.uid);
 
@@ -24,20 +28,22 @@ class DesignerBloc extends HydratedBloc<DesignerBlocEvent, DesignerState> {
     );
   }
 
-  @override
-  DesignerState? fromJson(Map<String, dynamic> json) {
-    try {
-      return DesignerLoaded(Designer.fromJson(json));
-    } catch (_) {
-      return const DesignerInitial();
-    }
-  }
+  Future<void> _onLoadDesigners(
+    LoadDesigners event,
+    Emitter<DesignerState> emit,
+  ) async {
+    emit(const DesignerLoading());
 
-  @override
-  Map<String, dynamic>? toJson(DesignerState state) {
-    if (state is DesignerLoaded) {
-      return state.designer.toJson();
-    }
-    return null;
+    final result = await sl<FindDesignersUsecase>().call('');
+
+    result.fold((failure) => emit(DesignerError(failure.toString())), (
+      designers,
+    ) {
+      if (designers.isEmpty) {
+        emit(const DesignerEmpty());
+      } else {
+        emit(DesignersLoaded(designers));
+      }
+    });
   }
 }

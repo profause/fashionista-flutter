@@ -1,30 +1,42 @@
 import 'package:equatable/equatable.dart';
+import 'package:fashionista/core/models/hive/client_model_hive_type.dart';
 import 'package:fashionista/data/models/clients/client_measurement_model.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:fashionista/core/models/hive/hive_type.dart' as hive;
+import 'package:hive/hive.dart';
 
 part 'client_model.g.dart';
 
 @JsonSerializable(explicitToJson: true)
+@HiveType(typeId: hive.HiveType.clientType)
 class Client extends Equatable {
+  @HiveField(ClientModelHiveType.uid)
   final String uid;
 
+  @HiveField(ClientModelHiveType.createdBy)
   @JsonKey(name: 'created_by')
   final String createdBy;
 
   @JsonKey(name: 'full_name')
+  @HiveField(ClientModelHiveType.fullName)
   final String fullName;
 
   @JsonKey(name: 'mobile_number')
+  @HiveField(ClientModelHiveType.mobileNumber)
   final String mobileNumber;
 
   @JsonKey(name: 'image_url')
+  @HiveField(ClientModelHiveType.imageUrl)
   final String? imageUrl;
 
+  @HiveField(ClientModelHiveType.gender)
   final String gender;
 
   @JsonKey(name: 'created_date')
+  @HiveField(ClientModelHiveType.createdDate)
   final DateTime? createdDate;
 
+  @HiveField(ClientModelHiveType.measurements)
   final List<ClientMeasurement> measurements;
 
   const Client({
