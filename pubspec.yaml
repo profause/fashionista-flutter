@@ -59,6 +59,7 @@ dependencies:
   image_cropper: ^9.1.0
   firebase_ui_firestore: ^2.0.0
   cached_network_image: ^3.4.1
+  recaptcha_enterprise_flutter: ^18.7.1
   
 
 dev_dependencies:

@@ -12,7 +12,10 @@ import 'package:fashionista/presentation/screens/profile/create_profile_screen.d
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:recaptcha_enterprise_flutter/recaptcha.dart';
 import 'dart:io' show Platform;
+
+import 'package:recaptcha_enterprise_flutter/recaptcha_client.dart';
 
 bool isIOS = Platform.isIOS;
 
@@ -24,6 +27,8 @@ class SignInScreen extends StatefulWidget {
 }
 
 class _SignInScreenState extends State<SignInScreen> {
+  RecaptchaClient? _recaptchaClient;
+
   final PageController _pageController = PageController();
   String otpString = "";
   late ButtonLoadingStateCubit _buttonLoadingStateCubit;
@@ -35,6 +40,7 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   void initState() {
     super.initState();
+    _initRecaptcha(); // 👈 kick off async call
     _pageController.addListener(() {});
     if (mounted) {
       _buttonLoadingStateCubit = context.read<ButtonLoadingStateCubit>();
@@ -42,23 +48,6 @@ class _SignInScreenState extends State<SignInScreen> {
       _previousScreenStateCubit.setPreviousScreen('SignInScreen');
       _authProviderCubit = context.read<AuthProviderCubit>();
       _userBloc = context.read<UserBloc>();
-      if (isIOS) {
-        //this temporary code should be removed
-
-        _authProviderCubit.setAuthState(
-          'Guest user',
-          '233543756168',
-          'La9DWF9gv9YEqpWzTrYVBiUzGHf1',
-          true,
-        );
-        var loggedInUser = _userBloc.state.copyWith(
-          userName: 'Guest user',
-          mobileNumber: '233543756168',
-          uid: 'La9DWF9gv9YEqpWzTrYVBiUzGHf1',
-        );
-        _userBloc.clear();
-        _userBloc.add(UpdateUser(loggedInUser));
-      }
     }
   }
 
@@ -72,6 +61,11 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+
+    if (_recaptchaClient == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     final pages = [
       MobileNumberAuthPage(
         controller: _pageController,
@@ -161,6 +155,7 @@ class _SignInScreenState extends State<SignInScreen> {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text(ifLeft)));
+          debugPrint(ifLeft);
         },
         (ifRight) {
           _buttonLoadingStateCubit.setLoading(false);
@@ -234,7 +229,7 @@ class _SignInScreenState extends State<SignInScreen> {
             userName: ifRight?.displayName ?? 'Guest user',
             mobileNumber: ifRight?.phoneNumber ?? '233543756168',
             uid: ifRight?.uid ?? '',
-            joinedDate: ifRight.metadata.creationTime
+            joinedDate: ifRight.metadata.creationTime,
           );
           _userBloc.add(UpdateUser(loggedInUser));
           final user = _userBloc.state;
@@ -256,7 +251,9 @@ class _SignInScreenState extends State<SignInScreen> {
           } else {
             Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (BuildContext context) => const MainScreen()),
+              MaterialPageRoute(
+                builder: (BuildContext context) => const MainScreen(),
+              ),
               (route) => false,
             );
           }
@@ -315,6 +312,29 @@ class _SignInScreenState extends State<SignInScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(e.toString())));
+    }
+  }
+
+  Future<RecaptchaClient> initialiseRecapture() async {
+    final siteKey = Platform.isAndroid
+        ? "6LcvZLMrAAAAAC9BgMgVkpuuUZpxrBRW6rdvENEt"
+        : "6LerVrMrAAAAALXzsXfdT-v8p0iKKxIrK2FrByQU";
+    RecaptchaClient client = await Recaptcha.fetchClient(siteKey);
+
+    return client;
+  }
+
+  Future<void> _initRecaptcha() async {
+    try {
+      final client = await initialiseRecapture();
+      if (mounted) {
+        setState(() {
+          _recaptchaClient = client;
+        });
+      }
+    } catch (e) {
+      debugPrint("Error initializing reCAPTCHA: $e");
+      // You can show a snackbar or handle error UI here if needed
     }
   }
 }

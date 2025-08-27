@@ -61,7 +61,7 @@ class _BannerImageWidgetState extends State<BannerImageWidget> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       ),
                     ),
-                    errorWidget: (context, url, error) => CustomColoredBanner(text: "Welcome to Fashionista!"),
+                    errorWidget: (context, url, error) => CustomColoredBanner(text: ''),
                     //const Icon(Icons.broken_image, size: 40),
                   ),
                 ),

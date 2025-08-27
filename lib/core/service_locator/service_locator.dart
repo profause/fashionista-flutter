@@ -21,6 +21,14 @@ import 'package:fashionista/domain/usecases/clients/delete_client_usecase.dart';
 import 'package:fashionista/domain/usecases/clients/fetch_clients_usecase.dart';
 import 'package:fashionista/domain/usecases/clients/find_client_by_id_usecase.dart';
 import 'package:fashionista/domain/usecases/clients/update_client_usecase.dart';
+import 'package:fashionista/domain/usecases/design_collection/add_design_collection_usecase.dart';
+import 'package:fashionista/domain/usecases/design_collection/add_or_remove_design_collection_bookmark_usecase.dart';
+import 'package:fashionista/domain/usecases/design_collection/delete_design_collection_usecase.dart';
+import 'package:fashionista/domain/usecases/design_collection/fetch_design_collections_usecase.dart';
+import 'package:fashionista/domain/usecases/design_collection/find_design_collection_by_id_usecase.dart';
+import 'package:fashionista/domain/usecases/design_collection/find_design_collections_usecase.dart';
+import 'package:fashionista/domain/usecases/design_collection/is_bookmarked_usecase.dart';
+import 'package:fashionista/domain/usecases/design_collection/update_design_collection_usecase.dart';
 import 'package:fashionista/domain/usecases/designers/add_designer_usecase.dart';
 import 'package:fashionista/domain/usecases/designers/add_or_remove_favourite_usecase.dart';
 import 'package:fashionista/domain/usecases/designers/delete_designer_usecase.dart';
@@ -82,5 +90,37 @@ Future<void> initialiseDependencies() async {
   );
   sl.registerSingleton<DesignCollectionRepository>(
     DesignCollectionRepositoryImpl(),
+  );
+
+  sl.registerSingleton<AddDesignCollectionUsecase>(
+    AddDesignCollectionUsecase(),
+  );
+
+  sl.registerSingleton<AddOrRemoveDesignCollectionBookmarkUsecase>(
+    AddOrRemoveDesignCollectionBookmarkUsecase(),
+  );
+
+  sl.registerSingleton<DeleteDesignCollectionUsecase>(
+    DeleteDesignCollectionUsecase(),
+  );
+
+  sl.registerSingleton<FetchDesignCollectionsUsecase>(
+    FetchDesignCollectionsUsecase(),
+  );
+
+  sl.registerSingleton<FindDesignCollectionByIdUsecase>(
+    FindDesignCollectionByIdUsecase(),
+  );
+
+  sl.registerSingleton<FindDesignCollectionsUsecase>(
+    FindDesignCollectionsUsecase(),
+  );
+
+  sl.registerSingleton<IsBookmarkedUsecase>(
+    IsBookmarkedUsecase(),
+  );
+
+  sl.registerSingleton<UpdateDesignCollectionUsecase>(
+    UpdateDesignCollectionUsecase(),
   );
 }
