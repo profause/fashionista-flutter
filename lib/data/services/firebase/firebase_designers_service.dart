@@ -2,15 +2,18 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
+import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/designers/designer_model.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
+import 'package:fashionista/data/services/hive/hive_designers_service.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_cropper/image_cropper.dart';
 
 abstract class FirebaseDesignersService {
-  Future<Either> findDesigners();
+  Future<Either<String,List<Designer>>> findDesigners();
+  Future<Either<String,List<Designer>>> findDesignersAfterCache(int lastCacheTimestamp);
   Future<Either> addDesignerToFirestore(Designer designer);
   Future<Either> updateDesignerToFirestore(Designer designer);
   Future<Either> deleteDesignerById(String uid);
@@ -54,7 +57,7 @@ class FirebaseDesignersServiceImpl implements FirebaseDesignersService {
   }
 
   @override
-  Future<Either> findDesigners() async {
+  Future<Either<String, List<Designer>>> findDesigners() async {
     try {
       final firestore = FirebaseFirestore.instance;
       final querySnapshot = await firestore
@@ -64,14 +67,41 @@ class FirebaseDesignersServiceImpl implements FirebaseDesignersService {
           .get();
       // Map each document to a Designer
       // Await all async maps
-    final designers = await Future.wait(
-      querySnapshot.docs.map((doc) async {
-        bool isFavourite = await isFavouriteDesigner(doc.reference.id);
-        final d = Designer.fromJson(doc.data());
-        return d.copyWith(isFavourite: isFavourite);
-      }),
-    );
+      final designers = await Future.wait(
+        querySnapshot.docs.map((doc) async {
+          bool isFavourite = await isFavouriteDesigner(doc.reference.id);
+          final d = Designer.fromJson(doc.data());
+          return d.copyWith(isFavourite: isFavourite);
+        }),
+      );
+      //await sl<HiveDesignersService>().insertItems(items: designers);
+      return Right(designers);
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'An unknown Firebase error occurred');
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
 
+  @override
+  Future<Either<String, List<Designer>>> findDesignersAfterCache(int lastCacheTimestamp) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final querySnapshot = await firestore
+          .collection('designers')
+          //.where('created_by', isEqualTo: uid)
+          .orderBy('created_date', descending: true)
+          .get();
+      // Map each document to a Designer
+      // Await all async maps
+      final designers = await Future.wait(
+        querySnapshot.docs.map((doc) async {
+          bool isFavourite = await isFavouriteDesigner(doc.reference.id);
+          final d = Designer.fromJson(doc.data());
+          return d.copyWith(isFavourite: isFavourite);
+        }),
+      );
+      //await sl<HiveDesignersService>().insertItems(items: designers);
       return Right(designers);
     } on FirebaseException catch (e) {
       return Left(e.message ?? 'An unknown Firebase error occurred');

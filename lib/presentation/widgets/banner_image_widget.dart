@@ -2,7 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
-import 'package:fashionista/data/services/firebase_designers_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_designers_service.dart';
 import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:flutter/material.dart';

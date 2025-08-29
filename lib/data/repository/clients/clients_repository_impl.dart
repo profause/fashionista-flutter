@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
-import 'package:fashionista/data/services/firebase_clients_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
 import 'package:fashionista/domain/repository/clients/clients_repository.dart';
 
 class ClientsRepositoryImpl extends ClientsRepository{

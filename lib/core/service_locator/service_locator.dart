@@ -3,11 +3,12 @@ import 'package:fashionista/data/repository/clients/clients_repository_impl.dart
 import 'package:fashionista/data/repository/design_collection/design_collection_repository_impl.dart';
 import 'package:fashionista/data/repository/designers/designers_repository_impl.dart';
 import 'package:fashionista/data/repository/profile/user_repository_impl.dart';
-import 'package:fashionista/data/services/firebase_auth_service.dart';
-import 'package:fashionista/data/services/firebase_clients_service.dart';
-import 'package:fashionista/data/services/firebase_design_collection_service.dart';
-import 'package:fashionista/data/services/firebase_designers_service.dart';
-import 'package:fashionista/data/services/firebase_user_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_auth_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_design_collection_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_designers_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_user_service.dart';
+import 'package:fashionista/data/services/hive/hive_designers_service.dart';
 import 'package:fashionista/domain/repository/auth/auth_repository.dart';
 import 'package:fashionista/domain/repository/clients/clients_repository.dart';
 import 'package:fashionista/domain/repository/design_collection/design_collection_repository.dart';
@@ -126,4 +127,5 @@ Future<void> initialiseDependencies() async {
   sl.registerSingleton<UpdateDesignCollectionUsecase>(
     UpdateDesignCollectionUsecase(),
   );
+  sl.registerSingleton<HiveDesignersService>(HiveDesignersService());
 }

@@ -34,12 +34,21 @@ class DesignerError extends DesignerState {
 
 class DesignersLoaded extends DesignerState {
   final List<Designer> designers;
-  const DesignersLoaded(this.designers);
+  final bool fromCache;
+  const DesignersLoaded(this.designers, {this.fromCache = false});
 
   @override
-  List<Object?> get props => [designers];
+  List<Object?> get props => [designers, fromCache];
 }
 
 class DesignerEmpty extends DesignerState {
   const DesignerEmpty();
+}
+
+class DesignersNewData extends DesignerState {
+  final List<Designer> designers;
+  const DesignersNewData(this.designers);
+
+  @override
+  List<Object?> get props => [designers];
 }

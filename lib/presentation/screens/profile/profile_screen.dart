@@ -6,7 +6,7 @@ import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
-import 'package:fashionista/data/services/firebase_user_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_user_service.dart';
 import 'package:fashionista/domain/usecases/profile/fetch_user_profile_usecase.dart';
 import 'package:fashionista/presentation/screens/auth/sign_in_screen.dart';
 import 'package:fashionista/presentation/screens/designers/designer_profile_page.dart';

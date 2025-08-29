@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/designers/design_collection_model.dart';
-import 'package:fashionista/data/services/firebase_design_collection_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_design_collection_service.dart';
 import 'package:fashionista/domain/repository/design_collection/design_collection_repository.dart';
 
 class DesignCollectionRepositoryImpl extends DesignCollectionRepository {

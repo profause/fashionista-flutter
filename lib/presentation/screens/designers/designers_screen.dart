@@ -29,6 +29,14 @@ class _DesignersScreenState extends State<DesignersScreen> {
   String _searchText = "";
   String selectedFilter = 'All';
 
+  final GlobalKey<RefreshIndicatorState> _refreshKey =
+      GlobalKey<RefreshIndicatorState>();
+
+  Future<void> refreshDesigners() async {
+    // 🔥 Dispatch load event, which immediately emits DesignerLoading
+    context.read<DesignerBloc>().add(LoadDesignersCacheFirstThenNetwork());
+  }
+
   @override
   void initState() {
     //_isLoading = false;
@@ -60,7 +68,7 @@ class _DesignersScreenState extends State<DesignersScreen> {
     Future<void> refreshDesigners() async {
       // Force rebuild StreamBuilder by calling setState
       setState(() {});
-      await Future.delayed(const Duration(milliseconds: 500)); // optional
+      await Future.delayed(const Duration(milliseconds: 400)); // optional
     }
 
     return Scaffold(
@@ -164,28 +172,74 @@ class _DesignersScreenState extends State<DesignersScreen> {
           ),
           const SizedBox(height: 8),
           Expanded(
-            child: RefreshIndicator(
-              onRefresh: refreshDesigners,
-              child: BlocProvider(
-                create: (_) => DesignerBloc()..add(LoadDesigners()),
-                child: BlocBuilder<DesignerBloc, DesignerState>(
-                  builder: (context, state) {
-                    switch (state) {
-                      case DesignerLoading():
-                        return const Center(child: CircularProgressIndicator());
-                      case DesignersLoaded(:final designers):
-                        final filteredDesigners = _searchText.isEmpty
-                            ? designers
-                            : designers.where((designerSnap) {
-                                final designer = designerSnap;
-                                final name = designer.name
-                                    .toLowerCase(); // adjust field
-                                return name.contains(_searchText.toLowerCase());
-                              }).toList();
-                        // context.read<DesignerBloc>().add(
-                        //   UpdateDesigners(filteredDesigners),
-                        // );
-                        if (filteredDesigners.isEmpty) {
+            child: BlocProvider(
+              create: (_) =>
+                  DesignerBloc()..add(LoadDesignersCacheFirstThenNetwork()),
+              child: BlocListener<DesignerBloc, DesignerState>(
+                listener: (context, state) {
+                  if (state is DesignerLoading) {
+                    // 👇 show RefreshIndicator programmatically
+                    _refreshKey.currentState?.show();
+                  }
+                },
+                child: RefreshIndicator(
+                  key: _refreshKey,
+                  onRefresh: refreshDesigners,
+                  child: BlocBuilder<DesignerBloc, DesignerState>(
+                    builder: (context, state) {
+                      switch (state) {
+                        case DesignerLoading():
+                          // ⛔ Don’t use CircularProgressIndicator
+                          // Let RefreshIndicator handle it
+                          return ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: const [SizedBox(height: 400)],
+                          );
+                        case DesignersLoaded(
+                          :final designers,
+                          :final fromCache,
+                        ):
+                          final filteredDesigners = _searchText.isEmpty
+                              ? designers
+                              : designers.where((designer) {
+                                  final name = designer.name.toLowerCase();
+                                  return name.contains(
+                                    _searchText.toLowerCase(),
+                                  );
+                                }).toList();
+
+                          if (filteredDesigners.isEmpty) {
+                            return ListView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              children: const [
+                                SizedBox(
+                                  height: 400,
+                                  child: Center(
+                                    child: PageEmptyWidget(
+                                      title: "No Designers Found",
+                                      subtitle: "Refresh to try again",
+                                      icon: Icons.people_outline,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          }
+
+                          return ListView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            itemCount: filteredDesigners.length,
+                            itemBuilder: (context, index) {
+                              final designer = filteredDesigners[index];
+                              return DesignerInfoCardWidget(
+                                designerInfo: designer,
+                              );
+                            },
+                          );
+
+                        case DesignerError(:final message):
+                          return Center(child: Text("Error: $message"));
+                        default:
                           return ListView(
                             physics: const AlwaysScrollableScrollPhysics(),
                             children: const [
@@ -201,41 +255,9 @@ class _DesignersScreenState extends State<DesignersScreen> {
                               ),
                             ],
                           );
-                        }
-                        return ListView.builder(
-                          padding: const EdgeInsets.all(0),
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          itemCount: filteredDesigners.length,
-                          itemBuilder: (context, index) {
-                            final designer = filteredDesigners[index];
-                            return DesignerInfoCardWidget(
-                              designerInfo: designer,
-                            );
-                          },
-                        );
-                      case DesignerError(:final message):
-                        debugPrint(message);
-                        return Center(child: Text("Error: $message"));
-                      default:
-                        //return const Center(child: Text("No designers found"));
-                        return ListView(
-                          // Needed so pull-to-refresh still works
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          children: const [
-                            SizedBox(
-                              height: 400,
-                              child: Center(
-                                child: PageEmptyWidget(
-                                  title: "No Designers Found",
-                                  subtitle: "Refresh to try again",
-                                  icon: Icons.people_outline,
-                                ),
-                              ),
-                            ),
-                          ],
-                        );
-                    }
-                  },
+                      }
+                    },
+                  ),
                 ),
               ),
             ),

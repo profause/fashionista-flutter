@@ -3,7 +3,7 @@ import 'package:fashionista/data/models/clients/bloc/client_cubit.dart';
 import 'package:fashionista/data/models/clients/bloc/client_state.dart';
 import 'package:fashionista/data/models/clients/client_measurement_model.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
-import 'package:fashionista/data/services/firebase_clients_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
 import 'package:fashionista/presentation/screens/client_measurement/add_client_measurement_screen.dart';
 import 'package:fashionista/presentation/screens/client_measurement/measurement_info_card_widget.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';

@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/designers/designer_model.dart';
-import 'package:fashionista/data/services/firebase_designers_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_designers_service.dart';
 import 'package:fashionista/domain/repository/designers/designers_repository.dart';
 
 class DesignersRepositoryImpl extends DesignersRepository {
@@ -16,7 +16,7 @@ class DesignersRepositoryImpl extends DesignersRepository {
   }
 
   @override
-  Future<Either> findDesigners() {
+  Future<Either<String,List<Designer>>> findDesigners() {
     return sl<FirebaseDesignersService>().findDesigners();
   }
 

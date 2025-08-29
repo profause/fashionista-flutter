@@ -5,7 +5,7 @@ import 'package:fashionista/core/widgets/tag_input_field.dart';
 import 'package:fashionista/data/models/clients/bloc/client_cubit.dart';
 import 'package:fashionista/data/models/clients/client_measurement_model.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
-import 'package:fashionista/data/services/firebase_clients_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/custom_chip_form_field_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_text_field_widget.dart';
 import 'package:firebase_core/firebase_core.dart';

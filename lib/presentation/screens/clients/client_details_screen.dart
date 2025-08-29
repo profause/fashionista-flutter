@@ -3,7 +3,7 @@ import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/clients/bloc/client_cubit.dart';
 import 'package:fashionista/data/models/clients/bloc/client_state.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
-import 'package:fashionista/data/services/firebase_clients_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
 import 'package:fashionista/presentation/screens/client_measurement/client_measurement_screen.dart';
 import 'package:fashionista/presentation/screens/clients/client_profile_page.dart';
 import 'package:fashionista/presentation/screens/clients/edit_client_screen.dart';

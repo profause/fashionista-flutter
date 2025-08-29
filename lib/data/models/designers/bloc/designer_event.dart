@@ -23,6 +23,13 @@ class LoadDesigners extends DesignerBlocEvent {
   List<Object?> get props => [];
 }
 
+class LoadDesignersCacheFirstThenNetwork extends DesignerBlocEvent {
+  const LoadDesignersCacheFirstThenNetwork();
+
+  @override
+  List<Object?> get props => [];
+}
+
 class UpdateDesigner extends DesignerBlocEvent {
   final Designer designer;
   const UpdateDesigner(this.designer);

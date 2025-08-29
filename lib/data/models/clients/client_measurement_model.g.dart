@@ -3,6 +3,62 @@
 part of 'client_measurement_model.dart';
 
 // **************************************************************************
+// TypeAdapterGenerator
+// **************************************************************************
+
+class ClientMeasurementAdapter extends TypeAdapter<ClientMeasurement> {
+  @override
+  final int typeId = 1;
+
+  @override
+  ClientMeasurement read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return ClientMeasurement(
+      bodyPart: fields[0] as String,
+      measuredValue: fields[1] as double,
+      measuringUnit: fields[2] as String,
+      updatedDate: fields[3] as DateTime?,
+      notes: fields[4] as String?,
+      previousValues: (fields[5] as List).cast<double>(),
+      tags: fields[6] as String?,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, ClientMeasurement obj) {
+    writer
+      ..writeByte(7)
+      ..writeByte(0)
+      ..write(obj.bodyPart)
+      ..writeByte(1)
+      ..write(obj.measuredValue)
+      ..writeByte(2)
+      ..write(obj.measuringUnit)
+      ..writeByte(3)
+      ..write(obj.updatedDate)
+      ..writeByte(4)
+      ..write(obj.notes)
+      ..writeByte(5)
+      ..write(obj.previousValues)
+      ..writeByte(6)
+      ..write(obj.tags);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ClientMeasurementAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+// **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
