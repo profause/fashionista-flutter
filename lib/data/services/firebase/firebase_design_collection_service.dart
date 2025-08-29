@@ -135,6 +135,8 @@ class FirebaseDesignCollectionServiceImpl
       }),
     );
 
+    //await importCollections(sampleDesignCollections);
+
     return Right(designCollections);
   } on FirebaseException catch (e) {
     return Left(e.message ?? 'An unknown Firebase error occurred');
@@ -146,7 +148,7 @@ class FirebaseDesignCollectionServiceImpl
 
   final List<Map<String, dynamic>> sampleDesignCollections = [
     {
-      "created_by": "dIWRJLg295RbkCMKgNGi0HlSQBX2",
+      "created_by": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
       "title": "Summer Breeze Collection",
       "description":
           "A collection of light and vibrant summer outfits perfect for beach days and casual outings.",
@@ -158,7 +160,7 @@ class FirebaseDesignCollectionServiceImpl
         "https://placehold.co/180x280.png?text=Summer3",
       ],
       "author": {
-        "uid": "dIWRJLg295RbkCMKgNGi0HlSQBX2",
+        "uid": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
         "name": "Emmanuel Mensah",
         "avatar":
             "https://firebasestorage.googleapis.com/v0/b/fashionista-2025.firebasestorage.app/o/profile_images%2FdIWRJLg295RbkCMKgNGi0HlSQBX2.jpg?alt=media&token=c774ed83-d55e-4336-9600-0d4ec586631f",
@@ -168,7 +170,7 @@ class FirebaseDesignCollectionServiceImpl
       "credits": "Photography by Ama K.|Styling by Kwame A.",
     },
     {
-      "created_by": "dIWRJLg295RbkCMKgNGi0HlSQBX2",
+      "created_by": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
       "title": "Urban Nights",
       "description":
           "Streetwear inspired collection with bold colors and sharp silhouettes for night events.",
@@ -179,7 +181,7 @@ class FirebaseDesignCollectionServiceImpl
         "https://placehold.co/180x280.png?text=Urban2",
       ],
       "author": {
-        "uid": "dIWRJLg295RbkCMKgNGi0HlSQBX2",
+        "uid": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
         "name": "Emmanuel Mensah",
         "avatar":
             "https://firebasestorage.googleapis.com/v0/b/fashionista-2025.firebasestorage.app/o/profile_images%2FdIWRJLg295RbkCMKgNGi0HlSQBX2.jpg?alt=media&token=c774ed83-d55e-4336-9600-0d4ec586631f",
@@ -189,7 +191,7 @@ class FirebaseDesignCollectionServiceImpl
       "credits": "Lighting by Joe K.|Accessories by Akosua T.",
     },
     {
-      "created_by": "dIWRJLg295RbkCMKgNGi0HlSQBX2",
+      "created_by": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
       "title": "Bridal Elegance",
       "description":
           "Elegant and timeless bridal dresses made with luxurious fabrics.",
@@ -200,7 +202,7 @@ class FirebaseDesignCollectionServiceImpl
         "https://placehold.co/180x280.png?text=Bridal2",
       ],
       "author": {
-        "uid": "dIWRJLg295RbkCMKgNGi0HlSQBX2",
+        "uid": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
         "name": "Emmanuel Mensah",
         "avatar":
             "https://firebasestorage.googleapis.com/v0/b/fashionista-2025.firebasestorage.app/o/profile_images%2FdIWRJLg295RbkCMKgNGi0HlSQBX2.jpg?alt=media&token=c774ed83-d55e-4336-9600-0d4ec586631f",

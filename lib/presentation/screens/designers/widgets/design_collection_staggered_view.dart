@@ -6,12 +6,10 @@ import 'package:fashionista/data/models/designers/design_collection_model.dart';
 
 class DesignCollectionStaggeredView extends StatelessWidget {
   final List<DesignCollectionModel> designCollections;
-  final Function(DesignCollectionModel designCollection) onDesignCollectionTap;
 
   const DesignCollectionStaggeredView({
     super.key,
     required this.designCollections,
-    required this.onDesignCollectionTap,
   });
 
   @override
@@ -40,7 +38,6 @@ class DesignCollectionStaggeredView extends StatelessWidget {
           return DesignCollectionInfoCardWidget(
             designCollectionInfo: designCollection,
             aspectRatio: aspectRatio,
-            onDesignCollectionTap: onDesignCollectionTap,
           );
         },
       ),

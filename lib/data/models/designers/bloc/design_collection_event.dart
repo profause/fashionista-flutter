@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:fashionista/data/models/designers/design_collection_model.dart';
+
 abstract class DesignCollectionBlocEvent extends Equatable {
   const DesignCollectionBlocEvent();
 
@@ -18,6 +19,15 @@ class LoadDesignCollection extends DesignCollectionBlocEvent {
 class LoadDesignCollections extends DesignCollectionBlocEvent {
   final String uid;
   const LoadDesignCollections(this.uid);
+
+  @override
+  List<Object?> get props => [uid];
+}
+
+class LoadDesignCollectionsCacheFirstThenNetwork
+    extends DesignCollectionBlocEvent {
+  final String uid;
+  const LoadDesignCollectionsCacheFirstThenNetwork(this.uid);
 
   @override
   List<Object?> get props => [uid];

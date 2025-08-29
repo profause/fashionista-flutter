@@ -2,6 +2,7 @@ import 'package:fashionista/core/auth/auth_provider_cubit.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
+import 'package:fashionista/data/services/hive/hive_designers_service.dart';
 import 'package:fashionista/domain/usecases/auth/signout_usecase.dart';
 import 'package:fashionista/presentation/screens/auth/sign_in_screen.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_card_widget.dart';
@@ -172,6 +173,7 @@ class UserProfilePage extends StatelessWidget {
       //await _showLoadingDialog(context);
 
       await sl<SignOutUsecase>().call('');
+      await sl<HiveDesignersService>().clearCache();
 
       // ✅ remove loading dialog safely
       //if (context.mounted) {

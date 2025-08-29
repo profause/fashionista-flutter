@@ -35,7 +35,7 @@ class _DesignerCollectionPageState extends State<DesignerCollectionPage> {
       body: BlocProvider(
         create: (_) =>
             DesignCollectionBloc()
-              ..add(LoadDesignCollections(widget.designer.uid)),
+              ..add(LoadDesignCollectionsCacheFirstThenNetwork(widget.designer.uid)),
         child: BlocBuilder<DesignCollectionBloc, DesignCollectionState>(
           builder: (context, state) {
             switch (state) {
@@ -44,45 +44,6 @@ class _DesignerCollectionPageState extends State<DesignerCollectionPage> {
               case DesignCollectionsLoaded(:final designCollections):
                 return DesignCollectionStaggeredView(
                   designCollections: designCollections,
-                  onDesignCollectionTap: (value) {
-                    showModalBottomSheet(
-                      context: context,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(16),
-                        ),
-                      ),
-                      builder: (context) {
-                        return SafeArea(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              ListTile(
-                                leading: const Icon(Icons.share),
-                                title: const Text("Share"),
-                                onTap: () {
-                                  Navigator.pop(context);
-                                  // TODO: implement share logic
-                                  debugPrint("Share tapped for ${value.title}");
-                                },
-                              ),
-                              ListTile(
-                                leading: const Icon(Icons.bookmark_border),
-                                title: const Text("Bookmark"),
-                                onTap: () {
-                                  Navigator.pop(context);
-                                  // TODO: implement bookmark logic
-                                  debugPrint(
-                                    "Bookmark tapped for ${value.title}",
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    );
-                  },
                 );
               // return ListView.builder(
               //   padding: const EdgeInsets.all(0),

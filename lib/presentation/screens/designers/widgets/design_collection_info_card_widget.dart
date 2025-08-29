@@ -3,20 +3,17 @@ import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/designers/design_collection_model.dart';
 import 'package:fashionista/presentation/widgets/custom_bookmark_design_collection_icon_button.dart';
 import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
-import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:flutter/material.dart';
 
 class DesignCollectionInfoCardWidget extends StatelessWidget {
   final DesignCollectionModel designCollectionInfo;
   final double aspectRatio; // 👈 new parameter
-  final Function(DesignCollectionModel designCollection) onDesignCollectionTap;
 
   const DesignCollectionInfoCardWidget({
     super.key,
     required this.designCollectionInfo,
-    this.aspectRatio = 16 / 9,
-    required this.onDesignCollectionTap, // default ratio
+    this.aspectRatio = 16 / 9,// default ratio
   });
 
   @override

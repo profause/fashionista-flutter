@@ -41,7 +41,7 @@ class DesignerBloc extends Bloc<DesignerBlocEvent, DesignerState> {
   ) async {
     emit(const DesignerLoading());
 
-    final cachedItems = await sl<HiveDesignersService>().getItems();
+    final cachedItems = await sl<HiveDesignersService>().getItems('designers');
     if (cachedItems.isNotEmpty) {
       emit(DesignersLoaded(cachedItems));
     }
@@ -87,7 +87,7 @@ class DesignerBloc extends Bloc<DesignerBlocEvent, DesignerState> {
   ) async {
     emit(DesignerLoading());
     // 1️⃣ Try cache first
-    final cachedItems = await sl<HiveDesignersService>().getItems();
+    final cachedItems = await sl<HiveDesignersService>().getItems('designers');
     if (cachedItems.isNotEmpty) {
       emit(DesignersLoaded(cachedItems, fromCache: true));
     }
@@ -121,8 +121,8 @@ class DesignerBloc extends Bloc<DesignerBlocEvent, DesignerState> {
         if (cachedFirstTimestamp == null ||
             cachedFirstTimestamp != freshFirstTimestamp) {
           // 4️⃣ Update cache and emit fresh data
-          await sl<HiveDesignersService>().insertItems(items: designers);
-          //emit(DesignersLoaded(designers, fromCache: false));
+          await sl<HiveDesignersService>().insertItems('designers',items: designers);
+          emit(DesignersLoaded(designers, fromCache: false));
           emit(DesignersNewData(designers)); // optional "new data" state
           // 🔑 Do NOT call `on<Event>` here again!
         } else {

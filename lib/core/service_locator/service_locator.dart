@@ -8,6 +8,8 @@ import 'package:fashionista/data/services/firebase/firebase_clients_service.dart
 import 'package:fashionista/data/services/firebase/firebase_design_collection_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_designers_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_user_service.dart';
+import 'package:fashionista/data/services/hive/hive_client_service.dart';
+import 'package:fashionista/data/services/hive/hive_design_collection_service.dart';
 import 'package:fashionista/data/services/hive/hive_designers_service.dart';
 import 'package:fashionista/domain/repository/auth/auth_repository.dart';
 import 'package:fashionista/domain/repository/clients/clients_repository.dart';
@@ -128,4 +130,8 @@ Future<void> initialiseDependencies() async {
     UpdateDesignCollectionUsecase(),
   );
   sl.registerSingleton<HiveDesignersService>(HiveDesignersService());
+  sl.registerSingleton<HiveDesignCollectionService>(
+    HiveDesignCollectionService(),
+  );
+  sl.registerSingleton<HiveClientService>(HiveClientService());
 }

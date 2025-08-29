@@ -43,25 +43,28 @@ class _DesignerInfoCardWidgetState extends State<DesignerInfoCardWidget> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => DesignerDetailsScreen(designer: widget.designerInfo,),
+                  builder: (context) =>
+                      DesignerDetailsScreen(designer: widget.designerInfo),
                 ),
               );
             },
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Card(
-              color: colorScheme.onPrimary,
-              elevation: .1,
+            Container(
               margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(12),
-                  bottomRight: Radius.circular(12),
-                  topLeft: Radius.circular(12),
-                  topRight: Radius.circular(12),
-                ),
+              decoration: BoxDecoration(
+                color: colorScheme.onPrimary,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
+              clipBehavior: Clip.antiAlias,
               child: Column(
                 children: [
                   Stack(

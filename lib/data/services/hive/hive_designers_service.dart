@@ -10,13 +10,13 @@ class HiveDesignersService implements HiveRepository<Designer> {
   final hive = HiveService();
 
   @override
-  Future<List<Designer>> getItems() async {
+  Future<List<Designer>> getItems(String key) async {
     try {
       final data = hive.designersBox.get(_key);
-      final List<Designer> designerList = data.cast<Designer>();
       if (data == null) {
         return ([]);
       }
+      final List<Designer> designerList = data.cast<Designer>();
       return (designerList);
     } catch (e) {
       debugPrint(e.toString());
@@ -24,11 +24,10 @@ class HiveDesignersService implements HiveRepository<Designer> {
     return [];
   }
 
-
   @override
-  Future<void> insertItems({required List<Designer> items}) async {
+  Future<void> insertItems(String key, {required List<Designer> items}) async {
     try {
-      hive.designersBox.clear();
+      await hive.designersBox.clear();
       await hive.designersBox.put('designers', items);
       await hive.designersBox.put(
         'cacheTimestamp',
@@ -43,10 +42,10 @@ class HiveDesignersService implements HiveRepository<Designer> {
   Future<bool> isCacheEmpty() async {
     return hive.designersBox.isEmpty;
   }
-  
+
   @override
-  Future<void> clearCache() {
-    return hive.designersBox.clear();
+  Future<void> clearCache() async{
+    final r = await hive.designersBox.clear();
+    debugPrint('clearCache: $r');
   }
 }
-

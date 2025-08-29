@@ -19,6 +19,8 @@ class HiveService {
   factory HiveService() => _instance;
 
   late final Box designersBox;
+  late final Box designCollectionsBox;
+  late final Box clientsBox;
 
   /// Initialize Hive + boxes (call once at startup)
   Future<void> init() async {
@@ -32,7 +34,9 @@ class HiveService {
       Hive.registerAdapter(ClientMeasurementAdapter());
       Hive.registerAdapter(AuthorModelAdapter());
 
-      designersBox = await Hive.openBox('designers');
+      designersBox = await Hive.openBox('designers_cache');
+      designCollectionsBox = await Hive.openBox('design_collections_cache');
+      clientsBox = await Hive.openBox('clients_cache');
 
       debugPrint('✅ Hive initialized and designersBox opened');
     } catch (e) {

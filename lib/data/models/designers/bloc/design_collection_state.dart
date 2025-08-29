@@ -25,7 +25,8 @@ class DesignCollectionLoaded extends DesignCollectionState {
 
 class DesignCollectionsLoaded extends DesignCollectionState {
   final List<DesignCollectionModel> designCollections;
-  const DesignCollectionsLoaded(this.designCollections);
+  final bool fromCache;
+  const DesignCollectionsLoaded(this.designCollections,{this.fromCache = false});
 
   @override
   List<Object?> get props => [designCollections];
@@ -41,4 +42,12 @@ class DesignCollectionError extends DesignCollectionState {
 
   @override
   List<Object?> get props => [message];
+}
+
+class DesignCollectionsNewData extends DesignCollectionState {
+  final List<DesignCollectionModel> designCollections;
+  const DesignCollectionsNewData(this.designCollections);
+
+  @override
+  List<Object?> get props => [designCollections];
 }
