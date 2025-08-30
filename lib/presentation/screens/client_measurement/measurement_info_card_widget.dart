@@ -23,11 +23,19 @@ class MeasurementInfoCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    return Card(
-      elevation: 0,
-      color: colorScheme.onPrimary,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: colorScheme.onPrimary,
+        borderRadius: BorderRadius.circular(4),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(

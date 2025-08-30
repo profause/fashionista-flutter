@@ -28,11 +28,13 @@ class HiveDesignersService implements HiveRepository<Designer> {
   Future<void> insertItems(String key, {required List<Designer> items}) async {
     try {
       await hive.designersBox.clear();
-      await hive.designersBox.put('designers', items);
-      await hive.designersBox.put(
-        'cacheTimestamp',
-        DateTime.now().millisecondsSinceEpoch,
-      );
+      await Future.wait([
+        hive.designersBox.put('designers', items),
+        hive.designersBox.put(
+          'cacheTimestamp',
+          DateTime.now().millisecondsSinceEpoch,
+        ),
+      ]);
     } catch (e) {
       debugPrint(e.toString());
     }
@@ -45,7 +47,6 @@ class HiveDesignersService implements HiveRepository<Designer> {
 
   @override
   Future<void> clearCache() async{
-    final r = await hive.designersBox.clear();
-    debugPrint('clearCache: $r');
+    await hive.designersBox.clear();
   }
 }

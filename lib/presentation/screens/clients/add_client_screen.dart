@@ -229,8 +229,11 @@ class _AddClientScreenState extends State<AddClientScreen> {
         },
         (r) {
           _buttonLoadingStateCubit.setLoading(false);
+          //context.read<ClientBloc>().add(LoadClientsCacheFirstThenNetwork(''));
+          //BlocProvider.of<ClientBloc>(context).add(const LoadClientsCacheFirstThenNetwork(''));
           if (!mounted) return;
-          Navigator.pop(context);
+          //Navigator.pop(context);
+          Navigator.pop(context, true);
         },
       );
     } on FirebaseException catch (e) {

@@ -30,7 +30,7 @@ class HiveDesignCollectionService
     required List<DesignCollectionModel> items,
   }) async {
     try {
-      await hive.designCollectionsBox.clear();
+      //await hive.designCollectionsBox.clear();
       await Future.wait([
         hive.designCollectionsBox.put(key, items),
         hive.designCollectionsBox.put(
@@ -50,7 +50,6 @@ class HiveDesignCollectionService
 
   @override
   Future<void> clearCache() async {
-    final r = await hive.designCollectionsBox.clear();
-    debugPrint('clearCache: $r');
+    await hive.designCollectionsBox.clear();
   }
 }

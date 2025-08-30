@@ -7,4 +7,6 @@ class ClientModelHiveType {
   static const int gender = 5;
   static const int createdDate = 6;
   static const int measurements = 7;
+  static const int updatedAt = 8;
+
 }

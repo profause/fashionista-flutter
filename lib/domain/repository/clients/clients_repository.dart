@@ -3,6 +3,7 @@ import 'package:fashionista/data/models/clients/client_model.dart';
 
 abstract class ClientsRepository {
   Future<Either> fetchClientsFromFirestore(String uid);
+  Future<Either<String,List<Client>>> findClientsFromFirestore(String uid);
   Future<Either> addClientToFirestore(Client client);
   Future<Either> updateClientToFirestore(Client client);
   Future<Either> deleteClientById(String clientId);

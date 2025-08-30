@@ -42,17 +42,29 @@ class _ClientInfoCardWidgetState extends State<ClientInfoCardWidget> {
               ),
             );
           },
-      child: Card(
-        color: colorScheme.onPrimary,
-        elevation: 0,
-        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+        decoration: BoxDecoration(
+          color: colorScheme.onPrimary,
+          borderRadius: BorderRadius.circular(0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.01),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Row(
             children: [
               // Avatar
-              DefaultProfileAvatar(name:null,size: 60,uid: widget.clientInfo.uid,),
+              DefaultProfileAvatar(
+                name: null,
+                size: 60,
+                uid: widget.clientInfo.uid,
+              ),
               // ClipOval(
               //   child:
               //       widget.clientInfo.imageUrl != null &&

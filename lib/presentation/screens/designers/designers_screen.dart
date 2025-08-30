@@ -72,7 +72,7 @@ class _DesignersScreenState extends State<DesignersScreen> {
     }
 
     return Scaffold(
-      extendBody: true,
+      extendBody: false,
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
         foregroundColor: colorScheme.primary,

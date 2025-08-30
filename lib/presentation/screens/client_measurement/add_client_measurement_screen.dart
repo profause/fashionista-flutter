@@ -2,7 +2,8 @@ import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/widgets/animated_primary_button.dart';
 import 'package:fashionista/core/widgets/bloc/button_loading_state_cubit.dart';
 import 'package:fashionista/core/widgets/tag_input_field.dart';
-import 'package:fashionista/data/models/clients/bloc/client_cubit.dart';
+import 'package:fashionista/data/models/clients/bloc/client_bloc.dart';
+import 'package:fashionista/data/models/clients/bloc/client_event.dart';
 import 'package:fashionista/data/models/clients/client_measurement_model.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
@@ -246,10 +247,12 @@ class _AddClientMeasurementScreenState
                 );
                 return; // Stop here if invalid
               }
-          
+
               final updatedMeasurement = widget.clientMeasurement.copyWith(
                 bodyPart: _bodyPartController.text.trim(),
-                measuredValue: double.parse(_measuredValueController.text.trim()),
+                measuredValue: double.parse(
+                  _measuredValueController.text.trim(),
+                ),
                 notes: _noteController.text.trim(),
                 measuringUnit: _measuringUnitController.text.trim(),
                 updatedDate: DateTime.now(),
@@ -258,14 +261,14 @@ class _AddClientMeasurementScreenState
               final List<ClientMeasurement> measurements = List.from(
                 widget.client.measurements,
               );
-          
+
               // check if bodyPart already exists
               final index = measurements.indexWhere(
                 (m) =>
                     m.bodyPart.toLowerCase() ==
                     updatedMeasurement.bodyPart.toLowerCase(),
               );
-          
+
               if (index != -1) {
                 // update existing
                 measurements[index] = updatedMeasurement;
@@ -277,8 +280,8 @@ class _AddClientMeasurementScreenState
               final updatedClient = widget.client.copyWith(
                 measurements: measurements,
               );
-          
-              context.read<ClientCubit>().updateClient(updatedClient);
+
+              context.read<ClientBloc>().add(UpdateClient(updatedClient));
               _saveClientMeasurement(updatedClient);
             },
           ),
@@ -317,5 +320,4 @@ class _AddClientMeasurementScreenState
       ).showSnackBar(SnackBar(content: Text(e.message!)));
     }
   }
-
 }

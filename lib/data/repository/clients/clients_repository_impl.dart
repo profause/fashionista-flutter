@@ -29,5 +29,10 @@ class ClientsRepositoryImpl extends ClientsRepository{
   Future<Either> findClientById(String clientId) {
     return sl<FirebaseClientsService>().findClientById(clientId);
   }
+  
+  @override
+  Future<Either<String,List<Client>>> findClientsFromFirestore(String uid) {
+    return sl<FirebaseClientsService>().findClientsFromFirestore(uid);
+  }
 
 }

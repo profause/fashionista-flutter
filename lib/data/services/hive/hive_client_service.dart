@@ -25,12 +25,14 @@ class HiveClientService implements HiveRepository<Client> {
   @override
   Future<void> insertItems(String key, {required List<Client> items}) async {
     try {
-      await hive.clientsBox.clear();
-      await hive.clientsBox.put(key, items);
-      await hive.clientsBox.put(
-        'cacheTimestamp',
-        DateTime.now().millisecondsSinceEpoch,
-      );
+      //await hive.clientsBox.clear();
+      await Future.wait([
+        hive.clientsBox.put(key, items),
+        hive.clientsBox.put(
+          'cacheTimestamp',
+          DateTime.now().millisecondsSinceEpoch,
+        ),
+      ]);
     } catch (e) {
       debugPrint(e.toString());
     }

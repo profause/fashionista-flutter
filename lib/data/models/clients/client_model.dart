@@ -39,6 +39,10 @@ class Client extends Equatable {
   @HiveField(ClientModelHiveType.measurements)
   final List<ClientMeasurement> measurements;
 
+  @JsonKey(name: 'updated_at')
+  @HiveField(ClientModelHiveType.updatedAt)
+  final int? updatedAt;
+
   const Client({
     required this.uid,
     required this.createdBy,
@@ -48,6 +52,7 @@ class Client extends Equatable {
     required this.gender,
     required this.createdDate,
     required this.measurements,
+    this.updatedAt,
   });
 
   factory Client.fromJson(Map<String, dynamic> json) => _$ClientFromJson(json);
@@ -71,6 +76,7 @@ class Client extends Equatable {
     String? gender,
     DateTime? createdDate,
     List<ClientMeasurement>? measurements,
+    int? updatedAt
   }) {
     return Client(
       uid: uid ?? this.uid,
@@ -81,6 +87,7 @@ class Client extends Equatable {
       gender: gender ?? this.gender,
       createdDate: createdDate ?? this.createdDate,
       measurements: measurements ?? this.measurements,
+      updatedAt: updatedAt ?? this.updatedAt
     );
   }
 
@@ -107,5 +114,6 @@ class Client extends Equatable {
     gender,
     createdDate,
     measurements,
+    updatedAt
   ];
 }

@@ -25,13 +25,14 @@ class ClientAdapter extends TypeAdapter<Client> {
       gender: fields[5] as String,
       createdDate: fields[6] as DateTime?,
       measurements: (fields[7] as List).cast<ClientMeasurement>(),
+      updatedAt: fields[8] as int?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Client obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.uid)
       ..writeByte(1)
@@ -47,7 +48,9 @@ class ClientAdapter extends TypeAdapter<Client> {
       ..writeByte(6)
       ..write(obj.createdDate)
       ..writeByte(7)
-      ..write(obj.measurements);
+      ..write(obj.measurements)
+      ..writeByte(8)
+      ..write(obj.updatedAt);
   }
 
   @override
@@ -78,6 +81,7 @@ Client _$ClientFromJson(Map<String, dynamic> json) => Client(
       measurements: (json['measurements'] as List<dynamic>)
           .map((e) => ClientMeasurement.fromJson(e as Map<String, dynamic>))
           .toList(),
+      updatedAt: (json['updated_at'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$ClientToJson(Client instance) => <String, dynamic>{
@@ -89,4 +93,5 @@ Map<String, dynamic> _$ClientToJson(Client instance) => <String, dynamic>{
       'gender': instance.gender,
       'created_date': instance.createdDate?.toIso8601String(),
       'measurements': instance.measurements.map((e) => e.toJson()).toList(),
+      'updated_at': instance.updatedAt,
     };

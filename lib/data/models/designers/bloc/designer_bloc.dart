@@ -120,10 +120,10 @@ class DesignerBloc extends Bloc<DesignerBlocEvent, DesignerState> {
 
         if (cachedFirstTimestamp == null ||
             cachedFirstTimestamp != freshFirstTimestamp) {
-          // 4️⃣ Update cache and emit fresh data
-          await sl<HiveDesignersService>().insertItems('designers',items: designers);
           emit(DesignersLoaded(designers, fromCache: false));
           emit(DesignersNewData(designers)); // optional "new data" state
+           // 4️⃣ Update cache and emit fresh data
+          await sl<HiveDesignersService>().insertItems('designers',items: designers);
           // 🔑 Do NOT call `on<Event>` here again!
         } else {
           // no change

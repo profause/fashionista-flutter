@@ -2,10 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:fashionista/data/models/clients/client_measurement_model.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
-import 'package:flutter/foundation.dart';
 
 abstract class FirebaseClientsService {
   Future<Either> fetchClientsFromFirestore(String uid);
+  Future<Either<String,List<Client>>> findClientsFromFirestore(String uid);
   Future<Either> findClientByMobileNumber(String uid);
   Future<Either> findClientById(String uid);
   Future<Either> addClientToFirestore(Client client);
@@ -47,6 +47,29 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
       final querySnapshot = await firestore
           .collection('clients')
           .where('created_by', isEqualTo: uid)
+          .get();
+      // Map each document to a Client
+      final clients = querySnapshot.docs
+          .map((doc) => Client.fromJson(doc.data()))
+          .toList();
+      return Right(clients);
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'An unknown Firebase error occurred');
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  @override
+  Future<Either<String, List<Client>>> findClientsFromFirestore(
+    String uid,
+  ) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final querySnapshot = await firestore
+          .collection('clients')
+          .where('created_by', isEqualTo: uid)
+          .orderBy('created_date', descending: true)
           .get();
       // Map each document to a Client
       final clients = querySnapshot.docs
