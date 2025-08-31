@@ -8,5 +8,6 @@ class ClientModelHiveType {
   static const int createdDate = 6;
   static const int measurements = 7;
   static const int updatedAt = 8;
+  static const int isPinned = 9;
 
 }

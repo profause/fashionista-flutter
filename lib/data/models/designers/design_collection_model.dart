@@ -48,7 +48,7 @@ class DesignCollectionModel extends Equatable {
   final String? credits;
 
   @JsonKey(includeFromJson: false, includeToJson: false)
-    @HiveField(DesignCollectionModelHiveType.isBookmarked)
+  @HiveField(DesignCollectionModelHiveType.isBookmarked)
   final bool? isBookmarked;
 
   const DesignCollectionModel({

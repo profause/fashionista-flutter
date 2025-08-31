@@ -9,6 +9,7 @@ import 'package:fashionista/presentation/screens/client_measurement/client_measu
 import 'package:fashionista/presentation/screens/clients/client_profile_page.dart';
 import 'package:fashionista/presentation/screens/clients/edit_client_screen.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
+import 'package:fashionista/presentation/widgets/custom_pinned_client_icon_button.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -33,7 +34,6 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final client = widget.client; // keep client local
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -74,7 +74,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                               children: [
                                 // DELETE
                                 CustomIconButtonRounded(
-                                  size: 24,
+                                  size: 20,
                                   iconData: Icons.delete,
                                   onPressed: () async {
                                     final canDelete = await showDialog<bool>(
@@ -119,7 +119,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                                 const SizedBox(width: 8),
                                 // EDIT
                                 CustomIconButtonRounded(
-                                  size: 24,
+                                  size: 20,
                                   iconData: Icons.edit,
                                   onPressed: () async {
                                     final result = await Navigator.push(
@@ -176,6 +176,21 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                                             },
                                             splashRadius: 24,
                                           ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                //
+                                Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      CustomPinnedClientIconButton(
+                                        clientId: widget.client.uid,
+                                        isPinnedNotifier: ValueNotifier(
+                                          widget.client.isPinned ?? false,
                                         ),
                                       ),
                                     ],

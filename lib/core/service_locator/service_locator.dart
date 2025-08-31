@@ -24,6 +24,8 @@ import 'package:fashionista/domain/usecases/clients/delete_client_usecase.dart';
 import 'package:fashionista/domain/usecases/clients/fetch_clients_usecase.dart';
 import 'package:fashionista/domain/usecases/clients/find_client_by_id_usecase.dart';
 import 'package:fashionista/domain/usecases/clients/find_clients_usecase.dart';
+import 'package:fashionista/domain/usecases/clients/is_pinned_client.dart';
+import 'package:fashionista/domain/usecases/clients/pin_or_unpin_client_usecase.dart';
 import 'package:fashionista/domain/usecases/clients/update_client_usecase.dart';
 import 'package:fashionista/domain/usecases/design_collection/add_design_collection_usecase.dart';
 import 'package:fashionista/domain/usecases/design_collection/add_or_remove_design_collection_bookmark_usecase.dart';
@@ -62,13 +64,16 @@ Future<void> initialiseDependencies() async {
   sl.registerSingleton<UpdateUserProfileUsecase>(UpdateUserProfileUsecase());
 
   sl.registerSingleton<FetchClientsUsecase>(FetchClientsUsecase());
-   sl.registerSingleton<FindClientsUsecase>(FindClientsUsecase());
+  sl.registerSingleton<FindClientsUsecase>(FindClientsUsecase());
   sl.registerSingleton<AddClientUsecase>(AddClientUsecase());
   sl.registerSingleton<UpdateClientUsecase>(UpdateClientUsecase());
   sl.registerSingleton<DeleteClientUsecase>(DeleteClientUsecase());
   sl.registerSingleton<FindClientByIdUsecase>(FindClientByIdUsecase());
   sl.registerSingleton<ClientsRepository>(ClientsRepositoryImpl());
   sl.registerSingleton<FirebaseClientsService>(FirebaseClientsServiceImpl());
+
+  sl.registerSingleton<PinOrUnpinClientUsecase>(PinOrUnpinClientUsecase());
+  sl.registerSingleton<IsPinnedClientUsecase>(IsPinnedClientUsecase());
 
   sl.registerSingleton<DesignersRepository>(DesignersRepositoryImpl());
   sl.registerSingleton<FirebaseDesignersService>(

@@ -7,6 +7,7 @@ import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/presentation/screens/clients/add_client_screen.dart';
 import 'package:fashionista/presentation/screens/clients/client_details_screen.dart';
 import 'package:fashionista/presentation/screens/clients/widgets/client_info_card_widget.dart';
+import 'package:fashionista/presentation/screens/clients/widgets/client_info_pinned_widget.dart';
 import 'package:fashionista/presentation/screens/clients/widgets/silver_filter_header_widget.dart';
 import 'package:fashionista/presentation/widgets/appbar_title.dart';
 import 'package:fashionista/presentation/widgets/custom_filter_button.dart';
@@ -183,7 +184,6 @@ class _ClientsScreenState extends State<ClientsScreen> with RouteAware {
             onRefresh: refreshDesigners,
             child: BlocBuilder<ClientBloc, ClientBlocState>(
               builder: (context, state) {
-                //debugPrint('wahala: $state');
                 switch (state) {
                   case ClientLoading():
                     return ListView(
@@ -195,7 +195,12 @@ class _ClientsScreenState extends State<ClientsScreen> with RouteAware {
                         ? clients
                         : clients.where((client) {
                             final name = client.fullName.toLowerCase();
-                            return name.contains(_searchText.toLowerCase());
+                            final mobileNumber = client.mobileNumber
+                                .toLowerCase();
+                            return name.contains(_searchText.toLowerCase()) ||
+                                mobileNumber.contains(
+                                  _searchText.toLowerCase(),
+                                );
                           }).toList();
 
                     if (filteredClients.isEmpty) {
@@ -216,34 +221,119 @@ class _ClientsScreenState extends State<ClientsScreen> with RouteAware {
                       );
                     }
 
-                    return ListView.separated(
+                    final pinnedClients = filteredClients
+                        .where((c) => c.isPinned ?? false)
+                        .toList()
+                        .reversed
+                        .toList();
+                    final unPinnedClients = filteredClients
+                        .where((c) => c.isPinned == false)
+                        .toList();
+
+                    return ListView(
                       padding: const EdgeInsets.all(0.0),
                       physics: const AlwaysScrollableScrollPhysics(),
-                      itemCount: filteredClients.length,
-                      itemBuilder: (context, index) {
-                        final client = filteredClients[index];
-                        return ClientInfoCardWidget(
-                          clientInfo: client,
-                          onTap: () async {
-                            final result = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    ClientDetailsScreen(client: client),
+                      children: [
+                        if (pinnedClients.isNotEmpty) ...[
+                          Padding(
+                            padding: const EdgeInsets.only(left: 16, bottom: 8),
+                            child: Text(
+                              "Pinned Clients",
+                              style: textTheme.labelLarge,
+                            ),
+                          ),
+                          SizedBox(
+                            height: 100,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
                               ),
-                            );
-                            if (result == true) {
-                              // reload when something was updated
-                              context.read<ClientBloc>().add(
-                                const LoadClientsCacheFirstThenNetwork(''),
-                              );
-                            }
-                          },
-                        );
-                      },
-                      separatorBuilder: (context, index) =>
-                          const Divider(height: .1, thickness: .1, indent: 80),
+                              itemCount: pinnedClients.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(width: 4),
+                              itemBuilder: (context, index) {
+                                final client = pinnedClients[index];
+                                return ClientInfoPinnedWidget(
+                                  clientInfo: client,
+                                );
+                              },
+                            ),
+                          ),
+                          const Divider(
+                            height: .1,
+                            thickness: .1,
+                            indent: 16,
+                            endIndent: 16,
+                          ),
+                        ],
+                        if (pinnedClients.isNotEmpty) ...[
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              left: 16,
+                              bottom: 8,
+                              top: 8,
+                            ),
+                            child: Text(
+                              "All Clients",
+                              style: textTheme.labelLarge,
+                            ),
+                          ),
+                        ],
+                        ...unPinnedClients.map(
+                          (client) => Column(
+                            children: [
+                              ClientInfoCardWidget(
+                                clientInfo: client,
+                                onTap: () async {
+                                  await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          ClientDetailsScreen(client: client),
+                                    ),
+                                  );
+                                },
+                              ),
+                              const Divider(
+                                height: .1,
+                                thickness: .1,
+                                indent: 80,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     );
+
+                  // return ListView.separated(
+                  //   padding: const EdgeInsets.all(0.0),
+                  //   physics: const AlwaysScrollableScrollPhysics(),
+                  //   itemCount: filteredClients.length,
+                  //   itemBuilder: (context, index) {
+                  //     final client = filteredClients[index];
+                  //     return ClientInfoCardWidget(
+                  //       clientInfo: client,
+                  //       onTap: () async {
+                  //         final result = await Navigator.push(
+                  //           context,
+                  //           MaterialPageRoute(
+                  //             builder: (context) =>
+                  //                 ClientDetailsScreen(client: client),
+                  //           ),
+                  //         );
+                  //         // if (result == true) {
+                  //         //   // reload when something was updated
+                  //         //   context.read<ClientBloc>().add(
+                  //         //     const LoadClientsCacheFirstThenNetwork(''),
+                  //         //   );
+                  //         // }
+                  //       },
+                  //     );
+                  //   },
+                  //   separatorBuilder: (context, index) =>
+                  //       const Divider(height: .1, thickness: .1, indent: 80),
+                  // );
                   case ClientError(:final message):
                     return Center(child: Text("Error: $message"));
                   default:

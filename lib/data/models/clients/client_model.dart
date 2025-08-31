@@ -43,6 +43,10 @@ class Client extends Equatable {
   @HiveField(ClientModelHiveType.updatedAt)
   final int? updatedAt;
 
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @HiveField(ClientModelHiveType.isPinned)
+  final bool? isPinned;
+
   const Client({
     required this.uid,
     required this.createdBy,
@@ -53,6 +57,7 @@ class Client extends Equatable {
     required this.createdDate,
     required this.measurements,
     this.updatedAt,
+    this.isPinned
   });
 
   factory Client.fromJson(Map<String, dynamic> json) => _$ClientFromJson(json);
@@ -76,7 +81,8 @@ class Client extends Equatable {
     String? gender,
     DateTime? createdDate,
     List<ClientMeasurement>? measurements,
-    int? updatedAt
+    int? updatedAt,
+    bool? isPinned,
   }) {
     return Client(
       uid: uid ?? this.uid,
@@ -87,7 +93,8 @@ class Client extends Equatable {
       gender: gender ?? this.gender,
       createdDate: createdDate ?? this.createdDate,
       measurements: measurements ?? this.measurements,
-      updatedAt: updatedAt ?? this.updatedAt
+      updatedAt: updatedAt ?? this.updatedAt,
+      isPinned: isPinned ?? this.isPinned,
     );
   }
 
@@ -114,6 +121,7 @@ class Client extends Equatable {
     gender,
     createdDate,
     measurements,
-    updatedAt
+    updatedAt,
+    isPinned,
   ];
 }

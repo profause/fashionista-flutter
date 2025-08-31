@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:fashionista/data/models/designers/design_collection_model.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-import 'package:flutter/widgets.dart';
 
 abstract class FirebaseDesignCollectionService {
   Future<Either> fetchDesignCollections();
