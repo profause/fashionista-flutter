@@ -72,6 +72,13 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                             padding: const EdgeInsets.only(right: 18),
                             child: Row(
                               children: [
+                                CustomPinnedClientIconButton(
+                                        clientId: widget.client.uid,
+                                        isPinnedNotifier: ValueNotifier(
+                                          widget.client.isPinned ?? false,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
                                 // DELETE
                                 CustomIconButtonRounded(
                                   size: 20,
@@ -182,20 +189,6 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                                   ),
                                 ),
                                 //
-                                Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      CustomPinnedClientIconButton(
-                                        clientId: widget.client.uid,
-                                        isPinnedNotifier: ValueNotifier(
-                                          widget.client.isPinned ?? false,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
                               ],
                             ),
                           ),

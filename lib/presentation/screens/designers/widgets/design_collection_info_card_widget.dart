@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/designers/design_collection_model.dart';
+import 'package:fashionista/presentation/screens/designers/design_collection_details_screen.dart';
 import 'package:fashionista/presentation/widgets/custom_bookmark_design_collection_icon_button.dart';
 import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
@@ -13,7 +14,7 @@ class DesignCollectionInfoCardWidget extends StatelessWidget {
   const DesignCollectionInfoCardWidget({
     super.key,
     required this.designCollectionInfo,
-    this.aspectRatio = 16 / 9,// default ratio
+    this.aspectRatio = 16 / 9, // default ratio
   });
 
   @override
@@ -34,88 +35,118 @@ class DesignCollectionInfoCardWidget extends StatelessWidget {
         ],
       ),
       clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // --- Image Section with avatar overlay ---
-          Stack(
-            children: [
-              AspectRatio(
-                aspectRatio: aspectRatio,
-                child: CachedNetworkImage(
-                  imageUrl: designCollectionInfo.featuredImages.first.trim(),
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => const Center(
-                    child: SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  ),
-                  errorWidget: (context, url, error) {
-                    return const CustomColoredBanner(text: 'No Image');
-                  },
-                ),
+      child: GestureDetector(
+        onTap: () {
+          // Example: Navigate to Designer Details Screen
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DesignCollectionDetailsScreen(
+                designCollection: designCollectionInfo,
+                initialIndex: 0,
               ),
-
-              // --- Profile Avatar (top-left) ---
-              Positioned(
-                top: 8,
-                left: 8,
-                child: Material(
-                  color: Colors.white,
-                  borderOnForeground: true,
-                  borderRadius: BorderRadius.circular(60),
-                  child: Padding(
-                    padding: const EdgeInsets.all(3.0),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(18),
-                      onTap: () {},
-                      child: designCollectionInfo.author.avatar!.isNotEmpty
-                          ? CircleAvatar(
-                              radius: 18,
-                              backgroundColor: AppTheme.lightGrey,
-                              backgroundImage: CachedNetworkImageProvider(
-                                designCollectionInfo.author.avatar!,
-                              ),
-                            )
-                          : DefaultProfileAvatar(
-                              name: null,
-                              size: 18 * 1.8,
-                              uid: designCollectionInfo.author.uid!,
-                            ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          // --- Title Section ---
-          Padding(
-            padding: const EdgeInsets.all(4.0),
-            child: Row(
+            ),
+          );
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // --- Image Section with avatar overlay ---
+            Stack(
               children: [
-                Expanded(
-                  child: Text(
-                    designCollectionInfo.title,
-                    style: textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w500,
+                AspectRatio(
+                  aspectRatio: aspectRatio,
+                  child: CachedNetworkImage(
+                    imageUrl: designCollectionInfo.featuredImages.isEmpty
+                        ? ''
+                        : designCollectionInfo.featuredImages.first.trim(),
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => const Center(
+                      child: SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    errorWidget: (context, url, error) {
+                      return const CustomColoredBanner(text: 'No Image');
+                    },
                   ),
                 ),
-                CustomBookmarkDesignCollectionIconButton(
-                  designerCollectionId: designCollectionInfo.uid!,
-                  isBookmarkedNotifier: ValueNotifier(
-                    designCollectionInfo.isBookmarked!,
+
+                // --- Profile Avatar (top-left) ---
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  child: Material(
+                      color: Colors.white,
+                      borderOnForeground: true,
+                      borderRadius: BorderRadius.circular(60),
+                      child: Padding(
+                        padding: const EdgeInsets.all(3.0),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(18),
+                          onTap: () {},
+                          child: designCollectionInfo.author.avatar!.isNotEmpty
+                              ? CircleAvatar(
+                                  radius: 18,
+                                  backgroundColor: AppTheme.lightGrey,
+                                  backgroundImage: CachedNetworkImageProvider(
+                                    designCollectionInfo.author.avatar!,
+                                  ),
+                                )
+                              : DefaultProfileAvatar(
+                                  name: null,
+                                  size: 18 * 1.8,
+                                  uid: designCollectionInfo.author.uid!,
+                                ),
+                        ),
+                      ),
+                    ),
+                ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Row(
+                    children: [
+                      const Icon(Icons.photo, size: 16),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${designCollectionInfo.featuredImages.length}',
+                        style: textTheme.labelMedium?.copyWith(),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-          ),
-        ],
+
+            // --- Title Section ---
+            Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      designCollectionInfo.title,
+                      style: textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  CustomBookmarkDesignCollectionIconButton(
+                    designerCollectionId: designCollectionInfo.uid!,
+                    isBookmarkedNotifier: ValueNotifier(
+                      designCollectionInfo.isBookmarked!,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

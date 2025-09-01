@@ -26,7 +26,7 @@ class DesignCollectionModel extends Equatable {
     @HiveField(DesignCollectionModelHiveType.tags)
   final String? tags;
 
-    @HiveField(DesignCollectionModelHiveType.visibility)
+  @HiveField(DesignCollectionModelHiveType.visibility)
   final String? visibility;
 
   @JsonKey(name: 'featured_images')
@@ -44,7 +44,7 @@ class DesignCollectionModel extends Equatable {
     @HiveField(DesignCollectionModelHiveType.updatedAt)
   final int? updatedAt;
 
-    @HiveField(DesignCollectionModelHiveType.credits)
+  @HiveField(DesignCollectionModelHiveType.credits)
   final String? credits;
 
   @JsonKey(includeFromJson: false, includeToJson: false)

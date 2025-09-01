@@ -92,11 +92,12 @@ class DesignCollectionBloc
           int? cachedFirstTimestamp = cachedItems.isNotEmpty
               ? cachedItems.first.createdAt
               : null;
+          //int freshFirstTimestamp = designCollections.first.createdAt;
 
-          int freshFirstTimestamp = designCollections.first.createdAt;
+          final isDataChanged =
+              cachedItems.toString() != designCollections.toString();
 
-          if (cachedFirstTimestamp == null ||
-              cachedFirstTimestamp != freshFirstTimestamp) {
+          if (cachedFirstTimestamp == null || isDataChanged) {
             emit(DesignCollectionsLoaded(designCollections, fromCache: false));
             // 4️⃣ Update cache and emit fresh data
             await sl<HiveDesignCollectionService>().insertItems(

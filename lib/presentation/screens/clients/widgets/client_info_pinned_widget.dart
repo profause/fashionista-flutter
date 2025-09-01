@@ -15,7 +15,7 @@ class ClientInfoPinnedWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
+    //final colorScheme = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: () {
         // Navigate to client details
