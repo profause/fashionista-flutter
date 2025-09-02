@@ -279,11 +279,11 @@ class FirebaseDesignCollectionServiceImpl
     String designCollectionId,
   ) async {
     try {
-      String uid = 'La9DWF9gv9YEqpWzTrYVBiUzGHf1';
       final us = firebase_auth.FirebaseAuth.instance.currentUser;
-      if (us != null) {
-        uid = firebase_auth.FirebaseAuth.instance.currentUser!.uid;
+      if (us == null) {
+        return Left('User not logged in');
       }
+      String uid = firebase_auth.FirebaseAuth.instance.currentUser!.uid;
       final firestore = FirebaseFirestore.instance;
       late bool isBookmarked;
       QuerySnapshot querySnapshot = await firestore
@@ -348,11 +348,11 @@ class FirebaseDesignCollectionServiceImpl
   @override
   Future<bool> isBookmarkedDesignCollection(String designCollectionId) async {
     try {
-      String uid = 'La9DWF9gv9YEqpWzTrYVBiUzGHf1';
       final us = firebase_auth.FirebaseAuth.instance.currentUser;
-      if (us != null) {
-        uid = firebase_auth.FirebaseAuth.instance.currentUser!.uid;
+      if (us == null) {
+        return false;
       }
+      String uid = firebase_auth.FirebaseAuth.instance.currentUser!.uid;
       final firestore = FirebaseFirestore.instance;
       late bool isBookmarked;
       QuerySnapshot querySnapshot = await firestore

@@ -51,12 +51,13 @@ class SocialInteractionModel extends Equatable {
   SocialInteractionModel copyWith({
     String? uid,
     String? refId,
-    String? text,
+    int? createdAt,
     AuthorModel? author,
   }) {
     return SocialInteractionModel(
       uid: uid ?? this.uid,
       refId: refId ?? this.refId,
+      createdAt: createdAt ?? this.createdAt,
       author: author ?? this.author,
     );
   }

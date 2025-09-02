@@ -1,81 +1,81 @@
 
 import 'package:dartz/dartz.dart';
+import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/comment/comment_model.dart';
 import 'package:fashionista/data/models/social_interactions/social_interaction_model.dart';
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
+import 'package:fashionista/data/services/firebase/firebase_trends_service.dart';
 import 'package:fashionista/domain/repository/trends/trend_repository.dart';
 
 class TrendRepositoryImpl extends TrendRepository {
   @override
   Future<Either> addCommentToTrend(CommentModel comment) {
-    // TODO: implement addCommentToTrend
-    throw UnimplementedError();
+    return sl<FirebaseTrendsService>().addCommentToTrend(comment);
   }
 
   @override
   Future<Either> addTrendToFirestore(TrendFeedModel trend) {
-    // TODO: implement addTrendToFirestore
-    throw UnimplementedError();
+    return sl<FirebaseTrendsService>().addTrendToFirestore(trend);
   }
 
   @override
   Future<Either> deleteTrendById(String uid) {
-    // TODO: implement deleteTrendById
-    throw UnimplementedError();
+    return sl<FirebaseTrendsService>().deleteTrendById(uid);
   }
 
   @override
   Future<Either> fetchFollowedTrends(List<String> uids) {
-    // TODO: implement fetchFollowedTrends
-    throw UnimplementedError();
+    return sl<FirebaseTrendsService>().fetchFollowedTrends(uids);
   }
 
   @override
   Future<Either> fetchTrends() {
-    // TODO: implement fetchTrends
-    throw UnimplementedError();
+    return sl<FirebaseTrendsService>().fetchTrends();
   }
 
   @override
   Future<Either> findTrendById(String uid) {
-    // TODO: implement findTrendById
-    throw UnimplementedError();
+    return sl<FirebaseTrendsService>().findTrendById(uid);
   }
 
   @override
-  Future<Either> findTrends(String createdBy) {
-    // TODO: implement findTrends
-    throw UnimplementedError();
+  Future<Either> findTrendsCreatedBy(String createdBy) {
+    return sl<FirebaseTrendsService>().findTrendsCreatedBy(createdBy);
   }
 
   @override
   Future<Either> followOrUnFollowTrend(SocialInteractionModel follow) {
-    // TODO: implement followOrUnFollowTrend
-    throw UnimplementedError();
+    return sl<FirebaseTrendsService>().followOrUnFollowTrend(follow);
   }
 
   @override
   Future<bool> isFollowedTrend(String uid) {
-    // TODO: implement isFollowedTrend
-    throw UnimplementedError();
+    return sl<FirebaseTrendsService>().isFollowedTrend(uid);
   }
 
   @override
   Future<bool> isLikedTrend(String uid) {
-    // TODO: implement isLikedTrend
-    throw UnimplementedError();
+    return sl<FirebaseTrendsService>().isLikedTrend(uid);
   }
 
   @override
   Future<Either> likeOrUnlikeTrend(SocialInteractionModel like) {
-    // TODO: implement likeOrUnlikeTrend
-    throw UnimplementedError();
+    return sl<FirebaseTrendsService>().likeOrUnlikeTrend(like);
   }
 
   @override
   Future<Either> updateTrendToFirestore(TrendFeedModel trend) {
-    // TODO: implement updateTrendToFirestore
-    throw UnimplementedError();
+    return sl<FirebaseTrendsService>().updateTrendToFirestore(trend);
+  }
+  
+  @override
+  Future<Either> deleteCommentToTrend(CommentModel comment) {
+    return sl<FirebaseTrendsService>().deleteCommentToTrend(comment);
+  }
+  
+  @override
+  Future<Either> findTrendComments(String uid) {
+    return sl<FirebaseTrendsService>().findTrendComments(uid);
   }
 
 }
