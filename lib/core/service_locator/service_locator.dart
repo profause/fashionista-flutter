@@ -51,6 +51,16 @@ import 'package:fashionista/domain/usecases/profile/fetch_user_profile_usecase.d
 import 'package:fashionista/domain/usecases/profile/find_bookmarked_design_collection_ids_usecase.dart';
 import 'package:fashionista/domain/usecases/profile/find_favourite_designer_ids_usecase.dart';
 import 'package:fashionista/domain/usecases/profile/update_user_profile_usecase.dart';
+import 'package:fashionista/domain/usecases/trends/add_trend_comment_usecase.dart';
+import 'package:fashionista/domain/usecases/trends/add_trend_usecase.dart';
+import 'package:fashionista/domain/usecases/trends/delete_trend_comment_usecase.dart';
+import 'package:fashionista/domain/usecases/trends/delete_trend_usecase.dart';
+import 'package:fashionista/domain/usecases/trends/find_trend_comments_usecase.dart';
+import 'package:fashionista/domain/usecases/trends/find_trends_usecase.dart';
+import 'package:fashionista/domain/usecases/trends/follow_or_unfollow_trend_usecase.dart';
+import 'package:fashionista/domain/usecases/trends/is_followed_trend_usecase.dart';
+import 'package:fashionista/domain/usecases/trends/is_liked_trend_usecase.dart';
+import 'package:fashionista/domain/usecases/trends/like_or_unlike_trend_usecase.dart';
 import 'package:get_it/get_it.dart';
 
 final sl = GetIt.instance;
@@ -152,5 +162,21 @@ Future<void> initialiseDependencies() async {
 
   sl.registerSingleton<FirebaseTrendsService>(FirebaseTrendsServiceImpl());
 
-  
+  sl.registerSingleton<FindTrendsUsecase>(FindTrendsUsecase());
+  sl.registerSingleton<IsLikedTrendUsecase>(IsLikedTrendUsecase());
+
+  sl.registerSingleton<IsFollowedTrendUsecase>(IsFollowedTrendUsecase());
+
+  sl.registerSingleton<FollowOrUnfollowTrendUsecase>(
+    FollowOrUnfollowTrendUsecase(),
+  );
+
+  sl.registerSingleton<LikeOrUnlikeTrendUsecase>(LikeOrUnlikeTrendUsecase());
+
+  sl.registerSingleton<DeleteTrendUsecase>(DeleteTrendUsecase());
+
+  sl.registerSingleton<DeleteTrendCommentUsecase>(DeleteTrendCommentUsecase());
+  sl.registerSingleton<AddTrendUsecase>(AddTrendUsecase());
+  sl.registerSingleton<AddTrendCommentUsecase>(AddTrendCommentUsecase());
+  sl.registerSingleton<FindTrendCommentsUsecase>(FindTrendCommentsUsecase());
 }
