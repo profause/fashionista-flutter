@@ -1,6 +1,6 @@
 class TrendFeedModelHiveType {
   static const int uid = 0;
-  static const int title = 1;
+  static const int description = 1;
   static const int featuredMedia = 2;
   static const int createdAt = 3;
   static const int updatedAt = 4;

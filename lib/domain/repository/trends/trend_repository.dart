@@ -5,7 +5,7 @@ import 'package:fashionista/data/models/trends/trend_feed_model.dart';
 
 abstract class TrendRepository {
   Future<Either> findTrendsCreatedBy(String createdBy);
-  Future<Either> fetchTrends();
+  Future<Either<String, List<TrendFeedModel>>> fetchTrends();
   Future<Either> addTrendToFirestore(TrendFeedModel trend);
   Future<Either> updateTrendToFirestore(TrendFeedModel trend);
   Future<Either> deleteTrendById(String uid);

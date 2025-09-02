@@ -1,16 +1,13 @@
 import 'dart:math';
+
+import 'package:fashionista/data/models/trends/trend_feed_model.dart';
+import 'package:fashionista/presentation/screens/trends/widgets/trend_info_card_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'design_collection_info_card_widget.dart';
-import 'package:fashionista/data/models/designers/design_collection_model.dart';
 
-class DesignCollectionStaggeredView extends StatelessWidget {
-  final List<DesignCollectionModel> designCollections;
-
-  const DesignCollectionStaggeredView({
-    super.key,
-    required this.designCollections,
-  });
+class TrendsStaggeredView extends StatelessWidget {
+  final List<TrendFeedModel> items;
+  const TrendsStaggeredView({super.key, required this.items});
 
   @override
   Widget build(BuildContext context) {
@@ -27,16 +24,16 @@ class DesignCollectionStaggeredView extends StatelessWidget {
         ),
         mainAxisSpacing: 2,
         crossAxisSpacing: 2,
-        itemCount: designCollections.length,
+        itemCount: items.length,
         itemBuilder: (context, index) {
-          final designCollection = designCollections[index];
+          final trend = items[index];
           // 👇 Assign different aspect ratios randomly for variety
-          final aspectRatioOptions = [16 / 9, 4 / 5, 1 / 1, 3 / 2];
+           final aspectRatioOptions = [16 / 9, 4 / 5, 1 / 1, 3 / 2];
           final aspectRatio =
               aspectRatioOptions[random.nextInt(aspectRatioOptions.length)];
 
-          return DesignCollectionInfoCardWidget(
-            designCollectionInfo: designCollection,
+          return TrendInfoCardWidget(
+            trendInfo: trend,
             aspectRatio: aspectRatio,
           );
         },

@@ -4,6 +4,8 @@ import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/data/models/designers/design_collection_model.dart';
 import 'package:fashionista/data/models/designers/designer_model.dart';
 import 'package:fashionista/data/models/designers/social_handle_model.dart';
+import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
+import 'package:fashionista/data/models/social_interactions/social_interaction_model.dart';
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -36,6 +38,8 @@ class HiveService {
       Hive.registerAdapter(ClientMeasurementAdapter());
       Hive.registerAdapter(AuthorModelAdapter());
       Hive.registerAdapter(TrendFeedModelAdapter());
+      Hive.registerAdapter(FeaturedMediaModelAdapter());
+      Hive.registerAdapter(SocialInteractionModelAdapter());
 
       designersBox = await Hive.openBox('designers_cache');
       designCollectionsBox = await Hive.openBox('design_collections_cache');

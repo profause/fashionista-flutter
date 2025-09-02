@@ -8,7 +8,6 @@ class FindTrendsUsecase
     extends Usecase<Either<String, List<TrendFeedModel>>, String> {
   @override
   Future<Either<String, List<TrendFeedModel>>> call(String params) {
-    return sl<TrendRepository>().fetchTrends()
-        as Future<Either<String, List<TrendFeedModel>>>;
+    return sl<TrendRepository>().fetchTrends();
   }
 }

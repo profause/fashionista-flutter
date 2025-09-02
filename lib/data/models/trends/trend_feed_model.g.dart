@@ -18,7 +18,7 @@ class TrendFeedModelAdapter extends TypeAdapter<TrendFeedModel> {
     };
     return TrendFeedModel(
       uid: fields[0] as String?,
-      title: fields[1] as String,
+      description: fields[1] as String,
       featuredMedia: (fields[2] as List).cast<FeaturedMediaModel>(),
       createdAt: fields[3] as int?,
       updatedAt: fields[4] as int?,
@@ -40,7 +40,7 @@ class TrendFeedModelAdapter extends TypeAdapter<TrendFeedModel> {
       ..writeByte(0)
       ..write(obj.uid)
       ..writeByte(1)
-      ..write(obj.title)
+      ..write(obj.description)
       ..writeByte(2)
       ..write(obj.featuredMedia)
       ..writeByte(3)
@@ -83,7 +83,7 @@ class TrendFeedModelAdapter extends TypeAdapter<TrendFeedModel> {
 TrendFeedModel _$TrendFeedModelFromJson(Map<String, dynamic> json) =>
     TrendFeedModel(
       uid: json['uid'] as String?,
-      title: json['title'] as String,
+      description: json['description'] as String,
       featuredMedia: (json['featured_media'] as List<dynamic>)
           .map((e) => FeaturedMediaModel.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -100,7 +100,7 @@ TrendFeedModel _$TrendFeedModelFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$TrendFeedModelToJson(TrendFeedModel instance) =>
     <String, dynamic>{
       'uid': instance.uid,
-      'title': instance.title,
+      'description': instance.description,
       'featured_media': instance.featuredMedia.map((e) => e.toJson()).toList(),
       'created_at': instance.createdAt,
       'updated_at': instance.updatedAt,

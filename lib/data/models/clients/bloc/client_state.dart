@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
-import 'package:fashionista/data/models/designers/design_collection_model.dart';
 
 class ClientBlocState extends Equatable {
   const ClientBlocState();

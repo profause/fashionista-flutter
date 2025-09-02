@@ -63,6 +63,9 @@ dependencies:
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   connectivity_plus: ^6.1.5
+  video_thumbnail:
+  cached_video_player_plus: ^4.0.4
+  video_player: ^2.10.0
   
 
 dev_dependencies:

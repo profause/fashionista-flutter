@@ -14,8 +14,8 @@ class TrendFeedModel extends Equatable {
   @HiveField(TrendFeedModelHiveType.uid)
   final String? uid;
 
-  @HiveField(TrendFeedModelHiveType.title)
-  final String title;
+  @HiveField(TrendFeedModelHiveType.description)
+  final String description;
 
   @HiveField(TrendFeedModelHiveType.featuredMedia)
   @JsonKey(name: 'featured_media')
@@ -61,7 +61,7 @@ class TrendFeedModel extends Equatable {
 
   const TrendFeedModel({
     this.uid,
-    required this.title,
+    required this.description,
     required this.featuredMedia,
     required this.createdAt,
     required this.updatedAt,
@@ -83,7 +83,7 @@ class TrendFeedModel extends Equatable {
   @override
   List<Object?> get props => [
     uid,
-    title,
+    description,
     featuredMedia,
     createdAt,
     updatedAt,
@@ -98,7 +98,7 @@ class TrendFeedModel extends Equatable {
   ];
 
   factory TrendFeedModel.empty() => TrendFeedModel(
-    title: '',
+    description: '',
     featuredMedia: [],
     createdAt: DateTime.now().millisecondsSinceEpoch,
     updatedAt: DateTime.now().millisecondsSinceEpoch,
@@ -114,7 +114,7 @@ class TrendFeedModel extends Equatable {
 
   TrendFeedModel copyWith({
     String? uid,
-    String? title,
+    String? description,
     List<FeaturedMediaModel>? featuredMedia,
     int? createdAt,
     int? updatedAt,
@@ -126,7 +126,7 @@ class TrendFeedModel extends Equatable {
   }) {
     return TrendFeedModel(
       uid: uid ?? this.uid,
-      title: title ?? this.title,
+      description: description ?? this.description,
       featuredMedia: featuredMedia ?? this.featuredMedia,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,

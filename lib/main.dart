@@ -13,6 +13,7 @@ import 'package:fashionista/data/models/designers/bloc/designer_bloc.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/settings/bloc/settings_bloc.dart';
 import 'package:fashionista/data/models/settings/models/settings_model.dart';
+import 'package:fashionista/data/models/trends/bloc/trend_bloc.dart';
 import 'package:fashionista/presentation/screens/clients/clients_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -58,6 +59,8 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => ClientBloc()),
         BlocProvider(create: (_) => DesignerBloc()),
         BlocProvider(create: (_) => DesignCollectionBloc()),
+        BlocProvider(create: (_) => TrendBloc()),
+
       ],
 
       child: BlocBuilder<SettingsBloc, Settings>(

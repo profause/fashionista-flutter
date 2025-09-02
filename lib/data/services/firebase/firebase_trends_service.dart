@@ -4,10 +4,11 @@ import 'package:fashionista/data/models/comment/comment_model.dart';
 import 'package:fashionista/data/models/social_interactions/social_interaction_model.dart';
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/rendering.dart';
 
 abstract class FirebaseTrendsService {
   Future<Either> findTrendsCreatedBy(String createdBy);
-  Future<Either> fetchTrends();
+  Future<Either<String, List<TrendFeedModel>>> fetchTrends();
   Future<Either> addTrendToFirestore(TrendFeedModel trend);
   Future<Either> updateTrendToFirestore(TrendFeedModel trend);
   Future<Either> deleteTrendById(String uid);
@@ -72,7 +73,7 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
   }
 
   @override
-  Future<Either> fetchTrends() async {
+  Future<Either<String, List<TrendFeedModel>>> fetchTrends() async {
     try {
       final firestore = FirebaseFirestore.instance;
       final querySnapshot = await firestore
@@ -81,7 +82,7 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
           .orderBy('created_at', descending: true)
           .get();
 
-      // Await all async maps
+      //Await all async maps
       final trends = await Future.wait(
         querySnapshot.docs.map((doc) async {
           bool isLiked = await isLikedTrend(doc.reference.id);
@@ -94,11 +95,13 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
           );
         }),
       );
-
+      debugPrint("fetched ${trends.length} trends");
+      //await importTrends(sampleTrendsData);
       return Right(trends);
     } on FirebaseException catch (e) {
       return Left(e.message ?? 'An unknown Firebase error occurred');
     } catch (e) {
+      debugPrint(e.toString());
       return Left(e.toString());
     }
   }
@@ -349,4 +352,261 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
       return Left(e.toString());
     }
   }
+
+  Future<void> importTrends(List<Map<String, dynamic>> data) async {
+    final firestore = FirebaseFirestore.instance;
+    final batch = firestore.batch();
+
+    for (var item in data) {
+      final docRef = firestore.collection('trends').doc(); // auto-ID
+      batch.set(docRef, item);
+    }
+
+    await batch.commit();
+    print('✅ Data imported successfully!');
+  }
+
+  List<Map<String, dynamic>> sampleTrendsData = [
+    {
+      "uid": "trend_001",
+      "description":
+          "Oversized blazers paired with high-waist trousers are redefining office chic this season.",
+      "created_by": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
+      "featured_media": [
+        {
+          "url": "https://placehold.co/180x280.png?text=blazer",
+          "type": "image",
+        },
+      ],
+      "created_at": DateTime.now().millisecondsSinceEpoch,
+      "updated_at": DateTime.now().millisecondsSinceEpoch,
+      "author": {
+        "name": "Ava Mensah",
+        "uid": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
+        "avatar":
+            "https://firebasestorage.googleapis.com/v0/b/fashionista-2025.firebasestorage.app/o/profile_images%2FdIWRJLg295RbkCMKgNGi0HlSQBX2.jpg?alt=media&token=c774ed83-d55e-4336-9600-0d4ec586631f",
+      },
+      "tags": "#OfficeChic,#BlazerSeason,#Fashionista",
+      "number_of_likes": 142,
+      "number_of_followers": 37,
+      "number_of_comments": 18,
+    },
+    {
+      "uid": "trend_002",
+      "description":
+          "Eco-friendly fabrics 🌱 are dominating fashion weeks — linen, hemp, and upcycled denim everywhere!",
+      "created_by": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
+      "featured_media": [
+        {
+          "url": "https://placehold.co/180x280.png?text=eco_fabric",
+          "type": "image",
+        },
+      ],
+      "created_at": DateTime.now().millisecondsSinceEpoch,
+      "updated_at": DateTime.now().millisecondsSinceEpoch,
+      "author": {
+        "name": "Kwame Adjei",
+        "uid": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
+        "avatar":
+            "https://firebasestorage.googleapis.com/v0/b/fashionista-2025.firebasestorage.app/o/profile_images%2FdIWRJLg295RbkCMKgNGi0HlSQBX2.jpg?alt=media&token=c774ed83-d55e-4336-9600-0d4ec586631f",
+      },
+      "tags": "#SustainableFashion,#EcoChic,#UpcycledDenim",
+      "number_of_likes": 289,
+      "number_of_followers": 91,
+      "number_of_comments": 52,
+    },
+    {
+      "uid": "trend_003",
+      "description":
+          "White sneakers with flowy pastel dresses 👟🌸 — the minimalist summer look everyone’s loving.",
+      "created_by": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
+      "featured_media": [
+        {
+          "url": "https://placehold.co/180x280.png?text=sneakers_dress",
+          "type": "image",
+        },
+      ],
+      "created_at": DateTime.now().millisecondsSinceEpoch,
+      "updated_at": DateTime.now().millisecondsSinceEpoch,
+      "author": {
+        "name": "Sophia Amegashie",
+        "uid": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
+        "avatar":
+            "https://firebasestorage.googleapis.com/v0/b/fashionista-2025.firebasestorage.app/o/profile_images%2FdIWRJLg295RbkCMKgNGi0HlSQBX2.jpg?alt=media&token=c774ed83-d55e-4336-9600-0d4ec586631f",
+      },
+      "tags": "#MinimalistStyle,#SummerVibes, #SneakerTrend",
+      "number_of_likes": 430,
+      "number_of_followers": 157,
+      "number_of_comments": 64,
+    },
+    {
+      "uid": "trend_004",
+      "description":
+          "Retro sunglasses 🕶️ with bold frames are making waves on Instagram fashion reels.",
+      "created_by": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
+      "featured_media": [
+        {
+          "url":
+              "https://videocdn.cdnpk.net/videos/36e4ae03-ca6e-5014-b19c-c7b6379b5cba/horizontal/previews/clear/large.mp4?token=exp=1756841542~hmac=5b015ded6d71e7a5eec1c09d5313b901eb55beeefbcd435c5132d94b56de49b6",
+          "type": "video",
+        },
+      ],
+      "created_at": DateTime.now().millisecondsSinceEpoch,
+      "updated_at": DateTime.now().millisecondsSinceEpoch,
+      "author": {
+        "name": "Daniel Owusu",
+        "uid": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
+        "avatar":
+            "https://firebasestorage.googleapis.com/v0/b/fashionista-2025.firebasestorage.app/o/profile_images%2FdIWRJLg295RbkCMKgNGi0HlSQBX2.jpg?alt=media&token=c774ed83-d55e-4336-9600-0d4ec586631f",
+      },
+      "tags": "#RetroStyle,#BoldFrames,#IGFashion",
+      "number_of_likes": 96,
+      "number_of_followers": 21,
+      "number_of_comments": 7,
+    },
+    {
+      "uid": "trend_005",
+      "description":
+          "All-black streetwear fits are dominating TikTok 🔥 from hoodies to cargos with chunky boots.",
+      "created_by": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
+      "featured_media": [
+        {
+          "url": "https://placehold.co/180x280.png?text=streetwear_black",
+          "type": "image",
+        },
+      ],
+      "created_at": DateTime.now().millisecondsSinceEpoch,
+      "updated_at": DateTime.now().millisecondsSinceEpoch,
+      "author": {
+        "name": "Nana Kofi",
+        "uid": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
+        "avatar":
+            "https://firebasestorage.googleapis.com/v0/b/fashionista-2025.firebasestorage.app/o/profile_images%2FdIWRJLg295RbkCMKgNGi0HlSQBX2.jpg?alt=media&token=c774ed83-d55e-4336-9600-0d4ec586631f",
+      },
+      "tags": "#Streetwear, #AllBlackFit, #TikTokFashion",
+      "number_of_likes": 654,
+      "number_of_followers": 203,
+      "number_of_comments": 80,
+    },
+    {
+      "uid": "trend_006",
+      "description":
+          "Bright neon crop tops ⚡ are back this summer, paired with oversized jeans for a bold statement.",
+      "created_by": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
+      "featured_media": [
+        {
+          "url": "https://placehold.co/180x280.png?text=neon_crop_top",
+          "type": "image",
+        },
+      ],
+      "created_at": DateTime.now().millisecondsSinceEpoch,
+      "updated_at": DateTime.now().millisecondsSinceEpoch,
+      "author": {
+        "name": "Linda Boateng",
+        "uid": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
+        "avatar":
+            "https://firebasestorage.googleapis.com/v0/b/fashionista-2025.firebasestorage.app/o/profile_images%2FdIWRJLg295RbkCMKgNGi0HlSQBX2.jpg?alt=media&token=c774ed83-d55e-4336-9600-0d4ec586631f",
+      },
+      "tags": "#NeonVibes,#SummerStyle,#BoldFashion",
+      "number_of_likes": 502,
+      "number_of_followers": 176,
+      "number_of_comments": 41,
+    },
+    {
+      "uid": "trend_007",
+      "description":
+          "Layered gold chains and hoop earrings ✨ remain a timeless accessory trend.",
+      "created_by": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
+      "featured_media": [
+        {
+          "url": "https://placehold.co/180x280.png?text=gold_chains",
+          "type": "image",
+        },
+      ],
+      "created_at": DateTime.now().millisecondsSinceEpoch,
+      "updated_at": DateTime.now().millisecondsSinceEpoch,
+      "author": {
+        "name": "Esi Konadu",
+        "uid": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
+        "avatar":
+            "https://firebasestorage.googleapis.com/v0/b/fashionista-2025.firebasestorage.app/o/profile_images%2FdIWRJLg295RbkCMKgNGi0HlSQBX2.jpg?alt=media&token=c774ed83-d55e-4336-9600-0d4ec586631f",
+      },
+      "tags": "#JewelryGoals,#GoldChains,#TimelessStyle",
+      "number_of_likes": 387,
+      "number_of_followers": 98,
+      "number_of_comments": 22,
+    },
+    {
+      "uid": "trend_008",
+      "description":
+          "Plaid skirts and oversized sweaters 🍂 the ultimate fall combo straight from Pinterest boards.",
+      "created_by": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
+      "featured_media": [
+        {
+          "url": "https://placehold.co/180x280.png?text=plaid_skirt",
+          "type": "image",
+        },
+      ],
+      "created_at": DateTime.now().millisecondsSinceEpoch,
+      "updated_at": DateTime.now().millisecondsSinceEpoch,
+      "author": {
+        "name": "Kylie Addo",
+        "uid": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
+        "avatar":
+            "https://firebasestorage.googleapis.com/v0/b/fashionista-2025.firebasestorage.app/o/profile_images%2FdIWRJLg295RbkCMKgNGi0HlSQBX2.jpg?alt=media&token=c774ed83-d55e-4336-9600-0d4ec586631f",
+      },
+      "tags": "#FallFashion,#PlaidSkirt,#PinterestFit",
+      "number_of_likes": 211,
+      "number_of_followers": 54,
+      "number_of_comments": 12,
+    },
+    {
+      "uid": "trend_009",
+      "description":
+          "Bucket hats 🎩 are evolving with crochet and patchwork styles for festival season.",
+      "created_by": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
+      "featured_media": [
+        {
+          "url": "https://placehold.co/180x280.png?text=bucket_hat",
+          "type": "image",
+        },
+      ],
+      "created_at": DateTime.now().millisecondsSinceEpoch,
+      "updated_at": DateTime.now().millisecondsSinceEpoch,
+      "author": {
+        "name": "Joey Nartey",
+        "uid": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
+        "avatar":
+            "https://firebasestorage.googleapis.com/v0/b/fashionista-2025.firebasestorage.app/o/profile_images%2FdIWRJLg295RbkCMKgNGi0HlSQBX2.jpg?alt=media&token=c774ed83-d55e-4336-9600-0d4ec586631f",
+      },
+      "tags": "#BucketHat,#FestivalFits,#CrochetStyle",
+      "number_of_likes": 178,
+      "number_of_followers": 43,
+      "number_of_comments": 9,
+    },
+    {
+      "uid": "trend_010",
+      "description":
+          "Corset tops over shirts 👗 blending vintage with modern streetwear aesthetics.",
+      "created_by": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
+      "featured_media": [
+        {
+          "url": "https://placehold.co/180x280.png?text=corset_trend",
+          "type": "video",
+        },
+      ],
+      "created_at": DateTime.now().millisecondsSinceEpoch,
+      "updated_at": DateTime.now().millisecondsSinceEpoch,
+      "author": {
+        "name": "Maya Ofori",
+        "uid": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
+        "avatar":
+            "https://firebasestorage.googleapis.com/v0/b/fashionista-2025.firebasestorage.app/o/profile_images%2FdIWRJLg295RbkCMKgNGi0HlSQBX2.jpg?alt=media&token=c774ed83-d55e-4336-9600-0d4ec586631f",
+      },
+      "tags": "#CorsetTrend,#StreetwearMix,#VintageModern",
+      "number_of_likes": 720,
+      "number_of_followers": 243,
+      "number_of_comments": 95,
+    },
+  ];
 }

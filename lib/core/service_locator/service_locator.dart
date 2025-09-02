@@ -55,6 +55,7 @@ import 'package:fashionista/domain/usecases/trends/add_trend_comment_usecase.dar
 import 'package:fashionista/domain/usecases/trends/add_trend_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/delete_trend_comment_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/delete_trend_usecase.dart';
+import 'package:fashionista/domain/usecases/trends/find_trend_by_id_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/find_trend_comments_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/find_trends_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/follow_or_unfollow_trend_usecase.dart';
@@ -179,4 +180,5 @@ Future<void> initialiseDependencies() async {
   sl.registerSingleton<AddTrendUsecase>(AddTrendUsecase());
   sl.registerSingleton<AddTrendCommentUsecase>(AddTrendCommentUsecase());
   sl.registerSingleton<FindTrendCommentsUsecase>(FindTrendCommentsUsecase());
+  sl.registerSingleton<FindTrendByIdUsecase>(FindTrendByIdUsecase());
 }
