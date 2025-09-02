@@ -96,7 +96,7 @@ class _ClientsScreenState extends State<ClientsScreen> with RouteAware {
             floating: true,
             snap: true,
             pinned: true,
-            expandedHeight: 56 + MediaQuery.of(context).padding.top,
+            expandedHeight: 56 ,//+ MediaQuery.of(context).padding.top,
             flexibleSpace: Padding(
               padding: EdgeInsets.only(
                 top: MediaQuery.of(context).padding.top,

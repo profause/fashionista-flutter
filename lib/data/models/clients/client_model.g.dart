@@ -26,13 +26,14 @@ class ClientAdapter extends TypeAdapter<Client> {
       createdDate: fields[6] as DateTime?,
       measurements: (fields[7] as List).cast<ClientMeasurement>(),
       updatedAt: fields[8] as int?,
+      isPinned: fields[9] as bool?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Client obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.uid)
       ..writeByte(1)
@@ -50,7 +51,9 @@ class ClientAdapter extends TypeAdapter<Client> {
       ..writeByte(7)
       ..write(obj.measurements)
       ..writeByte(8)
-      ..write(obj.updatedAt);
+      ..write(obj.updatedAt)
+      ..writeByte(9)
+      ..write(obj.isPinned);
   }
 
   @override

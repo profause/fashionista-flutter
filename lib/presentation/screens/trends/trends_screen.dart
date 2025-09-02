@@ -53,79 +53,7 @@ class _TrendsScreenState extends State<TrendsScreen> {
     }
 
     return Scaffold(
-      extendBody: true,
       backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        foregroundColor: colorScheme.primary,
-        backgroundColor: colorScheme.onPrimary,
-        title: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          transitionBuilder: (child, animation) {
-            // Incoming: slide in from right
-            final inAnimation = Tween<Offset>(
-              begin: const Offset(1.0, 0.0), // from right
-              end: Offset.zero,
-            ).animate(animation);
-
-            // Outgoing: shrink/slide away from center
-            final outAnimation = Tween<Offset>(
-              begin: Offset.zero, // start at center
-              end: const Offset(0.0, 0.0), // move slightly up
-            ).animate(animation);
-
-            if (child.key == const ValueKey("searchField")) {
-              return FadeTransition(
-                opacity: animation,
-                child: SlideTransition(position: inAnimation, child: child),
-              );
-            } else {
-              return FadeTransition(
-                opacity: animation,
-                child: SlideTransition(position: outAnimation, child: child),
-              );
-            }
-          },
-          child: _isSearching
-              ? TextField(
-                  key: const ValueKey("searchField"),
-                  controller: _searchController,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    hintText: 'Search trends...',
-                    border: InputBorder.none,
-                    hintStyle: textTheme.titleMedium,
-                  ),
-                  style: textTheme.bodyMedium,
-                  onChanged: (value) {
-                    setState(() => _searchText = value);
-                  },
-                )
-              : const AppBarTitle(title: "Trends"),
-        ),
-        centerTitle: true,
-        elevation: 0,
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            child: IconButton(
-              icon: Icon(
-                _isSearching ? Icons.close : Icons.search,
-                size: 30,
-                color: colorScheme.primary,
-              ),
-              onPressed: () {
-                setState(() {
-                  if (_isSearching) {
-                    _searchText = "";
-                    _searchController.clear();
-                  }
-                  _isSearching = !_isSearching;
-                });
-              },
-            ),
-          ),
-        ],
-      ),
       body: SafeArea(
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),

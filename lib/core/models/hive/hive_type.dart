@@ -5,4 +5,8 @@ class HiveType {
   static const int designerCollectionType = 3;
   static const int authorType = 4;
   static const int socialHandleType = 5;
+  static const int trendFeedType = 6;
+  static const int featuredMediaType = 7;
+  static const int commentType = 8;
+  static const int socialInteractionModelHiveType = 9;
 }

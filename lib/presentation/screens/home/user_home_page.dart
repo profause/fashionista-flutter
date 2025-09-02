@@ -11,21 +11,6 @@ class UserHomePage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: colorScheme.surface,
-        title: Text("Fashionista", style: textTheme.titleLarge),
-        actions: [
-          IconButton(
-            icon: const CircleAvatar(
-              backgroundImage: AssetImage(
-                AppImages.avatar,
-              ), // replace with user profile
-            ),
-            onPressed: () {},
-          )
-        ],
-      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

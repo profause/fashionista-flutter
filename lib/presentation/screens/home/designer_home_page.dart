@@ -12,21 +12,6 @@ class DesignerHomePage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: colorScheme.surface,
-        title: Text("Fashionista", style: textTheme.titleLarge),
-        actions: [
-          IconButton(
-            icon: const CircleAvatar(
-              backgroundImage: AssetImage(
-                AppImages.avatar,
-              ), // replace with network
-            ),
-            onPressed: () {},
-          ),
-        ],
-      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

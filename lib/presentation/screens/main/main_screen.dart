@@ -3,9 +3,7 @@ import 'package:fashionista/presentation/screens/clients/clients_screen.dart';
 import 'package:fashionista/presentation/screens/closet/closet_screen.dart';
 import 'package:fashionista/presentation/screens/designers/designers_screen.dart';
 import 'package:fashionista/presentation/screens/home/home_screen.dart';
-import 'package:fashionista/presentation/screens/main/widgets/bottom_nav_bar_widget.dart';
 import 'package:fashionista/presentation/screens/profile/profile_screen.dart';
-import 'package:fashionista/presentation/screens/trends/trends_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -17,14 +15,14 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  //int _currentIndex = 0;
+  int _currentIndex = 0;
   final PageController _pageController = PageController();
   final ValueNotifier<int> _selectedIndex = ValueNotifier(0);
   late UserBloc _userBloc;
+  //int _selectedIndex = 0;
 
   final List<Widget> _designerPageList = [
     HomeScreen(),
-    TrendsScreen(),
     ClientsScreen(),
     ClosetScreen(),
     ProfileScreen(),
@@ -32,7 +30,6 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _regularUserPageList = [
     HomeScreen(),
-    TrendsScreen(),
     DesignersScreen(),
     ClosetScreen(),
     ProfileScreen(),
@@ -68,20 +65,10 @@ class _MainScreenState extends State<MainScreen> {
     super.dispose();
   }
 
-  void _onNavItemTapped(int index) {
-    if (_pageController.hasClients) {
-      _pageController.animateToPage(
-        index,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-      
-    }
-  }
-
-  void _onPageChanged(int index) {
+  void _onItemTapped(int index) {
+    _selectedIndex.value = index;
     setState(() {
-      //_selectedIndex.value = index;
+      _currentIndex = index;
     });
   }
 
@@ -94,22 +81,46 @@ class _MainScreenState extends State<MainScreen> {
       body: ValueListenableBuilder<int>(
         valueListenable: _selectedIndex,
         builder: (_, currentIndex, __) {
-          return 
-          PageView(
-            controller: _pageController,
-            onPageChanged: _onPageChanged,
-            physics: const NeverScrollableScrollPhysics(),
-            children: _userBloc.state.accountType == 'Designer'
-                ? _designerPageList
-                : _regularUserPageList,
-          );
-          //_pages[currentIndex];
+          return _userBloc.state.accountType == 'Designer'
+              ? _designerPageList[currentIndex]
+              : _regularUserPageList[currentIndex];
         },
       ),
-      bottomNavigationBar: BottomNavBar(
-        selectedIndex: _selectedIndex,
-        onNavItemTap: _onNavItemTapped,
-        ),
+      bottomNavigationBar: BottomNavigationBar(
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: colorScheme.primary,
+        backgroundColor: colorScheme.onPrimary,
+        //unselectedItemColor: colorScheme.primary.withValues(alpha: 0.5),
+        items: <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.people_alt_outlined),
+            activeIcon: Icon(Icons.people_alt),
+            label: _userBloc.state.accountType == 'Designer'
+                ? 'Clients'
+                : 'Designers',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.checkroom_outlined),
+            activeIcon: Icon(Icons.checkroom),
+            label: 'Closet',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+        currentIndex: _currentIndex,
+        onTap: _onItemTapped,
+        elevation: 0,
+      ),
     );
   }
 }

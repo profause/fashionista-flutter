@@ -1,10 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dartz/dartz.dart' as dartz;
+import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/data/models/designers/bloc/design_collection_bloc.dart';
+import 'package:fashionista/data/models/designers/bloc/design_collection_event.dart';
 import 'package:fashionista/data/models/designers/design_collection_model.dart';
+import 'package:fashionista/data/services/firebase/firebase_design_collection_service.dart';
 import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
-import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class DesignCollectionDetailsScreen extends StatefulWidget {
   final DesignCollectionModel designCollection;
@@ -53,16 +57,47 @@ class _DesignCollectionDetailsScreenState
         actions: [
           if (userId == widget.designCollection.createdBy) ...[
             IconButton(
-              onPressed: () {},
+              onPressed: () async {
+                final canDelete = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Delete Post'),
+                    content: const Text(
+                      'Are you sure you want to delete this post?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(false),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(true),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.red,
+                        ),
+                        child: const Text('Delete'),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (canDelete == true) {
+                  if (mounted) {
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false, // Prevent dismissing
+                      builder: (_) =>
+                          const Center(child: CircularProgressIndicator()),
+                    );
+                  }
+
+                  _deleteDesignCollection(widget.designCollection);
+                }
+              },
               icon: Icon(Icons.delete),
               color: Colors.white,
             ),
             //const SizedBox(width: 4,),
-            IconButton(
-              onPressed: () {},
-              icon: Icon(Icons.edit),
-              color: Colors.white,
-            ),
           ],
         ],
       ),
@@ -179,5 +214,55 @@ class _DesignCollectionDetailsScreenState
         ],
       ),
     );
+  }
+
+  Future<void> _deleteDesignCollection(
+    DesignCollectionModel designCollection,
+  ) async {
+    try {
+      // create a dynamic list of futures
+      final List<Future<dartz.Either>> futures = designCollection.featuredImages
+          .map(
+            (e) => sl<FirebaseDesignCollectionService>()
+                .deleteDesignCollectionImage(e),
+          )
+          .toList();
+
+      // also add delete by id
+      futures.add(
+        sl<FirebaseDesignCollectionService>().deleteDesignCollectionById(
+          designCollection.uid!,
+        ),
+      );
+
+      // wait for all and capture results
+      final results = await Future.wait(futures);
+
+      // handle each result
+      for (final result in results) {
+        result.fold(
+          (failure) {
+            // handle failure
+            debugPrint("Delete failed: $failure");
+          },
+          (success) {
+            // handle success
+            debugPrint("Delete success: $success");
+          },
+        );
+      }
+
+      if (!mounted) return;
+      Navigator.pop(context);
+      context.read<DesignCollectionBloc>().add(
+        LoadDesignCollectionsCacheFirstThenNetwork(designCollection.createdBy),
+      );
+      Navigator.pop(context, true);
+    } on FirebaseException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message!)));
+    }
   }
 }

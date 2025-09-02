@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:fashionista/data/models/designers/design_collection_model.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:firebase_storage/firebase_storage.dart';
 
 abstract class FirebaseDesignCollectionService {
   Future<Either> fetchDesignCollections();
@@ -14,6 +15,7 @@ abstract class FirebaseDesignCollectionService {
   );
   Future<Either> findDesignCollectionById(String uid);
   Future<Either> deleteDesignCollectionById(String uid);
+  Future<Either> deleteDesignCollectionImage(String imageUrl);
   Future<bool> isBookmarkedDesignCollection(String uid);
   Future<Either> addOrRemoveBookmarkDesignCollection(String uid);
   Future<Either> fetchBookmarkedDesignCollections(List<String> uids);
@@ -116,34 +118,35 @@ class FirebaseDesignCollectionServiceImpl
 
   @override
   Future<Either> findDesignCollections(String createdBy) async {
-  try {
-    final firestore = FirebaseFirestore.instance;
-    final querySnapshot = await firestore
-        .collection('design_collections')
-        .where('created_by', isEqualTo: createdBy)
-        .where('visibility', isEqualTo: 'public')
-        .orderBy('created_at', descending: true)
-        .get();
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final querySnapshot = await firestore
+          .collection('design_collections')
+          .where('created_by', isEqualTo: createdBy)
+          .where('visibility', isEqualTo: 'public')
+          .orderBy('created_at', descending: true)
+          .get();
 
-    // Await all async maps
-    final designCollections = await Future.wait(
-      querySnapshot.docs.map((doc) async {
-        bool isBookmarked = await isBookmarkedDesignCollection(doc.reference.id);
-        final d = DesignCollectionModel.fromJson(doc.data());
-        return d.copyWith(uid: doc.reference.id, isBookmarked: isBookmarked);
-      }),
-    );
+      // Await all async maps
+      final designCollections = await Future.wait(
+        querySnapshot.docs.map((doc) async {
+          bool isBookmarked = await isBookmarkedDesignCollection(
+            doc.reference.id,
+          );
+          final d = DesignCollectionModel.fromJson(doc.data());
+          return d.copyWith(uid: doc.reference.id, isBookmarked: isBookmarked);
+        }),
+      );
 
-    //await importCollections(sampleDesignCollections);
+      //await importCollections(sampleDesignCollections);
 
-    return Right(designCollections);
-  } on FirebaseException catch (e) {
-    return Left(e.message ?? 'An unknown Firebase error occurred');
-  } catch (e) {
-    return Left(e.toString());
+      return Right(designCollections);
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'An unknown Firebase error occurred');
+    } catch (e) {
+      return Left(e.toString());
+    }
   }
-}
-
 
   final List<Map<String, dynamic>> sampleDesignCollections = [
     {
@@ -367,6 +370,18 @@ class FirebaseDesignCollectionServiceImpl
       return isBookmarked;
     } catch (e) {
       return false;
+    }
+  }
+
+  @override
+  Future<Either> deleteDesignCollectionImage(String imageUrl) async {
+    try {
+      // Delete from storage
+      final ref = FirebaseStorage.instance.refFromURL(imageUrl);
+      await ref.delete();
+      return Right('Image deleted');
+    } catch (e) {
+      return Left(e.toString());
     }
   }
 }

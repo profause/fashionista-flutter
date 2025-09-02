@@ -51,35 +51,15 @@ class BottomNavBar extends StatelessWidget {
               onTap: onNavItemTap,
             ),
 
-            // user.accountType == 'Designer'
-            //     ? BottomNavItem(
-            //         index: 2,
-            //         icon: Icons.man_3_outlined,
-            //         activeIcon: Icons.man_3,
-            //         label: "Clients",
-            //         selectedIndex: selectedIndex,
-            //         onTap: onNavItemTap,
-            //         iconSize: 28,
-            //       )
-            //     : BottomNavItem(
-            //         index: 2,
-            //         icon: Icons.man_3_outlined,
-            //         activeIcon: Icons.man_3,
-            //         label: "Designers",
-            //         selectedIndex: selectedIndex,
-            //         onTap: onNavItemTap,
-            //         iconSize: 28,
-            //       ),
-
-BottomNavItem(
-                    index: 2,
-                    icon: Icons.man_3_outlined,
-                    activeIcon: Icons.man_3,
-                    label: "Clients",
-                    selectedIndex: selectedIndex,
-                    onTap: onNavItemTap,
-                    iconSize: 28,
-                  ),
+            BottomNavItem(
+              index: 2,
+              icon: Icons.man_3_outlined,
+              activeIcon: Icons.man_3,
+              label: "Clients",
+              selectedIndex: selectedIndex,
+              onTap: onNavItemTap,
+              iconSize: 28,
+            ),
             BottomNavItem(
               index: 3,
               icon: Icons.checkroom_outlined,
