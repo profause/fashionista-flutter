@@ -1,4 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
+import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/presentation/screens/clients/clients_screen.dart';
 import 'package:fashionista/presentation/screens/closet/closet_screen.dart';
 import 'package:fashionista/presentation/screens/designers/designers_screen.dart';
@@ -75,6 +77,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       //extendBody: true,
       backgroundColor: colorScheme.surface,
@@ -89,6 +92,14 @@ class _MainScreenState extends State<MainScreen> {
       bottomNavigationBar: BottomNavigationBar(
         showSelectedLabels: true,
         showUnselectedLabels: true,
+        selectedLabelStyle: textTheme.bodyMedium!.copyWith(
+          fontWeight: FontWeight.bold,
+          color: colorScheme.primary,
+        ),
+        unselectedLabelStyle: textTheme.bodyMedium!.copyWith(
+          fontWeight: FontWeight.bold,
+          color: colorScheme.primary.withValues(alpha: 0.7),
+        ),
         type: BottomNavigationBarType.fixed,
         selectedItemColor: colorScheme.primary,
         backgroundColor: colorScheme.onPrimary,
@@ -112,8 +123,51 @@ class _MainScreenState extends State<MainScreen> {
             label: 'Closet',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
+            icon: BlocBuilder<UserBloc, User>(
+              builder: (context, user) {
+                return CircleAvatar(
+                  radius: 16,
+                  backgroundColor: Colors.grey.shade300,
+                  backgroundImage: user.profileImage.isNotEmpty
+                      ? CachedNetworkImageProvider(user.profileImage)
+                      : null,
+                  child: user.profileImage.isEmpty
+                      ? Icon(
+                          Icons.person_outline,
+                          size: 24,
+                          color: Colors.grey.shade600,
+                        )
+                      : null,
+                );
+              },
+            ),
+            activeIcon: BlocBuilder<UserBloc, User>(
+              builder: (context, user) {
+                return Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.primary,
+                      width: 2,
+                    ),
+                  ),
+                  child: CircleAvatar(
+                    radius: 16,
+                    backgroundColor: Colors.grey.shade300,
+                    backgroundImage: user.profileImage.isNotEmpty
+                        ? CachedNetworkImageProvider(user.profileImage)
+                        : null,
+                    child: user.profileImage.isEmpty
+                        ? Icon(
+                            Icons.person,
+                            size: 24,
+                            color: Theme.of(context).colorScheme.primary,
+                          )
+                        : null,
+                  ),
+                );
+              },
+            ),
             label: 'Profile',
           ),
         ],

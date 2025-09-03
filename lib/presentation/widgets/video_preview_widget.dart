@@ -80,12 +80,16 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget>
           Center(
             child: _player.isInitialized
                 ? AspectRatio(
-                    aspectRatio: 4 / 5,
+                    aspectRatio: 9 / 16,
                     child: VideoPlayer(
                       _player.controller,
                     ), // Note: VideoPlayer from video_player package!
                   )
-                : const CircularProgressIndicator.adaptive(),
+                : const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 3),
+                  ),
           ),
         ],
       ),

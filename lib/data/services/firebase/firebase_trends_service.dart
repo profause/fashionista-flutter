@@ -447,7 +447,7 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
       "featured_media": [
         {
           "url":
-              "https://videocdn.cdnpk.net/videos/36e4ae03-ca6e-5014-b19c-c7b6379b5cba/horizontal/previews/clear/large.mp4?token=exp=1756841542~hmac=5b015ded6d71e7a5eec1c09d5313b901eb55beeefbcd435c5132d94b56de49b6",
+              "https://www.pexels.com/download/video/4068399/",
           "type": "video",
         },
       ],
@@ -471,8 +471,8 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
       "created_by": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
       "featured_media": [
         {
-          "url": "https://placehold.co/180x280.png?text=streetwear_black",
-          "type": "image",
+          "url": "https://www.pexels.com/download/video/5082036/",
+          "type": "video",
         },
       ],
       "created_at": DateTime.now().millisecondsSinceEpoch,
@@ -495,8 +495,8 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
       "created_by": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
       "featured_media": [
         {
-          "url": "https://placehold.co/180x280.png?text=neon_crop_top",
-          "type": "image",
+          "url": "https://www.pexels.com/download/video/6347110/",
+          "type": "video",
         },
       ],
       "created_at": DateTime.now().millisecondsSinceEpoch,
@@ -519,8 +519,8 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
       "created_by": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
       "featured_media": [
         {
-          "url": "https://placehold.co/180x280.png?text=gold_chains",
-          "type": "image",
+          "url": "https://www.pexels.com/download/video/7483147/",
+          "type": "video",
         },
       ],
       "created_at": DateTime.now().millisecondsSinceEpoch,
@@ -543,8 +543,8 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
       "created_by": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
       "featured_media": [
         {
-          "url": "https://placehold.co/180x280.png?text=plaid_skirt",
-          "type": "image",
+          "url": "https://www.pexels.com/download/video/7250829/",
+          "type": "video",
         },
       ],
       "created_at": DateTime.now().millisecondsSinceEpoch,

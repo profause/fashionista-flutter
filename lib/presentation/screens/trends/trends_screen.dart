@@ -4,7 +4,6 @@ import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc_event.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc_state.dart';
-import 'package:fashionista/presentation/screens/trends/add_trend_screen.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/trends_staggered_view.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:flutter/material.dart';
@@ -61,85 +60,33 @@ class _TrendsScreenState extends State<TrendsScreen> with RouteAware {
         child: RefreshIndicator(
           key: _refreshKey,
           onRefresh: refreshDesigners,
-          child: CustomScrollView(
-            slivers: [
-              /// Collapsing AppBar with search bar
-              // SliverAppBar(
-              //   pinned: true,
-              //   floating: true,
-              //   snap: true,
-              //   expandedHeight: 0,
-              //   backgroundColor: colorScheme.surface,
-              //   flexibleSpace: FlexibleSpaceBar(
-              //     background: Padding(
-              //       padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
-              //       child: Material(
-              //         elevation: 0.1,
-              //         borderRadius: BorderRadius.circular(12),
-              //         child: TextField(
-              //           controller: _searchController,
-              //           decoration: InputDecoration(
-              //             hintText: "Search outfits, designers, styles...",
-              //             prefixIcon: const Icon(Icons.search),
-              //             filled: true,
-              //             fillColor: colorScheme.onPrimary,
-              //             border: OutlineInputBorder(
-              //               borderRadius: BorderRadius.circular(24),
-              //               borderSide: BorderSide.none,
-              //             ),
-              //             contentPadding: const EdgeInsets.symmetric(
-              //               vertical: 12,
-              //               horizontal: 16,
-              //             ),
-              //             suffixIcon: _searchText.isNotEmpty
-              //                 ? IconButton(
-              //                     icon: const Icon(Icons.clear),
-              //                     onPressed: () {
-              //                       _searchController.clear();
-              //                       setState(() {
-              //                         _searchText = "";
-              //                       });
-              //                       context.read<TrendBloc>().add(
-              //                         const LoadTrendsCacheFirstThenNetwork(''),
-              //                       );
-              //                     },
-              //                   )
-              //                 : null,
-              //           ),
-              //           onChanged: (value) {
-              //             setState(() => _searchText = value);
-              //             context.read<TrendBloc>().add(
-              //               LoadTrendsCacheFirstThenNetwork(value),
-              //             );
-              //           },
-              //         ),
-              //       ),
-              //     ),
-              //   ),
-              // ),
+          child: BlocBuilder<TrendBloc, TrendBlocState>(
+            builder: (context, state) {
+              switch (state) {
+                case TrendLoading():
+                  return ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: const [SizedBox(height: 400)],
+                  );
 
-              /// Main content
-              BlocBuilder<TrendBloc, TrendBlocState>(
-                builder: (context, state) {
-                  switch (state) {
-                    case TrendLoading():
-                      return SliverFillRemaining(
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            color: colorScheme.primary,
-                          ),
-                        ),
-                      );
-                    case TrendsLoaded(:final trends, :final fromCache):
-                      return SliverFillRemaining(
-                        child: TrendsStaggeredView(items: trends),
-                      );
-                    case TrendError(:final message):
-                      return SliverFillRemaining(
+                case TrendsLoaded(:final trends, :final fromCache):
+                  return TrendsStaggeredView(items: trends);
+                case TrendError(:final message):
+                  return ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: [
+                      SizedBox(
+                        height: 400,
                         child: Center(child: Text("Error: $message")),
-                      );
-                    default:
-                      return SliverFillRemaining(
+                      ),
+                    ],
+                  );
+                default:
+                  return ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: const [
+                      SizedBox(
+                        height: 400,
                         child: Center(
                           child: PageEmptyWidget(
                             title: "No Trends Found",
@@ -147,40 +94,11 @@ class _TrendsScreenState extends State<TrendsScreen> with RouteAware {
                             icon: Icons.newspaper_outlined,
                           ),
                         ),
-                      );
-                  }
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-      floatingActionButton: Hero(
-        tag: 'add-client-button',
-        child: Material(
-          color: Theme.of(context).colorScheme.primary,
-          elevation: 6,
-          shape: const CircleBorder(),
-          child: InkWell(
-            onTap: () async {
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const AddTrendScreen()),
-              );
-
-              // if AddClientScreen popped with "true", reload
-              if (result == true && mounted) {
-                context.read<TrendBloc>().add(
-                  const LoadTrendsCacheFirstThenNetwork(''),
-                );
+                      ),
+                    ],
+                  );
               }
             },
-            customBorder: const CircleBorder(),
-            child: SizedBox(
-              width: 56,
-              height: 56,
-              child: Icon(Icons.add, color: colorScheme.onPrimary),
-            ),
           ),
         ),
       ),

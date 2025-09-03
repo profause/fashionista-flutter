@@ -28,7 +28,7 @@ class TrendsStaggeredView extends StatelessWidget {
         itemBuilder: (context, index) {
           final trend = items[index];
           // 👇 Assign different aspect ratios randomly for variety
-           final aspectRatioOptions = [16 / 9, 4 / 5, 1 / 1, 3 / 2];
+          final aspectRatioOptions = [16 / 9, 4 / 5, 1 / 1, 3 / 2];
           final aspectRatio =
               aspectRatioOptions[random.nextInt(aspectRatioOptions.length)];
 
