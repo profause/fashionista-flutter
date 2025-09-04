@@ -42,7 +42,7 @@ class _CustomFavouriteDesignerIconButtonState
 
     widget.isFavouriteNotifier!.addListener(() {
       if (widget.isFavouriteNotifier!.value) {
-        if(!mounted) return;
+        if (!mounted) return;
         _controller.forward(from: 0); // restart burst animation
       }
     });
@@ -99,10 +99,9 @@ class _CustomFavouriteDesignerIconButtonState
   }
 
   void getIsFavourite() async {
-    if(!mounted) return;
+    if (!mounted) return;
     isFavourite = await sl<IsFavouriteUsecase>().call(widget.designerId);
- 
-      widget.isFavouriteNotifier!.value = isFavourite;
- 
+
+    widget.isFavouriteNotifier!.value = isFavourite;
   }
 }

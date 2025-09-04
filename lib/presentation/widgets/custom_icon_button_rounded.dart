@@ -8,12 +8,14 @@ class CustomIconButtonRounded extends StatelessWidget {
   final IconData iconData;
   final double? size;
   final Widget? icon;
+  final Color? backgroundColor;
   const CustomIconButtonRounded({
     super.key,
     required this.onPressed,
     this.icon,
     this.size = 24,
     required this.iconData,
+    this.backgroundColor = Colors.transparent,
   });
 
   @override
@@ -24,9 +26,11 @@ class CustomIconButtonRounded extends StatelessWidget {
       builder: (context, settings) {
         ThemeMode themeMode = ThemeMode.values[settings.displayMode as int];
         return Material(
-          color: themeMode == ThemeMode.light
-              ? Colors.grey.shade200
-              : Colors.black,
+          color: backgroundColor != Colors.transparent
+              ? backgroundColor
+              : (themeMode == ThemeMode.light
+                    ? Colors.grey.shade200
+                    : Colors.black),
           //colorScheme.onSurface, // background color
           shape: const CircleBorder(),
           // borderRadius: BorderRadius.circular(size! / 2), // makes it round
@@ -35,9 +39,7 @@ class CustomIconButtonRounded extends StatelessWidget {
             onTap: onPressed,
             child: Padding(
               padding: EdgeInsets.all(6), // space around icon
-              child:
-                  icon ??
-                  Icon(iconData, size: size,),
+              child: icon ?? Icon(iconData, size: size),
             ),
           ),
         );

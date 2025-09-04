@@ -83,6 +83,7 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
           .get();
 
       //Await all async maps
+      
       final trends = await Future.wait(
         querySnapshot.docs.map((doc) async {
           bool isLiked = await isLikedTrend(doc.reference.id);
@@ -95,7 +96,7 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
           );
         }),
       );
-      debugPrint("fetched ${trends.length} trends");
+      
       //await importTrends(sampleTrendsData);
       return Right(trends);
     } on FirebaseException catch (e) {
@@ -278,7 +279,7 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
         await firestore
             .collection('trends')
             .doc(like.refId)
-            .collection('followers')
+            .collection('likes')
             .doc(uid)
             .set(
               like

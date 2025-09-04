@@ -13,7 +13,7 @@ class ProfileInfoTextFieldWidget extends StatelessWidget {
 
   const ProfileInfoTextFieldWidget({
     super.key,
-    required this.label,
+    this.label,
     required this.hint,
     this.isPassword = false,
     this.controller,
@@ -30,6 +30,7 @@ class ProfileInfoTextFieldWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (label != null)
         Text(
           label ?? '',
           style: textTheme.titleSmall?.copyWith(

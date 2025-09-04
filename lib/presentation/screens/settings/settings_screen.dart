@@ -27,8 +27,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             backgroundColor: colorScheme.onPrimary,
             title: const AppBarTitle(title: "Settings"),
             elevation: 0,
+
             //toolbarHeight: 0,
-            
           ),
           body: SafeArea(
             child: SingleChildScrollView(
@@ -36,6 +36,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 children: [
                   Card(
+                    margin: const EdgeInsets.only(bottom: 8),
                     color: colorScheme.onPrimary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -51,7 +52,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               Text(
                                 "Display mode",
                                 style: textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -97,13 +98,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                           .brightness_2_outlined // moon for light mode
                                     : Icons
                                           .wb_sunny_outlined, // sun for dark mode
-                                key: ValueKey(
-                                  themeMode,
-                                ),
+                                key: ValueKey(themeMode),
                                 //color: colorScheme.onPrimary, // important for AnimatedSwitcher to detect changes
                               ),
                             ),
                           ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    color: colorScheme.onPrimary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    elevation: 0,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Auto play videos",
+                                style: textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                settings.autoPlayVideos == true ? 'Yes' : 'No',
+                                style: textTheme.bodyLarge,
+                                textAlign: TextAlign.start,
+                              ),
+                            ],
+                          ),
+                          const Spacer(),
+                          Switch(
+                            value: settings.autoPlayVideos ?? false,
+                            onChanged: (value) {
+                              final updatedSettings = settings.copyWith(
+                                autoPlayVideos: value,
+                              );
+                              context.read<SettingsBloc>().add(
+                                UpdateSettings(updatedSettings),
+                              );
+                            },
+                          ), // Space between buttons
                         ],
                       ),
                     ),

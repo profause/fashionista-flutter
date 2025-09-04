@@ -1,5 +1,8 @@
 import 'package:cached_video_player_plus/cached_video_player_plus.dart';
+import 'package:fashionista/data/models/settings/bloc/settings_bloc.dart';
+import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:video_player/video_player.dart';
 
 class VideoPreviewWidget extends StatefulWidget {
@@ -16,10 +19,12 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget>
     with SingleTickerProviderStateMixin {
   //late VideoPlayerController _controller;
   late final CachedVideoPlayerPlus _player;
-  bool _isInitialized = false;
-
+  bool isInitialized = false;
+  bool autoPlayVideo = false;
+  IconData iconData = Icons.play_arrow;
   @override
   void initState() {
+    autoPlayVideo = context.read<SettingsBloc>().state.autoPlayVideos ?? false;
     super.initState();
     // _controller =
     //     VideoPlayerController.networkUrl(
@@ -43,7 +48,7 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget>
       },
       videoPlayerOptions: VideoPlayerOptions(
         mixWithOthers: true,
-        allowBackgroundPlayback: true,
+        allowBackgroundPlayback: false,
       ),
       //viewType: VideoViewType.platformView,
       invalidateCacheIfOlderThan: const Duration(minutes: 69), // Nice!
@@ -53,13 +58,19 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget>
         .initialize()
         .then((_) {
           setState(() {});
-          _player.controller.play();
+          if (autoPlayVideo) {
+            _player.controller.play();
+            setState(() {
+              iconData = Icons.pause;
+            });
+          }
+          //_player.controller.play();
           _player.controller.setLooping(true);
           _player.controller.setVolume(0.0);
           _player.controller.setPlaybackSpeed(1.5);
         })
         .catchError((error) {
-          debugPrint("Video init error: $error");
+          //debugPrint("Video init error: $error");
         });
   }
 
@@ -72,6 +83,8 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget>
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return GestureDetector(
       onTap: widget.onTap,
       child: Stack(
@@ -90,6 +103,25 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget>
                     height: 18,
                     child: CircularProgressIndicator(strokeWidth: 3),
                   ),
+          ),
+          Positioned(
+            top: 12,
+            right: 8,
+            child: CustomIconButtonRounded(
+              backgroundColor: colorScheme.onPrimary.withValues(alpha: 0.4),
+              onPressed: () {
+                _player.controller.value.isPlaying
+                    ? _player.controller.pause()
+                    : _player.controller.play();
+                setState(() {
+                  iconData = _player.controller.value.isPlaying
+                      ? Icons.pause
+                      : Icons.play_arrow;
+                });
+              },
+              iconData: iconData,
+              size: 18,
+            ),
           ),
         ],
       ),

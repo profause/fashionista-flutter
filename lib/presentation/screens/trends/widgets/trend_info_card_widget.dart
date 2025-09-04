@@ -3,6 +3,7 @@ import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
 import 'package:fashionista/presentation/screens/trends/trend_details_screen.dart';
+import 'package:fashionista/presentation/screens/trends/widgets/custom_trend_like_button_widget.dart';
 import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:fashionista/presentation/widgets/video_preview_widget.dart';
@@ -114,6 +115,47 @@ class TrendInfoCardWidget extends StatelessWidget {
                                 size: 18 * 1.8,
                                 uid: trendInfo.author.uid!,
                               ),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  right: 4,
+                  bottom: 8,
+                  left: 4,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: colorScheme.onPrimary.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          SizedBox(
+                            width: 110,
+                            child: Text(
+                              trendInfo.description,
+                              style: textTheme.bodySmall!.copyWith(
+                                color: colorScheme.primary,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          CustomTrendLikeButtonWidget(
+                            trendId: trendInfo.uid!,
+                            isLikedNotifier: ValueNotifier(
+                              LikeObject(
+                                count: trendInfo.numberOfLikes == null
+                                    ? 0
+                                    : trendInfo.numberOfLikes!,
+                                isLiked: trendInfo.isLiked!,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),

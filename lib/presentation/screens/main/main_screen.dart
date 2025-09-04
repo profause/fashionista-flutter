@@ -92,12 +92,14 @@ class _MainScreenState extends State<MainScreen> {
       bottomNavigationBar: BottomNavigationBar(
         showSelectedLabels: true,
         showUnselectedLabels: true,
-        selectedLabelStyle: textTheme.bodyMedium!.copyWith(
+        selectedLabelStyle: textTheme.labelMedium!.copyWith(
           fontWeight: FontWeight.bold,
+          fontSize: 13,
           color: colorScheme.primary,
         ),
-        unselectedLabelStyle: textTheme.bodyMedium!.copyWith(
-          fontWeight: FontWeight.bold,
+        unselectedLabelStyle: textTheme.labelMedium!.copyWith(
+          fontWeight: FontWeight.w500,
+          fontSize: 13,
           color: colorScheme.primary.withValues(alpha: 0.7),
         ),
         type: BottomNavigationBarType.fixed,

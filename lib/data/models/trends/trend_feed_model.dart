@@ -123,6 +123,9 @@ class TrendFeedModel extends Equatable {
     bool? isFollowed,
     String? tags,
     AuthorModel? author,
+    int ? numberOfLikes,
+    int ? numberOfFollowers,
+    int ? numberOfComments,
   }) {
     return TrendFeedModel(
       uid: uid ?? this.uid,
@@ -135,6 +138,9 @@ class TrendFeedModel extends Equatable {
       isFollowed: isFollowed ?? this.isFollowed,
       tags: tags ?? this.tags,
       author: author ?? this.author,
+      numberOfLikes: numberOfLikes ?? this.numberOfLikes,
+      numberOfFollowers: numberOfFollowers ?? this.numberOfFollowers,
+      numberOfComments: numberOfComments ?? this.numberOfComments,
     );
   }
 }

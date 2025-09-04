@@ -23,10 +23,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     // Show status bar, hide navigation bar
-    SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.manual,
-      overlays: [SystemUiOverlay.top], // keep only status bar
-    );
+    // SystemChrome.setEnabledSystemUIMode(
+    //   SystemUiMode.manual,
+    //   overlays: [SystemUiOverlay.top], // keep only status bar
+    // );
     _tabController = TabController(initialIndex: 1, length: 3, vsync: this);
     _scrollController = ScrollController();
     
