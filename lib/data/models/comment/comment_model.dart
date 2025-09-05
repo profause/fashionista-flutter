@@ -57,12 +57,14 @@ class CommentModel extends Equatable {
     String? refId,
     String? text,
     AuthorModel? author,
+    int? createdAt,
   }) {
     return CommentModel(
       uid: uid ?? this.uid,
       refId: refId ?? this.refId,
       text: text ?? this.text,
       author: author ?? this.author,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 }

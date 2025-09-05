@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 class PageEmptyWidget extends StatefulWidget {
   final String title;
   final String subtitle;
+  final double? iconSize;
+  final double? fontSize;
   final IconData? icon;
 
   const PageEmptyWidget({
@@ -10,6 +12,8 @@ class PageEmptyWidget extends StatefulWidget {
     required this.title,
     required this.subtitle,
     this.icon,
+    this.iconSize = 72,
+    this.fontSize = 20,
   });
 
   @override
@@ -45,7 +49,7 @@ class _PageEmptyWidgetState extends State<PageEmptyWidget>
                 },
                 child: Icon(
                   widget.icon,
-                  size: 72,
+                  size: widget.iconSize,
                   color: theme.colorScheme.primary.withValues(alpha: 1),
                 ),
               ),
@@ -53,6 +57,7 @@ class _PageEmptyWidgetState extends State<PageEmptyWidget>
             Text(
               widget.title,
               style: theme.textTheme.headlineSmall?.copyWith(
+                fontSize: widget.fontSize,
                 fontWeight: FontWeight.bold,
               ),
               textAlign: TextAlign.center,

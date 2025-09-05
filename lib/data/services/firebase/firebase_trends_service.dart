@@ -29,9 +29,10 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
     try {
       final firestore = FirebaseFirestore.instance;
       firestore
-          .collection('trend_comments')
-          .doc(comment.uid)
-          .set(comment.toJson(), SetOptions(merge: true));
+          .collection('trends')
+          .doc(comment.refId)
+          .collection('comments')
+          .add(comment.toJson());
       return Right(comment);
     } on FirebaseException catch (e) {
       return Left(e.message);
@@ -83,7 +84,7 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
           .get();
 
       //Await all async maps
-      
+
       final trends = await Future.wait(
         querySnapshot.docs.map((doc) async {
           bool isLiked = await isLikedTrend(doc.reference.id);
@@ -96,7 +97,7 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
           );
         }),
       );
-      
+
       //await importTrends(sampleTrendsData);
       return Right(trends);
     } on FirebaseException catch (e) {
@@ -321,9 +322,14 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
       final firestore = FirebaseFirestore.instance;
 
       // Delete the document with the given uid
-      await firestore.collection('trend_comments').doc(comment.uid).delete();
+      await firestore
+          .collection('trends')
+          .doc(comment.refId)
+          .collection('comments')
+          .doc(comment.uid)
+          .delete();
       return const Right(
-        'successfully deleted design collection',
+        'successfully deleted comment',
       ); // success without data
     } on FirebaseException catch (e) {
       return Left(e.message ?? 'Unknown Firestore error');
@@ -333,18 +339,19 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
   }
 
   @override
-  Future<Either> findTrendComments(String trendId) async {
+  Future<Either<String, List<CommentModel>>> findTrendComments(String trendId) async {
     try {
       final firestore = FirebaseFirestore.instance;
       final querySnapshot = await firestore
-          .collection('trend_comments')
-          .where('ref_id', isEqualTo: trendId)
+          .collection('trends')
+          .doc(trendId)
+          .collection('comments')
           .orderBy('created_at', descending: true)
           .get();
-      // Map each document to a DesignCollection
+      // Map each document to a comment
       final designCollection = querySnapshot.docs.map((doc) {
         final d = CommentModel.fromJson(doc.data());
-        return d;
+        return d.copyWith(uid: doc.reference.id);
       }).toList();
       return Right(designCollection);
     } on FirebaseException catch (e) {
@@ -447,8 +454,7 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
       "created_by": "7cv6Kz3nduUhSjb8U0UEp2F379h1",
       "featured_media": [
         {
-          "url":
-              "https://www.pexels.com/download/video/4068399/",
+          "url": "https://www.pexels.com/download/video/4068399/",
           "type": "video",
         },
       ],

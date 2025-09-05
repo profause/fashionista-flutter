@@ -13,6 +13,7 @@ import 'package:fashionista/data/services/firebase/firebase_user_service.dart';
 import 'package:fashionista/data/services/hive/hive_client_service.dart';
 import 'package:fashionista/data/services/hive/hive_design_collection_service.dart';
 import 'package:fashionista/data/services/hive/hive_designers_service.dart';
+import 'package:fashionista/data/services/hive/hive_trend_comment_service.dart';
 import 'package:fashionista/data/services/hive/hive_trend_service.dart';
 import 'package:fashionista/domain/repository/auth/auth_repository.dart';
 import 'package:fashionista/domain/repository/clients/clients_repository.dart';
@@ -181,4 +182,5 @@ Future<void> initialiseDependencies() async {
   sl.registerSingleton<AddTrendCommentUsecase>(AddTrendCommentUsecase());
   sl.registerSingleton<FindTrendCommentsUsecase>(FindTrendCommentsUsecase());
   sl.registerSingleton<FindTrendByIdUsecase>(FindTrendByIdUsecase());
+  sl.registerSingleton<HiveTrendCommentService>(HiveTrendCommentService());
 }

@@ -8,8 +8,14 @@ import 'package:video_player/video_player.dart';
 class VideoPreviewWidget extends StatefulWidget {
   final String videoUrl;
   final VoidCallback? onTap;
+  final double? aspectRatio;
 
-  const VideoPreviewWidget({super.key, required this.videoUrl, this.onTap});
+  const VideoPreviewWidget({
+    super.key,
+    required this.videoUrl,
+    this.onTap,
+    this.aspectRatio = 9 / 16,
+  });
 
   @override
   State<VideoPreviewWidget> createState() => _VideoPreviewWidgetState();
@@ -93,7 +99,7 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget>
           Center(
             child: _player.isInitialized
                 ? AspectRatio(
-                    aspectRatio: 9 / 16,
+                    aspectRatio: widget.aspectRatio ?? 9 / 16,
                     child: VideoPlayer(
                       _player.controller,
                     ), // Note: VideoPlayer from video_player package!

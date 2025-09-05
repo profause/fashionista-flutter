@@ -57,7 +57,7 @@ class TrendInfoCardWidget extends StatelessWidget {
                 AspectRatio(
                   aspectRatio: featuredMedia.type!.toLowerCase() == 'video'
                       ? 9 / 16
-                      : aspectRatio,
+                      : featuredMedia.aspectRatio ?? aspectRatio,
                   child: featuredMedia.type!.toLowerCase() == 'video'
                       ? VideoPreviewWidget(
                           videoUrl: trendInfo.featuredMedia.first.url!,

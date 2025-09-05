@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/utils/get_image_aspect_ratio.dart';
 import 'package:fashionista/core/widgets/tag_input_field.dart';
 import 'package:fashionista/data/models/author/author_model.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
@@ -8,7 +9,6 @@ import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
 import 'package:fashionista/domain/usecases/trends/add_trend_usecase.dart';
-import 'package:fashionista/presentation/screens/designers/widgets/featured_images_widget.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_rounded.dart';
 import 'package:fashionista/presentation/widgets/custom_text_input_field_widget.dart';
@@ -19,6 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dartz/dartz.dart' as dartz;
 import 'package:uuid/uuid.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 List<String> hints = [
   "✨ Share your next fashion moment…",
@@ -103,7 +104,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
             child: CustomIconButtonRounded(
               onPressed: () async {
                 if (_formKey.currentState!.validate()) {
-                  await _saveTrend(context);
+                  await _saveTrend();
                   //Navigator.of(context).pop();
                 }
               },
@@ -282,7 +283,11 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
   }
 
   Future<void> pickImages(BuildContext context) async {
-    final images = await picker.pickMultiImage();
+    final images = await picker.pickMultiImage(
+      imageQuality: 70,
+      limit: 4,
+      requestFullMetadata: true,
+    );
     if (images.isEmpty) return;
 
     setState(() {
@@ -316,7 +321,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
     //_cropImage();
   }
 
-  Future<void> _saveTrend(context) async {
+  Future<void> _saveTrend() async {
     try {
       UserBloc userBloc = context.read<UserBloc>();
       User user = userBloc.state;
@@ -350,14 +355,9 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
         },
         (ifRight) {
           //_buttonLoadingStateCubit.setLoading(false);
+          featuredImages = ifRight;
           setState(() {
             //isUploading = false;
-            uploadedUrls = ifRight;
-            for (var i = 0; i < uploadedUrls.length; i++) {
-              featuredImages.add(
-                FeaturedMediaModel(url: uploadedUrls[i], type: 'image'),
-              );
-            }
           });
         },
       );
@@ -414,66 +414,65 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
     }
   }
 
-  Future<dartz.Either<String, List<String>>> uploadImages(
-    BuildContext context,
-    trendId,
-  ) async {
-    if (pickedImages.isEmpty) return dartz.Left('image list is empty');
+  Future<dartz.Either<String, List<FeaturedMediaModel>>> uploadImages(
+  BuildContext context,
+  String trendId,
+) async {
+  if (pickedImages.isEmpty) return dartz.Left('image list is empty');
 
-    setState(() => isUploading = true);
+  setState(() => isUploading = true);
 
-    final storage = FirebaseStorage.instance;
-    final uploadTasks = <Future<String>>[];
+  final storage = FirebaseStorage.instance;
+  final uploadTasks = <Future<String>>[];
+  final aspects = <double?>[];
 
-    for (int i = 0; i < pickedImages.length; i++) {
-      final image = pickedImages[i];
-      uploadTasks.add(() async {
-        final fileName = "${trendId}_$i";
+  // Step 1: Collect aspect ratios + prepare upload tasks
+  for (int i = 0; i < pickedImages.length; i++) {
+    final image = pickedImages[i];
 
-        //DateTime.now().millisecondsSinceEpoch.toString();
-        final ref = storage.ref().child("trend_images/$fileName.jpg");
+    // get aspect ratio
+    final aspect = await getImageAspectRatio(image);
+    aspects.add(aspect);
 
-        final uploadTask = ref.putFile(File(image.path));
+    // prepare upload
+    uploadTasks.add(() async {
+      final fileName = "${trendId}_$i.jpg";
+      final ref = storage.ref().child("trend_images/$fileName");
 
-        // // Track progress
-        // uploadTask.snapshotEvents.listen((snapshot) {
-        //   final percent = snapshot.bytesTransferred / snapshot.totalBytes;
-        //   setState(() {
-        //     uploadProgress[i] = percent;
-        //   });
-        // });
-
-        await uploadTask;
-        return await ref.getDownloadURL();
-      }());
-    }
-
-    try {
-      final urls = await Future.wait(uploadTasks);
-      setState(() {
-        uploadedUrls = urls;
-        isUploading = false;
-      });
-
-      // Save to Firestore
-      // await FirebaseFirestore.instance
-      //     .collection("designers")
-      //     .doc(widget.designer.uid)
-      //     .set({
-      //       "featured_images": FieldValue.arrayUnion(urls),
-      //     }, SetOptions(merge: true));
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("✅ Images uploaded successfully!")),
-      );
-      return dartz.Right(urls);
-      //context.read<DesignerBloc>().add(LoadDesigner(widget.designer.uid));
-    } catch (e) {
-      setState(() => isUploading = false);
-      return dartz.Left(e.toString());
-      // ScaffoldMessenger.of(
-      //   context,
-      // ).showSnackBar(SnackBar(content: Text("❌ Upload failed: $e")));
-    }
+      final uploadTask = ref.putFile(File(image.path));
+      await uploadTask;
+      return await ref.getDownloadURL();
+    }());
   }
+
+  try {
+    // Step 2: Upload all + get URLs
+    final urls = await Future.wait(uploadTasks);
+
+    // Step 3: Merge into FeaturedMediaModel list
+    final mergedList = List.generate(
+      urls.length,
+      (i) => FeaturedMediaModel(
+        url: urls[i],
+        type: "image", // could be "video" if needed
+        aspectRatio: aspects[i],
+      ),
+    );
+
+    setState(() {
+      uploadedUrls = urls;
+      isUploading = false;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("✅ Images uploaded successfully!")),
+    );
+
+    return dartz.Right(mergedList);
+  } catch (e) {
+    setState(() => isUploading = false);
+    return dartz.Left(e.toString());
+  }
+}
+
 }
