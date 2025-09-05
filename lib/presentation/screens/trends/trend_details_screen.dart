@@ -33,12 +33,15 @@ class TrendDetailsScreen extends StatefulWidget {
   State<TrendDetailsScreen> createState() => _TrendDetailsScreenState();
 }
 
-class _TrendDetailsScreenState extends State<TrendDetailsScreen> {
+class _TrendDetailsScreenState extends State<TrendDetailsScreen>
+    with WidgetsBindingObserver {
   late PageController _controller;
   late int _currentIndex;
   bool showDetails = true;
   final userId = firebase_auth.FirebaseAuth.instance.currentUser!.uid;
   final TextEditingController _commentController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
   bool addCommentLoading = false;
 
   @override
@@ -48,7 +51,26 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen> {
     context.read<TrendCommentBloc>().add(
       LoadTrendCommentsCacheFirstThenNetwork(widget.trendInfo.uid!),
     );
+    WidgetsBinding.instance.addObserver(this);
     super.initState();
+  }
+
+  /// 🔑 Detect keyboard changes
+  @override
+  void didChangeMetrics() {
+    final bottomInset = WidgetsBinding.instance.window.viewInsets.bottom;
+    if (bottomInset > 0) {
+      // keyboard opened
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    }
   }
 
   @override
@@ -56,6 +78,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
         foregroundColor: colorScheme.primary,
@@ -117,6 +140,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen> {
       ),
       body: SafeArea(
         child: ListView(
+          controller: _scrollController,
           padding: const EdgeInsets.all(12),
           physics: const BouncingScrollPhysics(),
           children: [
@@ -334,6 +358,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen> {
                         return CommentWidget(
                           comment: comment,
                           onDelete: () {
+                            debugPrint("Delete comment");
                             context.read<TrendCommentBloc>().add(
                               LoadTrendCommentsCacheFirstThenNetwork(
                                 widget.trendInfo.uid!,
@@ -369,37 +394,44 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen> {
           ],
         ),
       ),
+
+      /// 🟢 WhatsApp-style input
       bottomNavigationBar: SafeArea(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            border: Border(top: BorderSide(color: Colors.grey[300]!)),
+        child: Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _commentController,
-                  minLines: 1,
-                  maxLines: 3,
-                  decoration: const InputDecoration(
-                    hintText: "Add a comment...",
-                    border: InputBorder.none,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              border: Border(top: BorderSide(color: Colors.grey[300]!)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _commentController,
+                    minLines: 1,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      hintText: "Add a comment...",
+                      border: InputBorder.none,
+                    ),
                   ),
                 ),
-              ),
-              addCommentLoading
-                  ? SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: const CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : IconButton(
-                      onPressed: _addComment,
-                      icon: Icon(Icons.send, color: colorScheme.primary),
-                    ),
-            ],
+                addCommentLoading
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : IconButton(
+                        onPressed: _addComment,
+                        icon: Icon(Icons.send, color: colorScheme.primary),
+                      ),
+              ],
+            ),
           ),
         ),
       ),
@@ -469,7 +501,9 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _commentController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 }
