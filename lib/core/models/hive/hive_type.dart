@@ -9,4 +9,7 @@ class HiveType {
   static const int featuredMediaType = 7;
   static const int commentType = 8;
   static const int socialInteractionModelHiveType = 9;
+  static const int closetItemModelHiveType = 10;
+  static const int outfitModelHiveType = 11;
+  static const int outfitPlanModelHiveType = 12;
 }

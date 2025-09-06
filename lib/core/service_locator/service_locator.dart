@@ -1,22 +1,27 @@
 import 'package:fashionista/data/repository/auth/auth_repository_impl.dart';
 import 'package:fashionista/data/repository/clients/clients_repository_impl.dart';
+import 'package:fashionista/data/repository/closet/closet_repository_impl.dart';
 import 'package:fashionista/data/repository/design_collection/design_collection_repository_impl.dart';
 import 'package:fashionista/data/repository/designers/designers_repository_impl.dart';
 import 'package:fashionista/data/repository/profile/user_repository_impl.dart';
 import 'package:fashionista/data/repository/trends/trend_feed_repository_impl.dart';
 import 'package:fashionista/data/services/firebase/firebase_auth_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_closet_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_design_collection_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_designers_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_trends_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_user_service.dart';
 import 'package:fashionista/data/services/hive/hive_client_service.dart';
+import 'package:fashionista/data/services/hive/hive_closet_item_service.dart';
 import 'package:fashionista/data/services/hive/hive_design_collection_service.dart';
 import 'package:fashionista/data/services/hive/hive_designers_service.dart';
+import 'package:fashionista/data/services/hive/hive_outfit_service.dart';
 import 'package:fashionista/data/services/hive/hive_trend_comment_service.dart';
 import 'package:fashionista/data/services/hive/hive_trend_service.dart';
 import 'package:fashionista/domain/repository/auth/auth_repository.dart';
 import 'package:fashionista/domain/repository/clients/clients_repository.dart';
+import 'package:fashionista/domain/repository/closet/closet_repository.dart';
 import 'package:fashionista/domain/repository/design_collection/design_collection_repository.dart';
 import 'package:fashionista/domain/repository/designers/designers_repository.dart';
 import 'package:fashionista/domain/repository/profile/user_repository.dart';
@@ -63,6 +68,7 @@ import 'package:fashionista/domain/usecases/trends/follow_or_unfollow_trend_usec
 import 'package:fashionista/domain/usecases/trends/is_followed_trend_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/is_liked_trend_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/like_or_unlike_trend_usecase.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:get_it/get_it.dart';
 
 final sl = GetIt.instance;
@@ -183,4 +189,9 @@ Future<void> initialiseDependencies() async {
   sl.registerSingleton<FindTrendCommentsUsecase>(FindTrendCommentsUsecase());
   sl.registerSingleton<FindTrendByIdUsecase>(FindTrendByIdUsecase());
   sl.registerSingleton<HiveTrendCommentService>(HiveTrendCommentService());
+
+  sl.registerSingleton<HiveClosetItemService>(HiveClosetItemService());
+  sl.registerSingleton<HiveOutfitService>(HiveOutfitService());
+  sl.registerSingleton<FirebaseClosetService>(FirebaseClosetServiceImpl());
+  sl.registerSingleton<ClosetRepository>(ClosetRepositoryImpl());
 }

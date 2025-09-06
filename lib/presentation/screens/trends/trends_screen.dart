@@ -106,7 +106,7 @@ class _TrendsScreenState extends State<TrendsScreen> with RouteAware {
       floatingActionButton: Hero(
         tag: 'add-trend-button',
         child: Material(
-          color: Theme.of(context).colorScheme.primary.withValues(alpha: .7),
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 1),
           elevation: 6,
           shape: const CircleBorder(),
           child: InkWell(

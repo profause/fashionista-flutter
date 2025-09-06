@@ -103,7 +103,6 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
     } on FirebaseException catch (e) {
       return Left(e.message ?? 'An unknown Firebase error occurred');
     } catch (e) {
-      debugPrint(e.toString());
       return Left(e.toString());
     }
   }

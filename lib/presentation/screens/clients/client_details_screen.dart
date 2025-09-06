@@ -174,8 +174,9 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                                               colorScheme.onPrimary,
                                           child: IconButton(
                                             padding: EdgeInsets.zero,
-                                            icon: const Icon(
+                                            icon: Icon(
                                               Icons.camera_alt,
+                                              color: colorScheme.primary,
                                               size: 24,
                                             ),
                                             onPressed: () {

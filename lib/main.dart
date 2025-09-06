@@ -8,6 +8,8 @@ import 'package:fashionista/core/theme/theme_cubit.dart';
 import 'package:fashionista/core/widgets/bloc/button_loading_state_cubit.dart';
 import 'package:fashionista/core/widgets/bloc/previous_screen_state_cubit.dart';
 import 'package:fashionista/data/models/clients/bloc/client_bloc.dart';
+import 'package:fashionista/data/models/closet/bloc/closet_item_bloc.dart';
+import 'package:fashionista/data/models/closet/bloc/closet_outfit_bloc.dart';
 import 'package:fashionista/data/models/designers/bloc/design_collection_bloc.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_bloc.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
@@ -16,6 +18,7 @@ import 'package:fashionista/data/models/settings/models/settings_model.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_comment_bloc.dart';
 import 'package:fashionista/presentation/screens/clients/clients_screen.dart';
+import 'package:fashionista/presentation/screens/closet/closet_items_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -62,7 +65,8 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => DesignCollectionBloc()),
         BlocProvider(create: (_) => TrendBloc()),
         BlocProvider(create: (_) => TrendCommentBloc()),
-
+        BlocProvider(create: (_) => ClosetOutfitBloc()),
+        BlocProvider(create: (_) => ClosetItemBloc()),
       ],
 
       child: BlocBuilder<SettingsBloc, Settings>(
@@ -71,7 +75,7 @@ class MyApp extends StatelessWidget {
           theme: fashionistaLightTheme,
           darkTheme: fashionistaDarkTheme,
           themeMode: ThemeMode.values[settings.displayMode as int],
-          navigatorObservers: [routeObserver],
+          navigatorObservers: [routeObserver,closetItemPageRouteObserver],
           home: const AppStarter(),
           // routes: {
           //   '/clients': (_) => const ClientsScreen(),
