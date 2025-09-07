@@ -10,11 +10,12 @@ abstract class FirebaseClosetService {
   Future<Either> deleteClosetItem(ClosetItemModel closetItem);
   Future<Either<String, List<ClosetItemModel>>> findClosetItems(String uid);
   Future<Either> addOrRemoveFavouriteClosetItem(String uid);
-
   Future<Either> addOutfit(OutfitModel outfit);
   Future<Either> updateOutfit(OutfitModel outfit);
   Future<Either> deleteOutfit(OutfitModel outfit);
   Future<Either<String, List<OutfitModel>>> findOutfits(String uid);
+  Future<Either<String, int>> getOutfitCount(String uid);
+  Future<Either<String, int>> getClosetItemCount(String uid);
   Future<Either> addOrRemoveFavouriteOutfit(String uid);
 }
 
@@ -250,6 +251,50 @@ class FirebaseClosetServiceImpl implements FirebaseClosetService {
       return Right(outfit);
     } on FirebaseException catch (e) {
       return Left(e.message);
+    }
+  }
+
+  @override
+  Future<Either<String, int>> getClosetItemCount(String uid) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final querySnapshot = await firestore
+          .collection('closets')
+          .doc(uid)
+          .collection('closet_items')
+          .count()
+          .get();
+
+      final outfitCount = querySnapshot.count;
+
+      //await importTrends(sampleTrendsData);
+      return Right(outfitCount ?? 0);
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'An unknown Firebase error occurred');
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  @override
+  Future<Either<String, int>> getOutfitCount(String uid) async{
+   try {
+      final firestore = FirebaseFirestore.instance;
+      final querySnapshot = await firestore
+          .collection('closets')
+          .doc(uid)
+          .collection('outfits')
+          .count()
+          .get();
+
+      final outfitCount = querySnapshot.count;
+
+      //await importTrends(sampleTrendsData);
+      return Right(outfitCount ?? 0);
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'An unknown Firebase error occurred');
+    } catch (e) {
+      return Left(e.toString());
     }
   }
 }

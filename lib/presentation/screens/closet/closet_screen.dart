@@ -1,9 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
+import 'package:fashionista/data/services/firebase/firebase_closet_service.dart';
 import 'package:fashionista/presentation/screens/closet/closet_items_page.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -16,6 +19,14 @@ class ClosetScreen extends StatefulWidget {
 
 class _ClosetScreenState extends State<ClosetScreen> {
   static const double expandedHeight = 168;
+  late UserBloc userBloc;
+
+  @override
+  void initState() {
+    userBloc = context.read<UserBloc>();
+    getItemsCountFromCloset();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +109,8 @@ class _ClosetScreenState extends State<ClosetScreen> {
                                   child: Text(
                                     "My Closet",
                                     style: textTheme.titleMedium!.copyWith(
-                                      fontWeight: FontWeight.bold,),
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                                 //
@@ -142,12 +154,18 @@ class _ClosetScreenState extends State<ClosetScreen> {
                           ),
                           const SizedBox(width: 4),
                           Container(
-                            padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 4),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 0,
+                              horizontal: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.grey[300],
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Text("000", style: textTheme.labelSmall!),
+                            child: Text(
+                              "$_closetItemCount",
+                              style: textTheme.labelSmall!,
+                            ),
                           ),
                         ],
                       ),
@@ -167,12 +185,18 @@ class _ClosetScreenState extends State<ClosetScreen> {
                           ),
                           const SizedBox(width: 4),
                           Container(
-                            padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 4),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 0,
+                              horizontal: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.grey[300],
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Text("000", style: textTheme.labelSmall!),
+                            child: Text(
+                              "$_outfitCount",
+                              style: textTheme.labelSmall!,
+                            ),
                           ),
                         ],
                       ),
@@ -192,7 +216,10 @@ class _ClosetScreenState extends State<ClosetScreen> {
                           ),
                           const SizedBox(width: 4),
                           Container(
-                            padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 4),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 0,
+                              horizontal: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.grey[300],
                               borderRadius: BorderRadius.circular(8),
@@ -219,5 +246,31 @@ class _ClosetScreenState extends State<ClosetScreen> {
         ),
       ),
     );
+  }
+
+  int _closetItemCount = 0;
+  int _outfitCount = 0;
+
+  Future<void> getItemsCountFromCloset() async {
+    try {
+      final results = await Future.wait([
+        sl<FirebaseClosetService>().getClosetItemCount(userBloc.state.uid!),
+        sl<FirebaseClosetService>().getOutfitCount(userBloc.state.uid!),
+      ]);
+
+      // Unwrap results
+      final itemCount = results[0].fold(
+        (l) => 0,
+        (r) => r,
+      ); // return 0 on failure
+      final outfitCount = results[1].fold((l) => 0, (r) => r);
+
+      setState(() {
+        _closetItemCount = itemCount;
+        _outfitCount = outfitCount;
+      });
+    } catch (e) {
+      debugPrint("Error loading closet counts: $e");
+    }
   }
 }

@@ -4,13 +4,13 @@ import 'package:fashionista/data/models/closet/outfit_model.dart';
 import 'package:flutter/material.dart';
 
 class HiveOutfitService implements HiveRepository<OutfitModel> {
-  //late final Box clientsBox;
+  //late final Box closetBox;
   final hive = HiveService();
 
   @override
   Future<List<OutfitModel>> getItems(String key) async {
     try {
-      final data = hive.clientsBox.get(key);
+      final data = hive.closetBox.get('outfits');
       if (data == null) {
         return ([]);
       }
@@ -25,10 +25,10 @@ class HiveOutfitService implements HiveRepository<OutfitModel> {
   @override
   Future<void> insertItems(String key, {required List<OutfitModel> items}) async {
     try {
-      //await hive.clientsBox.clear();
+      //await hive.closetBox.clear();
       await Future.wait([
-        hive.clientsBox.put(key, items),
-        hive.clientsBox.put(
+        hive.closetBox.put('outfits', items),
+        hive.closetBox.put(
           'cacheTimestamp',
           DateTime.now().millisecondsSinceEpoch,
         ),
@@ -40,11 +40,11 @@ class HiveOutfitService implements HiveRepository<OutfitModel> {
 
   @override
   Future<bool> isCacheEmpty() async {
-    return hive.clientsBox.isEmpty;
+    return hive.closetBox.isEmpty;
   }
 
   @override
   Future<void> clearCache() {
-    return hive.clientsBox.clear();
+    return hive.closetBox.clear();
   }
 }

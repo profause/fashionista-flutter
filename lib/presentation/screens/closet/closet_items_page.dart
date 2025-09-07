@@ -149,7 +149,8 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
                         child: PageEmptyWidget(
                           title: "Your closet is empty",
                           subtitle: "Add some items to your closet",
-                          icon: Icons.people_outline,
+                          icon: Icons.checkroom,
+                          iconSize: 48,
                         ),
                       ),
                     ),
