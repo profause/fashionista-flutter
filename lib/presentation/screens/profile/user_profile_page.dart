@@ -2,7 +2,13 @@ import 'package:fashionista/core/auth/auth_provider_cubit.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
+import 'package:fashionista/data/services/hive/hive_client_service.dart';
+import 'package:fashionista/data/services/hive/hive_closet_item_service.dart';
+import 'package:fashionista/data/services/hive/hive_design_collection_service.dart';
 import 'package:fashionista/data/services/hive/hive_designers_service.dart';
+import 'package:fashionista/data/services/hive/hive_outfit_service.dart';
+import 'package:fashionista/data/services/hive/hive_trend_comment_service.dart';
+import 'package:fashionista/data/services/hive/hive_trend_service.dart';
 import 'package:fashionista/domain/usecases/auth/signout_usecase.dart';
 import 'package:fashionista/presentation/screens/auth/sign_in_screen.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_card_widget.dart';
@@ -174,6 +180,12 @@ class UserProfilePage extends StatelessWidget {
 
       await sl<SignOutUsecase>().call('');
       await sl<HiveDesignersService>().clearCache();
+      await sl<HiveTrendService>().clearCache();
+      await sl<HiveTrendCommentService>().clearCache();
+      await sl<HiveDesignCollectionService>().clearCache();
+      await sl<HiveClosetItemService>().clearCache();
+      await sl<HiveClientService>().clearCache();
+      await sl<HiveOutfitService>().clearCache();
 
       // ✅ remove loading dialog safely
       //if (context.mounted) {

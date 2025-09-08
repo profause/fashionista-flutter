@@ -113,11 +113,13 @@ class _OtpVerificationPageState extends State<OtpVerificationPage>
                         color: Colors.grey.shade400, // vertical line color
                         margin: const EdgeInsets.symmetric(horizontal: 12),
                       ),
-                      TextButton(
-                        onPressed: widget.onChangeNumber,
-                        child: Text(
-                          "Change Mobile Number",
-                          style: Theme.of(context).textTheme.bodyLarge,
+                      Expanded(
+                        child: TextButton(
+                          onPressed: widget.onChangeNumber,
+                          child: Text(
+                            "Change Mobile Number",
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
                         ),
                       ),
                     ],

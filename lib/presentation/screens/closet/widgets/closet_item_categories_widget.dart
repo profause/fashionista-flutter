@@ -1,4 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+
+final categories = [
+      //{"label": "add", "icon": Icons.add},
+      {"label": "Dresses", "icon": HugeIcons.strokeRoundedDress01},
+      {"label": "Tops", "icon": Icons.emoji_people_outlined},
+      {"label": "Trousers", "icon": HugeIcons.strokeRoundedJoggerPants},
+      {"label": "T-Shirts", "icon": HugeIcons.strokeRoundedTShirt},
+      {"label": "Shirts", "icon": HugeIcons.strokeRoundedShirt01},
+      {"label": "Sweaters", "icon": Icons.waves_outlined},
+      {"label": "Jackets", "icon": HugeIcons.strokeRoundedLongSleeveShirt},
+      {"label": "Skirts", "icon": Icons.crop_3_2_outlined},
+      {"label": "Pants", "icon": HugeIcons.strokeRoundedJoggerPants},
+      {"label": "Shorts", "icon": HugeIcons.strokeRoundedShortsPants},
+      {"label": "Activewear", "icon": Icons.fitness_center_outlined},
+      {"label": "Lingerie", "icon": Icons.nightlight_round_outlined},
+      {"label": "Heels", "icon": Icons.stairs_outlined},
+      {"label": "Flats", "icon": Icons.remove_outlined},
+      {"label": "Sneakers", "icon": Icons.directions_walk_outlined},
+      {"label": "Boots", "icon": Icons.hiking_outlined},
+      {"label": "Sandals", "icon": Icons.beach_access_outlined},
+      {"label": "Handbags", "icon": Icons.shopping_bag_outlined},
+      {"label": "Backpacks", "icon": Icons.backpack_outlined},
+      {"label": "Clutches", "icon": Icons.wallet_outlined},
+      {"label": "Jewelry", "icon": Icons.diamond_outlined},
+      {"label": "Hats", "icon": HugeIcons.strokeRoundedHat},
+      {"label": "Scarves", "icon": Icons.texture_outlined},
+      {"label": "Sunglasses", "icon": HugeIcons.strokeRoundedGlasses},
+      {"label": "Watches", "icon": Icons.watch_outlined},
+      {"label": "Swimwear", "icon": Icons.pool_outlined},
+      {"label": "Formal", "icon": Icons.event_seat_outlined},
+      {"label": "Traditional", "icon": Icons.flag_outlined},
+      {"label": "Casual", "icon": Icons.holiday_village_outlined},];
 
 class ClosetItemCategoriesWidget extends StatelessWidget {
   const ClosetItemCategoriesWidget({super.key});
@@ -6,36 +39,6 @@ class ClosetItemCategoriesWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-
-    final categories = [
-       {"label": "add", "icon": Icons.add},
-      {"label": "Dresses", "icon": Icons.checkroom},
-      {"label": "Tops", "icon": Icons.emoji_people},
-      {"label": "T-Shirts", "icon": Icons.local_offer},
-      {"label": "Sweaters", "icon": Icons.waves},
-      {"label": "Jackets", "icon": Icons.dry_cleaning},
-      {"label": "Skirts", "icon": Icons.crop_3_2},
-      {"label": "Pants", "icon": Icons.work},
-      {"label": "Shorts", "icon": Icons.directions_run},
-      {"label": "Activewear", "icon": Icons.fitness_center},
-      {"label": "Lingerie", "icon": Icons.nightlight_round},
-      {"label": "Heels", "icon": Icons.stairs},
-      {"label": "Flats", "icon": Icons.remove},
-      {"label": "Sneakers", "icon": Icons.directions_walk},
-      {"label": "Boots", "icon": Icons.hiking},
-      {"label": "Sandals", "icon": Icons.beach_access},
-      {"label": "Handbags", "icon": Icons.shopping_bag},
-      {"label": "Backpacks", "icon": Icons.backpack},
-      {"label": "Clutches", "icon": Icons.wallet},
-      {"label": "Jewelry", "icon": Icons.diamond},
-      {"label": "Hats", "icon": Icons.umbrella},
-      {"label": "Scarves", "icon": Icons.texture},
-      {"label": "Sunglasses", "icon": Icons.remove_red_eye},
-      {"label": "Watches", "icon": Icons.watch},
-      {"label": "Swimwear", "icon": Icons.pool},
-      {"label": "Formal", "icon": Icons.event_seat},
-      {"label": "Traditional", "icon": Icons.flag},
-    ];
 
     return SizedBox(
       height: 50,
