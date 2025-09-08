@@ -214,18 +214,18 @@ class _ClosetScreenState extends State<ClosetScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(width: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 0,
-                              horizontal: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[300],
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text("000", style: textTheme.labelSmall!),
-                          ),
+                          // const SizedBox(width: 4),
+                          // Container(
+                          //   padding: const EdgeInsets.symmetric(
+                          //     vertical: 0,
+                          //     horizontal: 4,
+                          //   ),
+                          //   decoration: BoxDecoration(
+                          //     color: Colors.grey[300],
+                          //     borderRadius: BorderRadius.circular(8),
+                          //   ),
+                          //   child: Text("000", style: textTheme.labelSmall!),
+                          // ),
                         ],
                       ),
                     ),

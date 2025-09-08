@@ -85,7 +85,10 @@ class TrendInfoCardWidget extends StatelessWidget {
                             ),
                           ),
                           errorWidget: (context, url, error) {
-                            return const CustomColoredBanner(text: 'No Image');
+                            return const CustomColoredBanner(text: '');
+                          },
+                          errorListener: (value) {
+                            
                           },
                         ),
                 ),
@@ -108,6 +111,9 @@ class TrendInfoCardWidget extends StatelessWidget {
                                 backgroundColor: AppTheme.lightGrey,
                                 backgroundImage: CachedNetworkImageProvider(
                                   trendInfo.author.avatar!,
+                                  errorListener: (p0) {
+                                    
+                                  },
                                 ),
                               )
                             : DefaultProfileAvatar(
@@ -133,8 +139,7 @@ class TrendInfoCardWidget extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          SizedBox(
-                            width: 110,
+                          Expanded(
                             child: Text(
                               trendInfo.description,
                               style: textTheme.bodySmall!.copyWith(

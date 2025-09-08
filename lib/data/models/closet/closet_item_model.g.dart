@@ -23,7 +23,7 @@ class ClosetItemModelAdapter extends TypeAdapter<ClosetItemModel> {
       brand: fields[3] as String?,
       category: fields[4] as String,
       colors: (fields[5] as List?)?.cast<int>(),
-      featureMedia: (fields[6] as List).cast<FeaturedMediaModel>(),
+      featuredMedia: (fields[6] as List).cast<FeaturedMediaModel>(),
       createdAt: fields[7] as int?,
       updatedAt: fields[8] as int?,
       isFavourite: fields[9] as bool?,
@@ -47,7 +47,7 @@ class ClosetItemModelAdapter extends TypeAdapter<ClosetItemModel> {
       ..writeByte(5)
       ..write(obj.colors)
       ..writeByte(6)
-      ..write(obj.featureMedia)
+      ..write(obj.featuredMedia)
       ..writeByte(7)
       ..write(obj.createdAt)
       ..writeByte(8)
@@ -81,7 +81,7 @@ ClosetItemModel _$ClosetItemModelFromJson(Map<String, dynamic> json) =>
       colors: (json['colors'] as List<dynamic>?)
           ?.map((e) => (e as num).toInt())
           .toList(),
-      featureMedia: (json['feature_media'] as List<dynamic>)
+      featuredMedia: (json['featured_media'] as List<dynamic>)
           .map((e) => FeaturedMediaModel.fromJson(e as Map<String, dynamic>))
           .toList(),
       createdAt: (json['created_at'] as num?)?.toInt(),
@@ -97,7 +97,7 @@ Map<String, dynamic> _$ClosetItemModelToJson(ClosetItemModel instance) =>
       'brand': instance.brand,
       'category': instance.category,
       'colors': instance.colors,
-      'feature_media': instance.featureMedia.map((e) => e.toJson()).toList(),
+      'featured_media': instance.featuredMedia.map((e) => e.toJson()).toList(),
       'created_at': instance.createdAt,
       'updated_at': instance.updatedAt,
       'is_favourite': instance.isFavourite,

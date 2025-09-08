@@ -34,9 +34,9 @@ class ClosetItemModel extends Equatable {
   @HiveField(ClosetItemHiveType.colors)
   final List<int>? colors;
 
-  @JsonKey(name: 'feature_media')
-  @HiveField(ClosetItemHiveType.featureMedia)
-  final List<FeaturedMediaModel> featureMedia;
+  @JsonKey(name: 'featured_media')
+  @HiveField(ClosetItemHiveType.featuredMedia)
+  final List<FeaturedMediaModel> featuredMedia;
 
   @JsonKey(name: 'created_at')
   @HiveField(ClosetItemHiveType.createdAt)
@@ -57,7 +57,7 @@ class ClosetItemModel extends Equatable {
     this.brand,
     required this.category,
     required this.colors,
-    required this.featureMedia,
+    required this.featuredMedia,
     this.createdAt,
     this.updatedAt,
     this.isFavourite,
@@ -80,7 +80,7 @@ class ClosetItemModel extends Equatable {
     createdAt,
     updatedAt,
     isFavourite,
-    featureMedia,
+    featuredMedia,
   ];
 
   factory ClosetItemModel.empty() {
@@ -91,7 +91,7 @@ class ClosetItemModel extends Equatable {
       brand: '',
       category: '',
       colors: [],
-      featureMedia: [],
+      featuredMedia: [],
     );
   }
 
@@ -102,7 +102,7 @@ class ClosetItemModel extends Equatable {
     String? brand,
     String? category,
     List<int>? colors,
-    List<FeaturedMediaModel>? featureMedia,
+    List<FeaturedMediaModel>? featuredMedia,
     int? createdAt,
     int? updatedAt,
     bool? isFavourite,
@@ -114,7 +114,7 @@ class ClosetItemModel extends Equatable {
       brand: brand ?? this.brand,
       category: category ?? this.category,
       colors: colors ?? this.colors,
-      featureMedia: featureMedia ?? this.featureMedia,
+      featuredMedia: featuredMedia ?? this.featuredMedia,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       isFavourite: isFavourite ?? this.isFavourite,

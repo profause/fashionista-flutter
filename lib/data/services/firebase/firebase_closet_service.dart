@@ -28,7 +28,8 @@ class FirebaseClosetServiceImpl implements FirebaseClosetService {
           .collection('closets')
           .doc(closetItem.createdBy)
           .collection('closet_items')
-          .add(closetItem.toJson());
+          .doc(closetItem.uid)
+          .set(closetItem.toJson(), SetOptions(merge: true));
       return Right(closetItem);
     } on FirebaseException catch (e) {
       return Left(e.message);
@@ -55,7 +56,6 @@ class FirebaseClosetServiceImpl implements FirebaseClosetService {
       if (querySnapshot.docs.isEmpty) {
         return Left('Closet item not found'); // or throw exception
       }
-
       final doc = querySnapshot.docs.first;
       final data = doc.data() as Map<String, dynamic>;
       final closetItem = ClosetItemModel.fromJson(
@@ -69,7 +69,7 @@ class FirebaseClosetServiceImpl implements FirebaseClosetService {
           .collection('closets')
           .doc(uid)
           .collection('closet_items')
-          .doc(closetItemId)
+          .doc(doc.reference.id)
           .update({'is_favourite': isFavourite});
       return Right(isFavourite);
     } on FirebaseException catch (e) {
@@ -123,7 +123,8 @@ class FirebaseClosetServiceImpl implements FirebaseClosetService {
           .collection('closets')
           .doc(outfit.createdBy)
           .collection('outfits')
-          .add(outfit.toJson());
+          .doc(outfit.uid)
+          .set(outfit.toJson(), SetOptions(merge: true));
       return Right(outfit);
     } on FirebaseException catch (e) {
       return Left(e.message);
@@ -277,8 +278,8 @@ class FirebaseClosetServiceImpl implements FirebaseClosetService {
   }
 
   @override
-  Future<Either<String, int>> getOutfitCount(String uid) async{
-   try {
+  Future<Either<String, int>> getOutfitCount(String uid) async {
+    try {
       final firestore = FirebaseFirestore.instance;
       final querySnapshot = await firestore
           .collection('closets')

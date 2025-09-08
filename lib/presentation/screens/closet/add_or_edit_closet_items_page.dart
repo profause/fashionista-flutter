@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/closet/closet_item_model.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
@@ -8,11 +9,13 @@ import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/services/firebase/firebase_closet_service.dart';
 import 'package:fashionista/presentation/screens/closet/widgets/closet_item_category_autocomplete_form_field_widget.dart';
+import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/custom_text_input_field_widget.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
@@ -49,10 +52,13 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
   bool isUploading = false;
 
   late UserBloc userBloc;
+  late List<Color> _selectedColors = [];
+  late bool isEdit = false;
 
   @override
   void initState() {
     super.initState();
+    isEdit = widget.closetItemModel != null;
     userBloc = context.read<UserBloc>();
     _descriptionController = TextEditingController();
     _descriptionController.text = widget.closetItemModel?.description ?? '';
@@ -60,6 +66,15 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
     _brandController.text = widget.closetItemModel?.brand ?? '';
     _categoryController = TextEditingController();
     _categoryController.text = widget.closetItemModel?.category ?? '';
+    widget.closetItemModel?.colors?.forEach((color) {
+      _selectedColors.add(Color(color));
+    });
+
+    if (isEdit) {
+      widget.closetItemModel?.featuredMedia?.forEach((media) {
+        previewImages.add(media.url!);
+      });
+    }
   }
 
   @override
@@ -86,7 +101,9 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
             child: CustomIconButtonRounded(
               onPressed: () async {
                 if (_formKey.currentState!.validate()) {
-                  await _saveClosetItem();
+                  await _saveClosetItem(
+                    widget.closetItemModel ?? ClosetItemModel.empty(),
+                  );
                   //Navigator.of(context).pop();
                 }
               },
@@ -167,12 +184,34 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
                                     aspectRatio: 1 / 1,
                                     child: ClipRRect(
                                       borderRadius: BorderRadius.circular(12),
-                                      child: Image.file(
-                                        File(image),
-                                        //width: 180,
-                                        //height: 180,
-                                        fit: BoxFit.cover,
-                                      ),
+                                      child: isEdit
+                                          ? CachedNetworkImage(
+                                              imageUrl: image.trim(),
+                                              fit: BoxFit.cover,
+                                              placeholder: (context, url) =>
+                                                  const Center(
+                                                    child: SizedBox(
+                                                      height: 18,
+                                                      width: 18,
+                                                      child:
+                                                          CircularProgressIndicator(
+                                                            strokeWidth: 2,
+                                                          ),
+                                                    ),
+                                                  ),
+                                              errorWidget: (context, url, error) {
+                                                return const CustomColoredBanner(
+                                                  text: '',
+                                                );
+                                              },
+                                              errorListener: (value) {},
+                                            )
+                                          : Image.file(
+                                              File(image),
+                                              //width: 180,
+                                              //height: 180,
+                                              fit: BoxFit.cover,
+                                            ),
                                     ),
                                   ),
                                   Positioned(
@@ -206,6 +245,68 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
                       ),
                   ],
                 ),
+                const SizedBox(height: 8),
+                Text('Pick color(s) for this item', style: textTheme.bodyLarge),
+                const SizedBox(height: 8),
+
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    // Selected colors
+                    for (final color in _selectedColors)
+                      Stack(
+                        alignment: Alignment.topRight,
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: color,
+                              border: Border.all(color: Colors.black12),
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              setState(() => _selectedColors.remove(color));
+                            },
+                            child: Container(
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.black54,
+                              ),
+                              padding: const EdgeInsets.all(2),
+                              child: const Icon(
+                                Icons.close,
+                                color: Colors.white,
+                                size: 14,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                    // Add new color button
+                    GestureDetector(
+                      onTap: () => _showColorPickerDialog(context),
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.grey.shade300,
+                          border: Border.all(color: Colors.black12),
+                        ),
+                        child: const Icon(
+                          Icons.add,
+                          size: 20,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -214,7 +315,7 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
     );
   }
 
-  Future<void> _saveClosetItem() async {
+  Future<void> _saveClosetItem(ClosetItemModel closetItemModel) async {
     try {
       User user = userBloc.state;
       String createdBy =
@@ -223,9 +324,10 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
       final description = _descriptionController.text.trim();
       final brand = _brandController.text.trim();
       final category = _categoryController.text.trim();
-      final closeItemId = Uuid().v4();
-      List<FeaturedMediaModel> featuredImages = [];
-
+      final closeItemId = isEdit ? closetItemModel.uid : Uuid().v4();
+      List<FeaturedMediaModel> featuredImages = closetItemModel.featuredMedia;
+      List<int> colors = _selectedColors.map((color) => color.value).toList();
+      final bool isFavourite = closetItemModel.isFavourite ?? false;
       // Show progress dialog
       showDialog(
         context: context,
@@ -233,43 +335,47 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
         builder: (_) => const Center(child: CircularProgressIndicator()),
       );
 
-      final uploadResult = await uploadImages(context, closeItemId);
+      if (isEdit) {
+        final uploadResult = await uploadImages(context, closeItemId!);
 
-      uploadResult.fold(
-        (ifLeft) {
-          // _buttonLoadingStateCubit.setLoading(false);
-          if (mounted) {
-            Navigator.of(context).pop();
-          }
-          debugPrint(ifLeft);
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(ifLeft)));
-          return;
-        },
-        (ifRight) {
-          //_buttonLoadingStateCubit.setLoading(false);
-          featuredImages = ifRight;
-          setState(() {
-            //isUploading = false;
-          });
-        },
-      );
-
+        uploadResult.fold(
+          (ifLeft) {
+            // _buttonLoadingStateCubit.setLoading(false);
+            if (mounted) {
+              Navigator.of(context).pop();
+            }
+            debugPrint(ifLeft);
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(ifLeft)));
+            return;
+          },
+          (ifRight) {
+            //_buttonLoadingStateCubit.setLoading(false);
+            featuredImages = ifRight;
+            setState(() {
+              //isUploading = false;
+            });
+          },
+        );
+      }
       final closetItem = ClosetItemModel.empty().copyWith(
         uid: closeItemId,
         createdBy: createdBy,
         description: description,
-        createdAt: DateTime.now().millisecondsSinceEpoch,
+        createdAt:
+            closetItemModel.createdAt ?? DateTime.now().millisecondsSinceEpoch,
         updatedAt: DateTime.now().millisecondsSinceEpoch,
         category: category,
         brand: brand,
-        featureMedia: featuredImages,
+        featuredMedia: featuredImages,
+        isFavourite: isFavourite,
+        colors: colors,
       );
 
-      final result = await sl<FirebaseClosetService>().addClosetItem(
-        closetItem,
-      );
+      final result = isEdit
+          ? await sl<FirebaseClosetService>().updateClosetItem(closetItem)
+          : await sl<FirebaseClosetService>().addClosetItem(closetItem);
 
       result.fold(
         (l) {
@@ -478,6 +584,60 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
       setState(() => isUploading = false);
       return dartz.Left(e.toString());
     }
+  }
+
+  void _showColorPickerDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        Color tempColor = Colors.blue;
+
+        return AlertDialog(
+          title: const Text("Pick a color"),
+          content: SingleChildScrollView(
+            child: ColorPicker(
+              colorPickerWidth: 300,
+              pickerColor: tempColor,
+              onColorChanged: (color) {
+                tempColor = color;
+              },
+              pickerAreaHeightPercent: 0.7,
+              displayThumbColor: true,
+              pickerAreaBorderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(2),
+                topRight: Radius.circular(2),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text("Cancel"),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            ElevatedButton(
+              child: const Text("Add"),
+              onPressed: () {
+                setState(() {
+                  if (!_selectedColors.contains(tempColor)) {
+                    _selectedColors.add(tempColor);
+                  }
+                });
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // ValueChanged<Color> callback
+  void changeColor(Color color) {
+    setState(() {
+      if (!_selectedColors.contains(color)) {
+        _selectedColors.add(color);
+      }
+    });
   }
 
   @override
