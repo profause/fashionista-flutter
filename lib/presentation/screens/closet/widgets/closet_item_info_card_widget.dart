@@ -48,7 +48,9 @@ class _ClosetItemInfoCardWidgetState extends State<ClosetItemInfoCardWidget>
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final FeaturedMediaModel featuredMedia =
-        widget.closetItem.featuredMedia.first;
+        widget.closetItem.featuredMedia.isNotEmpty
+        ? widget.closetItem.featuredMedia.first
+        : FeaturedMediaModel();
 
     return Container(
       margin: const EdgeInsets.all(0),
@@ -69,37 +71,69 @@ class _ClosetItemInfoCardWidgetState extends State<ClosetItemInfoCardWidget>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            AspectRatio(
-              aspectRatio: featuredMedia.aspectRatio ?? 1 / 1,
-              child: CachedNetworkImage(
-                imageUrl: featuredMedia.url!.trim(),
-                fit: BoxFit.cover,
-                placeholder: (context, url) => const Center(
-                  child: SizedBox(
-                    height: 18,
-                    width: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
+            Stack(
+              children: [
+                AspectRatio(
+                  aspectRatio: featuredMedia.aspectRatio ?? 1 / 1,
+                  child: CachedNetworkImage(
+                    imageUrl: featuredMedia.url ?? '',
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => const Center(
+                      child: SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                    errorWidget: (context, url, error) {
+                      return const CustomColoredBanner(text: '');
+                    },
+                    errorListener: (value) {
+                      
+                    },
                   ),
                 ),
-                errorWidget: (context, url, error) {
-                  return const CustomColoredBanner(text: '');
-                },
-                errorListener: (value) {},
-              ),
+
+                Positioned(
+                  right: 6,
+                  bottom: 8,
+                  child: CustomIconButtonRounded(
+                    iconData: Icons.favorite_outline,
+                    size: 18,
+                    onPressed: () =>
+                        addOrRemoveFromFavourite(widget.closetItem.uid!),
+                    icon: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      child: Icon(
+                        isFavourite ? Icons.favorite : Icons.favorite_outline,
+                        key: ValueKey(isFavourite),
+                        color: isFavourite ? Colors.red : Colors.grey,
+                        size: 18,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.only(left: 8, right: 6),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
+
+            // ✅ Let this part flex to fit inside grid item
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  left: 4,
+                  right: 4,
+                  top: 4,
+                  bottom: 6,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
                             widget.closetItem.description,
                             style: textTheme.bodyMedium!.copyWith(
                               color: colorScheme.primary,
@@ -108,11 +142,8 @@ class _ClosetItemInfoCardWidgetState extends State<ClosetItemInfoCardWidget>
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
+                          const SizedBox(height: 4),
+                          Text(
                             widget.closetItem.category,
                             style: textTheme.bodySmall!.copyWith(
                               color: colorScheme.primary,
@@ -120,36 +151,11 @@ class _ClosetItemInfoCardWidgetState extends State<ClosetItemInfoCardWidget>
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  CustomIconButtonRounded(
-                    size: 18,
-                    iconData: Icons.favorite_outline,
-                    onPressed: () async {
-                      addOrRemoveFromFavourite(widget.closetItem.uid!);
-                    },
-                    icon: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 200),
-                      transitionBuilder: (child, animation) {
-                        return ScaleTransition(
-                          scale: animation,
-                          child: FadeTransition(
-                            opacity: animation,
-                            child: child,
-                          ),
-                        );
-                      },
-                      child: Icon(
-                        isFavourite ? Icons.favorite : Icons.favorite_outline,
-                        key: ValueKey(isFavourite), // important for switcher
-                        color: isFavourite ? Colors.red : Colors.grey,
-                        size: 18,
+                        ],
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],

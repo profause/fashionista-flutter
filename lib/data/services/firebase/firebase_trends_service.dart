@@ -4,7 +4,7 @@ import 'package:fashionista/data/models/comment/comment_model.dart';
 import 'package:fashionista/data/models/social_interactions/social_interaction_model.dart';
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/rendering.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 abstract class FirebaseTrendsService {
   Future<Either> findTrendsCreatedBy(String createdBy);
@@ -21,6 +21,7 @@ abstract class FirebaseTrendsService {
   Future<Either> addCommentToTrend(CommentModel comment);
   Future<Either> deleteCommentToTrend(CommentModel comment);
   Future<Either> findTrendComments(String uid);
+    Future<Either> deleteTrendImage(String imageUrl);
 }
 
 class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
@@ -615,4 +616,17 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
       "number_of_comments": 95,
     },
   ];
+
+
+      @override
+  Future<Either> deleteTrendImage(String imageUrl) async {
+    try {
+      // Delete from storage
+      final ref = FirebaseStorage.instance.refFromURL(imageUrl);
+      await ref.delete();
+      return Right('Image deleted');
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
 }

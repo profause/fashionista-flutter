@@ -35,10 +35,37 @@ class ClosetItemBloc extends Bloc<ClosetItemBlocEvent, ClosetItemBlocState> {
     DeleteClosetItem event,
     Emitter<ClosetItemBlocState> emit,
   ) async {
-    var result = await sl<FirebaseClosetService>().deleteClosetItem(
-      event.closetItemModel,
+    // var result = await sl<FirebaseClosetService>().deleteClosetItem(
+    //   event.closetItemModel,
+    // );
+    // result.fold((l) => null, (r) => emit(ClosetItemDeleted(r)));
+
+    final cachedItems = await sl<HiveClosetItemService>().getItems(
+      event.closetItemModel.createdBy,
     );
-    result.fold((l) => null, (r) => emit(ClosetItemDeleted(r)));
+    // ✅ find index by matching uid
+    final index = cachedItems.indexWhere(
+      (item) => item.uid == event.closetItemModel.uid,
+    );
+
+    if (index != -1) {
+      cachedItems.removeAt(index);
+
+      try {
+        // ✅ persist updated list back to Hive
+        await sl<HiveClosetItemService>().insertItems('', items: cachedItems);
+
+        if (cachedItems.isEmpty) {
+          emit(const ClosetItemsEmpty());
+          return;
+        }
+
+        emit(ClosetItemsLoaded(cachedItems, fromCache: true));
+      } catch (e) {
+        // ❌ Rollback if persistence failed (optional)
+        emit(ClosetItemError("Failed to delete item: $e"));
+      }
+    }
   }
 
   Future<void> _updateClosetItem(
@@ -84,6 +111,7 @@ class ClosetItemBloc extends Bloc<ClosetItemBlocEvent, ClosetItemBlocState> {
             if (cachedItems.isEmpty) {
               emit(const ClosetItemsEmpty());
             }
+            emit(const ClosetItemsEmpty());
             return;
           }
 

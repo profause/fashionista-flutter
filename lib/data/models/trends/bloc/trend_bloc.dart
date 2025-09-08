@@ -2,7 +2,6 @@ import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc_event.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc_state.dart';
 import 'package:fashionista/data/services/hive/hive_trend_service.dart';
-import 'package:fashionista/domain/usecases/trends/delete_trend_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/find_trend_by_id_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/find_trends_usecase.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -33,15 +32,44 @@ class TrendBloc extends Bloc<TrendBlocEvent, TrendBlocState> {
     );
   }
 
-    Future<void> _deleteTrend(
+  Future<void> _deleteTrend(
     DeleteTrend event,
     Emitter<TrendBlocState> emit,
   ) async {
-    var result = await sl<DeleteTrendUsecase>().call(event.uid);
-    result.fold((l) => null, (r) => emit(TrendDeleted(r)));
+    // var result = await sl<DeleteTrendUsecase>().call(event.uid);
+    // result.fold((l) => null, (r) => emit(TrendDeleted(r)));
+
+    final cachedItems = await sl<HiveTrendService>().getItems(
+      event.trend.createdBy,
+    );
+    // ✅ find index by matching uid
+    final index = cachedItems.indexWhere((item) => item.uid == event.trend.uid);
+
+    if (index != -1) {
+      cachedItems.removeAt(index);
+
+      try {
+        // ✅ persist updated list back to Hive
+        await sl<HiveTrendService>().insertItems(
+          event.trend.createdBy,
+          items: cachedItems,
+        );
+
+        if (cachedItems.isEmpty) {
+          emit(const TrendsEmpty());
+          return;
+        }
+
+        emit(TrendsLoaded(cachedItems, fromCache: true));
+      } catch (e) {
+        // ❌ Rollback if persistence failed (optional)
+        if (emit.isDone) return;
+        emit(TrendError(e.toString()));
+      }
+    }
   }
 
-    Future<void> _onLoadTrends(
+  Future<void> _onLoadTrends(
     LoadTrends event,
     Emitter<TrendBlocState> emit,
   ) async {
@@ -58,7 +86,7 @@ class TrendBloc extends Bloc<TrendBlocEvent, TrendBlocState> {
     });
   }
 
-    Future<void> _updateTrend(
+  Future<void> _updateTrend(
     UpdateTrend event,
     Emitter<TrendBlocState> emit,
   ) async {

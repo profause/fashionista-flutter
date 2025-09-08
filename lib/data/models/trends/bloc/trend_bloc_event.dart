@@ -41,11 +41,11 @@ class LoadTrendsCacheFirstThenNetwork extends TrendBlocEvent {
 }
 
 class DeleteTrend extends TrendBlocEvent {
-  final String uid;
-  const DeleteTrend(this.uid);
+  final TrendFeedModel trend;
+  const DeleteTrend(this.trend);
 
   @override
-  List<Object?> get props => [uid];
+  List<Object?> get props => [trend];
 }
 
 class ClearTrend extends TrendBlocEvent {

@@ -335,30 +335,30 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
         builder: (_) => const Center(child: CircularProgressIndicator()),
       );
 
-      if (isEdit) {
-        final uploadResult = await uploadImages(context, closeItemId!);
+      //if (isEdit) {
+      final uploadResult = await uploadImages(context, closeItemId!);
 
-        uploadResult.fold(
-          (ifLeft) {
-            // _buttonLoadingStateCubit.setLoading(false);
-            if (mounted) {
-              Navigator.of(context).pop();
-            }
-            debugPrint(ifLeft);
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(ifLeft)));
-            return;
-          },
-          (ifRight) {
-            //_buttonLoadingStateCubit.setLoading(false);
-            featuredImages = ifRight;
-            setState(() {
-              //isUploading = false;
-            });
-          },
-        );
-      }
+      uploadResult.fold(
+        (ifLeft) {
+          // _buttonLoadingStateCubit.setLoading(false);
+          if (mounted) {
+            Navigator.of(context).pop();
+          }
+          debugPrint(ifLeft);
+          // ScaffoldMessenger.of(
+          //   context,
+          // ).showSnackBar(SnackBar(content: Text(ifLeft)));
+          //return;
+        },
+        (ifRight) {
+          //_buttonLoadingStateCubit.setLoading(false);
+          featuredImages = ifRight;
+          setState(() {
+            //isUploading = false;
+          });
+        },
+      );
+      //}
       final closetItem = ClosetItemModel.empty().copyWith(
         uid: closeItemId,
         createdBy: createdBy,
@@ -398,7 +398,9 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
           });
           if (!mounted) return;
           Navigator.pop(context);
-          Navigator.pop(context, true);
+          if (!isEdit) {
+            Navigator.pop(context, true);
+          }
         },
       );
     } on firebase_auth.FirebaseException catch (e) {
@@ -575,9 +577,9 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
         isUploading = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("✅ Images uploaded successfully!")),
-      );
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   const SnackBar(content: Text("✅ Images uploaded successfully!")),
+      // );
 
       return dartz.Right(mergedList);
     } catch (e) {

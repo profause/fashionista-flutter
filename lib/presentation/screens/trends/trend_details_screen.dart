@@ -5,10 +5,13 @@ import 'package:fashionista/data/models/author/author_model.dart';
 import 'package:fashionista/data/models/comment/comment_model.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
+import 'package:fashionista/data/models/trends/bloc/trend_bloc.dart';
+import 'package:fashionista/data/models/trends/bloc/trend_bloc_event.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_comment_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_comment_bloc_event.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_comment_bloc_state.dart';
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
+import 'package:fashionista/data/services/firebase/firebase_trends_service.dart';
 import 'package:fashionista/domain/usecases/trends/add_trend_comment_usecase.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/comment_widget.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/custom_trend_like_button_widget.dart';
@@ -19,6 +22,8 @@ import 'package:fashionista/presentation/widgets/video_preview_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dartz/dartz.dart' as dartz;
+
 
 class TrendDetailsScreen extends StatefulWidget {
   final TrendFeedModel trendInfo;
@@ -119,15 +124,6 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                 );
 
                 if (canDelete == true) {
-                  if (mounted) {
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false, // Prevent dismissing
-                      builder: (_) =>
-                          const Center(child: CircularProgressIndicator()),
-                    );
-                  }
-
                   _deleteTrend(widget.trendInfo);
                 }
               },
@@ -438,7 +434,55 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
     );
   }
 
-  Future<void> _deleteTrend(TrendFeedModel trend) async {}
+  Future<void> _deleteTrend(TrendFeedModel trend) async {
+
+    try {
+      // create a dynamic list of futures
+      showDialog(
+        context: context,
+        barrierDismissible: false, // Prevent dismissing
+        builder: (_) => const Center(child: CircularProgressIndicator()),
+      );
+      final List<Future<dartz.Either>> futures = trend.featuredMedia
+          .map((e) => sl<FirebaseTrendsService>().deleteTrendImage(e.url!))
+          .toList();
+
+      // also add delete by id
+      futures.add(sl<FirebaseTrendsService>().deleteTrendById(trend.uid!));
+
+      // wait for all and capture results
+      final results = await Future.wait(futures);
+
+      // handle each result
+      for (final result in results) {
+        result.fold(
+          (failure) {
+            // handle failure
+            debugPrint("Delete failed: $failure");
+          },
+          (success) {
+            // handle success
+            debugPrint("Delete success: $success");
+          },
+        );
+      }
+
+      if (!mounted) return;
+      Navigator.pop(context);
+      // context.read<ClosetItemBloc>().add(
+      //   LoadClosetItemsCacheFirstThenNetwork(''),
+      // );
+
+      context.read<TrendBloc>().add(DeleteTrend(trend));
+      
+      Navigator.pop(context, true);
+    } on firebase_auth.FirebaseException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message!)));
+    }
+  }
 
   Future<void> _addComment() async {
     try {

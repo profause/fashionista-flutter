@@ -3,6 +3,7 @@ import 'package:dartz/dartz.dart';
 import 'package:fashionista/data/models/closet/closet_item_model.dart';
 import 'package:fashionista/data/models/closet/outfit_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 abstract class FirebaseClosetService {
   Future<Either> addClosetItem(ClosetItemModel closetItem);
@@ -17,6 +18,7 @@ abstract class FirebaseClosetService {
   Future<Either<String, int>> getOutfitCount(String uid);
   Future<Either<String, int>> getClosetItemCount(String uid);
   Future<Either> addOrRemoveFavouriteOutfit(String uid);
+  Future<Either> deleteClosetItemImage(String imageUrl);
 }
 
 class FirebaseClosetServiceImpl implements FirebaseClosetService {
@@ -134,6 +136,9 @@ class FirebaseClosetServiceImpl implements FirebaseClosetService {
   @override
   Future<Either> deleteClosetItem(ClosetItemModel closetItem) async {
     try {
+
+      
+
       final firestore = FirebaseFirestore.instance;
       // Delete the document with the given uid
       await firestore
@@ -294,6 +299,18 @@ class FirebaseClosetServiceImpl implements FirebaseClosetService {
       return Right(outfitCount ?? 0);
     } on FirebaseException catch (e) {
       return Left(e.message ?? 'An unknown Firebase error occurred');
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+    @override
+  Future<Either> deleteClosetItemImage(String imageUrl) async {
+    try {
+      // Delete from storage
+      final ref = FirebaseStorage.instance.refFromURL(imageUrl);
+      await ref.delete();
+      return Right('Image deleted');
     } catch (e) {
       return Left(e.toString());
     }

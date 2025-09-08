@@ -14,6 +14,7 @@ import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dartz/dartz.dart' as dartz;
 
 final RouteObserver<ModalRoute<void>> closetItemPageRouteObserver =
     RouteObserver<ModalRoute<void>>();
@@ -164,7 +165,7 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
                                           .clamp(3, 6),
                                   mainAxisSpacing: 8,
                                   crossAxisSpacing: 8,
-                                  childAspectRatio: 0.7,
+                                  childAspectRatio: 0.65,
                                 ),
                             itemBuilder: (context, index) {
                               final closetItem = closetItems[index];
@@ -268,6 +269,55 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
     );
   }
 
+  Future<void> _deleteClosetItem(ClosetItemModel closetItem) async {
+    try {
+      // create a dynamic list of futures
+      showDialog(
+        context: context,
+        barrierDismissible: false, // Prevent dismissing
+        builder: (_) => const Center(child: CircularProgressIndicator()),
+      );
+      final List<Future<dartz.Either>> futures = closetItem.featuredMedia
+          .map((e) => sl<FirebaseClosetService>().deleteClosetItemImage(e.url!))
+          .toList();
+
+      // also add delete by id
+      futures.add(sl<FirebaseClosetService>().deleteClosetItem(closetItem));
+
+      // wait for all and capture results
+      final results = await Future.wait(futures);
+
+      // handle each result
+      for (final result in results) {
+        result.fold(
+          (failure) {
+            // handle failure
+            debugPrint("Delete failed: $failure");
+          },
+          (success) {
+            // handle success
+            debugPrint("Delete success: $success");
+          },
+        );
+      }
+
+      if (!mounted) return;
+      Navigator.pop(context);
+      // context.read<ClosetItemBloc>().add(
+      //   LoadClosetItemsCacheFirstThenNetwork(''),
+      // );
+
+      context.read<ClosetItemBloc>().add(DeleteClosetItem(closetItem));
+      
+      Navigator.pop(context, true);
+    } on FirebaseException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message!)));
+    }
+  }
+
   void _showBottomSheet(BuildContext context, ClosetItemModel closetItem) {
     showModalBottomSheet(
       context: context,
@@ -309,7 +359,9 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(16),
                         child: CachedNetworkImage(
-                          imageUrl: closetItem.featuredMedia.first.url!.trim(),
+                          imageUrl: closetItem.featuredMedia.isNotEmpty
+                              ? closetItem.featuredMedia.first.url!
+                              : '',
                           fit: BoxFit.cover,
                           placeholder: (context, url) => const Center(
                             child: SizedBox(
@@ -462,11 +514,35 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
                               ),
                               const SizedBox(width: 12),
                               CustomIconButtonRounded(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  context.read<ClosetItemBloc>().add(
-                                    DeleteClosetItem(closetItem),
+                                onPressed: () async {
+                                  final canDelete = await showDialog<bool>(
+                                    context: context,
+                                    builder: (ctx) => AlertDialog(
+                                      title: const Text('Delete Item'),
+                                      content: const Text(
+                                        'Are you sure you want to delete this item?',
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.of(ctx).pop(false),
+                                          child: const Text('Cancel'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.of(ctx).pop(true),
+                                          style: TextButton.styleFrom(
+                                            foregroundColor: Colors.red,
+                                          ),
+                                          child: const Text('Delete'),
+                                        ),
+                                      ],
+                                    ),
                                   );
+
+                                  if (canDelete == true) {
+                                    _deleteClosetItem(closetItem);
+                                  }
                                 },
                                 iconData: Icons.delete,
                                 icon: Icon(
