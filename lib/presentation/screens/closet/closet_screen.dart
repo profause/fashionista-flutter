@@ -5,6 +5,7 @@ import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/services/firebase/firebase_closet_service.dart';
 import 'package:fashionista/presentation/screens/closet/closet_items_page.dart';
+import 'package:fashionista/presentation/screens/closet/outfits_page.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -239,7 +240,7 @@ class _ClosetScreenState extends State<ClosetScreen> {
           body: const TabBarView(
             children: [
               ClosetItemsPage(),
-              Center(child: Text("Outfits")),
+              OutfitsPage(),
               Center(child: Text("Planner")),
             ],
           ),
