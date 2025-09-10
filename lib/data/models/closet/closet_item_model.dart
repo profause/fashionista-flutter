@@ -16,7 +16,7 @@ class ClosetItemModel extends Equatable {
 
   @HiveField(ClosetItemHiveType.createdBy)
   @JsonKey(name: 'created_by')
-  final String createdBy;
+  final String? createdBy;
 
   @JsonKey(name: 'description')
   @HiveField(ClosetItemHiveType.description)
@@ -50,17 +50,22 @@ class ClosetItemModel extends Equatable {
   @HiveField(ClosetItemHiveType.isFavourite)
   final bool? isFavourite;
 
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @HiveField(ClosetItemHiveType.isSelected)
+  final bool? isSelected;
+
   const ClosetItemModel({
     this.uid,
-    required this.createdBy,
+    this.createdBy,
     required this.description,
     this.brand,
     required this.category,
-    required this.colors,
+    this.colors,
     required this.featuredMedia,
     this.createdAt,
     this.updatedAt,
     this.isFavourite,
+    this.isSelected,
   });
 
   factory ClosetItemModel.fromJson(Map<String, dynamic> json) =>
@@ -81,16 +86,14 @@ class ClosetItemModel extends Equatable {
     updatedAt,
     isFavourite,
     featuredMedia,
+    isSelected,
   ];
 
   factory ClosetItemModel.empty() {
     return const ClosetItemModel(
       uid: '',
-      createdBy: '',
       description: '',
-      brand: '',
       category: '',
-      colors: [],
       featuredMedia: [],
     );
   }
@@ -106,6 +109,7 @@ class ClosetItemModel extends Equatable {
     int? createdAt,
     int? updatedAt,
     bool? isFavourite,
+    bool? isSelected,
   }) {
     return ClosetItemModel(
       uid: uid ?? this.uid,
@@ -118,6 +122,7 @@ class ClosetItemModel extends Equatable {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       isFavourite: isFavourite ?? this.isFavourite,
+      isSelected: isSelected ?? this.isSelected,
     );
   }
 }

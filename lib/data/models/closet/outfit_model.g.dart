@@ -20,24 +20,28 @@ class OutfitModelAdapter extends TypeAdapter<OutfitModel> {
       uid: fields[0] as String?,
       createdBy: fields[6] as String,
       style: fields[5] as String?,
+      closetItems: (fields[1] as List).cast<OutfitClosetItem>(),
       occassion: fields[4] as String,
-      tags: (fields[3] as List?)?.cast<String>(),
+      tags: fields[3] as String?,
       createdAt: fields[7] as int?,
       updatedAt: fields[8] as int?,
       isFavourite: fields[9] as bool?,
+      isSelected: fields[10] as bool?,
     );
   }
 
   @override
   void write(BinaryWriter writer, OutfitModel obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.uid)
       ..writeByte(6)
       ..write(obj.createdBy)
       ..writeByte(5)
       ..write(obj.style)
+      ..writeByte(1)
+      ..write(obj.closetItems)
       ..writeByte(4)
       ..write(obj.occassion)
       ..writeByte(3)
@@ -47,7 +51,9 @@ class OutfitModelAdapter extends TypeAdapter<OutfitModel> {
       ..writeByte(8)
       ..write(obj.updatedAt)
       ..writeByte(9)
-      ..write(obj.isFavourite);
+      ..write(obj.isFavourite)
+      ..writeByte(10)
+      ..write(obj.isSelected);
   }
 
   @override
@@ -69,8 +75,11 @@ OutfitModel _$OutfitModelFromJson(Map<String, dynamic> json) => OutfitModel(
       uid: json['uid'] as String?,
       createdBy: json['created_by'] as String,
       style: json['style'] as String?,
+      closetItems: (json['closet_items'] as List<dynamic>)
+          .map((e) => OutfitClosetItem.fromJson(e as Map<String, dynamic>))
+          .toList(),
       occassion: json['occassion'] as String,
-      tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      tags: json['tags'] as String?,
       createdAt: (json['created_at'] as num?)?.toInt(),
       updatedAt: (json['updated_at'] as num?)?.toInt(),
       isFavourite: json['is_favourite'] as bool?,
@@ -81,6 +90,7 @@ Map<String, dynamic> _$OutfitModelToJson(OutfitModel instance) =>
       'uid': instance.uid,
       'created_by': instance.createdBy,
       'style': instance.style,
+      'closet_items': instance.closetItems.map((e) => e.toJson()).toList(),
       'occassion': instance.occassion,
       'tags': instance.tags,
       'created_at': instance.createdAt,

@@ -2,6 +2,7 @@ import 'package:fashionista/data/models/author/author_model.dart';
 import 'package:fashionista/data/models/clients/client_measurement_model.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/data/models/closet/closet_item_model.dart';
+import 'package:fashionista/data/models/closet/outfit_closet_item_model.dart';
 import 'package:fashionista/data/models/closet/outfit_model.dart';
 import 'package:fashionista/data/models/comment/comment_model.dart';
 import 'package:fashionista/data/models/designers/design_collection_model.dart';
@@ -48,6 +49,7 @@ class HiveService {
       Hive.registerAdapter(CommentModelAdapter());
       Hive.registerAdapter(ClosetItemModelAdapter());
       Hive.registerAdapter(OutfitModelAdapter());
+      Hive.registerAdapter(OutfitClosetItemAdapter());
 
       designersBox = await Hive.openBox('designers_cache');
       designCollectionsBox = await Hive.openBox('design_collections_cache');

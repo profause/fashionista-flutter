@@ -132,6 +132,7 @@ class _ClosetScreenState extends State<ClosetScreen> {
                   physics: const BouncingScrollPhysics(),
                   dividerHeight: 0,
                   indicatorWeight: 2,
+                  indicatorPadding: const EdgeInsets.only(left: 8, right: 8),
                   indicator: UnderlineTabIndicator(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(
@@ -146,6 +147,7 @@ class _ClosetScreenState extends State<ClosetScreen> {
                         horizontal: 8,
                       ),
                       child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
                             "Items",
@@ -177,6 +179,7 @@ class _ClosetScreenState extends State<ClosetScreen> {
                         horizontal: 8,
                       ),
                       child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
                             "Outfits",
@@ -208,6 +211,7 @@ class _ClosetScreenState extends State<ClosetScreen> {
                         horizontal: 8,
                       ),
                       child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
                             "Planner",

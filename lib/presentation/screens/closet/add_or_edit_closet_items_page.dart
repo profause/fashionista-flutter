@@ -397,6 +397,9 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
             isUploading = false;
           });
           if (!mounted) return;
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('✅ Item saved successfully!')));
           Navigator.pop(context);
           if (!isEdit) {
             Navigator.pop(context, true);

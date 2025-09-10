@@ -41,7 +41,7 @@ class ClosetItemBloc extends Bloc<ClosetItemBlocEvent, ClosetItemBlocState> {
     // result.fold((l) => null, (r) => emit(ClosetItemDeleted(r)));
 
     final cachedItems = await sl<HiveClosetItemService>().getItems(
-      event.closetItemModel.createdBy,
+      event.closetItemModel.createdBy!,
     );
     // ✅ find index by matching uid
     final index = cachedItems.indexWhere(

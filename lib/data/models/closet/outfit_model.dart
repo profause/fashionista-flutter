@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:fashionista/core/models/hive/outfit_model_hive_type.dart';
+import 'package:fashionista/data/models/closet/closet_item_model.dart';
+import 'package:fashionista/data/models/closet/outfit_closet_item_model.dart';
 import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -21,13 +23,17 @@ class OutfitModel extends Equatable {
   @HiveField(OutfitModelHiveType.style)
   final String? style;
 
+  @JsonKey(name: 'closet_items')
+  @HiveField(OutfitModelHiveType.closetItems)
+  final List<OutfitClosetItem> closetItems;
+
   @JsonKey(name: 'occassion')
   @HiveField(OutfitModelHiveType.occasion)
   final String occassion;
 
   @JsonKey(name: 'tags')
   @HiveField(OutfitModelHiveType.tags)
-  final List<String>? tags;
+  final String? tags;
 
   @JsonKey(name: 'created_at')
   @HiveField(OutfitModelHiveType.createdAt)
@@ -41,15 +47,21 @@ class OutfitModel extends Equatable {
   @HiveField(OutfitModelHiveType.isFavourite)
   final bool? isFavourite;
 
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @HiveField(OutfitModelHiveType.isSelected)
+  final bool? isSelected;
+
   const OutfitModel({
     this.uid,
     required this.createdBy,
     this.style,
+    required this.closetItems,
     required this.occassion,
     required this.tags,
     this.createdAt,
     this.updatedAt,
     this.isFavourite,
+    this.isSelected,
   });
 
   factory OutfitModel.fromJson(Map<String, dynamic> json) =>
@@ -60,11 +72,16 @@ class OutfitModel extends Equatable {
   @override
   List<Object?> get props => [
     uid,
+    style,
+    closetItems,
+    occassion,
+    tags,
     createdBy,
     createdBy,
     createdAt,
     updatedAt,
     isFavourite,
+    isSelected,
   ];
 
   factory OutfitModel.empty() {
@@ -72,11 +89,13 @@ class OutfitModel extends Equatable {
       uid: '',
       createdBy: '',
       style: '',
+      closetItems: [],
       occassion: '',
-      tags: [],
+      tags: '',
       createdAt: 0,
       updatedAt: 0,
       isFavourite: false,
+      isSelected: false,
     );
   }
 
@@ -84,21 +103,25 @@ class OutfitModel extends Equatable {
     String? uid,
     String? createdBy,
     String? style,
+    List<OutfitClosetItem>? closetItems,
     String? occassion,
-    List<String>? tags,
+    String? tags,
     int? createdAt,
     int? updatedAt,
     bool? isFavourite,
+    bool? isSelected,
   }) {
     return OutfitModel(
       uid: uid ?? this.uid,
       createdBy: createdBy ?? this.createdBy,
       style: style ?? this.style,
+      closetItems: closetItems ?? this.closetItems,
       occassion: occassion ?? this.occassion,
       tags: tags ?? this.tags,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       isFavourite: isFavourite ?? this.isFavourite,
+      isSelected: isSelected ?? this.isSelected,
     );
   }
 }

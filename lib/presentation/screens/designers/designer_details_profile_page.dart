@@ -198,6 +198,7 @@ class _DesignerDetailsProfilePageState
                                 ? [SizedBox(height: 1)]
                                 : designer.tags
                                       .split('|')
+                                      .where((tag) => tag.trim().isNotEmpty)
                                       .map((tag) => Chip(label: Text(tag)))
                                       .toList(),
                           ),

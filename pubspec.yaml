@@ -68,6 +68,7 @@ dependencies:
   video_player: ^2.10.0
   flutter_colorpicker: ^1.1.0
   hugeicons: ^0.0.11
+  fluttertoast: ^8.2.12
   
 
 dev_dependencies:

@@ -308,7 +308,7 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
       // );
 
       context.read<ClosetItemBloc>().add(DeleteClosetItem(closetItem));
-      
+
       Navigator.pop(context, true);
     } on FirebaseException catch (e) {
       if (!mounted) return;
@@ -499,6 +499,7 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
                             children: [
                               CustomIconButtonRounded(
                                 onPressed: () {
+
                                   Navigator.pop(context);
                                   Navigator.push(
                                     context,

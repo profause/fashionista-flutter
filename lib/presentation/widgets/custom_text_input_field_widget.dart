@@ -73,7 +73,7 @@ class CustomTextInputFieldWidget extends StatelessWidget {
               filled: true,
               fillColor: enabled ? Colors.transparent : Colors.grey[50],
               contentPadding: const EdgeInsets.symmetric(
-                horizontal: 8,
+                horizontal: 4,
                 vertical: 12,
               ),
             ),

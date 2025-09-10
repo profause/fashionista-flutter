@@ -18,7 +18,7 @@ class ClosetItemModelAdapter extends TypeAdapter<ClosetItemModel> {
     };
     return ClosetItemModel(
       uid: fields[0] as String?,
-      createdBy: fields[1] as String,
+      createdBy: fields[1] as String?,
       description: fields[2] as String,
       brand: fields[3] as String?,
       category: fields[4] as String,
@@ -27,13 +27,14 @@ class ClosetItemModelAdapter extends TypeAdapter<ClosetItemModel> {
       createdAt: fields[7] as int?,
       updatedAt: fields[8] as int?,
       isFavourite: fields[9] as bool?,
+      isSelected: fields[10] as bool?,
     );
   }
 
   @override
   void write(BinaryWriter writer, ClosetItemModel obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.uid)
       ..writeByte(1)
@@ -53,7 +54,9 @@ class ClosetItemModelAdapter extends TypeAdapter<ClosetItemModel> {
       ..writeByte(8)
       ..write(obj.updatedAt)
       ..writeByte(9)
-      ..write(obj.isFavourite);
+      ..write(obj.isFavourite)
+      ..writeByte(10)
+      ..write(obj.isSelected);
   }
 
   @override
@@ -74,7 +77,7 @@ class ClosetItemModelAdapter extends TypeAdapter<ClosetItemModel> {
 ClosetItemModel _$ClosetItemModelFromJson(Map<String, dynamic> json) =>
     ClosetItemModel(
       uid: json['uid'] as String?,
-      createdBy: json['created_by'] as String,
+      createdBy: json['created_by'] as String?,
       description: json['description'] as String,
       brand: json['brand'] as String?,
       category: json['category'] as String,
