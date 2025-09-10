@@ -357,7 +357,7 @@ class _OutfitsPageState extends State<OutfitsPage> {
                     const SizedBox(height: 12),
                     Wrap(
                       spacing: 6,
-                      runSpacing: -6, // 👈 reduced padding
+                      runSpacing: 6, // 👈 reduced padding
                       children: outfit.tags!.isEmpty
                           ? [SizedBox(height: 1)]
                           : outfit.tags!

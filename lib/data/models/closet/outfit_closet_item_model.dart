@@ -50,4 +50,29 @@ class OutfitClosetItem extends Equatable {
 
   @override
   List<Object?> get props => [uid, featuredMedia, description, category];
+
+  //empty
+  static OutfitClosetItem empty() {
+    return const OutfitClosetItem(
+      uid: '',
+      featuredMedia: [],
+      description: '',
+      category: '',
+    );
+  }
+
+  //copyWith
+  OutfitClosetItem copyWith({
+    String? uid,
+    List<FeaturedMediaModel>? featuredMedia,
+    String? description,
+    String? category,
+  }) {
+    return OutfitClosetItem(
+      uid: uid ?? this.uid,
+      featuredMedia: featuredMedia ?? this.featuredMedia,
+      description: description ?? this.description,
+      category: category ?? this.category,
+    );
+  }
 }

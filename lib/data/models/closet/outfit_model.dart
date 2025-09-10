@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:fashionista/core/models/hive/outfit_model_hive_type.dart';
-import 'package:fashionista/data/models/closet/closet_item_model.dart';
 import 'package:fashionista/data/models/closet/outfit_closet_item_model.dart';
 import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';

@@ -193,7 +193,7 @@ class _DesignerDetailsProfilePageState
                           const SizedBox(height: 8),
                           Wrap(
                             spacing: 6,
-                            runSpacing: -6, // 👈 reduced padding
+                            runSpacing: 6, // 👈 reduced padding
                             children: designer.tags.isEmpty
                                 ? [SizedBox(height: 1)]
                                 : designer.tags
