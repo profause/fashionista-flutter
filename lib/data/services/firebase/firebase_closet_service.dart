@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:fashionista/data/models/closet/closet_item_model.dart';
 import 'package:fashionista/data/models/closet/outfit_model.dart';
+import 'package:fashionista/data/models/closet/outfit_plan_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
@@ -19,6 +20,16 @@ abstract class FirebaseClosetService {
   Future<Either<String, int>> getClosetItemCount(String uid);
   Future<Either> addOrRemoveFavouriteOutfit(String uid);
   Future<Either> deleteClosetItemImage(String imageUrl);
+
+  Future<Either> addOutfitPlan(OutfitPlanModel outfitPlan);
+  Future<Either> updateOutfitPlan(OutfitPlanModel outfitPlan);
+  Future<Either> deleteOutfitPlan(OutfitPlanModel outfitPlan);
+  Future<Either<String, List<OutfitPlanModel>>> findOutfitPlans(String uid);
+  Future<Either<String, List<OutfitPlanModel>>> fetchPlansForRange(
+    String userId,
+    int startDate,
+    int endDate,
+  );
 }
 
 class FirebaseClosetServiceImpl implements FirebaseClosetService {
@@ -136,9 +147,6 @@ class FirebaseClosetServiceImpl implements FirebaseClosetService {
   @override
   Future<Either> deleteClosetItem(ClosetItemModel closetItem) async {
     try {
-
-      
-
       final firestore = FirebaseFirestore.instance;
       // Delete the document with the given uid
       await firestore
@@ -304,13 +312,122 @@ class FirebaseClosetServiceImpl implements FirebaseClosetService {
     }
   }
 
-    @override
+  @override
   Future<Either> deleteClosetItemImage(String imageUrl) async {
     try {
       // Delete from storage
       final ref = FirebaseStorage.instance.refFromURL(imageUrl);
       await ref.delete();
       return Right('Image deleted');
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  @override
+  Future<Either> addOutfitPlan(OutfitPlanModel outfitPlan) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      firestore
+          .collection('closets')
+          .doc(outfitPlan.createdBy)
+          .collection('outfit_plans')
+          .doc(outfitPlan.uid)
+          .set(outfitPlan.toJson(), SetOptions(merge: true));
+      return Right(outfitPlan);
+    } on FirebaseException catch (e) {
+      return Left(e.message);
+    }
+  }
+
+  @override
+  Future<Either> deleteOutfitPlan(OutfitPlanModel outfitPlan) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      // Delete the document with the given uid
+      await firestore
+          .collection('closets')
+          .doc(outfitPlan.createdBy)
+          .collection('outfit_plans')
+          .doc(outfitPlan.uid)
+          .delete();
+      return const Right('successfully deleted'); // success without data
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'Unknown Firestore error');
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  @override
+  Future<Either<String, List<OutfitPlanModel>>> findOutfitPlans(
+    String uid,
+  ) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final querySnapshot = await firestore
+          .collection('closets')
+          .doc(uid)
+          .collection('outfit_plans')
+          //.where('created_by', isEqualTo: createdBy)
+          .orderBy('created_at', descending: true)
+          .get();
+
+      final outfitPlans = querySnapshot.docs.map((doc) {
+        final d = OutfitPlanModel.fromJson(doc.data());
+        return d;
+      }).toList();
+
+      //await importTrends(sampleTrendsData);
+      return Right(outfitPlans);
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'An unknown Firebase error occurred');
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  @override
+  Future<Either> updateOutfitPlan(OutfitPlanModel outfitPlan) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      firestore
+          .collection('closets')
+          .doc(outfitPlan.createdBy)
+          .collection('outfit_plans')
+          .doc(outfitPlan.uid)
+          .set(outfitPlan.toJson(), SetOptions(merge: true));
+      return Right(outfitPlan);
+    } on FirebaseException catch (e) {
+      return Left(e.message);
+    }
+  }
+
+  @override
+  Future<Either<String, List<OutfitPlanModel>>> fetchPlansForRange(
+    String userId,
+    int startDate,
+    int endDate,
+  ) async {
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('closets')
+          .doc(userId)
+          .collection('outfit_plans')
+          .where('date', isLessThanOrEqualTo: endDate)
+          .get();
+
+      // Note: We don’t filter strictly by startDate here,
+      // because a recurring event could have started earlier but still applies.
+      final outfitPlans = querySnapshot.docs.map((doc) {
+        final d = OutfitPlanModel.fromJson(doc.data());
+        return d;
+      }).toList();
+
+      //await importTrends(sampleTrendsData);
+      return Right(outfitPlans);
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'An unknown Firebase error occurred');
     } catch (e) {
       return Left(e.toString());
     }

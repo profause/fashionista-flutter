@@ -3,13 +3,14 @@ import 'dart:core';
 import 'package:equatable/equatable.dart';
 import 'package:fashionista/core/models/hive/outfit_plan_model_hive_type.dart';
 import 'package:fashionista/data/models/closet/outfit_closet_item_model.dart';
-import 'package:fashionista/data/models/closet/outfit_model.dart';
 import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import 'package:fashionista/core/models/hive/hive_type.dart' as hive;
 
 part 'outfit_plan_model.g.dart';
+
+enum RecurrenceType { none, daily, weekly, monthly, yearly }
 
 @JsonSerializable(explicitToJson: true)
 @HiveType(typeId: hive.HiveType.outfitPlanModelHiveType)
