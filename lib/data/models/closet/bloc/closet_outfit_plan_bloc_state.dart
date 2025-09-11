@@ -39,6 +39,15 @@ class OutfitPlansLoaded extends ClosetOutfitPlanBlocState {
   List<Object?> get props => [outfitPlans];
 }
 
+class OutfitPlansCalendarLoaded extends ClosetOutfitPlanBlocState {
+  final Map<DateTime, List<OutfitPlanModel>> outfitPlans;
+  final bool fromCache;
+  const OutfitPlansCalendarLoaded(this.outfitPlans, {this.fromCache = false});
+
+  @override
+  List<Object?> get props => [outfitPlans];
+}
+
 class OutfitPlansEmpty extends ClosetOutfitPlanBlocState {
   const OutfitPlansEmpty();
 }

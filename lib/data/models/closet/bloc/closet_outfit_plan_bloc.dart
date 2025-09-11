@@ -1,20 +1,23 @@
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_outfit_plan_bloc_event.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_outfit_plan_bloc_state.dart';
+import 'package:fashionista/data/models/closet/outfit_plan_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_closet_service.dart';
 import 'package:fashionista/data/services/hive/hive_outfit_plan_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class ClosetOutfitPlanPlanPlanBloc
+class ClosetOutfitPlannerBloc
     extends Bloc<ClosetOutfitPlanBlocEvent, ClosetOutfitPlanBlocState> {
-  ClosetOutfitPlanPlanPlanBloc() : super(const OutfitPlanInitial()) {
+  ClosetOutfitPlannerBloc() : super(const OutfitPlanInitial()) {
     on<LoadOutfitPlans>(_onLoadOutfitPlans);
     on<UpdateOutfitPlan>(_updateOutfitPlan);
     on<DeleteOutfitPlan>(_deleteOutfitPlan);
     on<LoadOutfitPlansCacheFirstThenNetwork>(
       _onLoadOutfitPlansCacheFirstThenNetwork,
     );
+    on<LoadOutfitPlansForCalendar>(_onLoadOutfitPlansForCalendar);
     on<ClearOutfitPlan>((event, emit) => emit(const OutfitPlanInitial()));
   }
 
@@ -105,5 +108,124 @@ class ClosetOutfitPlanPlanPlanBloc
         }
       },
     );
+  }
+
+  Future<void> _onLoadOutfitPlansForCalendar(
+    LoadOutfitPlansForCalendar event,
+    Emitter<ClosetOutfitPlanBlocState> emit,
+  ) async {
+    String uid = event.uid;
+    final us = FirebaseAuth.instance.currentUser;
+    if (us != null) {
+      uid = FirebaseAuth.instance.currentUser!.uid;
+    }
+
+    emit(const OutfitPlanLoading());
+    final result = await getPlansForCalendar(
+      uid,
+      event.rangeStart,
+      event.rangeEnd,
+    );
+
+    emit(OutfitPlansCalendarLoaded(result, fromCache: false));
+  }
+
+  List<DateTime> expandOccurrences(
+    OutfitPlanModel plan,
+    DateTime rangeStart,
+    DateTime rangeEnd,
+  ) {
+    final List<DateTime> occurrences = [];
+
+    // Define cutoff (recurrence end or rangeEnd)
+    final until = plan.recurrenceEndDate != null
+        ? DateTime.fromMillisecondsSinceEpoch(
+                plan.recurrenceEndDate!,
+              ).isBefore(rangeEnd)
+              ? DateTime.fromMillisecondsSinceEpoch(plan.recurrenceEndDate!)
+              : rangeEnd
+        : rangeEnd;
+
+    DateTime current = DateTime.fromMillisecondsSinceEpoch(plan.date);
+
+    switch (plan.recurrence) {
+      case 'none':
+        if (current.isAfter(rangeStart) && current.isBefore(rangeEnd)) {
+          occurrences.add(current);
+        }
+        break;
+
+      case 'daily':
+        while (current.isBefore(until)) {
+          if (!current.isBefore(rangeStart)) {
+            occurrences.add(current);
+          }
+          current = current.add(const Duration(days: 1));
+        }
+        break;
+
+      case 'weekly':
+        // Repeat each week, but only for selected daysOfWeek
+        final days = plan.daysOfWeek ?? [];
+        while (current.isBefore(until)) {
+          if (!current.isBefore(rangeStart) && days.contains(current.weekday)) {
+            occurrences.add(current);
+          }
+          current = current.add(const Duration(days: 1));
+        }
+        break;
+
+      case 'monthly':
+        while (current.isBefore(until)) {
+          if (!current.isBefore(rangeStart)) {
+            occurrences.add(current);
+          }
+          current = DateTime(current.year, current.month + 1, current.day);
+        }
+        break;
+
+      case 'yearly':
+        while (current.isBefore(until)) {
+          if (!current.isBefore(rangeStart)) {
+            occurrences.add(current);
+          }
+          current = DateTime(current.year + 1, current.month, current.day);
+        }
+        break;
+    }
+
+    return occurrences;
+  }
+
+  Future<Map<DateTime, List<OutfitPlanModel>>> getPlansForCalendar(
+    String userId,
+    DateTime rangeStart,
+    DateTime rangeEnd,
+  ) async {
+    final results = await sl<FirebaseClosetService>().fetchPlansForRange(
+      userId,
+      rangeStart.millisecondsSinceEpoch,
+      rangeEnd.millisecondsSinceEpoch,
+    );
+
+    final Map<DateTime, List<OutfitPlanModel>> calendarData = {};
+
+    results.fold(
+      (failure) {
+        debugPrint("Error loading plans for calendar: $failure");
+      },
+      (plans) {
+        for (final plan in plans) {
+          final occurrences = expandOccurrences(plan, rangeStart, rangeEnd);
+          for (final date in occurrences) {
+            final day = DateTime(date.year, date.month, date.day); // normalize
+            calendarData.putIfAbsent(day, () => []);
+            calendarData[day]!.add(plan);
+          }
+        }
+      },
+    );
+
+    return calendarData;
   }
 }

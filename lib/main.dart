@@ -10,6 +10,7 @@ import 'package:fashionista/core/widgets/bloc/previous_screen_state_cubit.dart';
 import 'package:fashionista/data/models/clients/bloc/client_bloc.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_item_bloc.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_outfit_bloc.dart';
+import 'package:fashionista/data/models/closet/bloc/closet_outfit_plan_bloc.dart';
 import 'package:fashionista/data/models/designers/bloc/design_collection_bloc.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_bloc.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
@@ -67,6 +68,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => TrendCommentBloc()),
         BlocProvider(create: (_) => ClosetOutfitBloc()),
         BlocProvider(create: (_) => ClosetItemBloc()),
+        BlocProvider(create: (_) => ClosetOutfitPlannerBloc()),
       ],
 
       child: BlocBuilder<SettingsBloc, Settings>(
@@ -75,7 +77,7 @@ class MyApp extends StatelessWidget {
           theme: fashionistaLightTheme,
           darkTheme: fashionistaDarkTheme,
           themeMode: ThemeMode.values[settings.displayMode as int],
-          navigatorObservers: [routeObserver,closetItemPageRouteObserver],
+          navigatorObservers: [routeObserver, closetItemPageRouteObserver],
           home: const AppStarter(),
           // routes: {
           //   '/clients': (_) => const ClientsScreen(),

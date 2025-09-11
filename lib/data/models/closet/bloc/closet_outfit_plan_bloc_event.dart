@@ -40,6 +40,16 @@ class LoadOutfitPlansCacheFirstThenNetwork extends ClosetOutfitPlanBlocEvent {
   List<Object?> get props => [uid];
 }
 
+class LoadOutfitPlansForCalendar extends ClosetOutfitPlanBlocEvent {
+  final String uid;
+  final DateTime rangeStart;
+  final DateTime rangeEnd;
+  const LoadOutfitPlansForCalendar(this.uid, this.rangeStart, this.rangeEnd);
+
+  @override
+  List<Object?> get props => [uid];
+}
+
 class DeleteOutfitPlan extends ClosetOutfitPlanBlocEvent {
   final OutfitPlanModel outfitPlanModel;
   const DeleteOutfitPlan(this.outfitPlanModel);
