@@ -126,7 +126,7 @@ class ClosetOutfitPlannerBloc
       event.rangeStart,
       event.rangeEnd,
     );
-    if(result.isEmpty){
+    if (result.isEmpty) {
       emit(const OutfitPlansEmpty());
       return;
     }
@@ -159,12 +159,16 @@ class ClosetOutfitPlannerBloc
         break;
 
       case 'daily':
-        while (current.isBefore(until)) {
-          if (!current.isBefore(rangeStart)) {
-            occurrences.add(current);
-          }
-          current = current.add(const Duration(days: 1));
-        }
+        final startDate = DateTime.fromMillisecondsSinceEpoch(plan.date);
+        final endDate = DateTime.fromMillisecondsSinceEpoch(
+          plan.recurrenceEndDate!,
+        );
+        final List<DateTime> dailyDatesUntil = List.generate(
+          endDate.difference(startDate).inDays + 1, // inclusive
+          (i) => startDate.add(Duration(days: i)),
+        );
+
+        occurrences.addAll(dailyDatesUntil);
         break;
 
       case 'weekly':
@@ -223,8 +227,7 @@ class ClosetOutfitPlannerBloc
           final occurrences = expandOccurrences(plan, rangeStart, rangeEnd);
           for (final date in occurrences) {
             final day = DateTime(date.year, date.month, date.day); // normalize
-            calendarData.putIfAbsent(day, () => []);
-            calendarData[day]!.add(plan);
+            calendarData.putIfAbsent(day, () => []).add(plan);
           }
         }
       },

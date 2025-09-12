@@ -167,25 +167,22 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: CachedNetworkImage(
-                            imageUrl: preview.url!.isEmpty
-                                ? ''
-                                : preview.url!.trim(),
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => const Center(
-                              child: SizedBox(
-                                height: 18,
-                                width: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              ),
+                          imageUrl: preview.url!.isEmpty
+                              ? ''
+                              : preview.url!.trim(),
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => const Center(
+                            child: SizedBox(
+                              height: 18,
+                              width: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
                             ),
-                            errorWidget: (context, url, error) {
-                              return const CustomColoredBanner(text: '');
-                            },
-                            errorListener: (value) {},
                           ),
-                        
+                          errorWidget: (context, url, error) {
+                            return const CustomColoredBanner(text: '');
+                          },
+                          errorListener: (value) {},
+                        ),
                       );
                     },
                   ),
@@ -248,8 +245,8 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
                                   widget.outfitPlan!.date,
                                 )
                               : DateTime.now(),
-                          firstDate: DateTime(1900),
-                          lastDate: DateTime.now(),
+                          firstDate: DateTime.now(),
+                          lastDate: DateTime(9000),
                           controller: _startDateController,
                           validator: (value) => value == null || value.isEmpty
                               ? 'Please select a date'
@@ -377,10 +374,31 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
           user.uid ?? firebase_auth.FirebaseAuth.instance.currentUser!.uid;
       final occassion = _occasionController.text.trim();
 
+      final thumbnailUrl = outfitPlan.outfitItem.thumbnailUrl;
+      //debugPrint("thumbnailUrl: $thumbnailUrl");
+      final startDate = DateTime.parse(
+        _startDateController.text,
+      ).millisecondsSinceEpoch;
+      final recurrenceEndDate = _recurrenceEndDateController.text.isNotEmpty
+          ? DateTime.parse(
+              _recurrenceEndDateController.text,
+            ).millisecondsSinceEpoch
+          : 0;
+
       final outfitPlanId = isEdit ? outfitPlan.uid : Uuid().v4();
       final createdAt = isEdit
           ? outfitPlan.createdAt
           : DateTime.now().millisecondsSinceEpoch;
+
+      int recurrenceCount = 0;
+      if (recurrenceEndDate > 0) {
+        //get the number of dates between start date and end date inclusive
+        recurrenceCount =
+            DateTime.fromMillisecondsSinceEpoch(recurrenceEndDate)
+                .difference(DateTime.fromMillisecondsSinceEpoch(startDate))
+                .inDays +
+            1;
+      }
 
       // Show progress dialog
       showDialog(
@@ -395,16 +413,13 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
         createdAt: createdAt,
         updatedAt: DateTime.now().millisecondsSinceEpoch,
         createdBy: createdBy,
-        date: DateTime.parse(_startDateController.text).millisecondsSinceEpoch,
-        recurrenceEndDate: _recurrenceEndDateController.text.isNotEmpty
-            ? DateTime.parse(
-                _recurrenceEndDateController.text,
-              ).millisecondsSinceEpoch
-            : 0,
+        date: startDate,
+        recurrenceEndDate: recurrenceEndDate,
         daysOfWeek: selectedDays,
         recurrence: _recurrenceController.text,
-        recurrenceCount: 0,
+        recurrenceCount: recurrenceCount,
         note: occassion,
+        thumbnailUrl: thumbnailUrl,
       );
       final result = isEdit
           ? await sl<FirebaseClosetService>().updateOutfitPlan(outfitPlan)

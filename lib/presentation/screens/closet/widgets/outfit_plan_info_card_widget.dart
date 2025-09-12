@@ -14,8 +14,18 @@ class OutfitPlanInfoCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final List<FeaturedMediaModel> featuredMedia =
-        plan.outfitItem.featuredMedia;
+    List<FeaturedMediaModel> featuredMedia = plan.outfitItem.featuredMedia;
+
+    String thumbnailUrl = plan.thumbnailUrl ?? '';
+    if (thumbnailUrl.isNotEmpty) {
+      featuredMedia = [
+        FeaturedMediaModel(
+          aspectRatio: 1,
+          url: thumbnailUrl,
+          type: "image", // 👈 or whatever field your model uses
+        ),
+      ];
+    }
 
     return InkWell(
       onTap: onTap,

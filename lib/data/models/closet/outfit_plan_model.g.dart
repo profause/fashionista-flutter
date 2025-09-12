@@ -29,13 +29,14 @@ class OutfitPlanModelAdapter extends TypeAdapter<OutfitPlanModel> {
       note: fields[11] as String?,
       createdAt: fields[7] as int?,
       updatedAt: fields[8] as int?,
+      thumbnailUrl: fields[12] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, OutfitPlanModel obj) {
     writer
-      ..writeByte(12)
+      ..writeByte(13)
       ..writeByte(0)
       ..write(obj.uid)
       ..writeByte(6)
@@ -59,7 +60,9 @@ class OutfitPlanModelAdapter extends TypeAdapter<OutfitPlanModel> {
       ..writeByte(7)
       ..write(obj.createdAt)
       ..writeByte(8)
-      ..write(obj.updatedAt);
+      ..write(obj.updatedAt)
+      ..writeByte(12)
+      ..write(obj.thumbnailUrl);
   }
 
   @override
@@ -94,6 +97,7 @@ OutfitPlanModel _$OutfitPlanModelFromJson(Map<String, dynamic> json) =>
       note: json['note'] as String?,
       createdAt: (json['created_at'] as num?)?.toInt(),
       updatedAt: (json['updated_at'] as num?)?.toInt(),
+      thumbnailUrl: json['thumbnail_url'] as String?,
     );
 
 Map<String, dynamic> _$OutfitPlanModelToJson(OutfitPlanModel instance) =>
@@ -110,4 +114,5 @@ Map<String, dynamic> _$OutfitPlanModelToJson(OutfitPlanModel instance) =>
       'note': instance.note,
       'created_at': instance.createdAt,
       'updated_at': instance.updatedAt,
+      'thumbnail_url': instance.thumbnailUrl,
     };
