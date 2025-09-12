@@ -69,6 +69,7 @@ dependencies:
   flutter_colorpicker: ^1.1.0
   hugeicons: ^0.0.11
   fluttertoast: ^8.2.12
+  grouped_list: ^6.0.0
   
 
 dev_dependencies:

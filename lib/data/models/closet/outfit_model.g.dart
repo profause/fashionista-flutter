@@ -27,13 +27,14 @@ class OutfitModelAdapter extends TypeAdapter<OutfitModel> {
       updatedAt: fields[8] as int?,
       isFavourite: fields[9] as bool?,
       isSelected: fields[10] as bool?,
+      thumbnailUrl: fields[11] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, OutfitModel obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.uid)
       ..writeByte(6)
@@ -52,6 +53,8 @@ class OutfitModelAdapter extends TypeAdapter<OutfitModel> {
       ..write(obj.updatedAt)
       ..writeByte(9)
       ..write(obj.isFavourite)
+      ..writeByte(11)
+      ..write(obj.thumbnailUrl)
       ..writeByte(10)
       ..write(obj.isSelected);
   }
@@ -83,6 +86,7 @@ OutfitModel _$OutfitModelFromJson(Map<String, dynamic> json) => OutfitModel(
       createdAt: (json['created_at'] as num?)?.toInt(),
       updatedAt: (json['updated_at'] as num?)?.toInt(),
       isFavourite: json['is_favourite'] as bool?,
+      thumbnailUrl: json['thumbnail_url'] as String?,
     );
 
 Map<String, dynamic> _$OutfitModelToJson(OutfitModel instance) =>
@@ -96,4 +100,5 @@ Map<String, dynamic> _$OutfitModelToJson(OutfitModel instance) =>
       'created_at': instance.createdAt,
       'updated_at': instance.updatedAt,
       'is_favourite': instance.isFavourite,
+      'thumbnail_url': instance.thumbnailUrl,
     };

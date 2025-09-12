@@ -5,6 +5,7 @@ import 'package:fashionista/data/models/closet/outfit_model.dart';
 import 'package:fashionista/data/models/closet/outfit_plan_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
 
 abstract class FirebaseClosetService {
   Future<Either> addClosetItem(ClosetItemModel closetItem);

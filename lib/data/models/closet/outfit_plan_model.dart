@@ -54,6 +54,18 @@ class OutfitPlanModel extends Equatable {
   @HiveField(OutfitPlanModelHiveType.note)
   final String? note;
 
+  @JsonKey(name: 'created_at')
+  @HiveField(OutfitPlanModelHiveType.createdAt)
+  final int? createdAt;
+
+  @JsonKey(name: 'updated_at')
+  @HiveField(OutfitPlanModelHiveType.updatedAt)
+  final int? updatedAt;
+
+  @JsonKey(name: 'thumbnail_url')
+  @HiveField(OutfitPlanModelHiveType.thumbnailUrl)
+  final String? thumbnailUrl;
+
   const OutfitPlanModel({
     this.uid,
     required this.createdBy,
@@ -65,6 +77,9 @@ class OutfitPlanModel extends Equatable {
     this.daysOfWeek,
     this.recurrenceCount,
     this.note,
+    this.createdAt,
+    this.updatedAt,
+    this.thumbnailUrl
   });
 
   factory OutfitPlanModel.fromJson(Map<String, dynamic> json) =>
@@ -84,6 +99,9 @@ class OutfitPlanModel extends Equatable {
     daysOfWeek,
     recurrenceCount,
     note,
+    createdAt,
+    updatedAt,
+    thumbnailUrl,
   ];
 
   factory OutfitPlanModel.empty() {
@@ -98,6 +116,9 @@ class OutfitPlanModel extends Equatable {
       daysOfWeek: [],
       recurrenceCount: 0,
       note: '',
+      createdAt: 0,
+      updatedAt: 0,
+      thumbnailUrl: '',
     );
   }
 
@@ -112,6 +133,9 @@ class OutfitPlanModel extends Equatable {
     List<int>? daysOfWeek,
     int? recurrenceCount,
     String? note,
+    int? createdAt,
+    int? updatedAt,
+    String? thumbnailUrl
   }) {
     return OutfitPlanModel(
       uid: uid ?? this.uid,
@@ -124,6 +148,9 @@ class OutfitPlanModel extends Equatable {
       daysOfWeek: daysOfWeek ?? this.daysOfWeek,
       recurrenceCount: recurrenceCount ?? this.recurrenceCount,
       note: note ?? this.note,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl
     );
   }
 }

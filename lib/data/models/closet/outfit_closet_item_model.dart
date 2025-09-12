@@ -24,11 +24,16 @@ class OutfitClosetItem extends Equatable {
   @HiveField(OutfitClosetItemHiveType.category)
   final String category;
 
+  @JsonKey(name: 'thumbnail_url')
+  @HiveField(OutfitClosetItemHiveType.thumbnailUrl)
+  final String? thumbnailUrl;
+
   const OutfitClosetItem({
     required this.uid,
     required this.featuredMedia,
     required this.description,
     required this.category,
+    this.thumbnailUrl,
   });
 
   /// Factory from ClosetItemModel
@@ -49,7 +54,7 @@ class OutfitClosetItem extends Equatable {
   Map<String, dynamic> toJson() => _$OutfitClosetItemToJson(this);
 
   @override
-  List<Object?> get props => [uid, featuredMedia, description, category];
+  List<Object?> get props => [uid, featuredMedia, description, category, thumbnailUrl];
 
   //empty
   static OutfitClosetItem empty() {
@@ -58,6 +63,7 @@ class OutfitClosetItem extends Equatable {
       featuredMedia: [],
       description: '',
       category: '',
+      thumbnailUrl: '',
     );
   }
 
@@ -67,12 +73,14 @@ class OutfitClosetItem extends Equatable {
     List<FeaturedMediaModel>? featuredMedia,
     String? description,
     String? category,
+    String? thumbnailUrl
   }) {
     return OutfitClosetItem(
       uid: uid ?? this.uid,
       featuredMedia: featuredMedia ?? this.featuredMedia,
       description: description ?? this.description,
       category: category ?? this.category,
+      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl
     );
   }
 }

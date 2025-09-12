@@ -46,6 +46,10 @@ class OutfitModel extends Equatable {
   @HiveField(OutfitModelHiveType.isFavourite)
   final bool? isFavourite;
 
+  @JsonKey(name: 'thumbnail_url')
+  @HiveField(OutfitModelHiveType.thumbnailUrl)
+  final String? thumbnailUrl;
+
   @JsonKey(includeFromJson: false, includeToJson: false)
   @HiveField(OutfitModelHiveType.isSelected)
   final bool? isSelected;
@@ -61,6 +65,7 @@ class OutfitModel extends Equatable {
     this.updatedAt,
     this.isFavourite,
     this.isSelected,
+    this.thumbnailUrl
   });
 
   factory OutfitModel.fromJson(Map<String, dynamic> json) =>
@@ -81,6 +86,7 @@ class OutfitModel extends Equatable {
     updatedAt,
     isFavourite,
     isSelected,
+    thumbnailUrl
   ];
 
   factory OutfitModel.empty() {
@@ -95,6 +101,7 @@ class OutfitModel extends Equatable {
       updatedAt: 0,
       isFavourite: false,
       isSelected: false,
+      thumbnailUrl: ''
     );
   }
 
@@ -109,6 +116,7 @@ class OutfitModel extends Equatable {
     int? updatedAt,
     bool? isFavourite,
     bool? isSelected,
+    String? thumbnailUrl
   }) {
     return OutfitModel(
       uid: uid ?? this.uid,
@@ -121,6 +129,7 @@ class OutfitModel extends Equatable {
       updatedAt: updatedAt ?? this.updatedAt,
       isFavourite: isFavourite ?? this.isFavourite,
       isSelected: isSelected ?? this.isSelected,
+      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl
     );
   }
 }

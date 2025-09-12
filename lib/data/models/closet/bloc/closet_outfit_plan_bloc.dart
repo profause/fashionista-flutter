@@ -82,21 +82,21 @@ class ClosetOutfitPlannerBloc
         }
         // else → keep showing cached quietly
       },
-      (closetitems) async {
+      (outfitPlans) async {
         try {
-          if (closetitems.isEmpty) {
+          if (outfitPlans.isEmpty) {
             if (cachedItems.isEmpty) {
               emit(const OutfitPlansEmpty());
             }
             return;
           }
 
-          if (cachedItems.toString() != closetitems.toString()) {
-            emit(OutfitPlansLoaded(closetitems, fromCache: false));
+          if (cachedItems.toString() != outfitPlans.toString()) {
+            emit(OutfitPlansLoaded(outfitPlans, fromCache: false));
             // 4️⃣ Update cache and emit fresh data
             await sl<HiveOutfitPlanService>().insertItems(
-              'closet_items',
-              items: closetitems,
+              'outfit_plans',
+              items: outfitPlans,
             );
           } else {
             // no change
@@ -126,7 +126,10 @@ class ClosetOutfitPlannerBloc
       event.rangeStart,
       event.rangeEnd,
     );
-
+    if(result.isEmpty){
+      emit(const OutfitPlansEmpty());
+      return;
+    }
     emit(OutfitPlansCalendarLoaded(result, fromCache: false));
   }
 
@@ -138,7 +141,7 @@ class ClosetOutfitPlannerBloc
     final List<DateTime> occurrences = [];
 
     // Define cutoff (recurrence end or rangeEnd)
-    final until = plan.recurrenceEndDate != null
+    final until = plan.recurrenceEndDate! > 0
         ? DateTime.fromMillisecondsSinceEpoch(
                 plan.recurrenceEndDate!,
               ).isBefore(rangeEnd)
@@ -171,6 +174,7 @@ class ClosetOutfitPlannerBloc
           if (!current.isBefore(rangeStart) && days.contains(current.weekday)) {
             occurrences.add(current);
           }
+
           current = current.add(const Duration(days: 1));
         }
         break;
@@ -225,7 +229,6 @@ class ClosetOutfitPlannerBloc
         }
       },
     );
-
     return calendarData;
   }
 }

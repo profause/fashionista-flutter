@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
@@ -9,11 +10,13 @@ import 'package:fashionista/data/models/featured_media/featured_media_model.dart
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/services/firebase/firebase_closet_service.dart';
+import 'package:fashionista/presentation/screens/closet/widgets/grid_thumbnail_widget.dart';
 import 'package:fashionista/presentation/screens/closet/widgets/outfit_tag_picker_widget.dart';
 import 'package:fashionista/presentation/widgets/custom_autocomplete_form_field_widget.dart';
 import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/custom_text_input_field_widget.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
@@ -77,6 +80,8 @@ class _AddOrEditOutfitScreenState extends State<AddOrEditOutfitScreen> {
   late TextEditingController _occasionController;
   late TextEditingController _tagsController;
   late List<FeaturedMediaModel> previewImages = [];
+  final List<String> imageUrls = [];
+  late Uint8List? _thumbnailBytes;
 
   late UserBloc userBloc;
   //late List<Color> _selectedColors = [];
@@ -96,6 +101,7 @@ class _AddOrEditOutfitScreenState extends State<AddOrEditOutfitScreen> {
     selectedTags = widget.outfitModel?.tags?.split('|') ?? [];
     widget.outfitModel?.closetItems.forEach((item) {
       previewImages.add(item.featuredMedia.first);
+      imageUrls.add(item.featuredMedia.first.url ?? "");
     });
   }
 
@@ -104,6 +110,7 @@ class _AddOrEditOutfitScreenState extends State<AddOrEditOutfitScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final random = Random();
+
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
@@ -142,69 +149,26 @@ class _AddOrEditOutfitScreenState extends State<AddOrEditOutfitScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(
-                  height:
-                      MediaQuery.of(context).size.height *
-                      0.40, // 👈 40% of screen height
-                  child: Container(
-                    clipBehavior: Clip.antiAlias,
-                    decoration: BoxDecoration(
-                      color: colorScheme.onPrimary,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: MasonryGridView.builder(
-                      //padding: const EdgeInsets.only(top: 4),
-                      shrinkWrap:
-                          true, // ✅ important when inside SingleChildScrollView
-                      physics:
-                          const NeverScrollableScrollPhysics(), // ✅ let parent handle scroll
-                      cacheExtent: 10,
-                      gridDelegate:
-                          SliverSimpleGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: previewImages.length > 4 ? 3 : 2,
-                          ),
-                      mainAxisSpacing: 2,
-                      crossAxisSpacing: 2,
-                      itemCount: previewImages.length,
-                      itemBuilder: (context, index) {
-                        final preview = previewImages[index];
-                        // 👇 Assign different aspect ratios randomly for variety
-                        final aspectRatioOptions = [1 / 1];
-                        final aspectRatio =
-                            aspectRatioOptions[random.nextInt(
-                              aspectRatioOptions.length,
-                            )];
-                        return Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: AspectRatio(
-                            aspectRatio: aspectRatio,
-                            child: CachedNetworkImage(
-                              imageUrl: preview.url!.isEmpty
-                                  ? ''
-                                  : preview.url!.trim(),
-                              fit: BoxFit.cover,
-                              placeholder: (context, url) => const Center(
-                                child: SizedBox(
-                                  height: 18,
-                                  width: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                ),
-                              ),
-                              errorWidget: (context, url, error) {
-                                return const CustomColoredBanner(text: '');
-                              },
-                              errorListener: (value) {},
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                Container(
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                    color: colorScheme.onPrimary,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: GridThumbnailWidget(
+                    imageUrls: imageUrls,
+                    size: 140,
+                    onImageLoaded: (thumbnailBytes) {
+                      if (thumbnailBytes != null) {
+                        setState(() {
+                          _thumbnailBytes = thumbnailBytes;
+                        });
+                      }
+                      //debugPrint("Thumbnail bytes: $thumbnailBytes");
+                    },
                   ),
                 ),
+
                 const SizedBox(height: 12),
                 CustomTextInputFieldWidget(
                   autofocus: true,
@@ -268,6 +232,21 @@ class _AddOrEditOutfitScreenState extends State<AddOrEditOutfitScreen> {
         builder: (_) => const Center(child: CircularProgressIndicator()),
       );
 
+      //here lets upload _thumbnailBytes
+      if (!isEdit) {
+        if (_thumbnailBytes != null) {
+          String? thumbnailUrl = await uploadThumbnail(
+            context,
+            _thumbnailBytes!,
+            outfitId!,
+          );
+
+          if (thumbnailUrl != null) {
+            outfit = outfit.copyWith(thumbnailUrl: thumbnailUrl);
+          }
+        }
+      }
+
       outfit = outfit.copyWith(
         uid: outfitId,
         style: style,
@@ -315,6 +294,30 @@ class _AddOrEditOutfitScreenState extends State<AddOrEditOutfitScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(e.message!)));
+    }
+  }
+
+  Future<String?> uploadThumbnail(
+    BuildContext context,
+    Uint8List thumbnailBytes,
+    String outfitId,
+  ) async {
+    try {
+      final storageRef = FirebaseStorage.instance.ref().child(
+        "outfit_thumbnails/${outfitId}_${const Uuid().v4()}.png",
+      );
+
+      await storageRef.putData(
+        thumbnailBytes,
+        SettableMetadata(contentType: "image/png"),
+      );
+
+      final downloadUrl = await storageRef.getDownloadURL();
+
+      return downloadUrl;
+    } catch (e) {
+      debugPrint("Thumbnail upload failed: $e");
+      return null;
     }
   }
 

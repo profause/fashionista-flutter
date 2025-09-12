@@ -8,7 +8,6 @@ import 'package:fashionista/presentation/screens/closet/closet_items_page.dart';
 import 'package:fashionista/presentation/screens/closet/outfit_planner_screen.dart';
 import 'package:fashionista/presentation/screens/closet/outfits_page.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -163,12 +162,18 @@ class _ClosetScreenState extends State<ClosetScreen> {
                               horizontal: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.grey[300],
+                              color:
+                                  Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? Colors.grey[800] // dark mode background
+                                  : Colors.grey[400],
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               "$_closetItemCount",
-                              style: textTheme.labelSmall!,
+                              style: textTheme.labelSmall!.copyWith(
+                                color: colorScheme.primary,
+                              ),
                             ),
                           ),
                         ],
@@ -195,12 +200,18 @@ class _ClosetScreenState extends State<ClosetScreen> {
                               horizontal: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.grey[300],
+                              color:
+                                  Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? Colors.grey[800] // dark mode background
+                                  : Colors.grey[400],
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               "$_outfitCount",
-                              style: textTheme.labelSmall!,
+                              style: textTheme.labelSmall!.copyWith(
+                                color: colorScheme.primary,
+                              ),
                             ),
                           ),
                         ],
@@ -243,11 +254,7 @@ class _ClosetScreenState extends State<ClosetScreen> {
 
           /// TabBarView = main body
           body: const TabBarView(
-            children: [
-              ClosetItemsPage(),
-              OutfitsPage(),
-              OutfitPlannerScreen(),
-            ],
+            children: [ClosetItemsPage(), OutfitsPage(), OutfitPlannerScreen()],
           ),
         ),
       ),

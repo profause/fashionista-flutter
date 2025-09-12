@@ -27,13 +27,15 @@ class OutfitPlanModelAdapter extends TypeAdapter<OutfitPlanModel> {
       daysOfWeek: (fields[5] as List?)?.cast<int>(),
       recurrenceCount: fields[10] as int?,
       note: fields[11] as String?,
+      createdAt: fields[7] as int?,
+      updatedAt: fields[8] as int?,
     );
   }
 
   @override
   void write(BinaryWriter writer, OutfitPlanModel obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.uid)
       ..writeByte(6)
@@ -53,7 +55,11 @@ class OutfitPlanModelAdapter extends TypeAdapter<OutfitPlanModel> {
       ..writeByte(10)
       ..write(obj.recurrenceCount)
       ..writeByte(11)
-      ..write(obj.note);
+      ..write(obj.note)
+      ..writeByte(7)
+      ..write(obj.createdAt)
+      ..writeByte(8)
+      ..write(obj.updatedAt);
   }
 
   @override
@@ -86,6 +92,8 @@ OutfitPlanModel _$OutfitPlanModelFromJson(Map<String, dynamic> json) =>
           .toList(),
       recurrenceCount: (json['recurrence_count'] as num?)?.toInt(),
       note: json['note'] as String?,
+      createdAt: (json['created_at'] as num?)?.toInt(),
+      updatedAt: (json['updated_at'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$OutfitPlanModelToJson(OutfitPlanModel instance) =>
@@ -100,4 +108,6 @@ Map<String, dynamic> _$OutfitPlanModelToJson(OutfitPlanModel instance) =>
       'days_of_week': instance.daysOfWeek,
       'recurrence_count': instance.recurrenceCount,
       'note': instance.note,
+      'created_at': instance.createdAt,
+      'updated_at': instance.updatedAt,
     };

@@ -11,4 +11,5 @@ class OutfitPlanModelHiveType {
   static const int recurrenceEndDate = 9;
   static const int recurrenceCount = 10;
   static const int note = 11;
+  static const int thumbnailUrl = 12;
 }

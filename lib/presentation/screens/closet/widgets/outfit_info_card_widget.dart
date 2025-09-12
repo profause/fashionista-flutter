@@ -49,15 +49,23 @@ class _OutfitInfoCardWidgetState extends State<OutfitInfoCardWidget>
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final List<FeaturedMediaModel> featuredMedia = widget
-        .outfitModel
-        .closetItems
-        .map((item) {
-          return item.featuredMedia.first;
-        })
-        .toList();
+    List<FeaturedMediaModel> featuredMedia = widget.outfitModel.closetItems.map(
+      (item) {
+        return item.featuredMedia.first;
+      },
+    ).toList();
 
-    final random = Random();
+    final thumbnailUrl = widget.outfitModel.thumbnailUrl ?? '';
+
+    if (thumbnailUrl.isNotEmpty) {
+      featuredMedia = [
+        FeaturedMediaModel(
+          url: thumbnailUrl,
+          type: "image", // 👈 or whatever field your model uses
+        ),
+      ];
+    }
+
     return GestureDetector(
       onTap: () => widget.onPress?.call(),
       child: Container(
@@ -108,12 +116,12 @@ class _OutfitInfoCardWidgetState extends State<OutfitInfoCardWidget>
                   // ✅ aspect ratio adapts too
                   double aspectRatio;
                   if (featuredMedia.length == 1) {
-                    aspectRatio = 1 / 1; // square full width
+                    aspectRatio = 3 / 2; // square full width
                   } else if (featuredMedia.length == 2) {
                     aspectRatio = 4 / 5; // taller
                   } else {
                     // variety for larger grids
-                    final aspectRatioOptions = [1 / 1, 3 / 4];
+                    final aspectRatioOptions = [1 / 1, 3 / 4, 3 / 1];
                     aspectRatio =
                         aspectRatioOptions[Random().nextInt(
                           aspectRatioOptions.length,
@@ -123,9 +131,7 @@ class _OutfitInfoCardWidgetState extends State<OutfitInfoCardWidget>
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: AspectRatio(
-                      aspectRatio: preview.aspectRatio ?? aspectRatio,
-                      child: CachedNetworkImage(
+                    child: CachedNetworkImage(
                         imageUrl: preview.url!.isEmpty
                             ? ''
                             : preview.url!.trim(),
@@ -142,7 +148,7 @@ class _OutfitInfoCardWidgetState extends State<OutfitInfoCardWidget>
                         },
                         errorListener: (value) {},
                       ),
-                    ),
+                    
                   );
                 },
               ),

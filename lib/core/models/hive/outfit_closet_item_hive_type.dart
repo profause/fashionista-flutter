@@ -3,4 +3,5 @@ class OutfitClosetItemHiveType {
   static const int featuredMedia = 1;
   static const int description = 2;
   static const int category = 3;
+  static const int thumbnailUrl = 4;
 }

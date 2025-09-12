@@ -21,13 +21,14 @@ class OutfitClosetItemAdapter extends TypeAdapter<OutfitClosetItem> {
       featuredMedia: (fields[1] as List).cast<FeaturedMediaModel>(),
       description: fields[2] as String,
       category: fields[3] as String,
+      thumbnailUrl: fields[4] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, OutfitClosetItem obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.uid)
       ..writeByte(1)
@@ -35,7 +36,9 @@ class OutfitClosetItemAdapter extends TypeAdapter<OutfitClosetItem> {
       ..writeByte(2)
       ..write(obj.description)
       ..writeByte(3)
-      ..write(obj.category);
+      ..write(obj.category)
+      ..writeByte(4)
+      ..write(obj.thumbnailUrl);
   }
 
   @override
@@ -61,6 +64,7 @@ OutfitClosetItem _$OutfitClosetItemFromJson(Map<String, dynamic> json) =>
           .toList(),
       description: json['description'] as String,
       category: json['category'] as String,
+      thumbnailUrl: json['thumbnail_url'] as String?,
     );
 
 Map<String, dynamic> _$OutfitClosetItemToJson(OutfitClosetItem instance) =>
@@ -69,4 +73,5 @@ Map<String, dynamic> _$OutfitClosetItemToJson(OutfitClosetItem instance) =>
       'featured_media': instance.featuredMedia.map((e) => e.toJson()).toList(),
       'description': instance.description,
       'category': instance.category,
+      'thumbnail_url': instance.thumbnailUrl,
     };

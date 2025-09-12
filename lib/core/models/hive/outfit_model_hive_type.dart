@@ -10,4 +10,6 @@ class OutfitModelHiveType {
   static const int updatedAt = 8;
   static const int isFavourite = 9;
   static const int isSelected = 10;
+  static const int thumbnailUrl = 11;
+
 }

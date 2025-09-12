@@ -10,8 +10,10 @@ import 'package:fashionista/data/models/closet/bloc/closet_outfit_bloc_state.dar
 import 'package:fashionista/data/models/closet/closet_item_model.dart';
 import 'package:fashionista/data/models/closet/outfit_closet_item_model.dart';
 import 'package:fashionista/data/models/closet/outfit_model.dart';
+import 'package:fashionista/data/models/closet/outfit_plan_model.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_closet_service.dart';
+import 'package:fashionista/presentation/screens/closet/add_or_edit_outfit_plan_screen.dart';
 import 'package:fashionista/presentation/screens/closet/add_or_edit_outfit_screen.dart';
 import 'package:fashionista/presentation/screens/closet/widgets/closet_item_info_card_widget.dart';
 import 'package:fashionista/presentation/screens/closet/widgets/outfit_info_card_widget.dart';
@@ -213,11 +215,21 @@ class _OutfitsPageState extends State<OutfitsPage> {
 
   void _showDetailsBottomSheet(BuildContext context, OutfitModel outfit) {
     final random = Random();
-    final List<FeaturedMediaModel> featuredMedia = outfit.closetItems.map((
-      item,
-    ) {
+    List<FeaturedMediaModel> featuredMedia = outfit.closetItems.map((item) {
       return item.featuredMedia.first;
     }).toList();
+
+    final thumbnailUrl = outfit.thumbnailUrl ?? '';
+
+    // if (thumbnailUrl.isNotEmpty) {
+    //   featuredMedia = [
+    //     FeaturedMediaModel(
+    //       url: thumbnailUrl,
+    //       type: "image", // 👈 or whatever field your model uses
+    //     ),
+    //   ];
+    // }
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -381,7 +393,39 @@ class _OutfitsPageState extends State<OutfitsPage> {
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: () {
-                              // TODO: handle add to planner
+                              Navigator.pop(context);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => AddOrEditOutfitPlanScreen(
+                                    outfitPlan: OutfitPlanModel.empty()
+                                        .copyWith(
+                                          occassion: outfit.occassion,
+                                          date: 0,
+                                          thumbnailUrl: thumbnailUrl,
+                                          recurrenceEndDate: 0,
+                                          outfitItem: OutfitClosetItem.empty()
+                                              .copyWith(
+                                                thumbnailUrl: thumbnailUrl,
+                                                uid: outfit.uid,
+                                                featuredMedia: outfit
+                                                    .closetItems
+                                                    .map((item) {
+                                                      return item
+                                                          .featuredMedia
+                                                          .first;
+                                                    })
+                                                    .toList(),
+                                                description: outfit.occassion,
+                                                category: outfit
+                                                    .closetItems
+                                                    .first
+                                                    .category,
+                                              ),
+                                        ),
+                                  ),
+                                ),
+                              );
                             },
                             icon: const Icon(Icons.calendar_today, size: 18),
                             label: const Text("Add to planner"),
@@ -547,6 +591,7 @@ class _OutfitsPageState extends State<OutfitsPage> {
                             );
 
                           case ClosetItemsLoaded(:final closetItems):
+                            selectedClosetItems.clear();
                             return Padding(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 12,
