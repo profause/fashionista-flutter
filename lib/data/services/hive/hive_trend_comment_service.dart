@@ -52,4 +52,20 @@ class HiveTrendCommentService
   Future<void> clearCache() async {
     await hive.designCollectionsBox.clear();
   }
+  
+  @override
+  Future<CommentModel> getItem(String key, String identifier) async {
+    try {
+      final data = hive.designCollectionsBox.get(key);
+      if (data == null) {
+        return CommentModel.empty();
+      }
+      final List<CommentModel> clientList = data
+          .cast<CommentModel>();
+      return (clientList.where((item) => item.uid == identifier).first);
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+    return CommentModel.empty();
+  }
 }

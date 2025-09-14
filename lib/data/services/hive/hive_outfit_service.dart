@@ -47,4 +47,19 @@ class HiveOutfitService implements HiveRepository<OutfitModel> {
   Future<void> clearCache() {
     return hive.closetBox.clear();
   }
+  
+  @override
+  Future<OutfitModel> getItem(String key, String identifier)async {
+    try {
+      final data = hive.closetBox.get('outfits');
+      if (data == null) {
+        return OutfitModel.empty();
+      }
+      final List<OutfitModel> clientList = data.cast<OutfitModel>();
+      return (clientList.where((item) => item.uid == identifier).first);
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+    return OutfitModel.empty();
+  }
 }

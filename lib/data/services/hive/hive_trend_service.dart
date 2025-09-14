@@ -3,8 +3,7 @@ import 'package:fashionista/core/service_locator/hive_service.dart';
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
 import 'package:flutter/material.dart';
 
-class HiveTrendService
-    implements HiveRepository<TrendFeedModel> {
+class HiveTrendService implements HiveRepository<TrendFeedModel> {
   //late final Box trendsBox;
   final hive = HiveService();
 
@@ -50,5 +49,20 @@ class HiveTrendService
   @override
   Future<void> clearCache() async {
     await hive.trendsBox.clear();
+  }
+
+  @override
+  Future<TrendFeedModel> getItem(String key, String identifier) async {
+    try {
+      final data = hive.trendsBox.get(key);
+      if (data == null) {
+        return TrendFeedModel.empty();
+      }
+      final List<TrendFeedModel> clientList = data.cast<TrendFeedModel>();
+      return (clientList.where((item) => item.uid == identifier).first);
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+    return TrendFeedModel.empty();
   }
 }

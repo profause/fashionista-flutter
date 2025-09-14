@@ -52,4 +52,20 @@ class HiveDesignCollectionService
   Future<void> clearCache() async {
     await hive.designCollectionsBox.clear();
   }
+
+  @override
+  Future<DesignCollectionModel> getItem(String key, String identifier) async {
+    try {
+      final data = hive.designCollectionsBox.get(key);
+      if (data == null) {
+        return DesignCollectionModel.empty();
+      }
+      final List<DesignCollectionModel> clientList = data
+          .cast<DesignCollectionModel>();
+      return (clientList.where((item) => item.uid == identifier).first);
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+    return DesignCollectionModel.empty();
+  }
 }

@@ -16,6 +16,7 @@ abstract class FirebaseClosetService {
   Future<Either> addOutfit(OutfitModel outfit);
   Future<Either> updateOutfit(OutfitModel outfit);
   Future<Either> deleteOutfit(OutfitModel outfit);
+  Future<Either> deleteOutfitPlanWhenOutfitIsDeleted(OutfitModel outfit);
   Future<Either<String, List<OutfitModel>>> findOutfits(String uid);
   Future<Either<String, int>> getOutfitCount(String uid);
   Future<Either<String, int>> getClosetItemCount(String uid);
@@ -429,6 +430,34 @@ class FirebaseClosetServiceImpl implements FirebaseClosetService {
       return Right(outfitPlans);
     } on FirebaseException catch (e) {
       return Left(e.message ?? 'An unknown Firebase error occurred');
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  @override
+  Future<Either> deleteOutfitPlanWhenOutfitIsDeleted(OutfitModel outfit) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      // Delete the document with the given uid
+      final collection = await firestore
+          .collection('closets')
+          .doc(outfit.createdBy)
+          .collection('outfit_plans')
+          .where('outfit_item.uid', isEqualTo: outfit.uid)
+          .get();
+
+      final batch = FirebaseFirestore.instance.batch();
+
+      for (final doc in collection.docs) {
+        batch.delete(doc.reference);
+      }
+
+      await batch.commit();
+      
+      return const Right('successfully deleted'); // success without data
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'Unknown Firestore error');
     } catch (e) {
       return Left(e.toString());
     }

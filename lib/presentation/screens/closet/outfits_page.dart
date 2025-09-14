@@ -24,22 +24,31 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:dartz/dartz.dart' as dartz;
+import 'package:sliver_tools/sliver_tools.dart';
 
 class OutfitsPage extends StatefulWidget {
   const OutfitsPage({super.key});
 
   @override
-  State<OutfitsPage> createState() => _OutfitsPageState();
+  State<OutfitsPage> createState() => OutfitsPageState();
 }
 
-class _OutfitsPageState extends State<OutfitsPage> {
+class OutfitsPageState extends State<OutfitsPage> {
   late List<ClosetItemModel> selectedClosetItems = [];
+  final TextEditingController _searchController = TextEditingController();
+  String _searchText = "";
+  bool filterByFavourite = false;
 
   @override
   void initState() {
     context.read<ClosetOutfitBloc>().add(
       const LoadOutfitsCacheFirstThenNetwork(''),
     );
+
+    setState(() {
+      filterByFavourite = false;
+    });
     super.initState();
   }
 
@@ -53,164 +62,210 @@ class _OutfitsPageState extends State<OutfitsPage> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            backgroundColor: colorScheme.surface,
-            pinned: true, // keeps the searchbar visible when collapsed
-            floating: true, // allows it to appear/disappear as you scroll
-            snap: true, // snaps into view when scrolling up
-            stretch: true,
-            expandedHeight: 10,
-            toolbarHeight: 5,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: "Search outfits...",
-                          hintStyle: textTheme.bodyMedium!.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                          prefixIcon: Icon(
-                            Icons.search,
-                            color: colorScheme.primary,
-                          ),
-                          filled: true,
-                          fillColor: colorScheme.surfaceContainerHighest,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 0,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
+
+    return MultiSliver(
+      // 👈 helper from 'sliver_tools' package, or just return a Column of slivers
+      children: [
+        SliverAppBar(
+          backgroundColor: colorScheme.surface,
+          pinned: true, // keeps the searchbar visible when collapsed
+          floating: true, // allows it to appear/disappear as you scroll
+          snap: true, // snaps into view when scrolling up
+          stretch: true,
+          expandedHeight: 18,
+          toolbarHeight: 5,
+          flexibleSpace: FlexibleSpaceBar(
+            background: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: "Search outfits...",
+                        hintStyle: textTheme.bodyMedium!.copyWith(
+                          color: colorScheme.onSurfaceVariant,
                         ),
-                        onChanged: (value) {
-                          // TODO: trigger search/filter logic
-                        },
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: colorScheme.primary,
+                        ),
+                        filled: true,
+                        fillColor: colorScheme.surfaceContainerHighest,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 0,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
                       ),
+                      onChanged: (value) {
+                        setState(() => _searchText = value);
+                      },
                     ),
-                    const SizedBox(width: 8),
-                    CustomIconButtonRounded(
-                      onPressed: () {},
-                      iconData: Icons.favorite_outline,
-                    ),
-                    const SizedBox(width: 8),
-                    CustomIconButtonRounded(
-                      onPressed: () {},
-                      iconData: Icons.filter_list_outlined,
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 8),
+                  CustomIconButtonRounded(
+                    backgroundColor: colorScheme.surfaceContainerHighest,
+                    onPressed: () => setState(() {
+                      filterByFavourite = !filterByFavourite;
+                    }),
+                    iconData: filterByFavourite
+                        ? Icons.favorite
+                        : Icons.favorite_border,
+                  ),
+                  const SizedBox(width: 8),
+                  CustomIconButtonRounded(
+                    backgroundColor: colorScheme.surfaceContainerHighest,
+                    onPressed: () {},
+                    iconData: Icons.filter_list_outlined,
+                  ),
+                ],
               ),
             ),
           ),
-
-          BlocBuilder<ClosetOutfitBloc, ClosetOutfitBlocState>(
-            builder: (context, state) {
-              switch (state) {
-                case OutfitLoading():
-                  return const SliverToBoxAdapter(
-                    child: SizedBox(
-                      height: 400,
-                      child: Center(
-                        child: SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: CircularProgressIndicator(),
-                        ),
-                      ),
-                    ),
-                  );
-
-                case OutfitsLoaded(:final outfits):
-                  return SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          MasonryGridView.count(
-                            padding: EdgeInsets.zero,
-                            mainAxisSpacing: 8,
-                            crossAxisSpacing: 8,
-                            shrinkWrap:
-                                true, // ✅ important for nesting in SliverToBoxAdapter
-                            physics:
-                                const NeverScrollableScrollPhysics(), // ✅ prevent scroll conflict
-                            itemCount: outfits.length,
-                            crossAxisCount:
-                                (MediaQuery.of(context).size.width ~/ 160)
-                                    .clamp(2, 4),
-                            itemBuilder: (context, index) {
-                              final outfit = outfits[index];
-                              return OutfitInfoCardWidget(
-                                outfitModel: outfit,
-                                onPress: () {
-                                  _showDetailsBottomSheet(context, outfit);
-                                },
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-
-                case OutfitError(:final message):
-                  return SliverToBoxAdapter(
-                    child: Center(child: Text("Error: $message")),
-                  );
-
-                default:
-                  return SliverToBoxAdapter(
-                    child: SizedBox(
-                      height: 400,
-                      child: Center(
-                        child: PageEmptyWidget(
-                          title: "Your closet is empty",
-                          subtitle: "Add some items to your closet",
-                          icon: Icons.checkroom,
-                          iconSize: 48,
-                        ),
-                      ),
-                    ),
-                  );
-              }
-            },
-          ),
-        ],
-      ),
-      floatingActionButton: Hero(
-        tag: 'add-item-button',
-        child: Material(
-          color: colorScheme.primary,
-          elevation: 6,
-          shape: const CircleBorder(),
-          child: InkWell(
-            onTap: () {
-              showAddOutfitBottomSheet(context, OutfitModel.empty());
-            },
-            customBorder: const CircleBorder(),
-            child: SizedBox(
-              width: 56,
-              height: 56,
-              child: Icon(Icons.add, color: colorScheme.onPrimary),
-            ),
-          ),
         ),
-      ),
+
+        BlocBuilder<ClosetOutfitBloc, ClosetOutfitBlocState>(
+          builder: (context, state) {
+            switch (state) {
+              case OutfitLoading():
+                return const SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: 400,
+                    child: Center(
+                      child: SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                  ),
+                );
+
+              case OutfitsLoaded(:final outfits):
+                List<OutfitModel> filteredItems = _searchText.isEmpty
+                    ? outfits
+                    : outfits.where((item) {
+                        final occassion = item.occassion.toLowerCase();
+                        final style = item.style!.toLowerCase();
+                        final tags = item.tags!.toLowerCase();
+                        return occassion.contains(_searchText.toLowerCase()) ||
+                            tags.contains(_searchText.toLowerCase()) ||
+                            style.contains(_searchText.toLowerCase());
+                      }).toList();
+
+                filteredItems = !filterByFavourite
+                    ? filteredItems
+                    : filteredItems
+                          .where((item) => item.isFavourite == true)
+                          .toList();
+
+                if (filteredItems.isEmpty) {
+                  return SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: PageEmptyWidget(
+                        title: "Your closet is empty",
+                        subtitle: "Add some items to your closet",
+                        icon: Icons.checkroom,
+                        iconSize: 48,
+                      ),
+                    ),
+                  );
+                }
+                return SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        MasonryGridView.count(
+                          padding: EdgeInsets.zero,
+                          mainAxisSpacing: 8,
+                          crossAxisSpacing: 8,
+                          shrinkWrap:
+                              true, // ✅ important for nesting in SliverToBoxAdapter
+                          physics:
+                              const NeverScrollableScrollPhysics(), // ✅ prevent scroll conflict
+                          itemCount: filteredItems.length,
+                          crossAxisCount:
+                              (MediaQuery.of(context).size.width ~/ 160).clamp(
+                                2,
+                                4,
+                              ),
+                          itemBuilder: (context, index) {
+                            final outfit = filteredItems[index];
+                            return OutfitInfoCardWidget(
+                              outfitModel: outfit,
+                              onPress: () {
+                                _showDetailsBottomSheet(context, outfit);
+                              },
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+
+              case OutfitError(:final message):
+                return SliverToBoxAdapter(
+                  child: Center(child: Text("Error: $message")),
+                );
+
+              default:
+                return SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: 400,
+                    child: Center(
+                      child: PageEmptyWidget(
+                        title: "Your closet is empty",
+                        subtitle: "Add some items to your closet",
+                        icon: Icons.checkroom,
+                        iconSize: 48,
+                      ),
+                    ),
+                  ),
+                );
+            }
+          },
+        ),
+      ],
     );
+    // return Scaffold(
+    //   backgroundColor: colorScheme.surface,
+    //   body: CustomScrollView(
+    //     slivers: [
+
+    //     ],
+    //   ),
+    //   floatingActionButton: Hero(
+    //     tag: 'add-item-button',
+    //     child: Material(
+    //       color: colorScheme.primary,
+    //       elevation: 6,
+    //       shape: const CircleBorder(),
+    //       child: InkWell(
+    //         onTap: () {
+    //           showAddOutfitBottomSheet(context, OutfitModel.empty());
+    //         },
+    //         customBorder: const CircleBorder(),
+    //         child: SizedBox(
+    //           width: 56,
+    //           height: 56,
+    //           child: Icon(Icons.add, color: colorScheme.onPrimary),
+    //         ),
+    //       ),
+    //     ),
+    //   ),
+    // );
   }
 
   void _showDetailsBottomSheet(BuildContext context, OutfitModel outfit) {
@@ -490,7 +545,7 @@ class _OutfitsPageState extends State<OutfitsPage> {
                             );
 
                             if (canDelete == true) {
-                              //_deleteClosetItem(closetItem);
+                              _deleteOutfit(outfit);
                             }
                           },
                           iconData: Icons.delete,
@@ -669,6 +724,57 @@ class _OutfitsPageState extends State<OutfitsPage> {
         );
       },
     );
+  }
+
+  Future<void> _deleteOutfit(OutfitModel outfit) async {
+    try {
+      // create a dynamic list of futures
+      showDialog(
+        context: context,
+        barrierDismissible: false, // Prevent dismissing
+        builder: (_) => const Center(child: CircularProgressIndicator()),
+      );
+      final List<Future<dartz.Either>> futures = [];
+      // sl<FirebaseClosetService>().deleteClosetItemImage(
+      //   outfit.thumbnailUrl!,
+      // );
+
+      // also add delete by id
+      futures.add(sl<FirebaseClosetService>().deleteOutfit(outfit));
+
+      futures.add(
+        sl<FirebaseClosetService>().deleteOutfitPlanWhenOutfitIsDeleted(outfit),
+      );
+
+      // wait for all and capture results
+      final results = await Future.wait(futures);
+
+      // handle each result
+      for (final result in results) {
+        result.fold(
+          (failure) {
+            // handle failure
+            debugPrint("Delete failed: $failure");
+          },
+          (success) {
+            // handle success
+            debugPrint("Delete success: $success");
+          },
+        );
+      }
+
+      if (!mounted) return;
+      Navigator.pop(context);
+      context.read<ClosetOutfitBloc>().add(
+        const LoadOutfitsCacheFirstThenNetwork(''),
+      );
+      Navigator.pop(context, true);
+    } on FirebaseException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message!)));
+    }
   }
 
   void toggleSelection(ClosetItemModel item) {

@@ -49,4 +49,19 @@ class HiveDesignersService implements HiveRepository<Designer> {
   Future<void> clearCache() async{
     await hive.designersBox.clear();
   }
+  
+  @override
+  Future<Designer> getItem(String key, String identifier) async {
+    try {
+      final data = hive.designersBox.get('designers');
+      if (data == null) {
+        return Designer.empty();
+      }
+      final List<Designer> designerList = data.cast<Designer>();
+      return (designerList.where((designer) => designer.uid == identifier).first);
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+    return Designer.empty();
+  }
 }

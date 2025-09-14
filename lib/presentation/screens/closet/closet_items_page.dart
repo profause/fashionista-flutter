@@ -15,6 +15,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dartz/dartz.dart' as dartz;
+import 'package:sliver_tools/sliver_tools.dart';
 
 final RouteObserver<ModalRoute<void>> closetItemPageRouteObserver =
     RouteObserver<ModalRoute<void>>();
@@ -27,10 +28,9 @@ class ClosetItemsPage extends StatefulWidget {
 }
 
 class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
-  bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
   String _searchText = "";
-
+  bool filterByFavourite = false;
   @override
   void initState() {
     context.read<ClosetItemBloc>().add(
@@ -44,206 +44,177 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      body: CustomScrollView(
-        slivers: [
-          /// Collapsible SearchBar
-          SliverAppBar(
-            backgroundColor: colorScheme.surface,
-            pinned: true, // keeps the searchbar visible when collapsed
-            floating: true, // allows it to appear/disappear as you scroll
-            snap: true, // snaps into view when scrolling up
-            stretch: true,
-            expandedHeight: 10,
-            toolbarHeight: 5,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: "Search items...",
-                          hintStyle: textTheme.bodyMedium!.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                          prefixIcon: Icon(
-                            Icons.search,
-                            color: colorScheme.primary,
-                          ),
-                          filled: true,
-                          fillColor: colorScheme.surfaceContainerHighest,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 0,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
+    return MultiSliver(
+      // 👈 helper from 'sliver_tools' package, or just return a Column of slivers
+      children: [
+        SliverAppBar(
+          backgroundColor: colorScheme.surface,
+          pinned: true, // keeps the searchbar visible when collapsed
+          floating: true, // allows it to appear/disappear as you scroll
+          snap: true, // snaps into view when scrolling up
+          stretch: true,
+          expandedHeight: 18,
+          toolbarHeight: 5,
+          flexibleSpace: FlexibleSpaceBar(
+            background: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      decoration: InputDecoration(
+                        hintText: "Search items...",
+                        hintStyle: textTheme.bodyMedium!.copyWith(
+                          color: colorScheme.onSurfaceVariant,
                         ),
-                        onChanged: (value) {
-                          // TODO: trigger search/filter logic
-                        },
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: colorScheme.primary,
+                        ),
+                        filled: true,
+                        fillColor: colorScheme.surfaceContainerHighest,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 0,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
                       ),
+                      onChanged: (value) {
+                        setState(() => _searchText = value);
+                      },
                     ),
-                    const SizedBox(width: 8),
-                    CustomIconButtonRounded(
-                      onPressed: () {},
-                      iconData: Icons.favorite_outline,
-                    ),
-                    const SizedBox(width: 8),
-                    CustomIconButtonRounded(
-                      onPressed: () {},
-                      iconData: Icons.filter_list_outlined,
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 8),
+                  CustomIconButtonRounded(
+                    backgroundColor: colorScheme.surfaceContainerHighest,
+                    onPressed: () => setState(() {
+                      filterByFavourite = !filterByFavourite;
+                    }),
+                    iconData: filterByFavourite
+                        ? Icons.favorite
+                        : Icons.favorite_border,
+                  ),
+                  const SizedBox(width: 8),
+                  CustomIconButtonRounded(
+                    backgroundColor: colorScheme.surfaceContainerHighest,
+                    onPressed: () {},
+                    iconData: Icons.filter_list_outlined,
+                  ),
+                ],
               ),
             ),
           ),
+        ),
 
-          /// Example Horizontal Chips
-          SliverToBoxAdapter(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text("Categories", style: textTheme.titleLarge),
-                  ),
+        /// Example Horizontal Chips
+        SliverToBoxAdapter(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text("Categories", style: textTheme.titleLarge),
                 ),
-                ClosetItemCategoriesWidget(),
-              ],
-            ),
-          ),
-
-          BlocBuilder<ClosetItemBloc, ClosetItemBlocState>(
-            builder: (context, state) {
-              switch (state) {
-                case ClosetItemLoading():
-                  return const SliverToBoxAdapter(
-                    child: Center(
-                      child: SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: CircularProgressIndicator(),
-                      ),
-                    ),
-                  );
-
-                case ClosetItemsLoaded(:final closetItems):
-                  return SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Items",
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          const SizedBox(height: 8),
-                          GridView.builder(
-                            padding: EdgeInsets.zero,
-                            shrinkWrap:
-                                true, // ✅ important for nesting in SliverToBoxAdapter
-                            physics:
-                                const NeverScrollableScrollPhysics(), // ✅ prevent scroll conflict
-                            itemCount: closetItems.length,
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount:
-                                      (MediaQuery.of(context).size.width ~/ 180)
-                                          .clamp(3, 6),
-                                  mainAxisSpacing: 8,
-                                  crossAxisSpacing: 8,
-                                  childAspectRatio: 0.65,
-                                ),
-                            itemBuilder: (context, index) {
-                              final closetItem = closetItems[index];
-                              return ClosetItemInfoCardWidget(
-                                closetItem: closetItem,
-                                onPress: () {
-                                  _showBottomSheet(context, closetItem);
-                                },
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-
-                case ClosetItemError(:final message):
-                  return SliverToBoxAdapter(
-                    child: Center(child: Text("Error: $message")),
-                  );
-
-                default:
-                  return SliverToBoxAdapter(
-                    child: SizedBox(
-                      height: 400,
-                      child: Center(
-                        child: PageEmptyWidget(
-                          title: "Your closet is empty",
-                          subtitle: "Add some items to your closet",
-                          icon: Icons.checkroom,
-                          iconSize: 48,
-                        ),
-                      ),
-                    ),
-                  );
-              }
-            },
-          ),
-
-          // SliverList(
-          //   delegate: SliverChildBuilderDelegate(
-          //     (context, index) => ListTile(title: Text("Closet item $index")),
-          //     childCount: 30, // mock items
-          //   ),
-          // ),
-        ],
-      ),
-
-      floatingActionButton: Hero(
-        tag: 'add-item-button',
-        child: Material(
-          color: colorScheme.primary,
-          elevation: 6,
-          shape: const CircleBorder(),
-          child: InkWell(
-            onTap: () async {
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const AddOrEditClosetItemsPage(),
-                ),
-              );
-
-              if (result == true && mounted) {
-                // context.read<ClosetItemBloc>().add(
-                //   const LoadCloserItemsCacheFirstThenNetwork(''),
-                // );
-              }
-            },
-            customBorder: const CircleBorder(),
-            child: SizedBox(
-              width: 56,
-              height: 56,
-              child: Icon(Icons.add, color: colorScheme.onPrimary),
-            ),
+              ),
+              ClosetItemCategoriesWidget(),
+            ],
           ),
         ),
-      ),
+
+        BlocBuilder<ClosetItemBloc, ClosetItemBlocState>(
+          builder: (context, state) {
+            switch (state) {
+              case ClosetItemLoading():
+                return const SliverToBoxAdapter(
+                  child: Center(
+                    child: SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                );
+
+              case ClosetItemsLoaded(:final closetItems):
+                List<ClosetItemModel> filteredItems = _searchText.isEmpty
+                    ? closetItems
+                    : closetItems.where((item) {
+                        final brand = item.brand!.toLowerCase();
+                        final description = item.description.toLowerCase();
+                        return brand.contains(_searchText.toLowerCase()) ||
+                            description.contains(_searchText.toLowerCase());
+                      }).toList();
+
+                filteredItems = !filterByFavourite
+                    ? filteredItems
+                    : filteredItems
+                          .where((item) => item.isFavourite == true)
+                          .toList();
+
+                if (filteredItems.isEmpty) {
+                  return SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: PageEmptyWidget(
+                        title: "Your closet is empty",
+                        subtitle: "Add some items to your closet",
+                        icon: Icons.checkroom,
+                        iconSize: 48,
+                      ),
+                    ),
+                  );
+                }
+                return SliverPadding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  sliver: SliverGrid(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: (MediaQuery.of(context).size.width ~/ 180)
+                          .clamp(3, 6),
+                      mainAxisSpacing: 8,
+                      crossAxisSpacing: 8,
+                      childAspectRatio: 0.65,
+                    ),
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final closetItem = filteredItems[index];
+                      return ClosetItemInfoCardWidget(
+                        closetItem: closetItem,
+                        onPress: () {
+                          _showBottomSheet(context, closetItem);
+                        },
+                      );
+                    }, childCount: filteredItems.length),
+                  ),
+                );
+
+              case ClosetItemError(:final message):
+                return SliverToBoxAdapter(
+                  child: Center(child: Text("Error: $message")),
+                );
+
+              default:
+                return SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(
+                    child: PageEmptyWidget(
+                      title: "Your closet is empty",
+                      subtitle: "Add some items to your closet",
+                      icon: Icons.checkroom,
+                      iconSize: 48,
+                    ),
+                  ),
+                );
+            }
+          },
+        ),
+      ],
     );
   }
 
@@ -499,7 +470,6 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
                             children: [
                               CustomIconButtonRounded(
                                 onPressed: () {
-
                                   Navigator.pop(context);
                                   Navigator.push(
                                     context,

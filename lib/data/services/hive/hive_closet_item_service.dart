@@ -47,4 +47,19 @@ class HiveClosetItemService implements HiveRepository<ClosetItemModel> {
   Future<void> clearCache() {
     return hive.closetBox.clear();
   }
+  
+  @override
+  Future<ClosetItemModel> getItem(String key, String identifier) async {
+      try {
+      final data = hive.closetBox.get('closet_items');
+      if (data == null) {
+        return ClosetItemModel.empty();
+      }
+      final List<ClosetItemModel> clientList = data.cast<ClosetItemModel>();
+      return (clientList.where((item) => item.uid == identifier).first);
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+    return ClosetItemModel.empty();
+  }
 }

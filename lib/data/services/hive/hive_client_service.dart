@@ -47,4 +47,19 @@ class HiveClientService implements HiveRepository<Client> {
   Future<void> clearCache() {
     return hive.clientsBox.clear();
   }
+
+  @override
+  Future<Client> getItem(String key, String identifier) async {
+    try {
+      final data = hive.clientsBox.get(key);
+      if (data == null) {
+        return Client.empty();
+      }
+      final List<Client> clientList = data.cast<Client>();
+      return (clientList.where((client) => client.uid == identifier).first);
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+    return Client.empty();
+  }
 }

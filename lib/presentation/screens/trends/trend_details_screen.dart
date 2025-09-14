@@ -89,7 +89,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
         foregroundColor: colorScheme.primary,
         backgroundColor: colorScheme.onPrimary,
         title: Text(
-          'Trend',
+          'Trends',
           style: textTheme.titleLarge!.copyWith(
             fontWeight: FontWeight.bold,
             color: colorScheme.primary,
@@ -153,7 +153,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                       onTap: () {},
                       child: widget.trendInfo.author.avatar!.isNotEmpty
                           ? CircleAvatar(
-                              radius: 30,
+                              radius: 24,
                               backgroundColor: AppTheme.lightGrey,
                               backgroundImage: CachedNetworkImageProvider(
                                 widget.trendInfo.author.avatar!,

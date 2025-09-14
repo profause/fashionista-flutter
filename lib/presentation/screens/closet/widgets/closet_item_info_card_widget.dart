@@ -1,5 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/data/models/closet/bloc/closet_item_bloc.dart';
+import 'package:fashionista/data/models/closet/bloc/closet_item_bloc_event.dart';
 import 'package:fashionista/data/models/closet/closet_item_model.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_closet_service.dart';
@@ -7,6 +9,7 @@ import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ClosetItemInfoCardWidget extends StatefulWidget {
   final ClosetItemModel closetItem;
@@ -204,6 +207,9 @@ class _ClosetItemInfoCardWidgetState extends State<ClosetItemInfoCardWidget>
           setState(() {
             isFavourite = r;
           });
+          context.read<ClosetItemBloc>().add(
+            const LoadClosetItemsCacheFirstThenNetwork(''),
+          );
         },
       );
     } on FirebaseException catch (e) {
