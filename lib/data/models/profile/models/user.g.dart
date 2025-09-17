@@ -24,6 +24,10 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
       uid: json['uid'] as String?,
       bannerImage: json['banner_image'] as String?,
       deviceId: json['device_id'] as String? ?? '',
+      interests: (json['interests'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
@@ -40,4 +44,5 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
       'joined_date': instance.joinedDate?.toIso8601String(),
       'uid': instance.uid,
       'device_id': instance.deviceId,
+      'interests': instance.interests,
     };

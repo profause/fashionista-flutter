@@ -66,6 +66,14 @@ class OutfitPlanModel extends Equatable {
   @HiveField(OutfitPlanModelHiveType.thumbnailUrl)
   final String? thumbnailUrl;
 
+  @JsonKey(name: 'set_reminder')
+  @HiveField(OutfitPlanModelHiveType.setReminder)
+  final bool? setReminder;
+
+  @JsonKey(name: 'when_to_remind')
+  @HiveField(OutfitPlanModelHiveType.whenToRemind)
+  final int? whenToRemind;
+
   const OutfitPlanModel({
     this.uid,
     required this.createdBy,
@@ -79,7 +87,9 @@ class OutfitPlanModel extends Equatable {
     this.note,
     this.createdAt,
     this.updatedAt,
-    this.thumbnailUrl
+    this.thumbnailUrl,
+    this.setReminder,
+    this.whenToRemind,
   });
 
   factory OutfitPlanModel.fromJson(Map<String, dynamic> json) =>
@@ -102,6 +112,8 @@ class OutfitPlanModel extends Equatable {
     createdAt,
     updatedAt,
     thumbnailUrl,
+    setReminder,
+    whenToRemind,
   ];
 
   factory OutfitPlanModel.empty() {
@@ -119,6 +131,8 @@ class OutfitPlanModel extends Equatable {
       createdAt: 0,
       updatedAt: 0,
       thumbnailUrl: '',
+      setReminder: false,
+      whenToRemind: 0
     );
   }
 
@@ -135,7 +149,9 @@ class OutfitPlanModel extends Equatable {
     String? note,
     int? createdAt,
     int? updatedAt,
-    String? thumbnailUrl
+    String? thumbnailUrl,
+    bool? setReminder,
+    int? whenToRemind
   }) {
     return OutfitPlanModel(
       uid: uid ?? this.uid,
@@ -150,7 +166,9 @@ class OutfitPlanModel extends Equatable {
       note: note ?? this.note,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl
+      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
+      setReminder: setReminder ?? this.setReminder,
+      whenToRemind: whenToRemind ?? this.whenToRemind
     );
   }
 }

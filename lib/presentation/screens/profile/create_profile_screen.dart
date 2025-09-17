@@ -6,7 +6,7 @@ import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/domain/usecases/profile/fetch_user_profile_usecase.dart';
 import 'package:fashionista/domain/usecases/profile/update_user_profile_usecase.dart';
-import 'package:fashionista/presentation/screens/main/main_screen.dart';
+import 'package:fashionista/presentation/screens/profile/user_interest_screen.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/custom_chip_form_field_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/date_picker_form_field_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_text_field_widget.dart';
@@ -140,14 +140,14 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                   right: 12.0,
                 ), // match iOS trailing spacing
                 child: CustomIconButtonRounded(
-                    onPressed: () async {
-                      if (_formKey.currentState!.validate()) {
-                        await _saveProfile(user);
-                        //Navigator.of(context).pop();
-                      }
-                    },
-                    iconData: Icons.check,
-                  ),
+                  onPressed: () async {
+                    if (_formKey.currentState!.validate()) {
+                      await _saveProfile(user);
+                      //Navigator.of(context).pop();
+                    }
+                  },
+                  iconData: Icons.check,
+                ),
               ),
             ],
           ),
@@ -492,9 +492,17 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
       if (!mounted) return;
       // // Close progress dialog
       //Navigator.of(context).pop();
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const MainScreen()),
-        (route) => false,
+      // Navigator.of(context).pushAndRemoveUntil(
+      //   MaterialPageRoute(builder: (_) => const MainScreen()),
+      //   (route) => false,
+      // );
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              UserInterestScreen(fromWhere: 'CreateProfileScreen'),
+        ),
       );
     }
   }

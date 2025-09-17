@@ -10,6 +10,7 @@ import 'package:fashionista/data/services/firebase/firebase_clients_service.dart
 import 'package:fashionista/data/services/firebase/firebase_closet_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_design_collection_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_designers_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_fashion_interest_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_trends_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_user_service.dart';
 import 'package:fashionista/data/services/hive/hive_client_service.dart';
@@ -68,7 +69,7 @@ import 'package:fashionista/domain/usecases/trends/follow_or_unfollow_trend_usec
 import 'package:fashionista/domain/usecases/trends/is_followed_trend_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/is_liked_trend_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/like_or_unlike_trend_usecase.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get_it/get_it.dart';
 
 final sl = GetIt.instance;
@@ -194,4 +195,7 @@ Future<void> initialiseDependencies() async {
   sl.registerSingleton<HiveOutfitService>(HiveOutfitService());
   sl.registerSingleton<FirebaseClosetService>(FirebaseClosetServiceImpl());
   sl.registerSingleton<ClosetRepository>(ClosetRepositoryImpl());
+  sl.registerSingleton<FirebaseFashionInterestService>(
+    FirebaseFashionInterestServiceImpl(),
+  );
 }

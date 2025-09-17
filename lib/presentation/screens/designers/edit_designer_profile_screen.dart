@@ -41,6 +41,7 @@ class _EditDesignerProfileScreenState extends State<EditDesignerProfileScreen> {
 
   @override
   void initState() {
+    context.read<DesignerBloc>().add(UpdateDesigner(widget.designer));
     _businessNameController = TextEditingController();
     _mobileNumberController = TextEditingController();
     _locationController = TextEditingController();
@@ -73,353 +74,367 @@ class _EditDesignerProfileScreenState extends State<EditDesignerProfileScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return BlocBuilder<DesignerBloc, DesignerState>(
-      builder: (context, designerState) {
-        _businessNameController.text = widget.designer.businessName;
-        _mobileNumberController.text = widget.designer.mobileNumber;
-        _locationController.text = widget.designer.location;
-        _bioController.text = widget.designer.bio ?? '';
+      builder: (context, state) {
+        switch (state) {
+          case DesignerLoading():
+            return const Center(child: CircularProgressIndicator());
+          case DesignerLoaded(:final designer):
+            _businessNameController.text = designer.businessName;
+            _mobileNumberController.text = designer.mobileNumber;
+            _locationController.text = designer.location;
+            _bioController.text = designer.bio ?? '';
+            socialHandles = designer.socialHandles ?? SocialHandle.defaults();
 
-        socialHandles =
-            widget.designer.socialHandles ?? SocialHandle.defaults();
+            return PopScope(
+              canPop: false,
+              onPopInvokedWithResult: (didPop, result) async {
+                if (didPop) return; // Already popped
+                Navigator.of(context).pop(result);
+                // if (_hasMissingRequiredFields()) {
+                //   bool leave = await _showIncompleteDialog();
+                //   if (leave) {} //Navigator.of(context).pop(result);
+                // } else {
+                //   await _saveProfile(user); // Auto-save before leaving
+                //   //Navigator.of(context).pop(result);
+                // }
+              }, // We decide manually
+              child: Scaffold(
+                backgroundColor: colorScheme.surface,
+                appBar: AppBar(
+                  foregroundColor: colorScheme.primary,
+                  backgroundColor: colorScheme.onPrimary,
+                  title: Text(
+                    'Designer',
+                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  elevation: 0,
+                  actions: [
+                    Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: CustomIconButtonRounded(
+                        onPressed: () async {
+                          if (_formKey.currentState!.validate()) {
+                            await _saveDesignerProfile(designer, context);
+                            //Navigator.of(context).pop();
+                          }
+                        },
+                        iconData: Icons.check,
+                      ),
+                    ),
+                  ],
+                ),
+                body: SafeArea(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(0),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          BannerImageWidget(
+                            uid: designer.uid,
+                            url: ValueNotifier(designer.bannerImage!),
+                          ),
 
-        return PopScope(
-          canPop: false,
-          onPopInvokedWithResult: (didPop, result) async {
-            if (didPop) return; // Already popped
-            Navigator.of(context).pop(result);
-            // if (_hasMissingRequiredFields()) {
-            //   bool leave = await _showIncompleteDialog();
-            //   if (leave) {} //Navigator.of(context).pop(result);
-            // } else {
-            //   await _saveProfile(user); // Auto-save before leaving
-            //   //Navigator.of(context).pop(result);
-            // }
-          }, // We decide manually
-          child: Scaffold(
-            backgroundColor: colorScheme.surface,
-            appBar: AppBar(
-              foregroundColor: colorScheme.primary,
-              backgroundColor: colorScheme.onPrimary,
-              title: Text(
-                'Designer',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.bold),
-              ),
-              elevation: 0,
-              actions: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: CustomIconButtonRounded(
-                    onPressed: () async {
-                      if (_formKey.currentState!.validate()) {
-                        await _saveDesignerProfile(widget.designer, context);
-                        //Navigator.of(context).pop();
-                      }
-                    },
-                    iconData: Icons.check,
+                          const SizedBox(height: 4),
+                          Padding(
+                            padding: EdgeInsetsGeometry.all(16),
+                            child: Text(
+                              "Your next client is looking — make sure they see your best.",
+                            ),
+                          ),
+
+                          //const SizedBox(height: 4),
+                          Card(
+                            color: colorScheme.onPrimary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(0),
+                            ),
+                            elevation: 0,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      CustomIconRounded(
+                                        icon: Icons.store_mall_directory,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: ProfileInfoTextFieldWidget(
+                                          label: 'Business Name',
+                                          controller: _businessNameController,
+                                          hint: 'Enter your Business Name',
+                                          validator: (value) {
+                                            if (!RegExp(
+                                              r'^([A-Za-z_][A-Za-z0-9_]\w+)?',
+                                            ).hasMatch(value!)) {
+                                              return 'Please enter a valid name';
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Card(
+                            color: colorScheme.onPrimary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(0),
+                            ),
+                            elevation: 0,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      CustomIconRounded(
+                                        icon: Icons.phone_android_outlined,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Expanded(
+                                        child: ProfileInfoTextFieldWidget(
+                                          label: 'Mobile Number',
+                                          controller: _mobileNumberController,
+                                          hint:
+                                              'Enter your business mobile number',
+                                          validator: (value) {
+                                            if (!RegExp(
+                                              r'^((\+?\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$)?',
+                                            ).hasMatch(value!)) {
+                                              return 'Please enter a valid mobile number';
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Divider(
+                                    height: 16,
+                                    thickness: 1,
+                                    indent: 48,
+                                    color: Colors.grey[300],
+                                  ),
+                                  Row(
+                                    children: [
+                                      CustomIconRounded(
+                                        icon: Icons.edit_location,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: ProfileInfoTextFieldWidget(
+                                          label: 'Business Location',
+                                          controller: _locationController,
+                                          hint: 'Enter your Business location',
+                                          validator: (value) {
+                                            if (!RegExp(
+                                              r'^([A-Za-z_][A-Za-z0-9_]\w+)?',
+                                            ).hasMatch(value!)) {
+                                              return 'Please enter a valid location';
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          FeaturedImagesWidget(designer: designer),
+                          const SizedBox(height: 4),
+                          Card(
+                            color: colorScheme.onPrimary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(0),
+                            ),
+                            elevation: 0,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      CustomIconRounded(icon: Icons.tag),
+                                      const SizedBox(width: 8),
+                                      Text("Featured Tags"),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  TagInputField(
+                                    label: '',
+                                    hint:
+                                        'Type and press Enter, Space or Comma to add a tag',
+                                    valueIn: designer.tags == ''
+                                        ? []
+                                        : designer.tags.split('|'),
+                                    valueOut: (value) =>
+                                        _tagsController.text = value.join('|'),
+                                  ),
+                                  // Wrap(
+                                  //   spacing: 8,
+                                  //   runSpacing: 8,
+                                  //   children: List.generate(
+                                  //     designer.tags.length,
+                                  //     (index) => Chip(
+                                  //       label: Text(
+                                  //         designer.tags[index],
+                                  //       ),
+                                  //     ),
+                                  //   ),
+                                  // ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Card(
+                            color: colorScheme.onPrimary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(0),
+                            ),
+                            elevation: 0,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      CustomIconRounded(icon: Icons.link),
+                                      const SizedBox(width: 8),
+                                      Text("Social Media Handles"),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  SocialHandleFieldWidget(
+                                    provider: "Facebook",
+                                    socialHandles: socialHandles,
+                                    valueOut: (value) {
+                                      final index = socialHandles.indexWhere(
+                                        (h) =>
+                                            h.provider.toLowerCase() ==
+                                            value.provider.toLowerCase(),
+                                      );
+                                      index != -1
+                                          ? socialHandles[index] = value
+                                          : socialHandles.add(value);
+                                    },
+                                  ),
+                                  SocialHandleFieldWidget(
+                                    provider: "Instagram",
+                                    socialHandles: socialHandles,
+                                    valueOut: (value) {
+                                      final index = socialHandles.indexWhere(
+                                        (h) =>
+                                            h.provider.toLowerCase() ==
+                                            value.provider.toLowerCase(),
+                                      );
+                                      index != -1
+                                          ? socialHandles[index] = value
+                                          : socialHandles.add(value);
+                                    },
+                                  ),
+                                  SocialHandleFieldWidget(
+                                    provider: "X",
+                                    socialHandles: socialHandles,
+                                    valueOut: (value) {
+                                      final index = socialHandles.indexWhere(
+                                        (h) =>
+                                            h.provider.toLowerCase() ==
+                                            value.provider.toLowerCase(),
+                                      );
+                                      index != -1
+                                          ? socialHandles[index] = value
+                                          : socialHandles.add(value);
+                                    },
+                                  ),
+                                  SocialHandleFieldWidget(
+                                    provider: "TikTok",
+                                    socialHandles: socialHandles,
+                                    valueOut: (value) {
+                                      final index = socialHandles.indexWhere(
+                                        (h) =>
+                                            h.provider.toLowerCase() ==
+                                            value.provider.toLowerCase(),
+                                      );
+                                      index != -1
+                                          ? socialHandles[index] = value
+                                          : socialHandles.add(value);
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Card(
+                            color: colorScheme.onPrimary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(0),
+                            ),
+                            elevation: 0,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      CustomIconRounded(
+                                        icon: Icons.account_box_outlined,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text("Bio"),
+                                    ],
+                                  ),
+                                  TextFormField(
+                                    controller: _bioController,
+                                    style: textTheme.titleSmall,
+                                    decoration: InputDecoration(
+                                      hintText:
+                                          "Give us your vibe in a few words.",
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide.none,
+                                      ),
+                                      hintStyle: textTheme.titleSmall,
+                                      filled: true,
+                                      fillColor: Colors.transparent,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-              ],
-            ),
-            body: SafeArea(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      
-                      BannerImageWidget(uid: widget.designer.uid, url: ValueNotifier(widget.designer.bannerImage!)),
-
-                      const SizedBox(height: 4),
-                      Padding(
-                        padding: EdgeInsetsGeometry.all(16),
-                        child: Text(
-                          "Your next client is looking — make sure they see your best.",
-                        ),
-                      ),
-
-                      //const SizedBox(height: 4),
-                      Card(
-                        color: colorScheme.onPrimary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(0),
-                        ),
-                        elevation: 0,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  CustomIconRounded(
-                                    icon: Icons.store_mall_directory,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: ProfileInfoTextFieldWidget(
-                                      label: 'Business Name',
-                                      controller: _businessNameController,
-                                      hint: 'Enter your Business Name',
-                                      validator: (value) {
-                                        if (!RegExp(
-                                          r'^([A-Za-z_][A-Za-z0-9_]\w+)?',
-                                        ).hasMatch(value!)) {
-                                          return 'Please enter a valid name';
-                                        }
-                                        return null;
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Card(
-                        color: colorScheme.onPrimary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(0),
-                        ),
-                        elevation: 0,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  CustomIconRounded(
-                                    icon: Icons.phone_android_outlined,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Expanded(
-                                    child: ProfileInfoTextFieldWidget(
-                                      label: 'Mobile Number',
-                                      controller: _mobileNumberController,
-                                      hint: 'Enter your business mobile number',
-                                      validator: (value) {
-                                        if (!RegExp(
-                                          r'^((\+?\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$)?',
-                                        ).hasMatch(value!)) {
-                                          return 'Please enter a valid mobile number';
-                                        }
-                                        return null;
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Divider(
-                                height: 16,
-                                thickness: 1,
-                                indent: 48,
-                                color: Colors.grey[300],
-                              ),
-                              Row(
-                                children: [
-                                  CustomIconRounded(icon: Icons.edit_location),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: ProfileInfoTextFieldWidget(
-                                      label: 'Business Location',
-                                      controller: _locationController,
-                                      hint: 'Enter your Business location',
-                                      validator: (value) {
-                                        if (!RegExp(
-                                          r'^([A-Za-z_][A-Za-z0-9_]\w+)?',
-                                        ).hasMatch(value!)) {
-                                          return 'Please enter a valid location';
-                                        }
-                                        return null;
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      FeaturedImagesWidget(designer: widget.designer),
-                      const SizedBox(height: 4),
-                      Card(
-                        color: colorScheme.onPrimary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(0),
-                        ),
-                        elevation: 0,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  CustomIconRounded(icon: Icons.tag),
-                                  const SizedBox(width: 8),
-                                  Text("Featured Tags"),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              TagInputField(
-                                label: '',
-                                hint:
-                                    'Type and press Enter, Space or Comma to add a tag',
-                                valueIn: widget.designer.tags == ''
-                                    ? []
-                                    : widget.designer.tags.split('|'),
-                                valueOut: (value) =>
-                                    _tagsController.text = value.join('|'),
-                              ),
-                              // Wrap(
-                              //   spacing: 8,
-                              //   runSpacing: 8,
-                              //   children: List.generate(
-                              //     widget.designer.tags.length,
-                              //     (index) => Chip(
-                              //       label: Text(
-                              //         widget.designer.tags[index],
-                              //       ),
-                              //     ),
-                              //   ),
-                              // ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Card(
-                        color: colorScheme.onPrimary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(0),
-                        ),
-                        elevation: 0,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  CustomIconRounded(icon: Icons.link),
-                                  const SizedBox(width: 8),
-                                  Text("Social Media Handles"),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              SocialHandleFieldWidget(
-                                provider: "Facebook",
-                                socialHandles: socialHandles,
-                                valueOut: (value) {
-                                  final index = socialHandles.indexWhere(
-                                    (h) =>
-                                        h.provider.toLowerCase() ==
-                                        value.provider.toLowerCase(),
-                                  );
-                                  index != -1
-                                      ? socialHandles[index] = value
-                                      : socialHandles.add(value);
-                                },
-                              ),
-                              SocialHandleFieldWidget(
-                                provider: "Instagram",
-                                socialHandles: socialHandles,
-                                valueOut: (value) {
-                                  final index = socialHandles.indexWhere(
-                                    (h) =>
-                                        h.provider.toLowerCase() ==
-                                        value.provider.toLowerCase(),
-                                  );
-                                  index != -1
-                                      ? socialHandles[index] = value
-                                      : socialHandles.add(value);
-                                },
-                              ),
-                              SocialHandleFieldWidget(
-                                provider: "X",
-                                socialHandles: socialHandles,
-                                valueOut: (value) {
-                                  final index = socialHandles.indexWhere(
-                                    (h) =>
-                                        h.provider.toLowerCase() ==
-                                        value.provider.toLowerCase(),
-                                  );
-                                  index != -1
-                                      ? socialHandles[index] = value
-                                      : socialHandles.add(value);
-                                },
-                              ),
-                              SocialHandleFieldWidget(
-                                provider: "TikTok",
-                                socialHandles: socialHandles,
-                                valueOut: (value) {
-                                  final index = socialHandles.indexWhere(
-                                    (h) =>
-                                        h.provider.toLowerCase() ==
-                                        value.provider.toLowerCase(),
-                                  );
-                                  index != -1
-                                      ? socialHandles[index] = value
-                                      : socialHandles.add(value);
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Card(
-                        color: colorScheme.onPrimary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(0),
-                        ),
-                        elevation: 0,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  CustomIconRounded(
-                                    icon: Icons.account_box_outlined,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text("Bio"),
-                                ],
-                              ),
-                              TextFormField(
-                                controller: _bioController,
-                                style: textTheme.titleSmall,
-                                decoration: InputDecoration(
-                                  hintText: "Give us your vibe in a few words.",
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  hintStyle: textTheme.titleSmall,
-                                  filled: true,
-                                  fillColor: Colors.transparent,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ),
-            ),
-          ),
-        );
+            );
+
+          case DesignerError(:final message):
+            return Center(child: Text("Error: $message"));
+          default:
+            return const Center(child: Text("No designer data"));
+        }
       },
     );
   }
@@ -445,7 +460,6 @@ class _EditDesignerProfileScreenState extends State<EditDesignerProfileScreen> {
       businessName: businessName,
       tags: tags,
       socialHandles: socials,
-
     );
 
     showDialog(

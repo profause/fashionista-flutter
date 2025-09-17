@@ -11,7 +11,9 @@ import 'package:fashionista/data/services/hive/hive_trend_comment_service.dart';
 import 'package:fashionista/data/services/hive/hive_trend_service.dart';
 import 'package:fashionista/domain/usecases/auth/signout_usecase.dart';
 import 'package:fashionista/presentation/screens/auth/sign_in_screen.dart';
+import 'package:fashionista/presentation/screens/profile/user_interest_screen.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_card_widget.dart';
+import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -105,11 +107,34 @@ class UserProfilePage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-
+          ProfileInfoCardWidget(
+            items: [
+              ProfileInfoItem(
+                title: 'Exploring fashion identity',
+                value: '',
+                suffix: CustomIconButtonRounded(
+                  iconData: Icons.interests_outlined,
+                  size: 24,
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => UserInterestScreen(fromWhere: 'UserProfilePage'),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
           // sign out
+          const SizedBox(height: 8),
           Card(
+            margin: const EdgeInsets.all(0),
             color: colorScheme.onPrimary,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(0),
+            ),
             elevation: 0,
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -125,10 +150,9 @@ class UserProfilePage extends StatelessWidget {
                     ),
                     child: Text(
                       'Sign out',
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyLarge
-                          ?.copyWith(color: Colors.red),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyLarge?.copyWith(color: Colors.red),
                     ),
                   ),
                 ],
@@ -189,23 +213,23 @@ class UserProfilePage extends StatelessWidget {
 
       // ✅ remove loading dialog safely
       //if (context.mounted) {
-        //Navigator.of(context, rootNavigator: true).maybePop();
+      //Navigator.of(context, rootNavigator: true).maybePop();
       //}
 
       // ✅ navigate to sign in
-     // if (context.mounted) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) =>
-                const SignInScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              return FadeTransition(opacity: animation, child: child);
-            },
-            transitionDuration: const Duration(milliseconds: 400),
-          ),
-          (route) => false,
-        );
+      // if (context.mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const SignInScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+          transitionDuration: const Duration(milliseconds: 400),
+        ),
+        (route) => false,
+      );
       //}
     }
   }

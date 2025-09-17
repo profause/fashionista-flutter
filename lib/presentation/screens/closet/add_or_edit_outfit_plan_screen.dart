@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:fashionista/core/service_locator/local_notification_service.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_outfit_bloc.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_outfit_bloc_event.dart';
@@ -16,6 +17,7 @@ import 'package:fashionista/presentation/widgets/custom_text_input_field_widget.
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
@@ -41,12 +43,17 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
   late List<int> selectedDays = [];
   late DateTime selectedEndDate;
   late UserBloc userBloc;
+  late bool setReminder = false;
 
   late bool isEdit = false;
   String? endType = "never";
+  int whenToRemind = 10;
+
+  late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
   @override
   void initState() {
+    setReminder = false;
     isEdit = widget.outfitPlan?.uid?.isNotEmpty ?? false;
     userBloc = context.read<UserBloc>();
     _startDateController = TextEditingController();
@@ -80,6 +87,9 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
         ? widget.outfitPlan!.recurrence
         : 'none';
 
+    whenToRemind = widget.outfitPlan?.whenToRemind ?? 10;
+    setReminder = widget.outfitPlan?.setReminder ?? false;
+
     _recurrenceCountController = TextEditingController();
     _recurrenceCountController.text =
         widget.outfitPlan?.recurrenceCount?.toString() ?? '';
@@ -96,6 +106,22 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
     //   ];
     // }
 
+    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+    var initializationSettingsAndroid = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
+    const DarwinInitializationSettings initializationSettingsDarwin =
+        DarwinInitializationSettings(
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+        );
+
+    var initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+      iOS: initializationSettingsDarwin,
+    );
+    //flutterLocalNotificationsPlugin.initialize(initializationSettings);
     super.initState();
   }
 
@@ -359,6 +385,106 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
                     ),
                   ),
                 ),
+                //const SizedBox(height: 8,),
+                Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    color: colorScheme.onPrimary,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Text('Set Reminder', style: textTheme.titleSmall),
+                            const Spacer(),
+                            Switch(
+                              value: setReminder,
+                              onChanged: (val) {
+                                setState(() {
+                                  setReminder = val;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                        if (setReminder) ...[
+                          const SizedBox(height: 8),
+                          Divider(thickness: 1, color: Colors.grey[300]),
+                          const SizedBox(height: 8),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              "When would you like to be reminded?",
+                              style: textTheme.titleSmall,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Radio<int>(
+                                value: 10,
+                                groupValue: whenToRemind,
+                                visualDensity: VisualDensity.compact,
+                                onChanged: (val) => setState(() {
+                                  whenToRemind = val!;
+                                }),
+                              ),
+                              Text(
+                                "10 minutes earlier",
+                                style: textTheme.titleSmall,
+                              ),
+                            ],
+                          ),
+
+                          Row(
+                            children: [
+                              Radio<int>(
+                                value: 60,
+                                groupValue: whenToRemind,
+                                visualDensity: VisualDensity.compact,
+                                onChanged: (val) => setState(() {
+                                  whenToRemind = val!;
+                                }),
+                              ),
+                              Text(
+                                "An hour earlier",
+                                style: textTheme.titleSmall,
+                              ),
+                            ],
+                          ),
+
+                          Row(
+                            children: [
+                              Radio<int>(
+                                value: 30,
+                                groupValue: whenToRemind,
+                                visualDensity: VisualDensity.compact,
+                                onChanged: (val) => setState(() {
+                                  whenToRemind = val!;
+                                }),
+                              ),
+                              Text(
+                                "30 minutes earlier",
+                                style: textTheme.titleSmall,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -420,6 +546,8 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
         recurrenceCount: recurrenceCount,
         note: occassion,
         thumbnailUrl: thumbnailUrl,
+        whenToRemind: whenToRemind,
+        setReminder: setReminder,
       );
       final result = isEdit
           ? await sl<FirebaseClosetService>().updateOutfitPlan(outfitPlan)
@@ -436,12 +564,22 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
             context,
           ).showSnackBar(SnackBar(content: Text(l)));
         },
-        (r) {
+        (r) async {
           // _buttonLoadingStateCubit.setLoading(false);
           if (!mounted) return;
           context.read<ClosetOutfitBloc>().add(
             const LoadOutfitsCacheFirstThenNetwork(''),
           );
+          if (setReminder) {
+            //schedule notification
+            DateTime remiderDate = DateTime.fromMillisecondsSinceEpoch(
+              outfitPlan.date,
+            ).subtract(Duration(minutes: whenToRemind));
+            await scheduleOutfitReminder(
+              remiderDate,
+              "Your outfit for ${outfitPlan.occassion} is scheduled!",
+            );
+          }
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('✅ Outfit plan saved successfully!')),
           );
@@ -468,5 +606,25 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
     _recurrenceController.dispose();
     _recurrenceCountController.dispose();
     super.dispose();
+  }
+
+  Future<void> scheduleOutfitReminder(DateTime dateTime, String message) async {
+    // await flutterLocalNotificationsPlugin.zonedSchedule(
+    //   0, // id
+    //   'Outfit Reminder',
+    //   message,
+    //   tz.TZDateTime.from(dateTime, tz.local),
+    //   details,
+    //   androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    //   matchDateTimeComponents: DateTimeComponents.dateAndTime,
+    // );
+
+    await LocalNotificationService.scheduleNotification(
+      id: dateTime.millisecondsSinceEpoch ~/ 1000, // unique id
+      title: "Outfit Reminder",
+      body: message,
+      //scheduledDate: dateTime,
+      // remind 1 hour before
+    );
   }
 }

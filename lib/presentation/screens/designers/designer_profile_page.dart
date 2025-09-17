@@ -47,8 +47,22 @@ class _DesignerProfilePageState extends State<DesignerProfilePage> {
                       icon: Icons.person_outline_outlined,
                       title: '',
                       value: designer.name,
+                      suffix: CustomIconButtonRounded(
+                        iconData: Icons.edit,
+                        size: 18,
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  EditDesignerProfileScreen(designer: designer),
+                            ),
+                          );
+                        },
+                      )
                     ),
                   ],
+                  
                 ),
                 ProfileInfoCardWidget(
                   items: [

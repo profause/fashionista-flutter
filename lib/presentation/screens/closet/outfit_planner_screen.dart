@@ -18,6 +18,7 @@ import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:intl/intl.dart';
 import 'package:dartz/dartz.dart' as dartz;
@@ -62,6 +63,7 @@ class _OutfitPlannerScreenState extends State<OutfitPlannerScreen> {
     //   LoadOutfitPlansForCalendar('', _currentDate, _currentDate),
     // );
     _loadPlansForDate(_startOfTheWeek, _endOfTheWeek);
+
     super.initState();
   }
 
@@ -786,4 +788,5 @@ class _OutfitPlannerScreenState extends State<OutfitPlannerScreen> {
       ).showSnackBar(SnackBar(content: Text(e.message!)));
     }
   }
+
 }

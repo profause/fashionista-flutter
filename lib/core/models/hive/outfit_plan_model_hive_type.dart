@@ -12,4 +12,6 @@ class OutfitPlanModelHiveType {
   static const int recurrenceCount = 10;
   static const int note = 11;
   static const int thumbnailUrl = 12;
+  static const int setReminder = 13;
+  static const int whenToRemind = 14;
 }

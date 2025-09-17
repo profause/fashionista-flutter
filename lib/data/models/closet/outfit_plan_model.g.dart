@@ -30,13 +30,15 @@ class OutfitPlanModelAdapter extends TypeAdapter<OutfitPlanModel> {
       createdAt: fields[7] as int?,
       updatedAt: fields[8] as int?,
       thumbnailUrl: fields[12] as String?,
+      setReminder: fields[13] as bool?,
+      whenToRemind: fields[14] as int?,
     );
   }
 
   @override
   void write(BinaryWriter writer, OutfitPlanModel obj) {
     writer
-      ..writeByte(13)
+      ..writeByte(15)
       ..writeByte(0)
       ..write(obj.uid)
       ..writeByte(6)
@@ -62,7 +64,11 @@ class OutfitPlanModelAdapter extends TypeAdapter<OutfitPlanModel> {
       ..writeByte(8)
       ..write(obj.updatedAt)
       ..writeByte(12)
-      ..write(obj.thumbnailUrl);
+      ..write(obj.thumbnailUrl)
+      ..writeByte(13)
+      ..write(obj.setReminder)
+      ..writeByte(14)
+      ..write(obj.whenToRemind);
   }
 
   @override
@@ -98,6 +104,8 @@ OutfitPlanModel _$OutfitPlanModelFromJson(Map<String, dynamic> json) =>
       createdAt: (json['created_at'] as num?)?.toInt(),
       updatedAt: (json['updated_at'] as num?)?.toInt(),
       thumbnailUrl: json['thumbnail_url'] as String?,
+      setReminder: json['set_reminder'] as bool?,
+      whenToRemind: (json['when_to_remind'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$OutfitPlanModelToJson(OutfitPlanModel instance) =>
@@ -115,4 +123,6 @@ Map<String, dynamic> _$OutfitPlanModelToJson(OutfitPlanModel instance) =>
       'created_at': instance.createdAt,
       'updated_at': instance.updatedAt,
       'thumbnail_url': instance.thumbnailUrl,
+      'set_reminder': instance.setReminder,
+      'when_to_remind': instance.whenToRemind,
     };

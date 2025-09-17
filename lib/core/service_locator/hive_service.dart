@@ -31,6 +31,7 @@ class HiveService {
   late final Box trendsBox;
   late final Box trendCommentsBox;
   late final Box closetBox;
+  late final Box userInterestsBox;
 
   /// Initialize Hive + boxes (call once at startup)
   Future<void> init() async {
@@ -57,6 +58,7 @@ class HiveService {
       trendsBox = await Hive.openBox('trends_feed_cache');
       trendCommentsBox = await Hive.openBox('trend_comments_cache');
       closetBox = await Hive.openBox('closet_cache');
+      userInterestsBox = await Hive.openBox('user_interests_cache');
 
       debugPrint('✅ Hive initialized and designersBox opened');
     } catch (e) {

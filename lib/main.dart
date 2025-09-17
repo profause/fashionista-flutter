@@ -1,7 +1,11 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:fashionista/app_starter.dart';
 import 'package:fashionista/core/auth/auth_provider_cubit.dart';
 import 'package:fashionista/core/onboarding/onboarding_cubit.dart';
 import 'package:fashionista/core/service_locator/hive_service.dart';
+import 'package:fashionista/core/service_locator/local_notification_service.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/theme/theme_cubit.dart';
@@ -23,11 +27,14 @@ import 'package:fashionista/presentation/screens/closet/closet_items_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
 import 'firebase_options.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,7 +50,22 @@ Future<void> main() async {
   //Ensure Hive is ready before app starts
   await HiveService().init();
 
+  await _configureLocalTimeZone();
+  await LocalNotificationService.init();
+
   runApp(const MyApp());
+}
+
+Future<void> _configureLocalTimeZone() async {
+  if (kIsWeb || Platform.isLinux) {
+    return;
+  }
+  tz.initializeTimeZones();
+  if (Platform.isWindows) {
+    return;
+  }
+  final String? timeZoneName = await FlutterTimezone.getLocalTimezone();
+  tz.setLocalLocation(tz.getLocation(timeZoneName!));
 }
 
 class MyApp extends StatelessWidget {

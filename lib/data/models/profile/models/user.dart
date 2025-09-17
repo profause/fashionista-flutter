@@ -39,6 +39,9 @@ class User extends Equatable {
   @JsonKey(name: 'device_id')
   final String? deviceId;
 
+  @JsonKey(name: 'interests')
+  final List<String>? interests;
+
   const User({
     required this.fullName,
     required this.userName,
@@ -53,6 +56,7 @@ class User extends Equatable {
     this.uid,
     this.bannerImage,
     this.deviceId = '',
+    this.interests = const [],
 
   });
 
@@ -72,6 +76,7 @@ class User extends Equatable {
       joinedDate: null,
       bannerImage: '',
       deviceId: '',
+      interests: [],
     );
   }
 
@@ -93,7 +98,8 @@ class User extends Equatable {
     String? uid,
     DateTime? joinedDate,
     String? bannerImage,
-    String? deviceId
+    String? deviceId,
+    List<String>? interests
   }) {
     return User(
       fullName: fullName ?? this.fullName,
@@ -108,7 +114,8 @@ class User extends Equatable {
       uid: uid ?? this.uid,
       joinedDate: joinedDate ?? this.joinedDate
       ,bannerImage: bannerImage ?? this.bannerImage,
-      deviceId: deviceId ?? this.deviceId
+      deviceId: deviceId ?? this.deviceId,
+      interests: interests ?? this.interests
     );
   }
 
@@ -127,5 +134,6 @@ class User extends Equatable {
         joinedDate,
         bannerImage,
         deviceId,
+        interests
       ];
 }

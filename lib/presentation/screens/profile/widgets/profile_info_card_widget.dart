@@ -43,27 +43,34 @@ class ProfileInfoCardWidget extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    CustomIconRounded(icon: icon!),
-                    const SizedBox(width: 16),
-                    //Expanded(
-                    //child:
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (title.isNotEmpty) ...[
-                          Text(title, style: textTheme.titleSmall),
-                          const SizedBox(height: 4),
+                    if (icon != null) ...[
+                      CustomIconRounded(icon: icon),
+                      const SizedBox(width: 16),
+                    ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (title.isNotEmpty) ...[
+                            Text(title, style: textTheme.titleSmall),
+                            const SizedBox(height: 4),
+                          ],
+                          if (value.isNotEmpty) ...[
+                            Text(
+                              value,
+                              style: textTheme.labelLarge!.copyWith(
+                                color: colorScheme.primary,
+                              ),
+                              maxLines: 2, // restrict to one line
+                              overflow: TextOverflow
+                                  .ellipsis, // show "..." for overflow
+                              softWrap: true, // optional, keeps it single-line
+                            ),
+                          ],
                         ],
-                        Text(
-                          value,
-                          style: textTheme.labelLarge!.copyWith(
-                            color: colorScheme.primary,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                    //),
                     if (suffix != null) ...[const Spacer(), suffix],
                   ],
                 ),
