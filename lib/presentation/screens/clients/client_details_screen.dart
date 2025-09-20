@@ -129,7 +129,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                                   size: 20,
                                   iconData: Icons.edit,
                                   onPressed: () async {
-                                    final result = await Navigator.push(
+                                    await Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (_) => BlocProvider.value(

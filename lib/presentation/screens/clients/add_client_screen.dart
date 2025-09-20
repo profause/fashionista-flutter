@@ -5,9 +5,12 @@ import 'package:fashionista/core/widgets/animated_primary_button.dart';
 import 'package:fashionista/core/widgets/bloc/button_loading_state_cubit.dart';
 import 'package:fashionista/data/models/clients/client_measurement_model.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
+import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
+import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/domain/usecases/clients/add_client_usecase.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/custom_chip_form_field_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_text_field_widget.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -22,23 +25,23 @@ class AddClientScreen extends StatefulWidget {
 
 class _AddClientScreenState extends State<AddClientScreen> {
   final _formKey = GlobalKey<FormState>();
-  late AuthProviderCubit _authProviderCubit;
+  //late AuthProviderCubit _authProviderCubit;
   late TextEditingController _fullNameController;
   late TextEditingController _mobileNumberController;
   late TextEditingController _genderController;
   late ButtonLoadingStateCubit _buttonLoadingStateCubit;
-
+  late UserBloc userBloc;
   @override
   void initState() {
     //if (mounted) {
-    _authProviderCubit = context.read<AuthProviderCubit>();
+    //_authProviderCubit = context.read<AuthProviderCubit>();
     _buttonLoadingStateCubit = context.read<ButtonLoadingStateCubit>();
     _fullNameController = TextEditingController();
     _genderController = TextEditingController();
     _genderController.text = 'Male';
     _mobileNumberController = TextEditingController();
     //}
-
+    userBloc = context.read<UserBloc>();
     super.initState();
   }
 
@@ -165,7 +168,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
               final isValid = RegExp(
                 r'^(\+?\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$',
               ).hasMatch(number);
-          
+
               if (!isValid) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -185,6 +188,9 @@ class _AddClientScreenState extends State<AddClientScreen> {
 
   Future<void> _saveClient(Client client) async {
     try {
+      User user = userBloc.state;
+      String createdBy =
+          user.uid ?? firebase_auth.FirebaseAuth.instance.currentUser!.uid;
       _buttonLoadingStateCubit.setLoading(true);
       final fullName = _fullNameController.text.trim();
       final gender = _genderController.text.trim();
@@ -202,7 +208,6 @@ class _AddClientScreenState extends State<AddClientScreen> {
         gender,
       );
       final uid = Uuid().v4();
-      final createdBy = _authProviderCubit.state.uid;
       final createdDate = DateTime.now();
       final newClient = client.copyWith(
         uid: uid,
@@ -233,6 +238,9 @@ class _AddClientScreenState extends State<AddClientScreen> {
           //BlocProvider.of<ClientBloc>(context).add(const LoadClientsCacheFirstThenNetwork(''));
           if (!mounted) return;
           //Navigator.pop(context);
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Client added successfully!')));
           Navigator.pop(context, true);
         },
       );

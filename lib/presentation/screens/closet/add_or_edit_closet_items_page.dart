@@ -71,7 +71,7 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
     });
 
     if (isEdit) {
-      widget.closetItemModel?.featuredMedia?.forEach((media) {
+      widget.closetItemModel?.featuredMedia.forEach((media) {
         previewImages.add(media.url!);
       });
     }
@@ -120,192 +120,273 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomTextInputFieldWidget(
-                  autofocus: true,
-                  controller: _descriptionController,
-                  hint: hints[random.nextInt(hints.length)],
-                  minLines: 1,
-                  maxLength: 50,
-                  validator: (value) {
-                    if ((value ?? "").isEmpty) {
-                      return 'Please enter a description';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 8),
-                ClosetItemCategoryAutocompleteFormFieldWidget(
-                  controller: _categoryController,
-                ),
-                const SizedBox(height: 8),
-                CustomTextInputFieldWidget(
-                  autofocus: true,
-                  controller: _brandController,
-                  hint: 'What brand is it?',
-                  minLines: 1,
-                  maxLength: 50,
-                  validator: (value) {
-                    if ((value ?? "").isEmpty) {
-                      return 'Please enter a description';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 8),
-                Text('Upload an image of the item', style: textTheme.bodyLarge),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    CustomIconButtonRounded(
-                      size: 24,
-                      onPressed: () {
-                        //_chooseImageSource(context);
-                        _showImageSourceDialog();
-                      },
-                      iconData: Icons.add_photo_alternate_outlined,
-                    ),
-                    const SizedBox(width: 8),
-                    if (previewImages.isNotEmpty)
-                      Expanded(
-                        child: SizedBox(
-                          height: 120,
-                          child: ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            padding: const EdgeInsets.all(8),
-                            itemCount: previewImages.length,
-                            separatorBuilder: (_, __) =>
-                                const SizedBox(width: 8),
-                            itemBuilder: (context, index) {
-                              final image = previewImages[index];
-                              return Stack(
-                                children: [
-                                  AspectRatio(
-                                    aspectRatio: 1 / 1,
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: isEdit
-                                          ? CachedNetworkImage(
-                                              imageUrl: image.trim(),
-                                              fit: BoxFit.cover,
-                                              placeholder: (context, url) =>
-                                                  const Center(
-                                                    child: SizedBox(
-                                                      height: 18,
-                                                      width: 18,
-                                                      child:
-                                                          CircularProgressIndicator(
-                                                            strokeWidth: 2,
-                                                          ),
-                                                    ),
-                                                  ),
-                                              errorWidget: (context, url, error) {
-                                                return const CustomColoredBanner(
-                                                  text: '',
-                                                );
-                                              },
-                                              errorListener: (value) {},
-                                            )
-                                          : Image.file(
-                                              File(image),
-                                              //width: 180,
-                                              //height: 180,
-                                              fit: BoxFit.cover,
-                                            ),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    top: 4,
-                                    right: 4,
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          previewImages.removeAt(index);
-                                        });
-                                      },
-                                      child: Container(
-                                        decoration: const BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: Colors.black54,
-                                        ),
-                                        padding: const EdgeInsets.all(2),
-                                        child: const Icon(
-                                          Icons.close,
-                                          color: Colors.white,
-                                          size: 16,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
-                          ),
-                        ),
+                Container(
+                  //margin: const EdgeInsets.only(top: 8),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: colorScheme.onPrimary,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
                       ),
-                  ],
+                    ],
+                  ),
+                  child: CustomTextInputFieldWidget(
+                    autofocus: true,
+                    controller: _descriptionController,
+                    hint: hints[random.nextInt(hints.length)],
+                    minLines: 1,
+                    maxLength: 50,
+                    validator: (value) {
+                      if ((value ?? "").isEmpty) {
+                        return 'Please enter a description';
+                      }
+                      return null;
+                    },
+                  ),
                 ),
                 const SizedBox(height: 8),
-                Text('Pick color(s) for this item', style: textTheme.bodyLarge),
+                Container(
+                  padding: const EdgeInsets.only(
+                    top: 8,
+                    left: 4,
+                    right: 0,
+                    bottom: 0,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.onPrimary,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(8),
+                      topRight: Radius.circular(8),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: ClosetItemCategoryAutocompleteFormFieldWidget(
+                    controller: _categoryController,
+                  ),
+                ),
+                const SizedBox(height: 1),
+                Container(
+                  padding: const EdgeInsets.only(
+                    top: 8,
+                    left: 12,
+                    right: 0,
+                    bottom: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.onPrimary,
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(8),
+                      bottomRight: Radius.circular(8),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: CustomTextInputFieldWidget(
+                    autofocus: false,
+                    controller: _brandController,
+                    hint: 'What brand is it?',
+                    minLines: 1,
+                    validator: (value) {
+                      if ((value ?? "").isEmpty) {
+                        return 'Please enter a description';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
                 const SizedBox(height: 8),
-
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    // Selected colors
-                    for (final color in _selectedColors)
-                      Stack(
-                        alignment: Alignment.topRight,
+                Padding(
+                  padding: const EdgeInsets.only(left: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Upload an image of the item',
+                        style: textTheme.bodyLarge,
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: color,
-                              border: Border.all(color: Colors.black12),
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              setState(() => _selectedColors.remove(color));
+                          CustomIconButtonRounded(
+                            size: 24,
+                            onPressed: () {
+                              //_chooseImageSource(context);
+                              _showImageSourceDialog();
                             },
-                            child: Container(
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.black54,
+                            iconData: Icons.add_photo_alternate_outlined,
+                          ),
+                          const SizedBox(width: 8),
+                          if (previewImages.isNotEmpty)
+                            Expanded(
+                              child: SizedBox(
+                                height: 120,
+                                child: ListView.separated(
+                                  scrollDirection: Axis.horizontal,
+                                  padding: const EdgeInsets.all(8),
+                                  itemCount: previewImages.length,
+                                  separatorBuilder: (_, __) =>
+                                      const SizedBox(width: 8),
+                                  itemBuilder: (context, index) {
+                                    final image = previewImages[index];
+                                    return Stack(
+                                      children: [
+                                        AspectRatio(
+                                          aspectRatio: 1 / 1,
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            child: isEdit
+                                                ? CachedNetworkImage(
+                                                    imageUrl: image.trim(),
+                                                    fit: BoxFit.cover,
+                                                    placeholder:
+                                                        (
+                                                          context,
+                                                          url,
+                                                        ) => const Center(
+                                                          child: SizedBox(
+                                                            height: 18,
+                                                            width: 18,
+                                                            child:
+                                                                CircularProgressIndicator(
+                                                                  strokeWidth:
+                                                                      2,
+                                                                ),
+                                                          ),
+                                                        ),
+                                                    errorWidget:
+                                                        (context, url, error) {
+                                                          return const CustomColoredBanner(
+                                                            text: '',
+                                                          );
+                                                        },
+                                                    errorListener: (value) {},
+                                                  )
+                                                : Image.file(
+                                                    File(image),
+                                                    //width: 180,
+                                                    //height: 180,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 4,
+                                          right: 4,
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              setState(() {
+                                                previewImages.removeAt(index);
+                                              });
+                                            },
+                                            child: Container(
+                                              decoration: const BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: Colors.black54,
+                                              ),
+                                              padding: const EdgeInsets.all(2),
+                                              child: const Icon(
+                                                Icons.close,
+                                                color: Colors.white,
+                                                size: 16,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                ),
                               ),
-                              padding: const EdgeInsets.all(2),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Pick color(s) for this item',
+                        style: textTheme.bodyLarge,
+                      ),
+                      const SizedBox(height: 8),
+
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          // Selected colors
+                          for (final color in _selectedColors)
+                            Stack(
+                              alignment: Alignment.topRight,
+                              children: [
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: color,
+                                    border: Border.all(color: Colors.black12),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    setState(
+                                      () => _selectedColors.remove(color),
+                                    );
+                                  },
+                                  child: Container(
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.black54,
+                                    ),
+                                    padding: const EdgeInsets.all(2),
+                                    child: const Icon(
+                                      Icons.close,
+                                      color: Colors.white,
+                                      size: 14,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                          // Add new color button
+                          GestureDetector(
+                            onTap: () => _showColorPickerDialog(context),
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.grey.shade300,
+                                border: Border.all(color: Colors.black12),
+                              ),
                               child: const Icon(
-                                Icons.close,
-                                color: Colors.white,
-                                size: 14,
+                                Icons.add,
+                                size: 20,
+                                color: Colors.black54,
                               ),
                             ),
                           ),
                         ],
                       ),
-
-                    // Add new color button
-                    GestureDetector(
-                      onTap: () => _showColorPickerDialog(context),
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.grey.shade300,
-                          border: Border.all(color: Colors.black12),
-                        ),
-                        child: const Icon(
-                          Icons.add,
-                          size: 20,
-                          color: Colors.black54,
-                        ),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),

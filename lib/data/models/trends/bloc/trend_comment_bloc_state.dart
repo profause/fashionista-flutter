@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:fashionista/data/models/comment/comment_model.dart';
-import 'package:fashionista/data/models/trends/trend_feed_model.dart';
 
 class TrendCommentBlocState extends Equatable {
   const TrendCommentBlocState();

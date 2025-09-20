@@ -1,7 +1,5 @@
-import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_outfit_bloc.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_outfit_bloc_event.dart';
@@ -13,14 +11,12 @@ import 'package:fashionista/data/services/firebase/firebase_closet_service.dart'
 import 'package:fashionista/presentation/screens/closet/widgets/grid_thumbnail_widget.dart';
 import 'package:fashionista/presentation/screens/closet/widgets/outfit_tag_picker_widget.dart';
 import 'package:fashionista/presentation/widgets/custom_autocomplete_form_field_widget.dart';
-import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/custom_text_input_field_widget.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:uuid/uuid.dart';
 
 final occasions = [
@@ -109,7 +105,7 @@ class _AddOrEditOutfitScreenState extends State<AddOrEditOutfitScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final random = Random();
+    //final random = Random();
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -153,7 +149,7 @@ class _AddOrEditOutfitScreenState extends State<AddOrEditOutfitScreen> {
                   clipBehavior: Clip.antiAlias,
                   decoration: BoxDecoration(
                     color: colorScheme.onPrimary,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: GridThumbnailWidget(
                     imageUrls: imageUrls,
@@ -170,25 +166,53 @@ class _AddOrEditOutfitScreenState extends State<AddOrEditOutfitScreen> {
                 ),
 
                 const SizedBox(height: 12),
-                CustomTextInputFieldWidget(
-                  autofocus: true,
-                  controller: _styleController,
-                  hint: 'Describe your style inspiration...',
-                  minLines: 1,
-                  maxLength: 50,
-                  validator: (value) {
-                    if ((value ?? "").isEmpty) {
-                      return 'Describe your style inspiration...';
-                    }
-                    return null;
-                  },
+                Container(
+                  padding: const EdgeInsets.only(left: 12, right: 12, top: 0, bottom: 12),
+                  decoration: BoxDecoration(
+                    color: colorScheme.onPrimary,
+                    borderRadius: BorderRadius.only(topLeft: Radius.circular(8), topRight: Radius.circular(8)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: CustomTextInputFieldWidget(
+                    autofocus: true,
+                    controller: _styleController,
+                    hint: 'Describe your style inspiration...',
+                    minLines: 1,
+                    maxLength: 50,
+                    validator: (value) {
+                      if ((value ?? "").isEmpty) {
+                        return 'Describe your style inspiration...';
+                      }
+                      return null;
+                    },
+                  ),
                 ),
 
-                const SizedBox(height: 8),
-                CustomAutocompleteFormFieldWidget(
-                  controller: _occasionController,
-                  autoCompleteItems: occasions,
-                  hintText: 'Describe the occassion...',
+                const SizedBox(height: 1),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: colorScheme.onPrimary,
+                    borderRadius: BorderRadius.only(bottomLeft: Radius.circular(8), bottomRight: Radius.circular(8)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: CustomAutocompleteFormFieldWidget(
+                    controller: _occasionController,
+                    autoCompleteItems: occasions,
+                    hintText: 'Describe the occassion...',
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Text('Featured tags', style: textTheme.titleSmall),

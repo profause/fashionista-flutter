@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
-import 'package:fashionista/presentation/screens/clients/clients_screen.dart';
+import 'package:fashionista/presentation/screens/clients/clients_and_projects_screen.dart';
 import 'package:fashionista/presentation/screens/closet/closet_screen.dart';
 import 'package:fashionista/presentation/screens/designers/designers_screen.dart';
 import 'package:fashionista/presentation/screens/home/home_screen.dart';
@@ -25,7 +25,7 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _designerPageList = [
     HomeScreen(),
-    ClientsScreen(),
+    ClientsAndProjectsScreen(),
     ClosetScreen(),
     ProfileScreen(),
   ];

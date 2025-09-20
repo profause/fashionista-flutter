@@ -17,7 +17,9 @@ class ClientBloc extends Bloc<ClientBlocEvent, ClientBlocState> {
     //on<UpdateClient>((event, emit) => emit(ClientUpdated(event.client)));
     on<LoadClientsCacheFirstThenNetwork>(_onLoadClientsCacheFirstThenNetwork);
     on<ClearClient>((event, emit) => emit(const ClientInitial()));
+    on<ClientsCounter>(_onCountClients);
   }
+
   Future<void> _onLoadClient(
     LoadClient event,
     Emitter<ClientBlocState> emit,
@@ -64,6 +66,21 @@ class ClientBloc extends Bloc<ClientBlocEvent, ClientBlocState> {
     emit(ClientLoading());
     emit(ClientUpdated(event.client));
     //emit(ClientLoaded(event.client));
+  }
+
+  Future<void> _onCountClients(
+    ClientsCounter event,
+    Emitter<ClientBlocState> emit,
+  ) async {
+    // 1️⃣ Try cache first
+    String uid = event.uid;
+    final cachedItems = await sl<HiveClientService>().getItems(uid);
+
+    if (cachedItems.isEmpty) {
+      emit(ClientsCounted(0));
+      return;
+    }
+    emit(ClientsCounted(cachedItems.length));
   }
 
   Future<void> _onLoadClientsCacheFirstThenNetwork(

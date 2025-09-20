@@ -7,7 +7,6 @@ import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
 import 'package:fashionista/presentation/screens/client_measurement/add_client_measurement_screen.dart';
 import 'package:fashionista/presentation/screens/client_measurement/measurement_info_card_widget.dart';
-import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -22,7 +21,7 @@ class ClientMeasurementScreen extends StatefulWidget {
 }
 
 class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
-  bool _isSearching = false;
+  //bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -40,8 +39,8 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    String _searchText = "";
+    //final textTheme = Theme.of(context).textTheme;
+    //String _searchText = "";
     return BlocBuilder<ClientBloc, ClientBlocState>(
       buildWhen: (context, state) {
         return state is ClientLoaded || state is ClientUpdated;

@@ -115,8 +115,8 @@ class DesignerBloc extends Bloc<DesignerBlocEvent, DesignerState> {
             ? cachedItems.first.createdDate?.millisecondsSinceEpoch
             : null;
 
-        int freshFirstTimestamp =
-            designers.first.createdDate!.millisecondsSinceEpoch;
+        // int freshFirstTimestamp =
+        //     designers.first.createdDate!.millisecondsSinceEpoch;
 
             final isDataChanged = cachedItems.toString() != designers.toString();
 

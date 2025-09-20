@@ -2,17 +2,18 @@ import 'package:equatable/equatable.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
 
 class ClientBlocState extends Equatable {
-  const ClientBlocState();
+  final int clientsCount;
+  const ClientBlocState({this.clientsCount = 0});
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [clientsCount];
 }
 
 class ClientInitial extends ClientBlocState {
-  const ClientInitial();
+  const ClientInitial({super.clientsCount = 0});
 }
 
 class ClientLoading extends ClientBlocState {
-  const ClientLoading();
+  const ClientLoading({super.clientsCount = 0});
 }
 
 class ClientLoaded extends ClientBlocState {
@@ -33,10 +34,17 @@ class ClientUpdated extends ClientBlocState {
 class ClientsLoaded extends ClientBlocState {
   final List<Client> clients;
   final bool fromCache;
-  const ClientsLoaded(this.clients, {this.fromCache = false});
+  const ClientsLoaded(this.clients, {this.fromCache = false})
+    : super(clientsCount: clients.length);
 
   @override
-  List<Object?> get props => [clients];
+  List<Object?> get props => [clients, fromCache, clientsCount];
+}
+
+class ClientsCounted extends ClientBlocState {
+  const ClientsCounted(int count) : super(clientsCount: count);
+  @override
+  List<Object?> get props => [clientsCount];
 }
 
 class ClientsEmpty extends ClientBlocState {
@@ -45,10 +53,10 @@ class ClientsEmpty extends ClientBlocState {
 
 class ClientError extends ClientBlocState {
   final String message;
-  const ClientError(this.message);
+  const ClientError(this.message, {super.clientsCount = 0});
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [message, clientsCount];
 }
 
 class ClientsNewData extends ClientBlocState {
@@ -61,7 +69,7 @@ class ClientsNewData extends ClientBlocState {
 
 class ClientDeleted extends ClientBlocState {
   final String message;
-  const ClientDeleted(this.message);
+  const ClientDeleted(this.message, {super.clientsCount = 0});
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [message, clientsCount];
 }

@@ -3,7 +3,6 @@ import 'package:fashionista/data/models/closet/outfit_plan_model.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
 import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 class OutfitPlanInfoCardWidget extends StatelessWidget {
   final OutfitPlanModel plan;
@@ -13,7 +12,7 @@ class OutfitPlanInfoCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    //final colorScheme = Theme.of(context).colorScheme;
     List<FeaturedMediaModel> featuredMedia = plan.outfitItem.featuredMedia;
 
     String thumbnailUrl = plan.thumbnailUrl ?? '';

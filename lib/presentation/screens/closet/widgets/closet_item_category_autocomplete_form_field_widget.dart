@@ -69,9 +69,10 @@ class _ClosetItemCategoryAutocompleteFormFieldWidgetState
               onFieldSubmitted: (_) => onFieldSubmitted(),
               decoration: InputDecoration(
                 hintText: "Pick or type a category ✨",
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: colorScheme.surfaceContainerHighest,
+                hintStyle: textTheme.titleSmall,
+                suffixIcon: const Icon(Icons.search),
+                filled: false,
+                fillColor: Colors.transparent,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,

@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:dartz/dartz.dart' as dartz;
-import 'package:fashionista/core/auth/auth_provider_cubit.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/widgets/animated_primary_button.dart';
 import 'package:fashionista/core/widgets/bloc/button_loading_state_cubit.dart';
@@ -40,7 +39,6 @@ class _AddDesignCollectionScreenState extends State<AddDesignCollectionScreen> {
   late TextEditingController _visibilityController;
   late TextEditingController _creditsController;
   late ButtonLoadingStateCubit _buttonLoadingStateCubit;
-  late AuthProviderCubit _authProviderCubit;
 
   List<XFile> previewImages = [];
   final ImagePicker picker = ImagePicker();
@@ -53,7 +51,7 @@ class _AddDesignCollectionScreenState extends State<AddDesignCollectionScreen> {
   @override
   void initState() {
     _buttonLoadingStateCubit = context.read<ButtonLoadingStateCubit>();
-    _authProviderCubit = context.read<AuthProviderCubit>();
+    //_authProviderCubit = context.read<AuthProviderCubit>();
     _titleController = TextEditingController();
     _descriptionController = TextEditingController();
     _tagsController = TextEditingController();

@@ -18,7 +18,6 @@ import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:intl/intl.dart';
 import 'package:dartz/dartz.dart' as dartz;
@@ -515,7 +514,7 @@ class _OutfitPlannerScreenState extends State<OutfitPlannerScreen> {
       outfitPlan.outfitItem.uid,
     );
 
-    final thumbnailUrl = outfitPlan.thumbnailUrl ?? '';
+    //final thumbnailUrl = outfitPlan.thumbnailUrl ?? '';
 
     showModalBottomSheet(
       context: context,

@@ -5,7 +5,6 @@ import 'package:fashionista/presentation/screens/home/user_home_page.dart';
 import 'package:fashionista/presentation/screens/trends/discover_trends_screen.dart';
 import 'package:fashionista/presentation/screens/trends/trends_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -90,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   labelColor: colorScheme.primary,
                   unselectedLabelColor: AppTheme.darkGrey,
                   indicatorColor: colorScheme.primary,
-                  dividerHeight: 0.5,
+                  dividerHeight: 0.0,
                   indicatorWeight: 2,
                   tabAlignment: TabAlignment.center,
                   labelPadding: const EdgeInsets.all(0),

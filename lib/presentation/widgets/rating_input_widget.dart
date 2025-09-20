@@ -60,7 +60,7 @@ class _RatingInputWidgetState extends State<RatingInputWidget> {
 
         return GestureDetector(
           onTapDown: (details) {
-            final box = context.findRenderObject() as RenderBox;
+            //final box = context.findRenderObject() as RenderBox;
             final localX = details.localPosition.dx;
             final starWidth = widget.size;
 

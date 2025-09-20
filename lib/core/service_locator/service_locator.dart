@@ -69,7 +69,6 @@ import 'package:fashionista/domain/usecases/trends/follow_or_unfollow_trend_usec
 import 'package:fashionista/domain/usecases/trends/is_followed_trend_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/is_liked_trend_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/like_or_unlike_trend_usecase.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get_it/get_it.dart';
 
 final sl = GetIt.instance;

@@ -40,6 +40,14 @@ class LoadClientsCacheFirstThenNetwork extends ClientBlocEvent {
   List<Object?> get props => [uid];
 }
 
+class ClientsCounter extends ClientBlocEvent {
+  final String uid;
+  const ClientsCounter(this.uid);
+
+  @override
+  List<Object?> get props => [uid];
+}
+
 class DeleteClient extends ClientBlocEvent {
   final String uid;
   const DeleteClient(this.uid);

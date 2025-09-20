@@ -60,7 +60,7 @@ class _CustomFilterButtonState extends State<CustomFilterButton> {
             ),
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             visualDensity: VisualDensity.compact,
-            padding: EdgeInsets.zero, // remove extra padding
+            //padding: EdgeInsets.zero, // remove extra padding
           );
         }).toList(),
       ),

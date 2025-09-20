@@ -12,7 +12,7 @@ abstract class FirebaseClientsService {
   Future<Either> addClientToFirestore(Client client);
   Future<Either> updateClientToFirestore(Client client);
   Future<Either> deleteClientById(String uid);
-
+  Future<Either<String, int>> getCount(String uid);
   Future<bool> isPinnedClient(String uid);
   Future<Either> pinOrUnpinClient(String uid);
   Future<Either> fetchPinnedClients(List<String> uids);
@@ -327,6 +327,27 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
       return Right(isPinned);
     } on FirebaseException catch (e) {
       return Left(e.message);
+    }
+  }
+
+  @override
+  Future<Either<String, int>> getCount(String uid) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final querySnapshot = await firestore
+          .collection('clients')
+          .where('created_by', isEqualTo: uid)
+          .count()
+          .get();
+
+      final clientsCount = querySnapshot.count;
+
+      //await importTrends(sampleTrendsData);
+      return Right(clientsCount ?? 0);
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'An unknown Firebase error occurred');
+    } catch (e) {
+      return Left(e.toString());
     }
   }
 }

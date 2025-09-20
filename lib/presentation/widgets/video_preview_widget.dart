@@ -90,7 +90,7 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget>
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    //final textTheme = Theme.of(context).textTheme;
     return GestureDetector(
       onTap: widget.onTap,
       child: Stack(

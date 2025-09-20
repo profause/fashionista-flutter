@@ -152,7 +152,7 @@ class _ClosetScreenState extends State<ClosetScreen>
                   tabs: [
                     Container(
                       margin: const EdgeInsets.symmetric(
-                        vertical: 2,
+                        vertical: 8,
                         horizontal: 8,
                       ),
                       child: Row(
@@ -228,7 +228,7 @@ class _ClosetScreenState extends State<ClosetScreen>
                     ),
                     Container(
                       margin: const EdgeInsets.symmetric(
-                        vertical: 2,
+                        vertical: 8,
                         horizontal: 8,
                       ),
                       child: Row(

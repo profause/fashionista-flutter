@@ -105,23 +105,6 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
     //     ),
     //   ];
     // }
-
-    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-    var initializationSettingsAndroid = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
-    );
-    const DarwinInitializationSettings initializationSettingsDarwin =
-        DarwinInitializationSettings(
-          requestAlertPermission: true,
-          requestBadgePermission: true,
-          requestSoundPermission: true,
-        );
-
-    var initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsDarwin,
-    );
-    //flutterLocalNotificationsPlugin.initialize(initializationSettings);
     super.initState();
   }
 
@@ -368,6 +351,7 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
                                       ),
                                       const SizedBox(width: 8),
                                       Text(
+                                        // ignore: unnecessary_null_comparison
                                         selectedEndDate != null
                                             ? DateFormat.yMMMd().format(
                                                 selectedEndDate,
@@ -450,23 +434,6 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
                           Row(
                             children: [
                               Radio<int>(
-                                value: 60,
-                                groupValue: whenToRemind,
-                                visualDensity: VisualDensity.compact,
-                                onChanged: (val) => setState(() {
-                                  whenToRemind = val!;
-                                }),
-                              ),
-                              Text(
-                                "An hour earlier",
-                                style: textTheme.titleSmall,
-                              ),
-                            ],
-                          ),
-
-                          Row(
-                            children: [
-                              Radio<int>(
                                 value: 30,
                                 groupValue: whenToRemind,
                                 visualDensity: VisualDensity.compact,
@@ -476,6 +443,22 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
                               ),
                               Text(
                                 "30 minutes earlier",
+                                style: textTheme.titleSmall,
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              Radio<int>(
+                                value: 60,
+                                groupValue: whenToRemind,
+                                visualDensity: VisualDensity.compact,
+                                onChanged: (val) => setState(() {
+                                  whenToRemind = val!;
+                                }),
+                              ),
+                              Text(
+                                "An hour earlier",
                                 style: textTheme.titleSmall,
                               ),
                             ],
@@ -609,21 +592,11 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
   }
 
   Future<void> scheduleOutfitReminder(DateTime dateTime, String message) async {
-    // await flutterLocalNotificationsPlugin.zonedSchedule(
-    //   0, // id
-    //   'Outfit Reminder',
-    //   message,
-    //   tz.TZDateTime.from(dateTime, tz.local),
-    //   details,
-    //   androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-    //   matchDateTimeComponents: DateTimeComponents.dateAndTime,
-    // );
-
     await LocalNotificationService.scheduleNotification(
       id: dateTime.millisecondsSinceEpoch ~/ 1000, // unique id
       title: "Outfit Reminder",
       body: message,
-      //scheduledDate: dateTime,
+      scheduledDate: dateTime,
       // remind 1 hour before
     );
   }
