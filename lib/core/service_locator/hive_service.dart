@@ -11,6 +11,7 @@ import 'package:fashionista/data/models/designers/social_handle_model.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
 import 'package:fashionista/data/models/social_interactions/social_interaction_model.dart';
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
+import 'package:fashionista/data/models/work_order/work_order_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
@@ -32,6 +33,8 @@ class HiveService {
   late final Box trendCommentsBox;
   late final Box closetBox;
   late final Box userInterestsBox;
+  late final Box workOrderBox;
+
 
   /// Initialize Hive + boxes (call once at startup)
   Future<void> init() async {
@@ -51,6 +54,7 @@ class HiveService {
       Hive.registerAdapter(ClosetItemModelAdapter());
       Hive.registerAdapter(OutfitModelAdapter());
       Hive.registerAdapter(OutfitClosetItemAdapter());
+      Hive.registerAdapter(WorkOrderModelAdapter());
 
       designersBox = await Hive.openBox('designers_cache');
       designCollectionsBox = await Hive.openBox('design_collections_cache');
@@ -59,8 +63,9 @@ class HiveService {
       trendCommentsBox = await Hive.openBox('trend_comments_cache');
       closetBox = await Hive.openBox('closet_cache');
       userInterestsBox = await Hive.openBox('user_interests_cache');
+      workOrderBox = await Hive.openBox('work_orders_cache');
 
-      debugPrint('✅ Hive initialized and designersBox opened');
+      debugPrint('✅ Hive initialized');
     } catch (e) {
       debugPrint('❌ Hive init failed: $e');
     }

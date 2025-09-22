@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/domain/usecases/clients/is_pinned_client.dart';
 import 'package:fashionista/domain/usecases/clients/pin_or_unpin_client_usecase.dart';
@@ -23,7 +25,7 @@ class _CustomPinnedClientIconButtonState
     with SingleTickerProviderStateMixin {
   late bool isPinned = false;
   late AnimationController _controller;
-
+  Timer? _debounce; // 👈 debounce timer
   @override
   initState() {
     //getIsPinned();
@@ -55,21 +57,13 @@ class _CustomPinnedClientIconButtonState
       valueListenable: widget.isPinnedNotifier!,
       builder: (_, isPinned, __) {
         return CustomIconButtonRounded(
-          iconData: Icons.bookmark_add_outlined,
+          iconData: Icons.push_pin_outlined,
           onPressed: () async {
             widget.isPinnedNotifier!.value = !isPinned;
             setState(() {
               isPinned = !isPinned;
             });
-            final result = await sl<PinOrUnpinClientUsecase>().call(
-              widget.clientId,
-            );
-            result.fold((l) {}, (r) {
-              widget.isPinnedNotifier!.value = r;
-              setState(() {
-                isPinned = r;
-              });
-            });
+            _debouncePinOrUnpin();
           },
           icon: AnimatedSwitcher(
             duration: const Duration(milliseconds: 200),
@@ -80,9 +74,7 @@ class _CustomPinnedClientIconButtonState
               );
             },
             child: Icon(
-              isPinned
-                  ? Icons.push_pin
-                  : Icons.push_pin_outlined,
+              isPinned ? Icons.push_pin : Icons.push_pin_outlined,
               key: ValueKey(isPinned), // important for switcher
               color: isPinned ? Colors.red : Colors.grey,
               size: 20,
@@ -93,17 +85,31 @@ class _CustomPinnedClientIconButtonState
     );
   }
 
-    @override
+  void _debouncePinOrUnpin() {
+    _debounce?.cancel(); // cancel previous timer
+    _debounce = Timer(const Duration(milliseconds: 500), () async {
+      final result = await sl<PinOrUnpinClientUsecase>().call(widget.clientId);
+      result.fold((l) {}, (r) {
+        widget.isPinnedNotifier!.value = r;
+        // setState(() {
+        //   isPinned = r;
+        // });
+      });
+    });
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
-  void getIsPinned() async {
-    if (!mounted) return;
-    isPinned = await sl<IsPinnedClientUsecase>().call(
-      widget.clientId,
-    );
-    widget.isPinnedNotifier!.value = isPinned;
-  }
+  // void getIsPinned() async {
+  //   if (!mounted) return;
+  //   isPinned = await sl<IsPinnedClientUsecase>().call(
+  //     widget.clientId,
+  //   );
+  //   widget.isPinnedNotifier!.value = isPinned;
+  // }
 }

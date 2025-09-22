@@ -89,8 +89,8 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
         foregroundColor: colorScheme.primary,
         backgroundColor: colorScheme.onPrimary,
         title: Text(
-          'Trends',
-          style: textTheme.titleLarge!.copyWith(
+          'Trend',
+          style: textTheme.titleMedium!.copyWith(
             fontWeight: FontWeight.bold,
             color: colorScheme.primary,
           ),
@@ -145,7 +145,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                 Material(
                   color: Colors.white,
                   borderOnForeground: true,
-                  borderRadius: BorderRadius.circular(60),
+                  borderRadius: BorderRadius.circular(48),
                   child: Padding(
                     padding: const EdgeInsets.all(3.0),
                     child: InkWell(
@@ -153,7 +153,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                       onTap: () {},
                       child: widget.trendInfo.author.avatar!.isNotEmpty
                           ? CircleAvatar(
-                              radius: 24,
+                              radius: 20,
                               backgroundColor: AppTheme.lightGrey,
                               backgroundImage: CachedNetworkImageProvider(
                                 widget.trendInfo.author.avatar!,
@@ -170,7 +170,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                 const SizedBox(width: 8),
                 Text(
                   widget.trendInfo.author.name!,
-                  style: textTheme.titleMedium,
+                  style: textTheme.titleSmall,
                 ),
               ],
             ),

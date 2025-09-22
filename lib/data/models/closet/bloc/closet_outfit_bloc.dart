@@ -13,6 +13,7 @@ class ClosetOutfitBloc
     on<UpdateOutfit>(_updateOutfit);
     on<DeleteOutfit>(_deleteOutfit);
     on<LoadOutfitsCacheFirstThenNetwork>(_onLoadOutfitsCacheFirstThenNetwork);
+    on<OutfitCounter>(_onCountOutfit);
     on<ClearOutfit>((event, emit) => emit(const OutfitInitial()));
   }
 
@@ -47,6 +48,22 @@ class ClosetOutfitBloc
     emit(OutfitLoading());
     emit(OutfitUpdated(event.outfit));
     //emit(OutfitLoaded(event.outfit));
+  }
+
+  Future<void> _onCountOutfit(
+    OutfitCounter event,
+    Emitter<ClosetOutfitBlocState> emit,
+  ) async {
+    String uid = event.uid;
+    // 1️⃣ Try cache first
+    final cachedItems = await sl<HiveOutfitService>().getItems(uid);
+
+    if (cachedItems.isEmpty) {
+      emit(OutfitsCounted(0));
+      return;
+    }
+    
+    emit(OutfitsCounted(cachedItems.length));
   }
 
   Future<void> _onLoadOutfitsCacheFirstThenNetwork(

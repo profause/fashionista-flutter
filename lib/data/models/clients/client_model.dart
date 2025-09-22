@@ -43,7 +43,7 @@ class Client extends Equatable {
   @HiveField(ClientModelHiveType.updatedAt)
   final int? updatedAt;
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(name: 'is_pinned')
   @HiveField(ClientModelHiveType.isPinned)
   final bool? isPinned;
 
@@ -108,6 +108,8 @@ class Client extends Equatable {
       gender: '',
       createdDate: null,
       measurements: [],
+      updatedAt: null,
+      isPinned: false
     );
   }
 

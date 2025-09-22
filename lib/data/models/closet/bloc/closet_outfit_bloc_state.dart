@@ -2,17 +2,18 @@ import 'package:equatable/equatable.dart';
 import 'package:fashionista/data/models/closet/outfit_model.dart';
 
 class ClosetOutfitBlocState extends Equatable {
-  const ClosetOutfitBlocState();
+  final int itemCount;
+  const ClosetOutfitBlocState({this.itemCount = 0});
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [itemCount];
 }
 
 class OutfitInitial extends ClosetOutfitBlocState {
-  const OutfitInitial();
+  const OutfitInitial({super.itemCount = 0});
 }
 
 class OutfitLoading extends ClosetOutfitBlocState {
-  const OutfitLoading();
+  const OutfitLoading({super.itemCount = 0});
 }
 
 class OutfitLoaded extends ClosetOutfitBlocState {
@@ -33,22 +34,30 @@ class OutfitUpdated extends ClosetOutfitBlocState {
 class OutfitsLoaded extends ClosetOutfitBlocState {
   final List<OutfitModel> outfits;
   final bool fromCache;
-  const OutfitsLoaded(this.outfits, {this.fromCache = false});
+  const OutfitsLoaded(this.outfits, {this.fromCache = false})
+    : super(itemCount: outfits.length);
 
   @override
-  List<Object?> get props => [outfits];
+  List<Object?> get props => [outfits, itemCount];
+}
+
+class OutfitsCounted extends ClosetOutfitBlocState {
+  const OutfitsCounted(int itemCount) : super(itemCount: itemCount);
+
+  @override
+  List<Object?> get props => [itemCount];
 }
 
 class OutfitsEmpty extends ClosetOutfitBlocState {
-  const OutfitsEmpty();
+  const OutfitsEmpty({super.itemCount = 0});
 }
 
 class OutfitError extends ClosetOutfitBlocState {
   final String message;
-  const OutfitError(this.message);
+  const OutfitError(this.message, {super.itemCount = 0});
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [message, itemCount];
 }
 
 class OutfitsNewData extends ClosetOutfitBlocState {
@@ -61,7 +70,7 @@ class OutfitsNewData extends ClosetOutfitBlocState {
 
 class OutfitDeleted extends ClosetOutfitBlocState {
   final String message;
-  const OutfitDeleted(this.message);
+  const OutfitDeleted(this.message, {super.itemCount = 0});
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [message, itemCount];
 }

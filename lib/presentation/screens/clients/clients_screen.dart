@@ -4,13 +4,9 @@ import 'package:fashionista/data/models/clients/bloc/client_bloc.dart';
 import 'package:fashionista/data/models/clients/bloc/client_event.dart';
 import 'package:fashionista/data/models/clients/bloc/client_state.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
-import 'package:fashionista/presentation/screens/clients/add_client_screen.dart';
 import 'package:fashionista/presentation/screens/clients/client_details_screen.dart';
 import 'package:fashionista/presentation/screens/clients/widgets/client_info_card_widget.dart';
 import 'package:fashionista/presentation/screens/clients/widgets/client_info_pinned_widget.dart';
-import 'package:fashionista/presentation/screens/clients/widgets/silver_filter_header_widget.dart';
-import 'package:fashionista/presentation/widgets/appbar_title.dart';
-import 'package:fashionista/presentation/widgets/custom_filter_button.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:flutter/material.dart';
@@ -32,29 +28,14 @@ class _ClientsScreenState extends State<ClientsScreen> with RouteAware {
   late Query<Client> query;
   late AuthProviderCubit _authProviderCubit;
   final collectionRef = FirebaseFirestore.instance.collection('clients');
-  bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
   String _searchText = "";
   String selectedFilter = 'All';
-  final GlobalKey<RefreshIndicatorState> _refreshKey =
-      GlobalKey<RefreshIndicatorState>();
+  String? showAs = "list";
 
   @override
   void initState() {
     _authProviderCubit = context.read<AuthProviderCubit>();
-
-    collection = collectionRef.withConverter<Client>(
-      fromFirestore: (snapshot, _) => Client.fromJson(snapshot.data()!),
-      toFirestore: (client, _) => client.toJson(),
-    );
-
-    query = collectionRef
-        .where('created_by', isEqualTo: _authProviderCubit.state.uid)
-        .orderBy('created_date', descending: true)
-        .withConverter(
-          fromFirestore: (snapshot, _) => Client.fromJson(snapshot.data()!),
-          toFirestore: (client, _) => client.toJson(),
-        );
 
     context.read<ClientBloc>().add(const LoadClientsCacheFirstThenNetwork(''));
     super.initState();
@@ -88,7 +69,6 @@ class _ClientsScreenState extends State<ClientsScreen> with RouteAware {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final filters = ['All', 'Newest', 'Favourites', 'Archived'];
 
     return MultiSliver(
       // 👈 helper from 'sliver_tools' package, or just return a Column of slivers
@@ -137,7 +117,14 @@ class _ClientsScreenState extends State<ClientsScreen> with RouteAware {
                   const SizedBox(width: 8),
                   CustomIconButtonRounded(
                     backgroundColor: colorScheme.surfaceContainerHighest,
-                    onPressed: () {},
+                    onPressed: () {
+                      _showFilterBottomsheet(
+                        context,
+                        showAs!,
+                        selectedFilter,
+                        (filter) => setState(() => selectedFilter = filter),
+                      );
+                    },
                     iconData: Icons.filter_list_outlined,
                   ),
                 ],
@@ -185,17 +172,14 @@ class _ClientsScreenState extends State<ClientsScreen> with RouteAware {
                     ),
                   );
                 }
-
                 final pinnedClients = filteredClients
                     .where((c) => c.isPinned ?? false)
                     .toList()
                     .reversed
                     .toList();
-
                 final unpinnedClients = filteredClients
                     .where((c) => c.isPinned == false)
                     .toList();
-
                 return MultiSliver(
                   children: [
                     if (pinnedClients.isNotEmpty) ...[
@@ -341,5 +325,227 @@ class _ClientsScreenState extends State<ClientsScreen> with RouteAware {
         query.orderBy('created_date', descending: true);
     }
     return query;
+  }
+
+  void _showFilterBottomsheet(
+    BuildContext context,
+    String showAs,
+    String selectedFilter,
+    Function(String) onFilterSelected,
+  ) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: colorScheme.onPrimary,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        String tempShowAs = showAs; // copy parent value
+        String tempFilter = selectedFilter;
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return DraggableScrollableSheet(
+              expand: false,
+              initialChildSize: 0.5,
+              minChildSize: 0.5,
+              maxChildSize: 0.5,
+              builder: (context, scrollController) {
+                return SingleChildScrollView(
+                  controller: scrollController,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        /// Handle bar
+                        Center(
+                          child: Container(
+                            height: 4,
+                            width: 40,
+                            margin: const EdgeInsets.only(bottom: 16),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[400],
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                        Text(
+                          "Show as",
+                          style: textTheme.bodyMedium!.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(top: 8),
+                          padding: const EdgeInsets.all(0),
+                          decoration: BoxDecoration(
+                            color: colorScheme.surface.withValues(alpha: 1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 12),
+                                    child: Text(
+                                      "List",
+                                      style: textTheme.titleSmall!.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Radio<String>(
+                                    value: "list",
+                                    groupValue: tempShowAs,
+                                    onChanged: (val) {
+                                      setModalState(() => tempShowAs = val!);
+                                      setState(() => showAs = val!);
+                                      // update parent too
+                                    },
+                                  ),
+                                ],
+                              ),
+                              const Divider(height: .1, thickness: .1),
+                              Row(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 12),
+                                    child: Text(
+                                      "Grid",
+                                      style: textTheme.titleSmall!.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Radio<String>(
+                                    value: "grid",
+                                    groupValue: tempShowAs,
+                                    onChanged: (val) {
+                                      setModalState(() => tempShowAs = val!);
+                                      setState(() => showAs = val!);
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          "Filer by",
+                          style: textTheme.bodyMedium!.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(top: 8),
+                          padding: const EdgeInsets.all(0),
+                          decoration: BoxDecoration(
+                            color: colorScheme.surface.withValues(alpha: 1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 12),
+                                    child: Text(
+                                      "All",
+                                      style: textTheme.titleSmall!.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Radio<String>(
+                                    value: "All",
+                                    groupValue: tempFilter,
+                                    onChanged: (val) {
+                                      setModalState(() => tempFilter = val!);
+                                      setState(() => selectedFilter = val!);
+                                      onFilterSelected(val!);
+                                      // update parent too
+                                    },
+                                  ),
+                                ],
+                              ),
+                              const Divider(height: .1, thickness: .1),
+                              Row(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 12),
+                                    child: Text(
+                                      "Newest",
+                                      style: textTheme.titleSmall!.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Radio<String>(
+                                    value: "Newest",
+                                    groupValue: tempFilter,
+                                    onChanged: (val) {
+                                      setModalState(() => tempFilter = val!);
+                                      setState(() => selectedFilter = val!);
+                                      onFilterSelected(val!);
+                                      // update parent too
+                                    },
+                                  ),
+                                ],
+                              ),
+                              const Divider(height: .1, thickness: .1),
+                              Row(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 12),
+                                    child: Text(
+                                      "Pinned",
+                                      style: textTheme.titleSmall!.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Radio<String>(
+                                    value: "Pinned",
+                                    groupValue: tempFilter,
+                                    onChanged: (val) {
+                                      setModalState(() => tempFilter = val!);
+                                      setState(() => selectedFilter = val!);
+                                      onFilterSelected(val!);
+                                      // update parent too
+                                    },
+                                  ),
+                                ],
+                              ),
+                              //const Divider(height: .1, thickness: .1),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
   }
 }

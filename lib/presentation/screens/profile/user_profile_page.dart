@@ -9,6 +9,7 @@ import 'package:fashionista/data/services/hive/hive_designers_service.dart';
 import 'package:fashionista/data/services/hive/hive_outfit_service.dart';
 import 'package:fashionista/data/services/hive/hive_trend_comment_service.dart';
 import 'package:fashionista/data/services/hive/hive_trend_service.dart';
+import 'package:fashionista/data/services/hive/hive_work_order_service.dart';
 import 'package:fashionista/domain/usecases/auth/signout_usecase.dart';
 import 'package:fashionista/presentation/screens/auth/sign_in_screen.dart';
 import 'package:fashionista/presentation/screens/profile/user_interest_screen.dart';
@@ -210,6 +211,7 @@ class UserProfilePage extends StatelessWidget {
       await sl<HiveClosetItemService>().clearCache();
       await sl<HiveClientService>().clearCache();
       await sl<HiveOutfitService>().clearCache();
+      await sl<HiveWorkOrderService>().clearCache();
 
       // ✅ remove loading dialog safely
       //if (context.mounted) {

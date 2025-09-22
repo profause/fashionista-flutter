@@ -15,7 +15,7 @@ abstract class FirebaseClientsService {
   Future<Either<String, int>> getCount(String uid);
   Future<bool> isPinnedClient(String uid);
   Future<Either> pinOrUnpinClient(String uid);
-  Future<Either> fetchPinnedClients(List<String> uids);
+  Future<Either> fetchPinnedClients();
 
   Future<Either> updateClientMeasurementToFirestore(
     Client client,
@@ -53,17 +53,15 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
       final querySnapshot = await firestore
           .collection('clients')
           .where('created_by', isEqualTo: uid)
+          .orderBy('created_date', descending: true)
           .get();
-      // Await all async maps
-      final clients = await Future.wait(
-        querySnapshot.docs.map((doc) async {
-          bool isPinned = await isPinnedClient(doc.reference.id);
-          final d = Client.fromJson(doc.data());
-          return d.copyWith(uid: doc.reference.id, isPinned: isPinned);
-        }),
-      );
 
-      // Map each document to a Client
+      final clients = querySnapshot.docs.map((doc) {
+        final d = Client.fromJson(doc.data());
+        return d;
+      }).toList();
+
+      // Map each document to a client
       return Right(clients);
     } on FirebaseException catch (e) {
       return Left(e.message ?? 'An unknown Firebase error occurred');
@@ -84,16 +82,12 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
           .orderBy('created_date', descending: true)
           .get();
 
-      // Await all async maps
-      final clients = await Future.wait(
-        querySnapshot.docs.map((doc) async {
-          bool isPinned = await isPinnedClient(doc.reference.id);
-          final d = Client.fromJson(doc.data());
-          return d.copyWith(uid: doc.reference.id, isPinned: isPinned);
-        }),
-      );
+      final clients = querySnapshot.docs.map((doc) {
+        final d = Client.fromJson(doc.data());
+        return d;
+      }).toList();
 
-      // Map each document to a Client
+      // Map each document to a client
       return Right(clients);
     } on FirebaseException catch (e) {
       return Left(e.message ?? 'An unknown Firebase error occurred');
@@ -233,32 +227,31 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
   }
 
   @override
-  Future<Either> fetchPinnedClients(List<String> uids) async {
+  Future<Either> fetchPinnedClients() async {
     try {
-      if (uids.isEmpty) return Right([]);
-
-      final chunks = <List<String>>[];
-      for (var i = 0; i < uids.length; i += 10) {
-        chunks.add(
-          uids.sublist(i, i + 10 > uids.length ? uids.length : i + 10),
-        );
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        return Left('No user logged in');
       }
-      final results = await Future.wait(
-        chunks.map((chunk) {
-          return FirebaseFirestore.instance
-              .collection('clients')
-              .where(FieldPath.documentId, whereIn: chunk)
-              .get();
-        }),
-      );
+      final userId = FirebaseAuth.instance.currentUser!.uid;
+      final firestore = FirebaseFirestore.instance;
+      final querySnapshot = await firestore
+          .collection('clients')
+          .where('created_by', isEqualTo: userId)
+          .where('is_pinned', isEqualTo: true)
+          .orderBy('created_date', descending: true)
+          .get();
 
-      final clients = results
-          .expand((querySnapshot) => querySnapshot.docs)
-          .map((doc) => Client.fromJson(doc.data()))
-          .toList();
+      final clients = querySnapshot.docs.map((doc) {
+        final d = Client.fromJson(doc.data());
+        return d;
+      }).toList();
 
+      // Map each document to a client
       return Right(clients);
     } on FirebaseException catch (e) {
+      return Left(e.message ?? 'An unknown Firebase error occurred');
+    } catch (e) {
       return Left(e.toString());
     }
   }
@@ -295,38 +288,20 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
   @override
   Future<Either> pinOrUnpinClient(String clientId) async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        return Left('No user logged in');
-      }
-      final userId = FirebaseAuth.instance.currentUser!.uid;
       final firestore = FirebaseFirestore.instance;
-      late bool isPinned;
-      QuerySnapshot querySnapshot = await firestore
-          .collection('users')
-          .doc(userId)
-          .collection('pinned_clients')
-          .where('client_id', isEqualTo: clientId)
-          .get();
-
-      if (querySnapshot.docs.isEmpty) {
-        await firestore
-            .collection('users')
-            .doc(userId)
-            .collection('pinned_clients')
-            .doc(clientId)
-            .set({
-              'client_id': clientId,
-              'created_at': Timestamp.now(),
-            }, SetOptions(merge: true));
-        isPinned = true;
-      } else {
-        await querySnapshot.docs.first.reference.delete();
-        isPinned = false;
+      DocumentReference docRef = firestore.collection('clients').doc(clientId);
+      DocumentSnapshot doc = await docRef.get();
+      if (!doc.exists) {
+        return Left('client not found');
       }
-      return Right(isPinned);
+      Client client = Client.fromJson(doc.data() as Map<String, dynamic>);
+      bool isPinned = client.isPinned ?? false;
+      client = client.copyWith(isPinned: !isPinned);
+      updateClientToFirestore(client);
+
+      return Right(client.isPinned);
     } on FirebaseException catch (e) {
-      return Left(e.message);
+      return Left(e.message!);
     }
   }
 

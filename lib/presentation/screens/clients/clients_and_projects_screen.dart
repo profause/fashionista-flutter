@@ -2,10 +2,9 @@ import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/clients/bloc/client_bloc.dart';
 import 'package:fashionista/data/models/clients/bloc/client_state.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
-import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
 import 'package:fashionista/presentation/screens/clients/add_client_screen.dart';
 import 'package:fashionista/presentation/screens/clients/clients_screen.dart';
-import 'package:fashionista/presentation/screens/clients/my_projects_page.dart';
+import 'package:fashionista/presentation/screens/clients/projects_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -225,7 +224,7 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
                         context,
                       ),
                     ),
-                    MyProjectsPage(key: clientsAndProjectsKey),
+                    ProjectsPage(key: clientsAndProjectsKey),
                   ],
                 );
               },
@@ -262,7 +261,7 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: colorScheme.onPrimary,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),

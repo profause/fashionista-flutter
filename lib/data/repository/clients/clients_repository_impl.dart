@@ -4,7 +4,7 @@ import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
 import 'package:fashionista/domain/repository/clients/clients_repository.dart';
 
-class ClientsRepositoryImpl extends ClientsRepository {
+class ClientsRepositoryImpl implements ClientsRepository {
   @override
   Future<Either> addClientToFirestore(Client client) async {
     return sl<FirebaseClientsService>().addClientToFirestore(client);
@@ -37,7 +37,7 @@ class ClientsRepositoryImpl extends ClientsRepository {
 
   @override
   Future<Either> fetchPinnedClients(List<String> clientIds) {
-    return sl<FirebaseClientsService>().fetchPinnedClients(clientIds);
+    return sl<FirebaseClientsService>().fetchPinnedClients();
   }
 
   @override

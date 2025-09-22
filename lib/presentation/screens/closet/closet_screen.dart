@@ -1,6 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
+import 'package:fashionista/data/models/closet/bloc/closet_item_bloc.dart';
+import 'package:fashionista/data/models/closet/bloc/closet_item_bloc_state.dart';
+import 'package:fashionista/data/models/closet/bloc/closet_outfit_bloc.dart';
+import 'package:fashionista/data/models/closet/bloc/closet_outfit_bloc_event.dart';
+import 'package:fashionista/data/models/closet/bloc/closet_outfit_bloc_state.dart';
 import 'package:fashionista/data/models/closet/outfit_model.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
@@ -31,7 +36,8 @@ class _ClosetScreenState extends State<ClosetScreen>
   void initState() {
     _tabController = TabController(length: 3, vsync: this);
     userBloc = context.read<UserBloc>();
-    getItemsCountFromCloset();
+    //getItemsCountFromCloset();
+    context.read<ClosetOutfitBloc>().add(const OutfitCounter(''));
     super.initState();
   }
 
@@ -165,25 +171,34 @@ class _ClosetScreenState extends State<ClosetScreen>
                             ),
                           ),
                           const SizedBox(width: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 0,
-                              horizontal: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color:
-                                  Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? Colors.grey[800] // dark mode background
-                                  : Colors.grey[400],
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              "$_closetItemCount",
-                              style: textTheme.labelSmall!.copyWith(
-                                color: colorScheme.primary,
-                              ),
-                            ),
+                          BlocSelector<
+                            ClosetItemBloc,
+                            ClosetItemBlocState,
+                            int
+                          >(
+                            selector: (state) => state.itemCount,
+                            builder: (context, count) {
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 0,
+                                  horizontal: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color:
+                                      Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? Colors.grey[800] // dark mode background
+                                      : Colors.grey[400],
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  "$count",
+                                  style: textTheme.labelSmall!.copyWith(
+                                    color: colorScheme.primary,
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ],
                       ),
@@ -203,25 +218,34 @@ class _ClosetScreenState extends State<ClosetScreen>
                             ),
                           ),
                           const SizedBox(width: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 0,
-                              horizontal: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color:
-                                  Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? Colors.grey[800] // dark mode background
-                                  : Colors.grey[400],
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              "$_outfitCount",
-                              style: textTheme.labelSmall!.copyWith(
-                                color: colorScheme.primary,
-                              ),
-                            ),
+                          BlocSelector<
+                            ClosetOutfitBloc,
+                            ClosetOutfitBlocState,
+                            int
+                          >(
+                            selector: (state) => state.itemCount,
+                            builder: (context, count) {
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 0,
+                                  horizontal: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color:
+                                      Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? Colors.grey[800] // dark mode background
+                                      : Colors.grey[400],
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  "$count",
+                                  style: textTheme.labelSmall!.copyWith(
+                                    color: colorScheme.primary,
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ],
                       ),

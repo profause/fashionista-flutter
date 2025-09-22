@@ -293,7 +293,7 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: Theme.of(context).colorScheme.onPrimary,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -353,7 +353,7 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
                     /// Title + Brand
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.grey[300],
+                        color: Theme.of(context).colorScheme.surface.withValues(alpha: 1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       clipBehavior: Clip.antiAlias,
@@ -367,7 +367,7 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
                                   Align(
                                     alignment: Alignment.centerLeft,
                                     child: Text(
-                                      closetItem.description ?? "Unnamed Item",
+                                      closetItem.description,
                                       style: Theme.of(context)
                                           .textTheme
                                           .titleLarge!

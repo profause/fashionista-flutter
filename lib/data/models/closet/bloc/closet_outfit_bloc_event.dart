@@ -40,6 +40,15 @@ class LoadOutfitsCacheFirstThenNetwork extends ClosetOutfitBlocEvent {
   List<Object?> get props => [uid];
 }
 
+
+class OutfitCounter extends ClosetOutfitBlocEvent {
+  final String uid;
+  const OutfitCounter(this.uid);
+
+  @override
+  List<Object?> get props => [uid];
+}
+
 class DeleteOutfit extends ClosetOutfitBlocEvent {
   final OutfitModel outfitModel;
   const DeleteOutfit(this.outfitModel);

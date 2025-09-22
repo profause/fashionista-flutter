@@ -85,6 +85,7 @@ Client _$ClientFromJson(Map<String, dynamic> json) => Client(
           .map((e) => ClientMeasurement.fromJson(e as Map<String, dynamic>))
           .toList(),
       updatedAt: (json['updated_at'] as num?)?.toInt(),
+      isPinned: json['is_pinned'] as bool?,
     );
 
 Map<String, dynamic> _$ClientToJson(Client instance) => <String, dynamic>{
@@ -97,4 +98,5 @@ Map<String, dynamic> _$ClientToJson(Client instance) => <String, dynamic>{
       'created_date': instance.createdDate?.toIso8601String(),
       'measurements': instance.measurements.map((e) => e.toJson()).toList(),
       'updated_at': instance.updatedAt,
+      'is_pinned': instance.isPinned,
     };

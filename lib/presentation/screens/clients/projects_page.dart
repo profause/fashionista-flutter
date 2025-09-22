@@ -2,14 +2,14 @@ import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart
 import 'package:flutter/material.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
-class MyProjectsPage extends StatefulWidget {
-  const MyProjectsPage({super.key});
+class ProjectsPage extends StatefulWidget {
+  const ProjectsPage({super.key});
 
   @override
-  State<MyProjectsPage> createState() => _MyProjectsPageState();
+  State<ProjectsPage> createState() => _ProjectsPageState();
 }
 
-class _MyProjectsPageState extends State<MyProjectsPage> {
+class _ProjectsPageState extends State<ProjectsPage> {
 
   final TextEditingController _searchController = TextEditingController();
   String _searchText = "";
@@ -31,7 +31,7 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
           toolbarHeight: 5,
           flexibleSpace: FlexibleSpaceBar(
             background: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+              padding: const EdgeInsets.fromLTRB(12, 20, 12, 8),
               child: Row(
                 children: [
                   Expanded(
@@ -49,7 +49,7 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
                         filled: true,
                         fillColor: colorScheme.surfaceContainerHighest,
                         contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
+                          horizontal: 12,
                           vertical: 0,
                         ),
                         border: OutlineInputBorder(
@@ -72,6 +72,21 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
                   ),
                 ],
               ),
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Bookmarked",
+                  style: textTheme.headlineSmall,
+                ),
+                //horizontal list of bookmarked projects
+              ],
             ),
           ),
         ),

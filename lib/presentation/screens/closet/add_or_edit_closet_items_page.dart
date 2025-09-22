@@ -201,12 +201,6 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
                     controller: _brandController,
                     hint: 'What brand is it?',
                     minLines: 1,
-                    validator: (value) {
-                      if ((value ?? "").isEmpty) {
-                        return 'Please enter a description';
-                      }
-                      return null;
-                    },
                   ),
                 ),
                 const SizedBox(height: 8),
