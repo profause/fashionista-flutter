@@ -5,6 +5,7 @@ import 'package:fashionista/data/repository/design_collection/design_collection_
 import 'package:fashionista/data/repository/designers/designers_repository_impl.dart';
 import 'package:fashionista/data/repository/profile/user_repository_impl.dart';
 import 'package:fashionista/data/repository/trends/trend_feed_repository_impl.dart';
+import 'package:fashionista/data/repository/work_order/work_order_repository_impl.dart';
 import 'package:fashionista/data/services/firebase/firebase_auth_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_closet_service.dart';
@@ -13,6 +14,7 @@ import 'package:fashionista/data/services/firebase/firebase_designers_service.da
 import 'package:fashionista/data/services/firebase/firebase_fashion_interest_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_trends_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_user_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_work_order_service.dart';
 import 'package:fashionista/data/services/hive/hive_client_service.dart';
 import 'package:fashionista/data/services/hive/hive_closet_item_service.dart';
 import 'package:fashionista/data/services/hive/hive_design_collection_service.dart';
@@ -20,6 +22,7 @@ import 'package:fashionista/data/services/hive/hive_designers_service.dart';
 import 'package:fashionista/data/services/hive/hive_outfit_service.dart';
 import 'package:fashionista/data/services/hive/hive_trend_comment_service.dart';
 import 'package:fashionista/data/services/hive/hive_trend_service.dart';
+import 'package:fashionista/data/services/hive/hive_work_order_service.dart';
 import 'package:fashionista/domain/repository/auth/auth_repository.dart';
 import 'package:fashionista/domain/repository/clients/clients_repository.dart';
 import 'package:fashionista/domain/repository/closet/closet_repository.dart';
@@ -27,6 +30,7 @@ import 'package:fashionista/domain/repository/design_collection/design_collectio
 import 'package:fashionista/domain/repository/designers/designers_repository.dart';
 import 'package:fashionista/domain/repository/profile/user_repository.dart';
 import 'package:fashionista/domain/repository/trends/trend_repository.dart';
+import 'package:fashionista/domain/repository/work_order/work_order_repository.dart';
 import 'package:fashionista/domain/usecases/auth/signin_usecase.dart';
 import 'package:fashionista/domain/usecases/auth/signout_usecase.dart';
 import 'package:fashionista/domain/usecases/auth/verify_otp_usecase.dart';
@@ -196,5 +200,11 @@ Future<void> initialiseDependencies() async {
   sl.registerSingleton<ClosetRepository>(ClosetRepositoryImpl());
   sl.registerSingleton<FirebaseFashionInterestService>(
     FirebaseFashionInterestServiceImpl(),
+  );
+
+  sl.registerSingleton<HiveWorkOrderService>(HiveWorkOrderService());
+  sl.registerSingleton<WorkOrderRepository>(WorkOrderRepositoryImpl());
+  sl.registerSingleton<FirebaseWorkOrderService>(
+    FirebaseWorkOrderServiceImpl(),
   );
 }

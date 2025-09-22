@@ -10,7 +10,8 @@ abstract class FirebaseWorkOrderService {
   Future<Either> pinOrUnpinWorkOrder(String workOrderId);
   Future<Either> fetchPinnedWorkOrders();
   Future<Either<String, WorkOrderModel>> findWorkOrderById(String workOrderId);
-  Future<Either<String, List<WorkOrderModel>>> fetchWorkOrdersFromFirestore(
+  Future<Either> fetchWorkOrdersFromFirestore(String uid);
+  Future<Either<String, List<WorkOrderModel>>> findWorkOrdersFromFirestore(
     String uid,
   );
   Future<Either<String, int>> getCount(String uid);
@@ -78,9 +79,33 @@ class FirebaseWorkOrderServiceImpl implements FirebaseWorkOrderService {
   }
 
   @override
-  Future<Either<String, List<WorkOrderModel>>> fetchWorkOrdersFromFirestore(
+  Future<Either<String, List<WorkOrderModel>>> findWorkOrdersFromFirestore(
     String uid,
   ) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final querySnapshot = await firestore
+          .collection('work_orders')
+          .where('created_by', isEqualTo: uid)
+          .orderBy('created_date', descending: true)
+          .get();
+
+      final workOrders = querySnapshot.docs.map((doc) {
+        final d = WorkOrderModel.fromJson(doc.data());
+        return d;
+      }).toList();
+
+      // Map each document to a WorkOrderModel
+      return Right(workOrders);
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'An unknown Firebase error occurred');
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  @override
+  Future<Either> fetchWorkOrdersFromFirestore(String uid) async {
     try {
       final firestore = FirebaseFirestore.instance;
       final querySnapshot = await firestore

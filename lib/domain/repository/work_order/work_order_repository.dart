@@ -13,5 +13,5 @@ abstract class WorkOrderRepository {
 
   Future<bool> isPinnedWorkOrder(String workOrderId);
   Future<Either> pinOrUnpinWorkOrder(String workOrderId);
-  Future<Either> fetchPinnedWorkOrders(List<String> workOrderIdS);
+  Future<Either> fetchPinnedWorkOrders();
 }
