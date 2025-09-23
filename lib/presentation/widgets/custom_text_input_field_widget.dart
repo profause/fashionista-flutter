@@ -7,6 +7,7 @@ class CustomTextInputFieldWidget extends StatelessWidget {
   final bool isPassword;
   final TextEditingController? controller;
   final String? Function(String?)? validator;
+  final void Function(String)? onChanged;
   final TextInputType? keyboardType;
   final List<TextInputFormatter>? inputFormatters;
   final bool enabled;
@@ -26,7 +27,7 @@ class CustomTextInputFieldWidget extends StatelessWidget {
     this.enabled = true,
     this.autofocus = false,
     this.minLines = 1,
-    this.maxLength,
+    this.maxLength, this.onChanged,
   });
 
   @override
@@ -50,6 +51,7 @@ class CustomTextInputFieldWidget extends StatelessWidget {
             maxHeight: 200, // prevent growing infinitely
           ),
           child: TextFormField(
+            onChanged: onChanged,
             autofocus: autofocus,
             controller: controller,
             validator: validator,

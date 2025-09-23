@@ -2,9 +2,12 @@ import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/clients/bloc/client_bloc.dart';
 import 'package:fashionista/data/models/clients/bloc/client_state.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
+import 'package:fashionista/data/models/work_order/bloc/work_order_bloc.dart';
+import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_state.dart';
 import 'package:fashionista/presentation/screens/clients/add_client_screen.dart';
 import 'package:fashionista/presentation/screens/clients/clients_screen.dart';
-import 'package:fashionista/presentation/screens/clients/projects_page.dart';
+import 'package:fashionista/presentation/screens/work_order/add_work_order_screen.dart';
+import 'package:fashionista/presentation/screens/work_order/projects_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -161,8 +164,8 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
                             ),
                           ),
                           const SizedBox(width: 4),
-                          BlocSelector<ClientBloc, ClientBlocState, int>(
-                            selector: (state) => state.clientsCount,
+                          BlocSelector<WorkOrderBloc, WorkOrderBlocState, int>(
+                            selector: (state) => state.workOrdersCount,
                             builder: (context, count) {
                               return Container(
                                 padding: const EdgeInsets.symmetric(
@@ -328,6 +331,12 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
                       child: TextButton.icon(
                         onPressed: () {
                           Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const AddWorkOrderScreen(),
+                            ),
+                          );
                         },
                         icon: const Icon(Icons.work_history, size: 18),
                         label: const Text("Start a new work order"),

@@ -61,14 +61,15 @@ class _DatePickerFormFieldState extends State<DatePickerFormField> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           widget.label,
           style: textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: Colors.grey[700],
+            fontWeight: FontWeight.w500,
+            color: colorScheme.primary
           ),
         ),
         TextFormField(

@@ -1,9 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:fashionista/core/auth/auth_provider_cubit.dart';
 import 'package:fashionista/data/models/clients/bloc/client_bloc.dart';
 import 'package:fashionista/data/models/clients/bloc/client_event.dart';
 import 'package:fashionista/data/models/clients/bloc/client_state.dart';
-import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/presentation/screens/clients/client_details_screen.dart';
 import 'package:fashionista/presentation/screens/clients/widgets/client_info_card_widget.dart';
 import 'package:fashionista/presentation/screens/clients/widgets/client_info_pinned_widget.dart';
@@ -24,10 +21,6 @@ class ClientsScreen extends StatefulWidget {
 }
 
 class _ClientsScreenState extends State<ClientsScreen> with RouteAware {
-  late CollectionReference<Client> collection;
-  late Query<Client> query;
-  late AuthProviderCubit _authProviderCubit;
-  final collectionRef = FirebaseFirestore.instance.collection('clients');
   final TextEditingController _searchController = TextEditingController();
   String _searchText = "";
   String selectedFilter = 'All';
@@ -35,8 +28,6 @@ class _ClientsScreenState extends State<ClientsScreen> with RouteAware {
 
   @override
   void initState() {
-    _authProviderCubit = context.read<AuthProviderCubit>();
-
     context.read<ClientBloc>().add(const LoadClientsCacheFirstThenNetwork(''));
     super.initState();
   }
@@ -304,27 +295,6 @@ class _ClientsScreenState extends State<ClientsScreen> with RouteAware {
         ),
       ],
     );
-  }
-
-  Query<Client> queryBuilder(String filter) {
-    final query = collectionRef.withConverter<Client>(
-      fromFirestore: (snapshot, _) => Client.fromJson(snapshot.data()!),
-      toFirestore: (designer, _) => designer.toJson(),
-    );
-
-    switch (filter) {
-      case 'Newest':
-        query.orderBy('created_date', descending: true);
-        break;
-      case 'Favourites':
-        query
-            .where('favourites', arrayContains: _authProviderCubit.state.uid)
-            .orderBy('created_date', descending: true);
-        break;
-      default:
-        query.orderBy('created_date', descending: true);
-    }
-    return query;
   }
 
   void _showFilterBottomsheet(
