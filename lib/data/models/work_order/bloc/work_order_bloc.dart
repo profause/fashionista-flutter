@@ -1,21 +1,23 @@
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_event.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_state.dart';
+import 'package:fashionista/data/models/work_order/work_order_model.dart';
+import 'package:fashionista/data/models/work_order/work_order_model_extension.dart';
 import 'package:fashionista/data/services/firebase/firebase_work_order_service.dart';
 import 'package:fashionista/data/services/hive/hive_work_order_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class WorkOrderBloc extends Bloc<WorkOrderBlocEvent, WorkOrderBlocState> {
+  WorkOrderModel? _current; // 🔑 hold latest work order draft
+
   WorkOrderBloc() : super(const WorkOrderInitial()) {
     on<LoadWorkOrder>(_onLoadWorkOrder);
     on<LoadWorkOrders>(_onLoadWorkOrders);
     on<UpdateWorkOrder>(_updateWorkOrder);
     on<DeleteWorkOrder>(_deleteWorkOrder);
-    on<LoadWorkOrdersCacheFirstThenNetwork>(
-      _onLoadWorkOrdersCacheFirstThenNetwork,
-    );
-    on<ClearWorkOrder>((event, emit) => emit(const WorkOrderInitial()));
+    on<LoadWorkOrdersCacheFirstThenNetwork>(_onLoadWorkOrdersCacheFirstThenNetwork);
+    on<ClearWorkOrder>(_onClearWorkOrder);
     on<WorkOrdersCounter>(_onCountWorkOrders);
   }
 
@@ -25,13 +27,14 @@ class WorkOrderBloc extends Bloc<WorkOrderBlocEvent, WorkOrderBlocState> {
   ) async {
     emit(const WorkOrderLoading());
 
-    final result = await sl<FirebaseWorkOrderService>().findWorkOrderById(
-      event.uid,
-    );
+    final result = await sl<FirebaseWorkOrderService>().findWorkOrderById(event.uid);
 
     result.fold(
       (failure) => emit(WorkOrderError(failure.toString())),
-      (workorder) => emit(WorkOrderLoaded(workorder)),
+      (workorder) {
+        _current = workorder;
+        emit(WorkOrderLoaded(workorder));
+      },
     );
   }
 
@@ -39,9 +42,7 @@ class WorkOrderBloc extends Bloc<WorkOrderBlocEvent, WorkOrderBlocState> {
     DeleteWorkOrder event,
     Emitter<WorkOrderBlocState> emit,
   ) async {
-    var result = await sl<FirebaseWorkOrderService>().deleteWorkOrder(
-      event.uid,
-    );
+    final result = await sl<FirebaseWorkOrderService>().deleteWorkOrder(event.uid);
     result.fold((l) => null, (r) => emit(WorkOrderDeleted(r)));
   }
 
@@ -54,38 +55,39 @@ class WorkOrderBloc extends Bloc<WorkOrderBlocEvent, WorkOrderBlocState> {
     final result = await sl<FirebaseWorkOrderService>()
         .findWorkOrdersFromFirestore(event.uid);
 
-    result.fold((failure) => emit(WorkOrderError(failure.toString())), (
-      workorders,
-    ) {
-      if (workorders.isEmpty) {
-        emit(const WorkOrdersEmpty());
-      } else {
-        emit(WorkOrdersLoaded(workorders));
-      }
-    });
+    result.fold(
+      (failure) => emit(WorkOrderError(failure.toString())),
+      (workorders) {
+        if (workorders.isEmpty) {
+          emit(const WorkOrdersEmpty());
+        } else {
+          emit(WorkOrdersLoaded(workorders));
+        }
+      },
+    );
   }
 
   Future<void> _updateWorkOrder(
     UpdateWorkOrder event,
     Emitter<WorkOrderBlocState> emit,
   ) async {
-    emit(WorkOrderLoading());
-    emit(WorkOrderUpdated(event.workorder));
-    //emit(WorkOrderLoaded(event.workorder));
+    // 🔑 merge with existing draft
+    if (_current == null) {
+      _current = event.workorder;
+    } else {
+      _current = _current!.copyWithModel(event.workorder);
+    }
+
+    emit(WorkOrderUpdated(_current!));
   }
 
   Future<void> _onCountWorkOrders(
     WorkOrdersCounter event,
     Emitter<WorkOrderBlocState> emit,
   ) async {
-    // 1️⃣ Try cache first
     String uid = event.uid;
     final cachedItems = await sl<HiveWorkOrderService>().getItems(uid);
 
-    if (cachedItems.isEmpty) {
-      emit(WorkOrdersCounted(0));
-      return;
-    }
     emit(WorkOrdersCounted(cachedItems.length));
   }
 
@@ -96,51 +98,44 @@ class WorkOrderBloc extends Bloc<WorkOrderBlocEvent, WorkOrderBlocState> {
     String uid = event.uid;
     final us = FirebaseAuth.instance.currentUser;
     if (us != null) {
-      uid = FirebaseAuth.instance.currentUser!.uid;
+      uid = us.uid;
     }
     emit(const WorkOrderLoading());
-    // 1️⃣ Try cache first
+
     final cachedItems = await sl<HiveWorkOrderService>().getItems(uid);
 
     if (cachedItems.isNotEmpty) {
       emit(WorkOrdersLoaded(cachedItems, fromCache: true));
     }
 
-    // 2️⃣ Fetch from network
-    final result = await sl<FirebaseWorkOrderService>()
-        .findWorkOrdersFromFirestore(uid);
+    final result = await sl<FirebaseWorkOrderService>().findWorkOrdersFromFirestore(uid);
 
     result.fold(
       (failure) async {
         if (cachedItems.isEmpty) {
           emit(WorkOrderError(failure.toString()));
         }
-        // else → keep showing cached quietly
       },
       (workorders) async {
-        try {
-          if (workorders.isEmpty) {
-            if (cachedItems.isEmpty) {
-              emit(const WorkOrdersEmpty());
-            }
-            return;
+        if (workorders.isEmpty) {
+          if (cachedItems.isEmpty) {
+            emit(const WorkOrdersEmpty());
           }
-          if (cachedItems.toString() != workorders.toString()) {
-            emit(WorkOrdersLoaded(workorders, fromCache: false));
-            // 4️⃣ Update cache and emit fresh data
-            await sl<HiveWorkOrderService>().insertItems(
-              uid,
-              items: workorders,
-            );
-          } else {
-            // no change
-            emit(WorkOrdersLoaded(cachedItems, fromCache: true));
-          }
-        } catch (e) {
-          if (emit.isDone) return; // <- safeguard
-          emit(WorkOrderError(e.toString()));
+          return;
+        }
+
+        if (cachedItems.toString() != workorders.toString()) {
+          emit(WorkOrdersLoaded(workorders, fromCache: false));
+          await sl<HiveWorkOrderService>().insertItems(uid, items: workorders);
+        } else {
+          emit(WorkOrdersLoaded(cachedItems, fromCache: true));
         }
       },
     );
+  }
+
+  void _onClearWorkOrder(ClearWorkOrder event, Emitter<WorkOrderBlocState> emit) {
+    _current = null; // reset draft
+    emit(const WorkOrderInitial());
   }
 }

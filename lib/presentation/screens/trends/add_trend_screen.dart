@@ -216,8 +216,8 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                Divider(height: 16, thickness: 1, color: Colors.grey[300]),
-                const SizedBox(height: 12),
+                Divider(height: .1, thickness: .1,),
+                const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

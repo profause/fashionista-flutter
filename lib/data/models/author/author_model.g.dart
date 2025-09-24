@@ -20,15 +20,18 @@ class AuthorModelAdapter extends TypeAdapter<AuthorModel> {
       name: fields[1] as String?,
       uid: fields[0] as String?,
       avatar: fields[2] as String?,
+      mobileNumber: fields[3] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, AuthorModel obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(4)
       ..writeByte(1)
       ..write(obj.name)
+      ..writeByte(3)
+      ..write(obj.mobileNumber)
       ..writeByte(0)
       ..write(obj.uid)
       ..writeByte(2)
@@ -54,11 +57,13 @@ AuthorModel _$AuthorModelFromJson(Map<String, dynamic> json) => AuthorModel(
       name: json['name'] as String?,
       uid: json['uid'] as String?,
       avatar: json['avatar'] as String?,
+      mobileNumber: json['mobileNumber'] as String?,
     );
 
 Map<String, dynamic> _$AuthorModelToJson(AuthorModel instance) =>
     <String, dynamic>{
       'name': instance.name,
+      'mobileNumber': instance.mobileNumber,
       'uid': instance.uid,
       'avatar': instance.avatar,
     };

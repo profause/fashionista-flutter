@@ -64,7 +64,7 @@ class CustomTextInputFieldWidget extends StatelessWidget {
             minLines: isPassword ? 1 : minLines, // starting height
             maxLines: isPassword ? 1 : null, // auto expand when typing
             maxLength: maxLength,
-            style: textTheme.labelLarge,
+            style: textTheme.titleMedium!.copyWith(fontSize: 16),
             decoration: InputDecoration(
               hintText: hint,
               border: OutlineInputBorder(

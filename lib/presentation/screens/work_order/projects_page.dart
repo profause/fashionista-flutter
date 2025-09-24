@@ -131,7 +131,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                   );
                 }
                 final pinnedWorkOrders = filteredWorkOrders
-                    .where((c) => c.isBookmarked)
+                    .where((c) => c.isBookmarked ?? false)
                     .toList()
                     .reversed
                     .toList();

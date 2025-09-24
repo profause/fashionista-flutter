@@ -1,4 +1,6 @@
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
+import 'package:fashionista/data/models/work_order/bloc/work_order_bloc.dart';
+import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_state.dart';
 import 'package:fashionista/presentation/screens/work_order/work_order_flow_page_1.dart';
 import 'package:fashionista/presentation/screens/work_order/work_order_flow_page_2.dart';
 import 'package:fashionista/presentation/screens/work_order/work_order_flow_page_3.dart';
@@ -34,32 +36,35 @@ class _AddWorkOrderScreenState extends State<AddWorkOrderScreen> {
       WorkOrderFlowPage3(onNext: () => nextPage(), onPrev: () => prevPage()),
       WorkOrderFlowPage4(onNext: () => onSave(), onPrev: () => prevPage()),
     ];
-    return Scaffold(
-      appBar: AppBar(
-        foregroundColor: colorScheme.primary,
-        backgroundColor: colorScheme.onPrimary,
-        title: Text(
-          'Start a new Work Order',
-          style: Theme.of(context).textTheme.titleMedium,
+    return BlocProvider(
+      create: (_) => WorkOrderBloc(),
+      child: Scaffold(
+        appBar: AppBar(
+          foregroundColor: colorScheme.primary,
+          backgroundColor: colorScheme.onPrimary,
+          title: Text(
+            'Start a new Work Order',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          elevation: 0,
         ),
-        elevation: 0,
-      ),
-      backgroundColor: colorScheme.surface,
-      body: SafeArea(
-        //tag: "getStartedButton",
-        child: Column(
-          children: [
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount: pages.length,
-                physics: const NeverScrollableScrollPhysics(),
-                itemBuilder: (context, index) {
-                  return pages[index];
-                },
+        backgroundColor: colorScheme.surface,
+        body: SafeArea(
+          //tag: "getStartedButton",
+          child: Column(
+            children: [
+              Expanded(
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: pages.length,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemBuilder: (context, index) {
+                    return pages[index];
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -80,8 +85,12 @@ class _AddWorkOrderScreenState extends State<AddWorkOrderScreen> {
   }
 
   void onSave() {
-    //get all the data from the pages and save it to the database
-    debugPrint('save');
+    final state = context.read<WorkOrderBloc>().state;
+    if (state is WorkOrderUpdated) {
+      final workorder = state.workorder;
+      // Save via FirebaseWorkOrderService
+      //sl<FirebaseWorkOrderService>().createWorkOrder(workorder);
+    }
   }
 
   @override

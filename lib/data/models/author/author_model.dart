@@ -12,13 +12,16 @@ class AuthorModel extends Equatable {
   @HiveField(AuthorModelHiveType.name)
   final String? name;
 
+  @HiveField(AuthorModelHiveType.mobileNumber)
+  final String? mobileNumber;
+
   @HiveField(AuthorModelHiveType.uid)
   final String? uid;
 
   @HiveField(AuthorModelHiveType.avatar)
   final String? avatar;
 
-  const AuthorModel({this.name, this.uid, this.avatar});
+  const AuthorModel({this.name, this.uid, this.avatar, this.mobileNumber});
 
   factory AuthorModel.fromJson(Map<String, dynamic> json) =>
       _$AuthorModelFromJson(json);
@@ -26,16 +29,22 @@ class AuthorModel extends Equatable {
   Map<String, dynamic> toJson() => _$AuthorModelToJson(this);
 
   @override
-  List<Object?> get props => [name, uid, avatar];
+  List<Object?> get props => [name, uid, avatar, mobileNumber];
 
   factory AuthorModel.empty() =>
-      const AuthorModel(name: '', uid: '', avatar: '');
+      const AuthorModel(name: '', uid: '', avatar: '', mobileNumber: '');
 
-  AuthorModel copyWith({String? name, String? uid, String? avatar}) {
+  AuthorModel copyWith({
+    String? name,
+    String? uid,
+    String? avatar,
+    String? mobileNumber,
+  }) {
     return AuthorModel(
       name: name ?? this.name,
       uid: uid ?? this.uid,
       avatar: avatar ?? this.avatar,
+      mobileNumber: mobileNumber ?? this.mobileNumber,
     );
   }
 }

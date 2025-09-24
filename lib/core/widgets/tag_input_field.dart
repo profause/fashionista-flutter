@@ -112,8 +112,8 @@ class _TagInputFieldState extends State<TagInputField> {
             );
           }).toList(),
         ),
-        const SizedBox(height: 8),
         if (widget.label != null) ...[
+          const SizedBox(height: 8),
           Text(
             widget.label ?? '',
             style: textTheme.titleSmall?.copyWith(

@@ -28,7 +28,7 @@ class WorkOrderModelAdapter extends TypeAdapter<WorkOrderModel> {
       dueDate: fields[11] as DateTime?,
       createdBy: fields[6] as String,
       client: fields[8] as AuthorModel?,
-      isBookmarked: fields[12] as bool,
+      isBookmarked: fields[12] as bool?,
       tags: fields[13] as String?,
     );
   }
@@ -101,7 +101,7 @@ WorkOrderModel _$WorkOrderModelFromJson(Map<String, dynamic> json) =>
       client: json['client'] == null
           ? null
           : AuthorModel.fromJson(json['client'] as Map<String, dynamic>),
-      isBookmarked: json['is_bookmarked'] as bool? ?? false,
+      isBookmarked: json['is_bookmarked'] as bool?,
       tags: json['tags'] as String?,
     );
 

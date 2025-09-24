@@ -186,7 +186,7 @@ class FirebaseWorkOrderServiceImpl implements FirebaseWorkOrderService {
       WorkOrderModel workOrderModel = WorkOrderModel.fromJson(
         doc.data() as Map<String, dynamic>,
       );
-      bool isBookmarked = workOrderModel.isBookmarked;
+      bool isBookmarked = workOrderModel.isBookmarked ?? false;
       workOrderModel = workOrderModel.copyWith(isBookmarked: !isBookmarked);
       updateWorkOrder(workOrderModel);
 

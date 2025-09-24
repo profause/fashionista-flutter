@@ -53,7 +53,7 @@ class WorkOrderModel extends Equatable {
 
   @HiveField(WorkOrderModelHiveType.isBookmarked)
   @JsonKey(name: 'is_bookmarked')
-  final bool isBookmarked;
+  final bool? isBookmarked;
 
   @HiveField(WorkOrderModelHiveType.tags)
   @JsonKey(name: 'tags')
@@ -71,7 +71,7 @@ class WorkOrderModel extends Equatable {
     this.dueDate,
     required this.createdBy,
     this.client,
-    this.isBookmarked = false,
+    this.isBookmarked,
     this.tags,
   });
 
