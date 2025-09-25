@@ -330,6 +330,7 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
                       width: double.infinity,
                       child: TextButton.icon(
                         onPressed: () {
+
                           Navigator.pop(context);
                           Navigator.push(
                             context,

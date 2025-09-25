@@ -13,4 +13,5 @@ class WorkOrderModelHiveType {
   static const int dueDate = 11;
   static const int isBookmarked = 12;
   static const int tags = 13;
+   static const int author = 14;
 }

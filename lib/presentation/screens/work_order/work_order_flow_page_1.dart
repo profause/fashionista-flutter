@@ -40,7 +40,6 @@ class _WorkOrderFlowPage1State extends State<WorkOrderFlowPage1> {
           child: BlocBuilder<WorkOrderBloc, WorkOrderBlocState>(
             builder: (context, state) {
               if (state is WorkOrderUpdated) current = state.workorder;
-              if (state is WorkOrderLoaded) current = state.workorder;
               _titleTextFieldController.text = current.title;
               _descriptionTextFieldController.text = current.description ?? "";
 

@@ -30,13 +30,15 @@ class WorkOrderModelAdapter extends TypeAdapter<WorkOrderModel> {
       client: fields[8] as AuthorModel?,
       isBookmarked: fields[12] as bool?,
       tags: fields[13] as String?,
+      workOrderType: fields[7] as String?,
+      author: fields[14] as AuthorModel?,
     );
   }
 
   @override
   void write(BinaryWriter writer, WorkOrderModel obj) {
     writer
-      ..writeByte(13)
+      ..writeByte(15)
       ..writeByte(0)
       ..write(obj.uid)
       ..writeByte(1)
@@ -45,6 +47,8 @@ class WorkOrderModelAdapter extends TypeAdapter<WorkOrderModel> {
       ..write(obj.description)
       ..writeByte(3)
       ..write(obj.status)
+      ..writeByte(7)
+      ..write(obj.workOrderType)
       ..writeByte(9)
       ..write(obj.featuredMedia)
       ..writeByte(4)
@@ -59,6 +63,8 @@ class WorkOrderModelAdapter extends TypeAdapter<WorkOrderModel> {
       ..write(obj.createdBy)
       ..writeByte(8)
       ..write(obj.client)
+      ..writeByte(14)
+      ..write(obj.author)
       ..writeByte(12)
       ..write(obj.isBookmarked)
       ..writeByte(13)
@@ -103,6 +109,10 @@ WorkOrderModel _$WorkOrderModelFromJson(Map<String, dynamic> json) =>
           : AuthorModel.fromJson(json['client'] as Map<String, dynamic>),
       isBookmarked: json['is_bookmarked'] as bool?,
       tags: json['tags'] as String?,
+      workOrderType: json['work_order_type'] as String?,
+      author: json['author'] == null
+          ? null
+          : AuthorModel.fromJson(json['author'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$WorkOrderModelToJson(WorkOrderModel instance) =>
@@ -111,6 +121,7 @@ Map<String, dynamic> _$WorkOrderModelToJson(WorkOrderModel instance) =>
       'title': instance.title,
       'description': instance.description,
       'status': instance.status,
+      'work_order_type': instance.workOrderType,
       'featured_media': instance.featuredMedia?.map((e) => e.toJson()).toList(),
       'created_at': instance.createdAt,
       'updated_at': instance.updatedAt,
@@ -118,6 +129,7 @@ Map<String, dynamic> _$WorkOrderModelToJson(WorkOrderModel instance) =>
       'due_date': instance.dueDate?.toIso8601String(),
       'created_by': instance.createdBy,
       'client': instance.client?.toJson(),
+      'author': instance.author?.toJson(),
       'is_bookmarked': instance.isBookmarked,
       'tags': instance.tags,
     };

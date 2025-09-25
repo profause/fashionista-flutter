@@ -5,7 +5,7 @@ class TagInputField extends StatefulWidget {
   final String? label;
   final String? hint;
   final TextEditingController? controller;
-  final String? Function(List<String>)? valueOut;
+  final Function(List<String>)? valueOut;
   final List<String>? valueIn;
 
   const TagInputField({

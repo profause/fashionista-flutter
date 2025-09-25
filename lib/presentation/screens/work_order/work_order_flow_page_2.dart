@@ -58,7 +58,6 @@ class _WorkOrderFlowPage2State extends State<WorkOrderFlowPage2> {
             builder: (context, state) {
               // ✅ pre-fill values when coming back
               if (state is WorkOrderUpdated) current = state.workorder;
-              if (state is WorkOrderLoaded) current = state.workorder;
               _selectedClientNotifier.value = current.client;
               _startDateTextFieldController.text = DateFormat(
                 'yyyy-MM-dd',
@@ -276,14 +275,45 @@ class _WorkOrderFlowPage2State extends State<WorkOrderFlowPage2> {
                       const Spacer(),
                       OutlinedButton(
                         onPressed: () {
+                          final startDate = DateTime.parse(
+                            _startDateTextFieldController.text,
+                          );
+                          final dueDate = DateTime.parse(
+                            _dueDateTextFieldController.text,
+                          );
+
+                          if (startDate.isAfter(dueDate)) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Start date cannot be after due date',
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+
+                          if (startDate == dueDate) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Start date cannot be same as due date',
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+                          final client = AuthorModel.empty().copyWith(
+                            uid: _selectedClientNotifier.value!.uid,
+                            name: _selectedClientNotifier.value!.name,
+                            mobileNumber:
+                                _selectedClientNotifier.value!.mobileNumber,
+                          );
+
                           final workOrder = current.copyWith(
-                            startDate: DateTime.parse(
-                              _startDateTextFieldController.text,
-                            ),
-                            dueDate: DateTime.parse(
-                              _dueDateTextFieldController.text,
-                            ),
-                            client: _selectedClientNotifier.value,
+                            startDate: startDate,
+                            dueDate: dueDate,
+                            client: client,
                           );
                           context.read<WorkOrderBloc>().add(
                             UpdateWorkOrder(workOrder),

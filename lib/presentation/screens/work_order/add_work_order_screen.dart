@@ -1,12 +1,26 @@
+import 'dart:io';
+
+import 'package:dartz/dartz.dart' as dartz;
+import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/utils/get_image_aspect_ratio.dart';
+import 'package:fashionista/data/models/author/author_model.dart';
+import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
+import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_state.dart';
+import 'package:fashionista/data/models/work_order/work_order_model.dart';
+import 'package:fashionista/data/services/firebase/firebase_work_order_service.dart';
 import 'package:fashionista/presentation/screens/work_order/work_order_flow_page_1.dart';
 import 'package:fashionista/presentation/screens/work_order/work_order_flow_page_2.dart';
 import 'package:fashionista/presentation/screens/work_order/work_order_flow_page_3.dart';
 import 'package:fashionista/presentation/screens/work_order/work_order_flow_page_4.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:uuid/uuid.dart';
 
 class AddWorkOrderScreen extends StatefulWidget {
   const AddWorkOrderScreen({super.key});
@@ -84,12 +98,105 @@ class _AddWorkOrderScreenState extends State<AddWorkOrderScreen> {
     );
   }
 
-  void onSave() {
-    final state = context.read<WorkOrderBloc>().state;
-    if (state is WorkOrderUpdated) {
-      final workorder = state.workorder;
-      // Save via FirebaseWorkOrderService
-      //sl<FirebaseWorkOrderService>().createWorkOrder(workorder);
+  void onSave() async {
+    debugPrint('onSave');
+    try {
+      final state = context.read<WorkOrderBloc>().state;
+      //if (state is WorkOrderUpdated) {
+        WorkOrderModel workorder = state.workorder;
+        User user = _userBloc.state;
+        String createdBy =
+            user.uid ?? firebase_auth.FirebaseAuth.instance.currentUser!.uid;
+        final workOrderId = Uuid().v4();
+
+        List<FeaturedMediaModel> featuredImages = [];
+        List<XFile> pickedImages = [];
+        if (workorder.featuredMedia!.isNotEmpty) {
+          for (var i = 0; i < workorder.featuredMedia!.length; i++) {
+            pickedImages.add(XFile(workorder.featuredMedia![i].url!));
+          }
+        }
+        // Show progress dialog
+        showDialog(
+          context: context,
+          barrierDismissible: false, // Prevent dismissing
+          builder: (_) => const Center(child: CircularProgressIndicator()),
+        );
+        final uploadResult = await uploadImages(
+          context,
+          workOrderId,
+          pickedImages,
+        );
+
+        uploadResult.fold(
+          (ifLeft) {
+            // _buttonLoadingStateCubit.setLoading(false);
+            if (mounted) {
+              Navigator.of(context).pop();
+            }
+            debugPrint(ifLeft);
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(ifLeft)));
+            return;
+          },
+          (ifRight) {
+            //_buttonLoadingStateCubit.setLoading(false);
+            featuredImages = ifRight;
+            setState(() {
+              //isUploading = false;
+            });
+          },
+        );
+
+        final author = AuthorModel.empty().copyWith(
+          uid: createdBy,
+          name: user.fullName,
+          avatar: user.profileImage,
+        );
+
+        workorder = workorder.copyWith(
+          createdBy: createdBy,
+          uid: workOrderId,
+          featuredMedia: featuredImages,
+          createdAt: DateTime.now().millisecondsSinceEpoch,
+          updatedAt: DateTime.now().millisecondsSinceEpoch,
+          status: 'DRAFT',
+          workOrderType: '',
+          author: author,
+        );
+        // Save via FirebaseWorkOrderService
+        final result = await sl<FirebaseWorkOrderService>().createWorkOrder(
+          workorder,
+        );
+
+        result.fold(
+          (l) {
+            // _buttonLoadingStateCubit.setLoading(false);
+            if (mounted) {
+              Navigator.of(context).pop();
+            }
+            if (!mounted) return;
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(l)));
+          },
+          (r) {
+            if (!mounted) return;
+            Navigator.pop(context);
+            Navigator.pop(context, true);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Work Order created successfully!')),
+            );
+          },
+        );
+      //}
+    } on firebase_auth.FirebaseException catch (e) {
+      //_buttonLoadingStateCubit.setLoading(false);
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message!)));
     }
   }
 
@@ -97,5 +204,58 @@ class _AddWorkOrderScreenState extends State<AddWorkOrderScreen> {
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  Future<dartz.Either<String, List<FeaturedMediaModel>>> uploadImages(
+    BuildContext context,
+    String workOrderId,
+    List pickedImages,
+  ) async {
+    if (pickedImages.isEmpty) return dartz.Left('image list is empty');
+
+    final storage = FirebaseStorage.instance;
+    final uploadTasks = <Future<String>>[];
+    final aspects = <double?>[];
+
+    // Step 1: Collect aspect ratios + prepare upload tasks
+    for (int i = 0; i < pickedImages.length; i++) {
+      final image = pickedImages[i];
+
+      // get aspect ratio
+      final aspect = await getImageAspectRatio(image);
+      aspects.add(aspect);
+
+      // prepare upload
+      uploadTasks.add(() async {
+        final fileName = "${workOrderId}_$i.jpg";
+        final ref = storage.ref().child("work_order_images/$fileName");
+
+        final uploadTask = ref.putFile(File(image.path));
+        await uploadTask;
+        return await ref.getDownloadURL();
+      }());
+    }
+
+    try {
+      // Step 2: Upload all + get URLs
+      final urls = await Future.wait(uploadTasks);
+
+      // Step 3: Merge into FeaturedMediaModel list
+      final mergedList = List.generate(
+        urls.length,
+        (i) => FeaturedMediaModel(
+          url: urls[i],
+          type: "image", // could be "video" if needed
+          aspectRatio: aspects[i],
+        ),
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("✅ Images uploaded successfully!")),
+      );
+      return dartz.Right(mergedList);
+    } catch (e) {
+      return dartz.Left(e.toString());
+    }
   }
 }

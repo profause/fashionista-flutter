@@ -58,8 +58,11 @@ class _WorkOrderFlowPage3State extends State<WorkOrderFlowPage3> {
           builder: (context, state) {
             // ✅ pre-fill values when coming back
             if (state is WorkOrderUpdated) current = state.workorder;
-            if (state is WorkOrderLoaded) current = state.workorder;
-
+            if (current.featuredMedia!.isNotEmpty) {
+              for (var i = 0; i < current.featuredMedia!.length; i++) {
+                previewImages.add(XFile(current.featuredMedia![i].url!));
+              }
+            }
             return Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
@@ -157,9 +160,12 @@ class _WorkOrderFlowPage3State extends State<WorkOrderFlowPage3> {
                             'What are the style inspirations behind this project?',
                         hint:
                             'Type and press Enter, Space or Comma to add a tag',
-                        valueIn: [],
-                        valueOut: (value) =>
-                            _tagsController.text = value.join(','),
+                        valueIn: current.tags!.isEmpty
+                            ? []
+                            : current.tags!.split(',').toList(),
+                        valueOut: (value) {
+                          _tagsController.text = value.join(',');
+                        },
                       ),
                     ),
                   ],

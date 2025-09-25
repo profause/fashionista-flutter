@@ -216,7 +216,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                Divider(height: .1, thickness: .1,),
+                Divider(height: .1, thickness: .1),
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -415,64 +415,63 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
   }
 
   Future<dartz.Either<String, List<FeaturedMediaModel>>> uploadImages(
-  BuildContext context,
-  String trendId,
-) async {
-  if (pickedImages.isEmpty) return dartz.Left('image list is empty');
+    BuildContext context,
+    String trendId,
+  ) async {
+    if (pickedImages.isEmpty) return dartz.Left('image list is empty');
 
-  setState(() => isUploading = true);
+    setState(() => isUploading = true);
 
-  final storage = FirebaseStorage.instance;
-  final uploadTasks = <Future<String>>[];
-  final aspects = <double?>[];
+    final storage = FirebaseStorage.instance;
+    final uploadTasks = <Future<String>>[];
+    final aspects = <double?>[];
 
-  // Step 1: Collect aspect ratios + prepare upload tasks
-  for (int i = 0; i < pickedImages.length; i++) {
-    final image = pickedImages[i];
+    // Step 1: Collect aspect ratios + prepare upload tasks
+    for (int i = 0; i < pickedImages.length; i++) {
+      final image = pickedImages[i];
 
-    // get aspect ratio
-    final aspect = await getImageAspectRatio(image);
-    aspects.add(aspect);
+      // get aspect ratio
+      final aspect = await getImageAspectRatio(image);
+      aspects.add(aspect);
 
-    // prepare upload
-    uploadTasks.add(() async {
-      final fileName = "${trendId}_$i.jpg";
-      final ref = storage.ref().child("trend_images/$fileName");
+      // prepare upload
+      uploadTasks.add(() async {
+        final fileName = "${trendId}_$i.jpg";
+        final ref = storage.ref().child("trend_images/$fileName");
 
-      final uploadTask = ref.putFile(File(image.path));
-      await uploadTask;
-      return await ref.getDownloadURL();
-    }());
+        final uploadTask = ref.putFile(File(image.path));
+        await uploadTask;
+        return await ref.getDownloadURL();
+      }());
+    }
+
+    try {
+      // Step 2: Upload all + get URLs
+      final urls = await Future.wait(uploadTasks);
+
+      // Step 3: Merge into FeaturedMediaModel list
+      final mergedList = List.generate(
+        urls.length,
+        (i) => FeaturedMediaModel(
+          url: urls[i],
+          type: "image", // could be "video" if needed
+          aspectRatio: aspects[i],
+        ),
+      );
+
+      setState(() {
+        uploadedUrls = urls;
+        isUploading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("✅ Images uploaded successfully!")),
+      );
+
+      return dartz.Right(mergedList);
+    } catch (e) {
+      setState(() => isUploading = false);
+      return dartz.Left(e.toString());
+    }
   }
-
-  try {
-    // Step 2: Upload all + get URLs
-    final urls = await Future.wait(uploadTasks);
-
-    // Step 3: Merge into FeaturedMediaModel list
-    final mergedList = List.generate(
-      urls.length,
-      (i) => FeaturedMediaModel(
-        url: urls[i],
-        type: "image", // could be "video" if needed
-        aspectRatio: aspects[i],
-      ),
-    );
-
-    setState(() {
-      uploadedUrls = urls;
-      isUploading = false;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("✅ Images uploaded successfully!")),
-    );
-
-    return dartz.Right(mergedList);
-  } catch (e) {
-    setState(() => isUploading = false);
-    return dartz.Left(e.toString());
-  }
-}
-
 }

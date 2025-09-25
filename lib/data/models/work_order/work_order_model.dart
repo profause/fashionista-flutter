@@ -23,6 +23,10 @@ class WorkOrderModel extends Equatable {
   @HiveField(WorkOrderModelHiveType.status)
   final String? status;
 
+  @HiveField(WorkOrderModelHiveType.workOrderType)
+  @JsonKey(name: 'work_order_type')
+  final String? workOrderType;
+
   @HiveField(WorkOrderModelHiveType.featuredMedia)
   @JsonKey(name: 'featured_media')
   final List<FeaturedMediaModel>? featuredMedia;
@@ -51,6 +55,10 @@ class WorkOrderModel extends Equatable {
   @JsonKey(name: 'client')
   final AuthorModel? client;
 
+  @HiveField(WorkOrderModelHiveType.author)
+  @JsonKey(name: 'author')
+  final AuthorModel? author;
+
   @HiveField(WorkOrderModelHiveType.isBookmarked)
   @JsonKey(name: 'is_bookmarked')
   final bool? isBookmarked;
@@ -73,6 +81,8 @@ class WorkOrderModel extends Equatable {
     this.client,
     this.isBookmarked,
     this.tags,
+    this.workOrderType,
+    this.author,
   });
 
   factory WorkOrderModel.fromJson(Map<String, dynamic> json) =>
@@ -95,7 +105,8 @@ class WorkOrderModel extends Equatable {
     client,
     startDate,
     dueDate,
-    client,
+    workOrderType,
+    author,
   ];
 
   WorkOrderModel copyWith({
@@ -112,6 +123,8 @@ class WorkOrderModel extends Equatable {
     AuthorModel? client,
     DateTime? startDate,
     DateTime? dueDate,
+    String? workOrderType,
+    AuthorModel? author,
   }) {
     return WorkOrderModel(
       uid: uid ?? this.uid,
@@ -127,6 +140,8 @@ class WorkOrderModel extends Equatable {
       client: client ?? this.client,
       startDate: startDate ?? this.startDate,
       dueDate: dueDate ?? this.dueDate,
+      workOrderType: workOrderType ?? this.workOrderType,
+      author: author ?? this.author,
     );
   }
 
@@ -145,6 +160,8 @@ class WorkOrderModel extends Equatable {
       client: AuthorModel.empty(),
       startDate: null,
       dueDate: null,
+      workOrderType: '',
+      author: AuthorModel.empty(),
     );
   }
 }
