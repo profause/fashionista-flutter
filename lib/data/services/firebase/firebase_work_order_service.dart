@@ -87,7 +87,7 @@ class FirebaseWorkOrderServiceImpl implements FirebaseWorkOrderService {
       final querySnapshot = await firestore
           .collection('work_orders')
           .where('created_by', isEqualTo: uid)
-          .orderBy('created_date', descending: true)
+          .orderBy('created_at', descending: true)
           .get();
 
       final workOrders = querySnapshot.docs.map((doc) {
@@ -111,7 +111,7 @@ class FirebaseWorkOrderServiceImpl implements FirebaseWorkOrderService {
       final querySnapshot = await firestore
           .collection('work_orders')
           .where('created_by', isEqualTo: uid)
-          .orderBy('created_date', descending: true)
+          .orderBy('created_at', descending: true)
           .get();
 
       final workOrders = querySnapshot.docs.map((doc) {

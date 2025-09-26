@@ -188,6 +188,14 @@ class _WorkOrderFlowPage3State extends State<WorkOrderFlowPage3> {
                     const Spacer(),
                     OutlinedButton(
                       onPressed: () {
+                        if (previewImages.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Please upload at least one image'),
+                            ),
+                          );
+                          return;
+                        }
                         final featuredMedia = previewImages.map((e) {
                           return FeaturedMediaModel.empty().copyWith(
                             url: e.path,

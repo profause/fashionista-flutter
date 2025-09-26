@@ -8,7 +8,7 @@ import 'package:fashionista/data/models/featured_media/featured_media_model.dart
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc.dart';
-import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_state.dart';
+import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_event.dart';
 import 'package:fashionista/data/models/work_order/work_order_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_work_order_service.dart';
 import 'package:fashionista/presentation/screens/work_order/work_order_flow_page_1.dart';
@@ -48,7 +48,10 @@ class _AddWorkOrderScreenState extends State<AddWorkOrderScreen> {
       WorkOrderFlowPage1(onNext: () => nextPage()),
       WorkOrderFlowPage2(onNext: () => nextPage(), onPrev: () => prevPage()),
       WorkOrderFlowPage3(onNext: () => nextPage(), onPrev: () => prevPage()),
-      WorkOrderFlowPage4(onNext: () => onSave(), onPrev: () => prevPage()),
+      WorkOrderFlowPage4(
+        onNext: (workOrder) => onSave(workOrder),
+        onPrev: () => prevPage(),
+      ),
     ];
     return BlocProvider(
       create: (_) => WorkOrderBloc(),
@@ -98,99 +101,97 @@ class _AddWorkOrderScreenState extends State<AddWorkOrderScreen> {
     );
   }
 
-  void onSave() async {
-    debugPrint('onSave');
+  void onSave(WorkOrderModel workorder) async {
     try {
-      final state = context.read<WorkOrderBloc>().state;
-      //if (state is WorkOrderUpdated) {
-        WorkOrderModel workorder = state.workorder;
-        User user = _userBloc.state;
-        String createdBy =
-            user.uid ?? firebase_auth.FirebaseAuth.instance.currentUser!.uid;
-        final workOrderId = Uuid().v4();
+      User user = _userBloc.state;
+      String createdBy =
+          user.uid ?? firebase_auth.FirebaseAuth.instance.currentUser!.uid;
+      final workOrderId = Uuid().v4();
 
-        List<FeaturedMediaModel> featuredImages = [];
-        List<XFile> pickedImages = [];
-        if (workorder.featuredMedia!.isNotEmpty) {
-          for (var i = 0; i < workorder.featuredMedia!.length; i++) {
-            pickedImages.add(XFile(workorder.featuredMedia![i].url!));
-          }
+      List<FeaturedMediaModel> featuredImages = [];
+      List<XFile> pickedImages = [];
+      if (workorder.featuredMedia!.isNotEmpty) {
+        for (var i = 0; i < workorder.featuredMedia!.length; i++) {
+          pickedImages.add(XFile(workorder.featuredMedia![i].url!));
         }
-        // Show progress dialog
-        showDialog(
-          context: context,
-          barrierDismissible: false, // Prevent dismissing
-          builder: (_) => const Center(child: CircularProgressIndicator()),
-        );
-        final uploadResult = await uploadImages(
-          context,
-          workOrderId,
-          pickedImages,
-        );
+      }
+      // Show progress dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false, // Prevent dismissing
+        builder: (_) => const Center(child: CircularProgressIndicator()),
+      );
+      final uploadResult = await uploadImages(
+        context,
+        workOrderId,
+        pickedImages,
+      );
 
-        uploadResult.fold(
-          (ifLeft) {
-            // _buttonLoadingStateCubit.setLoading(false);
-            if (mounted) {
-              Navigator.of(context).pop();
-            }
-            debugPrint(ifLeft);
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(ifLeft)));
-            return;
-          },
-          (ifRight) {
-            //_buttonLoadingStateCubit.setLoading(false);
-            featuredImages = ifRight;
-            setState(() {
-              //isUploading = false;
-            });
-          },
-        );
+      uploadResult.fold(
+        (ifLeft) {
+          // _buttonLoadingStateCubit.setLoading(false);
+          if (mounted) {
+            Navigator.of(context).pop();
+          }
+          debugPrint(ifLeft);
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(ifLeft)));
+          return;
+        },
+        (ifRight) {
+          //_buttonLoadingStateCubit.setLoading(false);
+          featuredImages = ifRight;
+          setState(() {
+            //isUploading = false;
+          });
+        },
+      );
 
-        final author = AuthorModel.empty().copyWith(
-          uid: createdBy,
-          name: user.fullName,
-          avatar: user.profileImage,
-        );
+      final author = AuthorModel.empty().copyWith(
+        uid: createdBy,
+        name: user.fullName,
+        avatar: user.profileImage,
+      );
 
-        workorder = workorder.copyWith(
-          createdBy: createdBy,
-          uid: workOrderId,
-          featuredMedia: featuredImages,
-          createdAt: DateTime.now().millisecondsSinceEpoch,
-          updatedAt: DateTime.now().millisecondsSinceEpoch,
-          status: 'DRAFT',
-          workOrderType: '',
-          author: author,
-        );
-        // Save via FirebaseWorkOrderService
-        final result = await sl<FirebaseWorkOrderService>().createWorkOrder(
-          workorder,
-        );
+      workorder = workorder.copyWith(
+        createdBy: createdBy,
+        uid: workOrderId,
+        featuredMedia: featuredImages,
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        updatedAt: DateTime.now().millisecondsSinceEpoch,
+        status: 'DRAFT',
+        workOrderType: '',
+        author: author,
+      );
+      // Save via FirebaseWorkOrderService
+      final result = await sl<FirebaseWorkOrderService>().createWorkOrder(
+        workorder,
+      );
 
-        result.fold(
-          (l) {
-            // _buttonLoadingStateCubit.setLoading(false);
-            if (mounted) {
-              Navigator.of(context).pop();
-            }
-            if (!mounted) return;
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(l)));
-          },
-          (r) {
-            if (!mounted) return;
-            Navigator.pop(context);
-            Navigator.pop(context, true);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Work Order created successfully!')),
-            );
-          },
-        );
-      //}
+      result.fold(
+        (l) {
+          // _buttonLoadingStateCubit.setLoading(false);
+          if (mounted) {
+            Navigator.of(context).pop();
+          }
+          if (!mounted) return;
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l)));
+        },
+        (r) {
+          if (!mounted) return;
+          context.read<WorkOrderBloc>().add(
+            const LoadWorkOrdersCacheFirstThenNetwork(''),
+          );
+          Navigator.pop(context);
+          Navigator.pop(context, true);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Work Order created successfully!')),
+          );
+        },
+      );
     } on firebase_auth.FirebaseException catch (e) {
       //_buttonLoadingStateCubit.setLoading(false);
       if (!mounted) return;
@@ -250,9 +251,9 @@ class _AddWorkOrderScreenState extends State<AddWorkOrderScreen> {
         ),
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("✅ Images uploaded successfully!")),
-      );
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   const SnackBar(content: Text("✅ Images uploaded successfully!")),
+      // );
       return dartz.Right(mergedList);
     } catch (e) {
       return dartz.Left(e.toString());

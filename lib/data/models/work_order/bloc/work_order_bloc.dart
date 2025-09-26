@@ -7,7 +7,6 @@ import 'package:fashionista/data/models/work_order/work_order_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_work_order_service.dart';
 import 'package:fashionista/data/services/hive/hive_work_order_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class WorkOrderBloc extends Bloc<WorkOrderBlocEvent, WorkOrderBlocState> {

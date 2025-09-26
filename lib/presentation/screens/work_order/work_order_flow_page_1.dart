@@ -88,7 +88,7 @@ class _WorkOrderFlowPage1State extends State<WorkOrderFlowPage1> {
                           child: CustomTextInputFieldWidget(
                             autofocus: false,
                             controller: _descriptionTextFieldController,
-                            hint: 'Description...',
+                            hint: 'Describe style inspiration...',
                             minLines: 2,
                             maxLength: 150,
                             validator: (value) {

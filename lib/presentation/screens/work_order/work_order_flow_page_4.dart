@@ -10,9 +10,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 class WorkOrderFlowPage4 extends StatefulWidget {
-  final VoidCallback? onNext;
+  final Function(WorkOrderModel workorder)? onNext;
   final VoidCallback? onPrev;
-
   const WorkOrderFlowPage4({super.key, this.onNext, this.onPrev});
 
   @override
@@ -113,9 +112,9 @@ class _WorkOrderFlowPage4State extends State<WorkOrderFlowPage4> {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
+                        color: Colors.grey.withValues(alpha: 0.04),
                         blurRadius: 8,
-                        offset: const Offset(0, 4),
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
@@ -132,7 +131,7 @@ class _WorkOrderFlowPage4State extends State<WorkOrderFlowPage4> {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
+                        color: Colors.grey.withValues(alpha: 0.04),
                         blurRadius: 8,
                         offset: const Offset(0, 3),
                       ),
@@ -162,7 +161,7 @@ class _WorkOrderFlowPage4State extends State<WorkOrderFlowPage4> {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
+                        color: Colors.grey.withValues(alpha: 0.04),
                         blurRadius: 8,
                         offset: const Offset(0, 3),
                       ),
@@ -188,7 +187,7 @@ class _WorkOrderFlowPage4State extends State<WorkOrderFlowPage4> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                if (current.tags != null) ...[
+                if (current.tags!.trim().isNotEmpty) ...[
                   Container(
                     alignment: Alignment.centerLeft,
                     child: Wrap(
@@ -228,7 +227,7 @@ class _WorkOrderFlowPage4State extends State<WorkOrderFlowPage4> {
                         context.read<WorkOrderBloc>().add(
                           UpdateWorkOrder(current),
                         );
-                        widget.onNext!();
+                        widget.onNext!(current);
                       },
                       child: Row(
                         mainAxisSize: MainAxisSize.min,

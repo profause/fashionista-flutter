@@ -1,12 +1,15 @@
-import 'package:fashionista/data/models/clients/bloc/client_event.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_event.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_state.dart';
+import 'package:fashionista/presentation/screens/work_order/project_details_screen.dart';
+import 'package:fashionista/presentation/screens/work_order/widgets/pinned_work_order_info_card_widget.dart';
 import 'package:fashionista/presentation/screens/work_order/widgets/work_order_info_card_widget.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
+import 'package:fashionista/presentation/widgets/custom_icon_rounded.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
 class ProjectsPage extends StatefulWidget {
@@ -151,44 +154,36 @@ class _ProjectsPageState extends State<ProjectsPage> {
                           ),
                         ),
                       ),
+                      // ✅ Pinned work orders (horizontal)
                       SliverToBoxAdapter(
                         child: SizedBox(
-                          height: 100,
-                          child: CustomScrollView(
+                          height: 115,
+                          child: ListView.separated(
                             scrollDirection: Axis.horizontal,
-                            shrinkWrap: true, // ✅ don’t expand infinitely
-                            primary: false, // ✅ don’t hijack the parent scroll
-                            physics:
-                                const ClampingScrollPhysics(), // ✅ smoother nested scroll
-                            slivers: [
-                              SliverPadding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                ), // ✅ add spacing at edges
-                                sliver: SliverList(
-                                  delegate: SliverChildBuilderDelegate(
-                                    (context, index) {
-                                      if (index.isEven) {
-                                        final workOrder =
-                                            pinnedWorkOrders[index ~/ 2];
-                                        return WorkOrderInfoCardWidget(
-                                          workOrderInfo: workOrder,
-                                        );
-                                      } else {
-                                        return const SizedBox(
-                                          width: 8,
-                                        ); // separator between items
-                                      }
-                                    },
-                                    childCount: pinnedWorkOrders.length * 2 - 1,
-                                  ),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            itemBuilder: (context, index) {
+                              final workOrder = pinnedWorkOrders[index];
+                              return SizedBox(
+                                width: 260, // 👈 give fixed width
+                                child: PinnedWorkOrderInfoCardWidget(
+                                  workOrderInfo: workOrder,
+                                  onTap: () {
+                                    context.read<WorkOrderBloc>().add(
+                                      const LoadWorkOrdersCacheFirstThenNetwork(
+                                        '',
+                                      ),
+                                    );
+                                  },
                                 ),
-                              ),
-                            ],
+                              );
+                            },
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(width: 8),
+                            itemCount: pinnedWorkOrders.length,
                           ),
                         ),
                       ),
-
+                      const SliverToBoxAdapter(child: SizedBox(height: 16)),
                       const SliverToBoxAdapter(
                         child: Divider(
                           height: .1,
@@ -209,30 +204,25 @@ class _ProjectsPageState extends State<ProjectsPage> {
                           child: Text("All", style: textTheme.labelLarge),
                         ),
                       ),
-                      SliverList(
-                        delegate: SliverChildBuilderDelegate((context, index) {
-                          if (index.isEven) {
-                            final workOrder = unpinnedWorkOrders[index ~/ 2];
+                      // ✅ Unpinned work orders (vertical)
+                      SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        sliver: SliverList.separated(
+                          itemBuilder: (context, index) {
+                            final workOrder = unpinnedWorkOrders[index];
                             return WorkOrderInfoCardWidget(
                               workOrderInfo: workOrder,
-                              onTap: () async {
-                                // await Navigator.push(
-                                //   context,
-                                //   MaterialPageRoute(
-                                //     builder: (context) =>
-                                //        ClientDetailsScreen(client: client),
-                                //   ),
-                                // );
+                              onTap: () {
+                                context.read<WorkOrderBloc>().add(
+                                  const LoadWorkOrdersCacheFirstThenNetwork(''),
+                                );
                               },
                             );
-                          } else {
-                            return const Divider(
-                              height: .1,
-                              thickness: .1,
-                              indent: 80,
-                            );
-                          }
-                        }, childCount: unpinnedWorkOrders.length * 2 - 1),
+                          },
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: 12),
+                          itemCount: unpinnedWorkOrders.length,
+                        ),
                       ),
                     ],
                   ],

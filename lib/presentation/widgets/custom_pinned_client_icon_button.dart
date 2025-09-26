@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:fashionista/core/service_locator/service_locator.dart';
-import 'package:fashionista/domain/usecases/clients/is_pinned_client.dart';
 import 'package:fashionista/domain/usecases/clients/pin_or_unpin_client_usecase.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:flutter/material.dart';

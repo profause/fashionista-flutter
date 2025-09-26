@@ -3,6 +3,7 @@ import 'package:fashionista/data/models/clients/bloc/client_bloc.dart';
 import 'package:fashionista/data/models/clients/bloc/client_state.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc.dart';
+import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_event.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_state.dart';
 import 'package:fashionista/presentation/screens/clients/add_client_screen.dart';
 import 'package:fashionista/presentation/screens/clients/clients_screen.dart';
@@ -32,6 +33,9 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
   void initState() {
     _tabController = TabController(length: 2, vsync: this);
     userBloc = context.read<UserBloc>();
+      context.read<WorkOrderBloc>().add(
+      const WorkOrdersCounter(''),
+    );
     super.initState();
   }
 
