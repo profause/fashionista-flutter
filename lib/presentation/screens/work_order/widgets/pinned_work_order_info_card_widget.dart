@@ -89,7 +89,7 @@ class _PinnedWorkOrderInfoCardWidgetState
               );
             },
             child: Padding(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.only(left: 10,right: 10, top: 4, bottom: 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -113,7 +113,7 @@ class _PinnedWorkOrderInfoCardWidgetState
                               _pinOrUnpinWorkOrder();
                             }, // safe to leave as empty
                             iconData: Icons.bookmark_border,
-                            size: 18,
+                            size: 16,
                             icon: AnimatedSwitcher(
                               duration: const Duration(milliseconds: 200),
                               transitionBuilder: (child, animation) {
@@ -135,7 +135,7 @@ class _PinnedWorkOrderInfoCardWidgetState
                                 color: isBookmarked
                                     ? Colors.black
                                     : Colors.grey,
-                                size: 20,
+                                size: 16,
                               ),
                             ),
                           );
@@ -150,7 +150,8 @@ class _PinnedWorkOrderInfoCardWidgetState
                     overflow: TextOverflow.ellipsis, // 👈 adds "..."
                   ),
 
-                  const SizedBox(height: 12),
+                  //const SizedBox(height: 8),
+                  const Spacer(),
                   Row(
                     children: [
                       Row(

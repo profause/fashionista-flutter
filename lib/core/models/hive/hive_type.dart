@@ -14,4 +14,5 @@ class HiveType {
   static const int outfitPlanModelHiveType = 12;
   static const int outfitClosetItemHiveType = 13;
   static const int workOrderModelHiveType = 14;
+  static const int workOrderStatusProgressModel = 15;
 }

@@ -157,7 +157,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                       // ✅ Pinned work orders (horizontal)
                       SliverToBoxAdapter(
                         child: SizedBox(
-                          height: 115,
+                          height: 110,
                           child: ListView.separated(
                             scrollDirection: Axis.horizontal,
                             padding: const EdgeInsets.symmetric(horizontal: 12),

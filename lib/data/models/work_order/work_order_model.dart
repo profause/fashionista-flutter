@@ -1,5 +1,6 @@
 import 'package:fashionista/core/models/hive/work_order_model_hive_type.dart';
 import 'package:fashionista/data/models/author/author_model.dart';
+import 'package:fashionista/data/models/clients/client_measurement_model.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:fashionista/core/models/hive/hive_type.dart' as hive;
@@ -67,6 +68,10 @@ class WorkOrderModel extends Equatable {
   @JsonKey(name: 'tags')
   final String? tags;
 
+
+  @HiveField(WorkOrderModelHiveType.measurements)
+  final List<ClientMeasurement>? measurements;
+
   const WorkOrderModel({
     this.uid,
     required this.title,
@@ -83,6 +88,7 @@ class WorkOrderModel extends Equatable {
     this.tags,
     this.workOrderType,
     this.author,
+    this.measurements = const [],
   });
 
   factory WorkOrderModel.fromJson(Map<String, dynamic> json) =>
@@ -107,6 +113,7 @@ class WorkOrderModel extends Equatable {
     dueDate,
     workOrderType,
     author,
+    measurements,
   ];
 
   WorkOrderModel copyWith({
@@ -125,6 +132,7 @@ class WorkOrderModel extends Equatable {
     DateTime? dueDate,
     String? workOrderType,
     AuthorModel? author,
+    List<ClientMeasurement>? measurements,
   }) {
     return WorkOrderModel(
       uid: uid ?? this.uid,
@@ -142,6 +150,7 @@ class WorkOrderModel extends Equatable {
       dueDate: dueDate ?? this.dueDate,
       workOrderType: workOrderType ?? this.workOrderType,
       author: author ?? this.author,
+      measurements: measurements ?? this.measurements,
     );
   }
 
@@ -162,6 +171,7 @@ class WorkOrderModel extends Equatable {
       dueDate: null,
       workOrderType: '',
       author: AuthorModel.empty(),
+      measurements: [],
     );
   }
 }

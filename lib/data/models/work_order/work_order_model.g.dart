@@ -32,13 +32,14 @@ class WorkOrderModelAdapter extends TypeAdapter<WorkOrderModel> {
       tags: fields[13] as String?,
       workOrderType: fields[7] as String?,
       author: fields[14] as AuthorModel?,
+      measurements: (fields[15] as List?)?.cast<ClientMeasurement>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, WorkOrderModel obj) {
     writer
-      ..writeByte(15)
+      ..writeByte(16)
       ..writeByte(0)
       ..write(obj.uid)
       ..writeByte(1)
@@ -68,7 +69,9 @@ class WorkOrderModelAdapter extends TypeAdapter<WorkOrderModel> {
       ..writeByte(12)
       ..write(obj.isBookmarked)
       ..writeByte(13)
-      ..write(obj.tags);
+      ..write(obj.tags)
+      ..writeByte(15)
+      ..write(obj.measurements);
   }
 
   @override
@@ -113,6 +116,11 @@ WorkOrderModel _$WorkOrderModelFromJson(Map<String, dynamic> json) =>
       author: json['author'] == null
           ? null
           : AuthorModel.fromJson(json['author'] as Map<String, dynamic>),
+      measurements: (json['measurements'] as List<dynamic>?)
+              ?.map(
+                  (e) => ClientMeasurement.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$WorkOrderModelToJson(WorkOrderModel instance) =>
@@ -132,4 +140,5 @@ Map<String, dynamic> _$WorkOrderModelToJson(WorkOrderModel instance) =>
       'author': instance.author?.toJson(),
       'is_bookmarked': instance.isBookmarked,
       'tags': instance.tags,
+      'measurements': instance.measurements?.map((e) => e.toJson()).toList(),
     };
