@@ -12,6 +12,7 @@ import 'package:fashionista/data/models/featured_media/featured_media_model.dart
 import 'package:fashionista/data/models/social_interactions/social_interaction_model.dart';
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
 import 'package:fashionista/data/models/work_order/work_order_model.dart';
+import 'package:fashionista/data/models/work_order/work_order_status_progress_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
@@ -34,6 +35,7 @@ class HiveService {
   late final Box closetBox;
   late final Box userInterestsBox;
   late final Box workOrderBox;
+  late final Box workOrderStatusProgressBox;
 
 
   /// Initialize Hive + boxes (call once at startup)
@@ -55,6 +57,7 @@ class HiveService {
       Hive.registerAdapter(OutfitModelAdapter());
       Hive.registerAdapter(OutfitClosetItemAdapter());
       Hive.registerAdapter(WorkOrderModelAdapter());
+      Hive.registerAdapter(WorkOrderStatusProgressModelAdapter());
 
       designersBox = await Hive.openBox('designers_cache');
       designCollectionsBox = await Hive.openBox('design_collections_cache');
@@ -64,6 +67,7 @@ class HiveService {
       closetBox = await Hive.openBox('closet_cache');
       userInterestsBox = await Hive.openBox('user_interests_cache');
       workOrderBox = await Hive.openBox('work_orders_cache');
+      workOrderStatusProgressBox = await Hive.openBox('work_orders_status_progress_cache');
 
       debugPrint('✅ Hive initialized');
     } catch (e) {

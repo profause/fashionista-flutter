@@ -23,6 +23,7 @@ import 'package:fashionista/data/services/hive/hive_outfit_service.dart';
 import 'package:fashionista/data/services/hive/hive_trend_comment_service.dart';
 import 'package:fashionista/data/services/hive/hive_trend_service.dart';
 import 'package:fashionista/data/services/hive/hive_work_order_service.dart';
+import 'package:fashionista/data/services/hive/hive_work_order_status_progress_service.dart';
 import 'package:fashionista/domain/repository/auth/auth_repository.dart';
 import 'package:fashionista/domain/repository/clients/clients_repository.dart';
 import 'package:fashionista/domain/repository/closet/closet_repository.dart';
@@ -206,5 +207,8 @@ Future<void> initialiseDependencies() async {
   sl.registerSingleton<WorkOrderRepository>(WorkOrderRepositoryImpl());
   sl.registerSingleton<FirebaseWorkOrderService>(
     FirebaseWorkOrderServiceImpl(),
+  );
+  sl.registerSingleton<HiveWorkOrderStatusProgressService>(
+    HiveWorkOrderStatusProgressService(),
   );
 }
