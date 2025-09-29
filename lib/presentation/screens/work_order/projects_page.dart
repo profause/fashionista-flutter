@@ -1,15 +1,12 @@
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_event.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_state.dart';
-import 'package:fashionista/presentation/screens/work_order/project_details_screen.dart';
 import 'package:fashionista/presentation/screens/work_order/widgets/pinned_work_order_info_card_widget.dart';
 import 'package:fashionista/presentation/screens/work_order/widgets/work_order_info_card_widget.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
-import 'package:fashionista/presentation/widgets/custom_icon_rounded.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
 class ProjectsPage extends StatefulWidget {

@@ -412,7 +412,7 @@ class _ClientsScreenState extends State<ClientsScreen> with RouteAware {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          "Filer by",
+                          "Filter by",
                           style: textTheme.bodyMedium!.copyWith(
                             fontWeight: FontWeight.w500,
                           ),
