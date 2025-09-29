@@ -4,6 +4,7 @@ import 'package:fashionista/data/models/work_order/bloc/work_order_status_progre
 import 'package:fashionista/data/models/work_order/work_order_status_progress_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_work_order_service.dart';
 import 'package:fashionista/data/services/hive/hive_work_order_status_progress_service.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class WorkOrderStatusProgressBloc
@@ -117,6 +118,7 @@ class WorkOrderStatusProgressBloc
         }
       },
       (statusProgress) async {
+        //debugPrint('statusProgress: $statusProgress');
         if (statusProgress.isEmpty) {
           if (cachedItems.isEmpty) {
             emit(const WorkOrderProgressEmpty());

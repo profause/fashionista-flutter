@@ -269,7 +269,7 @@ class FirebaseWorkOrderServiceImpl implements FirebaseWorkOrderService {
     try {
       final firestore = FirebaseFirestore.instance;
       final querySnapshot = await firestore
-          .collection('work_orders')
+          .collection('work_order_status_progress')
           .where('work_order_id', isEqualTo: uid)
           .orderBy('created_at', descending: true)
           .get();

@@ -39,6 +39,10 @@ class WorkOrderStatusProgressModel extends Equatable {
   @JsonKey(name: 'created_by')
   final String createdBy;
 
+  @HiveField(WorkOrderStatusProgressModelHiveType.notifyClient)
+  @JsonKey(name: 'notify_client')
+  final bool? notifyClient;
+
   const WorkOrderStatusProgressModel({
     this.uid,
     required this.status,
@@ -48,6 +52,7 @@ class WorkOrderStatusProgressModel extends Equatable {
     this.createdAt,
     this.updatedAt,
     required this.createdBy,
+    this.notifyClient = false,
   });
 
   factory WorkOrderStatusProgressModel.fromJson(Map<String, dynamic> json) =>
@@ -65,6 +70,7 @@ class WorkOrderStatusProgressModel extends Equatable {
     createdAt,
     updatedAt,
     createdBy,
+    notifyClient,
   ];
 
   WorkOrderStatusProgressModel copyWith({
@@ -76,6 +82,7 @@ class WorkOrderStatusProgressModel extends Equatable {
     int? createdAt,
     int? updatedAt,
     String? createdBy,
+    bool? notifyClient,
   }) {
     return WorkOrderStatusProgressModel(
       uid: uid ?? this.uid,
@@ -86,6 +93,7 @@ class WorkOrderStatusProgressModel extends Equatable {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       createdBy: createdBy ?? this.createdBy,
+      notifyClient: notifyClient ?? this.notifyClient,
     );
   }
 
@@ -99,6 +107,7 @@ class WorkOrderStatusProgressModel extends Equatable {
       createdAt: 0,
       updatedAt: 0,
       createdBy: '',
+      notifyClient: false,
     );
   }
 }

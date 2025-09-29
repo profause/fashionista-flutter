@@ -7,4 +7,5 @@ class WorkOrderStatusProgressModelHiveType {
   static const int updatedAt = 5;
   static const int createdBy = 6;
   static const int featuredMedia = 7;
+  static const int notifyClient = 8;
 }
