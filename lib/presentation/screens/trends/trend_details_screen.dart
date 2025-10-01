@@ -13,6 +13,7 @@ import 'package:fashionista/data/models/trends/bloc/trend_comment_bloc_state.dar
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_trends_service.dart';
 import 'package:fashionista/domain/usecases/trends/add_trend_comment_usecase.dart';
+import 'package:fashionista/domain/usecases/trends/delete_trend_comment_usecase.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/comment_widget.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/custom_trend_like_button_widget.dart';
 import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
@@ -23,7 +24,6 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dartz/dartz.dart' as dartz;
-
 
 class TrendDetailsScreen extends StatefulWidget {
   final TrendFeedModel trendInfo;
@@ -353,13 +353,9 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                         final comment = comments[index];
                         return CommentWidget(
                           comment: comment,
-                          onDelete: () {
+                          onDelete: () async{
                             debugPrint("Delete comment");
-                            context.read<TrendCommentBloc>().add(
-                              LoadTrendCommentsCacheFirstThenNetwork(
-                                widget.trendInfo.uid!,
-                              ),
-                            );
+                            _deleteComment(comment);
                           },
                         );
                       },
@@ -434,8 +430,37 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
     );
   }
 
-  Future<void> _deleteTrend(TrendFeedModel trend) async {
+  Future<void> _deleteComment(CommentModel comment) async {
+    try {
+      final result = await sl<DeleteTrendCommentUsecase>().call(comment);
+      result.fold(
+        (failure) {
+          setState(() {
+            addCommentLoading = false;
+          });
+        },
+        (comment) {
+          context.read<TrendCommentBloc>().add(
+            LoadTrendCommentsCacheFirstThenNetwork(widget.trendInfo.uid!),
+          );
+          setState(() {});
+          _commentController.clear();
+          FocusScope.of(context).unfocus();
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("✅ comment deleted successfully!")),
+          );
+        },
+      );
+    } on firebase_auth.FirebaseException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message!)));
+    }
+  }
 
+  Future<void> _deleteTrend(TrendFeedModel trend) async {
     try {
       // create a dynamic list of futures
       showDialog(
@@ -474,7 +499,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
       // );
 
       context.read<TrendBloc>().add(DeleteTrend(trend));
-      
+
       Navigator.pop(context, true);
     } on firebase_auth.FirebaseException catch (e) {
       if (!mounted) return;

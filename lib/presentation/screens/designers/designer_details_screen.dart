@@ -203,7 +203,7 @@ class _DesignerDetailsScreenState extends State<DesignerDetailsScreen> {
               DesignerDetailsProfilePage(designer: widget.designer),
               DesignerCollectionPage(designer: widget.designer),
               DesignerHighlightsPage(),
-              DesignerFeedbackPage(),
+              DesignerFeedbackPage(designer: widget.designer,),
             ],
           ),
         ),

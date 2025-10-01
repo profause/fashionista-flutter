@@ -75,7 +75,6 @@ class _CommentWidgetState extends State<CommentWidget> {
             IconButton(
               icon: Icon(Icons.delete, size: 20, color: colorScheme.error),
               onPressed: () async {
-                await sl<DeleteTrendCommentUsecase>().call(widget.comment);
                 widget.onDelete?.call(); // ✅ invoke callback
               },
             ),

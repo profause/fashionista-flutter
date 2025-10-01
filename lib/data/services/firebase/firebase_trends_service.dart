@@ -349,11 +349,11 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
           .orderBy('created_at', descending: true)
           .get();
       // Map each document to a comment
-      final designCollection = querySnapshot.docs.map((doc) {
+      final comments = querySnapshot.docs.map((doc) {
         final d = CommentModel.fromJson(doc.data());
         return d.copyWith(uid: doc.reference.id);
       }).toList();
-      return Right(designCollection);
+      return Right(comments);
     } on FirebaseException catch (e) {
       return Left(e.message ?? 'An unknown Firebase error occurred');
     } catch (e) {

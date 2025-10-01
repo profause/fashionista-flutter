@@ -66,20 +66,19 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
                   style: textTheme.titleSmall,
                 ),
               ),
-
               const SizedBox(height: 16),
               Padding(
                 padding: const EdgeInsets.only(left: 16.0, right: 16.0),
                 child: DottedOutlineButton(
                   label: 'Update timeline',
                   icon: Icons.update, // optional icon
-                  iconColor: Theme.of(context).primaryColor,
+                  iconColor: colorScheme.onSurface,
                   width: double.infinity,
-                  height: 46,
-                  borderRadius: 16,
-                  borderColor: Theme.of(context).primaryColor,
+                  height: 45,
+                  borderRadius: 12,
+                  borderColor: colorScheme.onSurface,
                   textStyle: TextStyle(
-                    color: Theme.of(context).primaryColor,
+                    color: colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
                   ),
                   onPressed: () {

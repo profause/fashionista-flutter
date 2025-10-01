@@ -173,14 +173,14 @@ class WorkOrderBloc extends Bloc<WorkOrderBlocEvent, WorkOrderBlocState> {
 
     final workOrderItems = cachedItems.where(
       (WorkOrderModel item) => item.client!.uid == event.uid,
-    );
+    ).toList();
 
     if (workOrderItems.isEmpty) {
       emit(const WorkOrdersEmpty());
       return;
     }
     if (workOrderItems.isNotEmpty) {
-      emit(WorkOrdersLoaded(cachedItems, fromCache: true));
+      emit(WorkOrdersLoaded(workOrderItems, fromCache: true));
     }
   }
 

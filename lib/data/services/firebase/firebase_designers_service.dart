@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
+import 'package:fashionista/data/models/comment/comment_model.dart';
 import 'package:fashionista/data/models/designers/designer_model.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
@@ -10,8 +11,10 @@ import 'package:flutter/foundation.dart';
 import 'package:image_cropper/image_cropper.dart';
 
 abstract class FirebaseDesignersService {
-  Future<Either<String,List<Designer>>> findDesigners();
-  Future<Either<String,List<Designer>>> findDesignersAfterCache(int lastCacheTimestamp);
+  Future<Either<String, List<Designer>>> findDesigners();
+  Future<Either<String, List<Designer>>> findDesignersAfterCache(
+    int lastCacheTimestamp,
+  );
   Future<Either> addDesignerToFirestore(Designer designer);
   Future<Either> updateDesignerToFirestore(Designer designer);
   Future<Either> deleteDesignerById(String uid);
@@ -20,6 +23,12 @@ abstract class FirebaseDesignersService {
   Future<Either> addOrRemoveFavouriteDesigner(String designerId);
   Future<bool> isFavouriteDesigner(String designerId);
   Future<Either> fetchFavouriteDesigners(List<String> designerIds);
+  Future<Either<String, List<CommentModel>>> findDesignerFeedback(
+    String designerId,
+  );
+
+    Future<Either> addFeedbackForDesigner(CommentModel comment);
+  Future<Either> deleteFeedbackForDesigner(CommentModel comment);
 }
 
 class FirebaseDesignersServiceImpl implements FirebaseDesignersService {
@@ -82,7 +91,9 @@ class FirebaseDesignersServiceImpl implements FirebaseDesignersService {
   }
 
   @override
-  Future<Either<String, List<Designer>>> findDesignersAfterCache(int lastCacheTimestamp) async {
+  Future<Either<String, List<Designer>>> findDesignersAfterCache(
+    int lastCacheTimestamp,
+  ) async {
     try {
       final firestore = FirebaseFirestore.instance;
       final querySnapshot = await firestore
@@ -304,6 +315,60 @@ class FirebaseDesignersServiceImpl implements FirebaseDesignersService {
 
       return Right(designers);
     } on FirebaseException catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  @override
+  Future<Either<String, List<CommentModel>>> findDesignerFeedback(
+    String designerId,
+  ) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final querySnapshot = await firestore
+          .collection('designer_feedback')
+          .where('ref_id', isEqualTo: designerId)
+          .orderBy('created_at', descending: true)
+          .get();
+      // Map each document to a comment
+      final comments = querySnapshot.docs.map((doc) {
+        final d = CommentModel.fromJson(doc.data());
+        return d.copyWith(uid: doc.reference.id);
+      }).toList();
+      return Right(comments);
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'An unknown Firebase error occurred');
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  @override
+  Future<Either> addFeedbackForDesigner(CommentModel comment) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      firestore
+          .collection('designer_feedback')
+          .doc(comment.uid)
+          .set(comment.toJson(), SetOptions(merge: true));
+      return Right(comment);
+    } on FirebaseException catch (e) {
+      return Left(e.message);
+    }
+  }
+
+  @override
+  Future<Either> deleteFeedbackForDesigner(CommentModel comment) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      // Delete the document with the given uid
+      await firestore.collection('designer_feedback').doc(comment.uid).delete();
+      return const Right(
+        'successfully deleted comment',
+      ); // success without data
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'Unknown Firestore error');
+    } catch (e) {
       return Left(e.toString());
     }
   }
