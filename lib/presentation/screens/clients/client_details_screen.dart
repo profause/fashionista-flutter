@@ -7,6 +7,7 @@ import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
 import 'package:fashionista/presentation/screens/client_measurement/client_measurement_screen.dart';
 import 'package:fashionista/presentation/screens/clients/client_profile_page.dart';
+import 'package:fashionista/presentation/screens/clients/client_project_page.dart';
 import 'package:fashionista/presentation/screens/clients/edit_client_screen.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/custom_pinned_client_icon_button.dart';
@@ -51,7 +52,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
           case ClientLoaded(:final client):
           case ClientUpdated(:final client):
             return DefaultTabController(
-              length: 2,
+              length: 3,
               child: Scaffold(
                 backgroundColor: colorScheme.surface,
                 body: NestedScrollView(
@@ -73,12 +74,12 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                             child: Row(
                               children: [
                                 CustomPinnedClientIconButton(
-                                        clientId: widget.client.uid,
-                                        isPinnedNotifier: ValueNotifier(
-                                          widget.client.isPinned ?? false,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
+                                  clientId: widget.client.uid,
+                                  isPinnedNotifier: ValueNotifier(
+                                    widget.client.isPinned ?? false,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
                                 // DELETE
                                 CustomIconButtonRounded(
                                   size: 20,
@@ -214,11 +215,10 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                                 vertical: 8,
                                 horizontal: 8,
                               ),
-                              child: Text(
-                                "Profile",
-                                style: textTheme.bodyMedium!.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              child: Icon(
+                                Icons.person_2,
+                                size: 22,
+                                color: colorScheme.onSurface,
                               ),
                             ),
                             Container(
@@ -226,11 +226,21 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                                 vertical: 8,
                                 horizontal: 8,
                               ),
-                              child: Text(
-                                "Measurements",
-                                style: textTheme.bodyMedium!.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              child: Icon(
+                                Icons.straighten_rounded,
+                                size: 22,
+                                color: colorScheme.onSurface,
+                              ),
+                            ),
+                            Container(
+                              margin: const EdgeInsets.symmetric(
+                                vertical: 8,
+                                horizontal: 8,
+                              ),
+                              child: Icon(
+                                Icons.work_history,
+                                size: 22,
+                                color: colorScheme.onSurface,
                               ),
                             ),
                           ],
@@ -242,6 +252,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                     children: [
                       ClientProfilePage(client: client),
                       ClientMeasurementScreen(client: client),
+                      ClientProjectPage(client: client),
                     ],
                   ),
                 ),

@@ -1,4 +1,3 @@
-
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_event.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_state.dart';
@@ -19,6 +18,7 @@ class WorkOrderBloc extends Bloc<WorkOrderBlocEvent, WorkOrderBlocState> {
     on<LoadWorkOrdersCacheFirstThenNetwork>(
       _onLoadWorkOrdersCacheFirstThenNetwork,
     );
+    on<LoadWorkOrdersByClientId>(_onLoadWorkOrdersByClientId);
     on<ClearWorkOrder>(_onClearWorkOrder);
     on<WorkOrdersCounter>(_onCountWorkOrders);
   }
@@ -151,6 +151,37 @@ class WorkOrderBloc extends Bloc<WorkOrderBlocEvent, WorkOrderBlocState> {
         }
       },
     );
+  }
+
+  Future<void> _onLoadWorkOrdersByClientId(
+    LoadWorkOrdersByClientId event,
+    Emitter<WorkOrderBlocState> emit,
+  ) async {
+    String uid = event.uid;
+    final us = FirebaseAuth.instance.currentUser;
+    if (us != null) {
+      uid = us.uid;
+    }
+    emit(const WorkOrderLoading());
+
+    final cachedItems = await sl<HiveWorkOrderService>().getItems(uid);
+
+    if (cachedItems.isEmpty) {
+      emit(const WorkOrdersEmpty());
+      return;
+    }
+
+    final workOrderItems = cachedItems.where(
+      (WorkOrderModel item) => item.client!.uid == event.uid,
+    );
+
+    if (workOrderItems.isEmpty) {
+      emit(const WorkOrdersEmpty());
+      return;
+    }
+    if (workOrderItems.isNotEmpty) {
+      emit(WorkOrdersLoaded(cachedItems, fromCache: true));
+    }
   }
 
   void _onClearWorkOrder(

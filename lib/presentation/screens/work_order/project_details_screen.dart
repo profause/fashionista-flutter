@@ -1,9 +1,10 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
+import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/work_order/work_order_model.dart';
-import 'package:fashionista/presentation/screens/work_order/work_order_timeline_screen.dart';
-import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
+import 'package:fashionista/presentation/screens/work_order/work_order_timeline_page.dart';
+import 'package:fashionista/presentation/screens/work_order/work_order_details_page.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ProjectDetailsScreen extends StatefulWidget {
   final WorkOrderModel workOrderInfo;
@@ -13,272 +14,174 @@ class ProjectDetailsScreen extends StatefulWidget {
   State<ProjectDetailsScreen> createState() => _ProjectDetailsScreenState();
 }
 
-class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
+class _ProjectDetailsScreenState extends State<ProjectDetailsScreen>
+    with SingleTickerProviderStateMixin {
+  static const double expandedHeight = 84;
+  late final TabController _tabController;
+  late UserBloc userBloc;
+
+  @override
+  void initState() {
+    _tabController = TabController(length: 2, vsync: this);
+    userBloc = context.read<UserBloc>();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      appBar: AppBar(
-        foregroundColor: colorScheme.primary,
-        backgroundColor: colorScheme.onPrimary,
-        title: Text(
-          'Work Order',
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        elevation: 0,
-      ),
-      backgroundColor: colorScheme.surface,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (widget.workOrderInfo.featuredMedia!.isNotEmpty)
-              SizedBox(
-                height: 220,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.all(8),
-                  itemCount: widget.workOrderInfo.featuredMedia!.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 8),
-                  itemBuilder: (context, index) {
-                    final image =
-                        widget.workOrderInfo.featuredMedia![index].url;
-                    return Stack(
-                      children: [
-                        AspectRatio(
-                          aspectRatio: 3 / 4,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: CachedNetworkImage(
-                              imageUrl: image!.isEmpty ? '' : image.trim(),
-                              fit: BoxFit.cover,
-                              placeholder: (context, url) => const Center(
-                                child: SizedBox(
-                                  height: 18,
-                                  width: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                ),
-                              ),
-                              errorWidget: (context, url, error) =>
-                                  const CustomColoredBanner(text: ''),
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            const SizedBox(height: 16),
-            // Navigation buttons
-            Container(
-              decoration: BoxDecoration(
-                color: colorScheme.onPrimary,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withValues(alpha: 0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: ListTile(
-                leading: const Icon(Icons.person),
-                title: Text(widget.workOrderInfo.client!.name ?? ""),
-                subtitle: Text(widget.workOrderInfo.client!.mobileNumber ?? ""),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              decoration: BoxDecoration(
-                color: colorScheme.onPrimary,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withValues(alpha: 0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
 
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("Title"),
-                        Text(
-                          widget.workOrderInfo.title,
-                          style: textTheme.bodyMedium!.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Divider(height: .1, thickness: .1),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("Description"),
-                        Text(
-                          widget.workOrderInfo.description ?? "",
-                          style: textTheme.bodyMedium!.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            // Date Pickers
-            Container(
-              decoration: BoxDecoration(
-                color: colorScheme.onPrimary,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withValues(alpha: 0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("Start"),
-                        Text(
-                          DateFormat(
-                            'yyyy-MM-dd',
-                          ).format(widget.workOrderInfo.startDate!),
-                          style: textTheme.bodyMedium!.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Divider(height: .1, thickness: .1),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("Due date"),
-                        Text(
-                          DateFormat(
-                            'yyyy-MM-dd',
-                          ).format(widget.workOrderInfo.dueDate!),
-                          style: textTheme.bodyMedium!.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              decoration: BoxDecoration(
-                color: colorScheme.onPrimary,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withValues(alpha: 0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+    return Scaffold(
+      backgroundColor: colorScheme.surface,
+      body: NestedScrollView(
+        physics: const ClampingScrollPhysics(),
+        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+          return <Widget>[
+            /// Profile AppBar
+            SliverOverlapAbsorber(
+              handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
+              sliver: SliverAppBar(
+                pinned: true,
+                floating: true,
+                toolbarHeight: kToolbarHeight, // 👈 allow space for back button
+                expandedHeight: expandedHeight,
+                backgroundColor: colorScheme.onPrimary,
+                foregroundColor: colorScheme.primary,
+                elevation: 0,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () =>
+                      Navigator.of(context).maybePop(), // 👈 back action
+                ),
+                flexibleSpace: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final percent =
+                        ((constraints.maxHeight - kToolbarHeight) /
+                                (expandedHeight - kToolbarHeight))
+                            .clamp(0.0, 1.0); // scroll progress 0..1
+                    return FlexibleSpaceBar(
+                      collapseMode: CollapseMode.parallax,
+                      background: SafeArea(
+                        child: Column(
                           children: [
-                            Text("Current progress"),
-                            Text(
-                              widget.workOrderInfo.status!,
-                              style: textTheme.bodyMedium!.copyWith(
-                                fontWeight: FontWeight.w500,
+                            Opacity(
+                              opacity:
+                                  percent, // ✅ fade name out as it collapses
+                              child: Text(
+                                "Work Order",
+                                style: textTheme.titleMedium!.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ],
                         ),
-                        const Spacer(),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => WorkOrderTimelineScreen(
-                                  workOrderInfo: widget.workOrderInfo,
-                                ),
-                              ),
-                            );
-                          },
-                          child: Text(
-                            "Go to timeline",
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
+                      ),
+                    );
+                  },
+                ),
+                bottom: TabBar(
+                  controller: _tabController,
+                  labelColor: colorScheme.primary,
+                  unselectedLabelColor: AppTheme.darkGrey,
+                  indicatorColor: colorScheme.primary,
+                  dividerColor: AppTheme.lightGrey,
+                  physics: const BouncingScrollPhysics(),
+                  dividerHeight: 0,
+                  indicatorWeight: 2,
+                  indicatorPadding: const EdgeInsets.only(left: 8, right: 8),
+                  indicator: UnderlineTabIndicator(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      width: 4,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                  tabs: [
+                    Container(
+                      margin: const EdgeInsets.symmetric(
+                        vertical: 2,
+                        horizontal: 8,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "Details",
+                            style: textTheme.bodyMedium!.copyWith(
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  //const Divider(height: .1, thickness: .1),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            if (widget.workOrderInfo.tags!.trim().isNotEmpty) ...[
-              Container(
-                alignment: Alignment.centerLeft,
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: List.generate(
-                    widget.workOrderInfo.tags!.split(',').length,
-                    (index) => Chip(
-                      label: Text(widget.workOrderInfo.tags!.split(',')[index]),
-                      padding: EdgeInsets.zero, // remove extra padding
-                      visualDensity: VisualDensity.compact, // tighter look
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    Container(
+                      margin: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 8,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "Timeline",
+                            style: textTheme.bodyMedium!.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16),
-            ],
+            ),
+          ];
+        },
+        body: TabBarView(
+          controller: _tabController, // ✅ connect the same controller
+          children: [
+            Builder(
+              builder: (context) {
+                return CustomScrollView(
+                  // Let this scroll work with NestedScrollView
+                  key: PageStorageKey("details"),
+                  slivers: [
+                    SliverOverlapInjector(
+                      handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
+                        context,
+                      ),
+                    ),
+                    WorkOrderDetailsPage(workOrderInfo: widget.workOrderInfo),
+                  ],
+                );
+              },
+            ),
+            Builder(
+              builder: (context) {
+                return CustomScrollView(
+                  key: PageStorageKey("timeline"),
+                  slivers: [
+                    SliverOverlapInjector(
+                      handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
+                        context,
+                      ),
+                    ),
+                    WorkOrderTimelinePage(workOrderInfo: widget.workOrderInfo),
+                  ],
+                );
+              },
+            ),
           ],
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 }

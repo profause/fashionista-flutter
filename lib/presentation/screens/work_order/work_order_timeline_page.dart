@@ -10,29 +10,31 @@ import 'package:fashionista/data/models/work_order/bloc/work_order_status_progre
 import 'package:fashionista/data/models/work_order/bloc/work_order_status_progress_bloc_state.dart';
 import 'package:fashionista/data/models/work_order/work_order_model.dart';
 import 'package:fashionista/data/models/work_order/work_order_status_progress_model.dart';
+import 'package:fashionista/data/services/firebase/firebase_closet_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_work_order_service.dart';
 import 'package:fashionista/presentation/screens/work_order/widgets/work_order_status_info_card_widget.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/custom_text_input_field_widget.dart';
+import 'package:fashionista/presentation/widgets/dotted_outline_button_widget.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:sliver_tools/sliver_tools.dart';
 import 'package:uuid/uuid.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:dartz/dartz.dart' as dartz;
 
-class WorkOrderTimelineScreen extends StatefulWidget {
+class WorkOrderTimelinePage extends StatefulWidget {
   final WorkOrderModel workOrderInfo; // 👈 workOrderInfo
-  const WorkOrderTimelineScreen({super.key, required this.workOrderInfo});
+  const WorkOrderTimelinePage({super.key, required this.workOrderInfo});
 
   @override
-  State<WorkOrderTimelineScreen> createState() =>
-      _WorkOrderTimelineScreenState();
+  State<WorkOrderTimelinePage> createState() => _WorkOrderTimelinePageState();
 }
 
-class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
+class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
   final ImagePicker picker = ImagePicker();
   late UserBloc _userBloc;
 
@@ -47,19 +49,12 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        foregroundColor: colorScheme.primary,
-        backgroundColor: colorScheme.onPrimary,
-        title: Text('Project Timeline'),
-        elevation: 0,
-      ),
-      body: SafeArea(
-        // 👈 makes sure it stays below status bar
-        child: SingleChildScrollView(
+    final textTheme = Theme.of(context).textTheme;
+    return MultiSliver(
+      // 👈 helper from 'sliver_tools' package, or just return a Column of slivers
+      children: [
+        SliverToBoxAdapter(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -69,6 +64,30 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
                   textAlign: TextAlign.start,
                   'Stay on top of deadlines, updates, and progress — all in one place.',
                   style: textTheme.titleSmall,
+                ),
+              ),
+
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.only(left: 16.0, right: 16.0),
+                child: DottedOutlineButton(
+                  label: 'Update timeline',
+                  icon: Icons.update, // optional icon
+                  iconColor: Theme.of(context).primaryColor,
+                  width: double.infinity,
+                  height: 46,
+                  borderRadius: 16,
+                  borderColor: Theme.of(context).primaryColor,
+                  textStyle: TextStyle(
+                    color: Theme.of(context).primaryColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  onPressed: () {
+                    _showTimelineBottomsheet(
+                      context,
+                      (statusProgress) => _onSaveProgress(statusProgress),
+                    );
+                  },
                 ),
               ),
               const SizedBox(height: 16),
@@ -106,6 +125,36 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
                             onTap: () {},
                             isFirst: index == 0,
                             isLast: index == workOrderProgress.length - 1,
+                            onDelete: () async {
+                              final canDelete = await showDialog<bool>(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  title: const Text('Delete Timeline status'),
+                                  content: const Text(
+                                    'Are you sure you want to delete this item?',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(ctx).pop(false),
+                                      child: const Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(ctx).pop(true),
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: Colors.red,
+                                      ),
+                                      child: const Text('Delete'),
+                                    ),
+                                  ],
+                                ),
+                              );
+
+                              if (canDelete == true) {
+                                _deleteStatusProgress(statusProgress);
+                              }
+                            },
                           );
                         },
                         separatorBuilder: (context, index) =>
@@ -131,28 +180,7 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
             ],
           ),
         ),
-      ),
-      floatingActionButton: SizedBox(
-        height: 40, // default is 48
-        child: FloatingActionButton.extended(
-          backgroundColor: colorScheme.primary,
-          foregroundColor: colorScheme.onPrimary,
-          onPressed: () {
-            _showFilterBottomsheet(
-              context,
-              (statusProgress) => _onSaveProgress(statusProgress),
-            );
-          },
-          label: Text(
-            "Update timeline",
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal),
-          ),
-          extendedPadding: const EdgeInsets.symmetric(horizontal: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-      ),
+      ],
     );
   }
 
@@ -249,7 +277,7 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
     }
   }
 
-  void _showFilterBottomsheet(
+  void _showTimelineBottomsheet(
     BuildContext context,
     Function(WorkOrderStatusProgressModel statusProgress) onSave,
   ) {
@@ -503,7 +531,8 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
                         const SizedBox(height: 16),
                         SizedBox(
                           width: double.infinity, // takes full available width
-                          child: ElevatedButton(
+                          height: 45,
+                          child: FilledButton(
                             onPressed: () {
                               if (previewImages.isEmpty) {
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -561,7 +590,10 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
 
                               onSave(statusProgress);
                             },
-                            style: ElevatedButton.styleFrom(
+                            style: FilledButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                               elevation: 0,
                               backgroundColor:
                                   colorScheme.surface, // solid grey background
@@ -658,10 +690,60 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
   ) async {
     final images = await picker.pickMultiImage(
       imageQuality: 70,
-      limit: 4,
+      limit: 3,
       requestFullMetadata: true,
     );
     if (images.isEmpty) return;
     onImagePicked(images);
+  }
+
+  Future<void> _deleteStatusProgress(
+    WorkOrderStatusProgressModel statusProgress,
+  ) async {
+    try {
+      // create a dynamic list of futures
+      showDialog(
+        context: context,
+        barrierDismissible: false, // Prevent dismissing
+        builder: (_) => const Center(child: CircularProgressIndicator()),
+      );
+      final List<Future<dartz.Either>> futures = statusProgress.featuredMedia!
+          .map((e) => sl<FirebaseClosetService>().deleteClosetItemImage(e.url!))
+          .toList();
+
+      // also add delete by id
+      futures.add(
+        sl<FirebaseWorkOrderService>().deleteWorkOrderStatusProgress(
+          statusProgress.uid!,
+        ),
+      );
+
+      // wait for all and capture results
+      final results = await Future.wait(futures);
+
+      // handle each result
+      for (final result in results) {
+        result.fold(
+          (failure) {
+            // handle failure
+            debugPrint("Delete failed: $failure");
+          },
+          (success) {
+            // handle success
+          },
+        );
+      }
+
+      if (!mounted) return;
+      context.read<WorkOrderStatusProgressBloc>().add(
+        DeleteWorkOrderProgress(statusProgress),
+      );
+      Navigator.pop(context);
+    } on FirebaseException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message!)));
+    }
   }
 }

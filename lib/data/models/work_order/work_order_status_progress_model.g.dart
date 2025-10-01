@@ -26,13 +26,14 @@ class WorkOrderStatusProgressModelAdapter
       createdAt: fields[4] as int?,
       updatedAt: fields[5] as int?,
       createdBy: fields[6] as String,
+      notifyClient: fields[8] as bool?,
     );
   }
 
   @override
   void write(BinaryWriter writer, WorkOrderStatusProgressModel obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.uid)
       ..writeByte(1)
@@ -48,7 +49,9 @@ class WorkOrderStatusProgressModelAdapter
       ..writeByte(5)
       ..write(obj.updatedAt)
       ..writeByte(6)
-      ..write(obj.createdBy);
+      ..write(obj.createdBy)
+      ..writeByte(8)
+      ..write(obj.notifyClient);
   }
 
   @override
@@ -79,6 +82,7 @@ WorkOrderStatusProgressModel _$WorkOrderStatusProgressModelFromJson(
       createdAt: (json['created_at'] as num?)?.toInt(),
       updatedAt: (json['updated_at'] as num?)?.toInt(),
       createdBy: json['created_by'] as String,
+      notifyClient: json['notify_client'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$WorkOrderStatusProgressModelToJson(
@@ -92,4 +96,5 @@ Map<String, dynamic> _$WorkOrderStatusProgressModelToJson(
       'created_at': instance.createdAt,
       'updated_at': instance.updatedAt,
       'created_by': instance.createdBy,
+      'notify_client': instance.notifyClient,
     };

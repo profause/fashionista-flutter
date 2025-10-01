@@ -61,7 +61,7 @@ class _PinnedWorkOrderInfoCardWidgetState
     final colorScheme = Theme.of(context).colorScheme;
     //final featuredMedia = workOrderInfo.featuredMedia!.first;
     return SizedBox(
-      width: 250,
+      width: 285,
       child: Container(
         decoration: BoxDecoration(
           color: colorScheme.onPrimary,
@@ -161,6 +161,7 @@ class _PinnedWorkOrderInfoCardWidgetState
                           Text(
                             widget.workOrderInfo.client!.name!,
                             style: textTheme.labelMedium,
+                            overflow: TextOverflow.ellipsis
                           ),
                         ],
                       ),

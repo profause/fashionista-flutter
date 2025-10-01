@@ -4,7 +4,6 @@ import 'package:fashionista/data/models/work_order/bloc/work_order_status_progre
 import 'package:fashionista/data/models/work_order/work_order_status_progress_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_work_order_service.dart';
 import 'package:fashionista/data/services/hive/hive_work_order_status_progress_service.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class WorkOrderStatusProgressBloc
@@ -47,9 +46,39 @@ class WorkOrderStatusProgressBloc
     DeleteWorkOrderProgress event,
     Emitter<WorkOrderStatusProgressBlocState> emit,
   ) async {
-    final result = await sl<FirebaseWorkOrderService>()
-        .deleteWorkOrderStatusProgress(event.uid);
-    result.fold((l) => null, (r) => emit(WorkOrderProgressDeleted(r)));
+    // final result = await sl<FirebaseWorkOrderService>()
+    //     .deleteWorkOrderStatusProgress(event.uid);
+    // result.fold((l) => null, (r) => emit(WorkOrderProgressDeleted(r)));
+
+    final cachedItems = await sl<HiveWorkOrderStatusProgressService>().getItems(
+      event.workOrderStatusProgressModel.workOrderId!,
+    );
+
+    // ✅ find index by matching uid
+    final index = cachedItems.indexWhere(
+      (item) => item.uid == event.workOrderStatusProgressModel.uid,
+    );
+
+    if (index != -1) {
+      cachedItems.removeAt(index);
+      try {
+        // ✅ persist updated list back to Hive
+        await sl<HiveWorkOrderStatusProgressService>().insertItems(
+          event.workOrderStatusProgressModel.workOrderId!,
+          items: cachedItems,
+        );
+
+        if (cachedItems.isEmpty) {
+          emit(const WorkOrderProgressEmpty());
+          return;
+        }
+
+        emit(WorkOrderProgressLoaded(cachedItems, fromCache: true));
+      } catch (e) {
+        // ❌ Rollback if persistence failed (optional)
+        emit(WorkOrderProgressError("Failed to delete item: $e"));
+      }
+    }
   }
 
   Future<void> _onLoadStatusProgress(
@@ -91,7 +120,9 @@ class WorkOrderStatusProgressBloc
     Emitter<WorkOrderStatusProgressBlocState> emit,
   ) async {
     String uid = event.uid;
-   final cachedItems = await sl<HiveWorkOrderStatusProgressService>().getItems(uid);
+    final cachedItems = await sl<HiveWorkOrderStatusProgressService>().getItems(
+      uid,
+    );
     emit(WorkOrderProgressCounted(cachedItems.length));
   }
 
@@ -102,7 +133,9 @@ class WorkOrderStatusProgressBloc
     String uid = event.uid;
     emit(const WorkOrderProgressLoading());
 
-    final cachedItems = await sl<HiveWorkOrderStatusProgressService>().getItems(uid);
+    final cachedItems = await sl<HiveWorkOrderStatusProgressService>().getItems(
+      uid,
+    );
 
     if (cachedItems.isNotEmpty) {
       emit(WorkOrderProgressLoaded(cachedItems, fromCache: true));
@@ -128,7 +161,10 @@ class WorkOrderStatusProgressBloc
 
         if (cachedItems.toString() != statusProgress.toString()) {
           emit(WorkOrderProgressLoaded(statusProgress, fromCache: false));
-          await sl<HiveWorkOrderStatusProgressService>().insertItems(uid, items: statusProgress);
+          await sl<HiveWorkOrderStatusProgressService>().insertItems(
+            uid,
+            items: statusProgress,
+          );
         } else {
           emit(WorkOrderProgressLoaded(cachedItems, fromCache: true));
         }

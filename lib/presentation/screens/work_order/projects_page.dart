@@ -161,7 +161,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                             itemBuilder: (context, index) {
                               final workOrder = pinnedWorkOrders[index];
                               return SizedBox(
-                                width: 260, // 👈 give fixed width
+                                width: 280, // 👈 give fixed width
                                 child: PinnedWorkOrderInfoCardWidget(
                                   workOrderInfo: workOrder,
                                   onTap: () {

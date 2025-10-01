@@ -48,11 +48,11 @@ class WorkOrderProgressCounter extends WorkOrderStatusProgressBlocEvent {
 }
 
 class DeleteWorkOrderProgress extends WorkOrderStatusProgressBlocEvent {
-  final String uid;
-  const DeleteWorkOrderProgress(this.uid);
+  final WorkOrderStatusProgressModel workOrderStatusProgressModel;
+  const DeleteWorkOrderProgress(this.workOrderStatusProgressModel);
 
   @override
-  List<Object?> get props => [uid];
+  List<Object?> get props => [workOrderStatusProgressModel];
 }
 
 class ClearWorkOrderProgress extends WorkOrderStatusProgressBlocEvent {

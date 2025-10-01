@@ -38,6 +38,15 @@ class LoadWorkOrdersCacheFirstThenNetwork extends WorkOrderBlocEvent {
   List<Object?> get props => [uid];
 }
 
+class LoadWorkOrdersByClientId extends WorkOrderBlocEvent {
+  final String uid;
+  const LoadWorkOrdersByClientId(this.uid);
+
+  @override
+  List<Object?> get props => [uid];
+}
+
+
 class WorkOrdersCounter extends WorkOrderBlocEvent {
   final String uid;
   const WorkOrdersCounter(this.uid);
