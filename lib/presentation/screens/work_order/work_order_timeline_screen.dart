@@ -118,7 +118,7 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
                     default:
                       return Center(
                         child: PageEmptyWidget(
-                          title: "No prgress updates Found",
+                          title: "No prgress updates found",
                           subtitle:
                               "Provide details of the progress you have made so far.",
                           icon: Icons.work_history,

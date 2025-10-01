@@ -13,7 +13,6 @@ import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-import 'package:dartz/dartz.dart' as dartz;
 import 'package:uuid/uuid.dart';
 
 class DesignerFeedbackPage extends StatefulWidget {

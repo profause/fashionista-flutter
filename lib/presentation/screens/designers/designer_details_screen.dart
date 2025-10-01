@@ -47,7 +47,7 @@ class _DesignerDetailsScreenState extends State<DesignerDetailsScreen> {
     const double expandedHeight = 200;
 
     return DefaultTabController(
-      length: 4,
+      length: 3,
       child: Scaffold(
         backgroundColor: colorScheme.surface,
         body: NestedScrollView(
@@ -159,21 +159,7 @@ class _DesignerDetailsScreenState extends State<DesignerDetailsScreen> {
                         ),
                         // divider color
                         child: Text(
-                          "Collections",
-                          style: textTheme.bodyMedium!.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-
-                      Container(
-                        margin: const EdgeInsets.symmetric(
-                          vertical: 8,
-                          horizontal: 8,
-                        ),
-                        // divider color
-                        child: Text(
-                          "Highlights",
+                          "Highlights & Collections",
                           style: textTheme.bodyMedium!.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -202,7 +188,6 @@ class _DesignerDetailsScreenState extends State<DesignerDetailsScreen> {
             children: [
               DesignerDetailsProfilePage(designer: widget.designer),
               DesignerCollectionPage(designer: widget.designer),
-              DesignerHighlightsPage(),
               DesignerFeedbackPage(designer: widget.designer,),
             ],
           ),

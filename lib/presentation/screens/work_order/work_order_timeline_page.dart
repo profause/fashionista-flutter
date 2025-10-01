@@ -16,6 +16,7 @@ import 'package:fashionista/presentation/screens/work_order/widgets/work_order_s
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/custom_text_input_field_widget.dart';
 import 'package:fashionista/presentation/widgets/dotted_outline_button_widget.dart';
+import 'package:fashionista/presentation/widgets/fullscreen_gallery_widget.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -72,13 +73,13 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
                 child: DottedOutlineButton(
                   label: 'Update timeline',
                   icon: Icons.update, // optional icon
-                  iconColor: colorScheme.onSurface,
+                  iconColor: colorScheme.onSurfaceVariant,
                   width: double.infinity,
                   height: 45,
                   borderRadius: 12,
-                  borderColor: colorScheme.onSurface,
+                  borderColor: colorScheme.onSurface.withValues(alpha: 0.3),
                   textStyle: TextStyle(
-                    color: colorScheme.onSurface,
+                    color: colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w600,
                   ),
                   onPressed: () {
@@ -121,7 +122,19 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
                           final statusProgress = workOrderProgress[index];
                           return WorkOrderStatusInfoCardWidget(
                             workOrderStatusInfo: statusProgress,
-                            onTap: () {},
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => FullscreenGalleryWidget(
+                                    images: statusProgress.featuredMedia!
+                                        .map((e) => e.url!)
+                                        .toList(),
+                                    initialIndex: 0,
+                                  ),
+                                ),
+                              );
+                            },
                             isFirst: index == 0,
                             isLast: index == workOrderProgress.length - 1,
                             onDelete: () async {
@@ -166,7 +179,7 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
                     default:
                       return Center(
                         child: PageEmptyWidget(
-                          title: "No prgress updates Found",
+                          title: "No prgress updates found",
                           subtitle:
                               "Provide details of the progress you have made so far.",
                           icon: Icons.work_history,

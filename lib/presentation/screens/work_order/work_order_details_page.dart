@@ -73,7 +73,7 @@ class _WorkOrderDetailsPageState extends State<WorkOrderDetailsPage> {
               Container(
                 decoration: BoxDecoration(
                   color: colorScheme.onPrimary,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(0),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.grey.withValues(alpha: 0.04),
@@ -94,7 +94,7 @@ class _WorkOrderDetailsPageState extends State<WorkOrderDetailsPage> {
               Container(
                 decoration: BoxDecoration(
                   color: colorScheme.onPrimary,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(0),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.grey.withValues(alpha: 0.04),
@@ -146,7 +146,7 @@ class _WorkOrderDetailsPageState extends State<WorkOrderDetailsPage> {
               Container(
                 decoration: BoxDecoration(
                   color: colorScheme.onPrimary,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(0),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.grey.withValues(alpha: 0.04),
@@ -200,7 +200,7 @@ class _WorkOrderDetailsPageState extends State<WorkOrderDetailsPage> {
               Container(
                 decoration: BoxDecoration(
                   color: colorScheme.onPrimary,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(0),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.grey.withValues(alpha: 0.04),

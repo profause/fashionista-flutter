@@ -9,6 +9,7 @@ import 'package:fashionista/presentation/widgets/custom_icon_rounded.dart';
 import 'package:fashionista/presentation/widgets/rating_input_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 class DesignerDetailsProfilePage extends StatefulWidget {
   final Designer designer;
@@ -129,24 +130,28 @@ class _DesignerDetailsProfilePageState
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              Image.asset(
-                                AppIcons.facebook,
-                                width: 38,
-                                height: 38,
+                              Icon(
+                                HugeIcons.strokeRoundedFacebook01,
+                                size: 32,
+                                color: colorScheme.onSurface,
                               ),
                               const SizedBox(width: 8),
-                              Image.asset(AppIcons.x, width: 38, height: 38),
-                              const SizedBox(width: 8),
-                              Image.asset(
-                                AppIcons.instagram,
-                                width: 38,
-                                height: 38,
+                              Icon(
+                                HugeIcons.strokeRoundedNewTwitter,
+                                size: 32,
+                                color: colorScheme.onSurface,
                               ),
                               const SizedBox(width: 8),
-                              Image.asset(
-                                AppIcons.tiktok,
-                                width: 38,
-                                height: 38,
+                              Icon(
+                                HugeIcons.strokeRoundedInstagram,
+                                size: 32,
+                                color: colorScheme.onSurface,
+                              ),
+                              const SizedBox(width: 8),
+                              Icon(
+                                HugeIcons.strokeRoundedTiktok,
+                                size: 32,
+                                color: colorScheme.onSurface,
                               ),
                             ],
                           ),
