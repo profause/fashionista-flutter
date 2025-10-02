@@ -53,8 +53,8 @@ class WorkOrderStatusInfoCardWidget extends StatelessWidget {
                 children: [
                   // Circle
                   Container(
-                    width: 16,
-                    height: 16,
+                    width: 12,
+                    height: 12,
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
