@@ -41,11 +41,15 @@ class WorkOrderStatusInfoCardWidget extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                textAlign: TextAlign.center,
-                formatRelativeTime(workOrderStatusInfo.createdAt!).trim(),
-                style: textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+              SizedBox(
+                width: 24,
+                child: Text(
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  formatRelativeTime(workOrderStatusInfo.createdAt!).trim(),
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -83,35 +87,45 @@ class WorkOrderStatusInfoCardWidget extends StatelessWidget {
                       //const Divider(height: .1, thickness: .1),
                       //const SizedBox(height: 4),
                       Row(
-                        crossAxisAlignment: CrossAxisAlignment
-                            .start, // 👈 aligns items to the top
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                workOrderStatusInfo.status,
-                                style: textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
+                          Expanded(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Tooltip(
+                                  message: workOrderStatusInfo
+                                      .status, // 👈 shows full text
+                                  child: Text(
+                                    workOrderStatusInfo.status,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                workOrderStatusInfo.description ?? '',
-                                style: textTheme.bodyMedium!.copyWith(
-                                  fontSize: 13,
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 8.0),
+                                  child: Text(
+                                    workOrderStatusInfo.description ?? '',
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: textTheme.bodyMedium!.copyWith(
+                                      fontSize: 13,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                          const Spacer(),
+                          const SizedBox(width: 8),
                           CustomIconButtonRounded(
                             backgroundColor: colorScheme.onSurface.withValues(
                               alpha: 0.1,
                             ),
-                            onPressed: () {
-                              onDelete!();
-                            },
+                            onPressed: () => onDelete?.call(),
                             iconData: Icons.delete,
                             size: 18,
                           ),

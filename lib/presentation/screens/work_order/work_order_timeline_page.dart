@@ -43,7 +43,7 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
   void initState() {
     _userBloc = context.read<UserBloc>();
     context.read<WorkOrderStatusProgressBloc>().add(
-      LoadWorkOrderProgressCacheFirstThenNetwork(widget.workOrderInfo.uid!),
+      LoadStatusProgress(widget.workOrderInfo.uid!),
     );
     super.initState();
   }
@@ -270,7 +270,7 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
         (r) {
           if (!mounted) return;
           context.read<WorkOrderStatusProgressBloc>().add(
-            LoadWorkOrderProgressCacheFirstThenNetwork(
+            LoadStatusProgress(
               widget.workOrderInfo.uid!,
             ),
           );
