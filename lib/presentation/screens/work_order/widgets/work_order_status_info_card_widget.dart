@@ -40,6 +40,7 @@ class WorkOrderStatusInfoCardWidget extends StatelessWidget {
         child: IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               SizedBox(
                 width: 24,
@@ -61,8 +62,8 @@ class WorkOrderStatusInfoCardWidget extends StatelessWidget {
                     height: 12,
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: colorScheme.onSurface.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(16),
+                      color: colorScheme.onSurface.withValues(alpha: 0.3),
                     ),
                   ),
 
@@ -88,6 +89,8 @@ class WorkOrderStatusInfoCardWidget extends StatelessWidget {
                       //const SizedBox(height: 4),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
+
                         children: [
                           Expanded(
                             child: Column(
@@ -106,15 +109,12 @@ class WorkOrderStatusInfoCardWidget extends StatelessWidget {
                                     ),
                                   ),
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 8.0),
-                                  child: Text(
-                                    workOrderStatusInfo.description ?? '',
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: textTheme.bodyMedium!.copyWith(
-                                      fontSize: 13,
-                                    ),
+                                Text(
+                                  workOrderStatusInfo.description ?? '',
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: textTheme.bodyMedium!.copyWith(
+                                    fontSize: 13,
                                   ),
                                 ),
                               ],
