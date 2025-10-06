@@ -20,7 +20,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class TrendInfoCardWidgetDiscoverPage extends StatefulWidget {
   final TrendFeedModel trendInfo;
-  const TrendInfoCardWidgetDiscoverPage({super.key, required this.trendInfo});
+  final Function(bool)? onLikeTap;
+  const TrendInfoCardWidgetDiscoverPage({
+    super.key,
+    required this.trendInfo,
+    this.onLikeTap,
+  });
 
   @override
   State<TrendInfoCardWidgetDiscoverPage> createState() =>
@@ -271,6 +276,7 @@ class _TrendInfoCardWidgetDiscoverPageState
                                                         ),
                                                   );
                                           result.fold((l) {}, (r) {
+                                            widget.onLikeTap!(r);
                                             isLikedNotifier.value = r;
                                             final t = widget.trendInfo.copyWith(
                                               isLiked: r,

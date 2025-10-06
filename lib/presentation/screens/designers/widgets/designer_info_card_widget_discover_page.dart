@@ -1,4 +1,3 @@
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
@@ -11,10 +10,12 @@ import 'package:flutter/material.dart';
 class DesignerInfoCardWidgetDiscoverPage extends StatefulWidget {
   final Designer designerInfo;
   final VoidCallback? onTap;
+  final Function(bool)? onFollowTap;
   const DesignerInfoCardWidgetDiscoverPage({
     super.key,
     required this.designerInfo,
     this.onTap,
+    this.onFollowTap,
   });
 
   @override
@@ -148,6 +149,7 @@ class _DesignerInfoCardWidgetDiscoverPageState
                           final result = await sl<AddOrRemoveFavouriteUsecase>()
                               .call(widget.designerInfo.uid);
                           result.fold((l) {}, (r) {
+                            widget.onFollowTap!(r);
                             isFavouriteNotifier.value = r;
                             setState(() {
                               isFavourite = r;

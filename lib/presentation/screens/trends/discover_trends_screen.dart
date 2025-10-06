@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/widgets/bloc/getstarted_stats_cubit.dart';
 import 'package:fashionista/data/models/designers/designer_model.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc_event.dart';
@@ -28,9 +29,18 @@ class _DiscoverTrendsScreenState extends State<DiscoverTrendsScreen> {
   final ValueNotifier<List<Designer>> designersNotifier =
       ValueNotifier<List<Designer>>([]);
   bool loadingFashionDesigners = true;
+  late GetstartedStatsCubit _getstartedStatsCubit;
+
+  final ValueNotifier<int> getStartedLikesNotifier = ValueNotifier<int>(0);
+  final ValueNotifier<int> getStartedFollowingsNotifier = ValueNotifier<int>(0);
+
+  late int getStartedLikes = 0;
+  late int getStartedFollowings = 0;
+  late int getStartedInterests = 0;
 
   @override
   void initState() {
+    _loadGetStartedStats();
     _loadFashionInterests();
     _loadFashionDesigners();
     _loadFashionTrends();
@@ -75,11 +85,19 @@ class _DiscoverTrendsScreenState extends State<DiscoverTrendsScreen> {
                     leading: SizedBox(
                       width: 18,
                       height: 18,
-                      child: CircularProgressIndicator(
-                        value: 0.4,
-                        strokeWidth: 3,
-                        backgroundColor: colorScheme.surfaceContainerHighest,
-                        valueColor: AlwaysStoppedAnimation(colorScheme.primary),
+                      child: ValueListenableBuilder<int>(
+                        valueListenable: getStartedLikesNotifier,
+                        builder: (context, likes, _) {
+                          return CircularProgressIndicator(
+                            value: (likes / 10),
+                            strokeWidth: 3,
+                            backgroundColor:
+                                colorScheme.surfaceContainerHighest,
+                            valueColor: AlwaysStoppedAnimation(
+                              colorScheme.primary,
+                            ),
+                          );
+                        },
                       ),
                     ),
                     title: Text('Like 10 posts', style: textTheme.labelLarge),
@@ -94,11 +112,19 @@ class _DiscoverTrendsScreenState extends State<DiscoverTrendsScreen> {
                     leading: SizedBox(
                       width: 18,
                       height: 18,
-                      child: CircularProgressIndicator(
-                        value: 0.6,
-                        strokeWidth: 3,
-                        backgroundColor: colorScheme.surfaceContainerHighest,
-                        valueColor: AlwaysStoppedAnimation(colorScheme.primary),
+                      child: ValueListenableBuilder<int>(
+                        valueListenable: getStartedFollowingsNotifier,
+                        builder: (context, followings, _) {
+                          return CircularProgressIndicator(
+                            value: (followings / 10),
+                            strokeWidth: 3,
+                            backgroundColor:
+                                colorScheme.surfaceContainerHighest,
+                            valueColor: AlwaysStoppedAnimation(
+                              colorScheme.primary,
+                            ),
+                          );
+                        },
                       ),
                     ),
                     title: Text(
@@ -195,6 +221,18 @@ class _DiscoverTrendsScreenState extends State<DiscoverTrendsScreen> {
                       final item = designers[index];
                       return DesignerInfoCardWidgetDiscoverPage(
                         designerInfo: item,
+                        onFollowTap: (bool isFollowing) {
+                          setState(() {
+                            getStartedFollowings = isFollowing
+                                ? getStartedFollowings + 1
+                                : getStartedFollowings - 1;
+                            if (getStartedFollowings == -1) {
+                              getStartedFollowings = 0;
+                            }
+                            getStartedFollowingsNotifier.value =
+                                getStartedFollowings;
+                          });
+                        },
                       );
                     },
                   ),
@@ -229,6 +267,21 @@ class _DiscoverTrendsScreenState extends State<DiscoverTrendsScreen> {
                           final item = trends[index];
                           return TrendInfoCardWidgetDiscoverPage(
                             trendInfo: item,
+                            onLikeTap: (bool isLiked) {
+                              setState(() {
+                                getStartedLikes = isLiked
+                                    ? getStartedLikes + 1
+                                    : getStartedLikes - 1;
+                                if (getStartedLikes == -1) {
+                                  getStartedLikes = 0;
+                                }
+
+                                if (getStartedLikes > 10) {
+                                  getStartedLikes = 10;
+                                }
+                                getStartedLikesNotifier.value = getStartedLikes;
+                              });
+                            },
                           );
                         },
                       );
@@ -289,5 +342,21 @@ class _DiscoverTrendsScreenState extends State<DiscoverTrendsScreen> {
     context.read<TrendBloc>().add(
       const LoadTrendsCacheForDiscoverPage('discover'),
     );
+  }
+
+  void _loadGetStartedStats() {
+    _getstartedStatsCubit = context.read<GetstartedStatsCubit>();
+    final likes = _getstartedStatsCubit.state['likes'] as int;
+    final followings = _getstartedStatsCubit.state['followings'] as int;
+    final interests = _getstartedStatsCubit.state['interests'] as int;
+
+    getStartedLikesNotifier.value = likes;
+    getStartedFollowingsNotifier.value = followings;
+
+    setState(() {
+      getStartedLikes = likes;
+      getStartedFollowings = followings;
+      getStartedInterests = interests;
+    });
   }
 }

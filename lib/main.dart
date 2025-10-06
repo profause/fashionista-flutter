@@ -10,6 +10,7 @@ import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/theme/theme_cubit.dart';
 import 'package:fashionista/core/widgets/bloc/button_loading_state_cubit.dart';
+import 'package:fashionista/core/widgets/bloc/getstarted_stats_cubit.dart';
 import 'package:fashionista/core/widgets/bloc/previous_screen_state_cubit.dart';
 import 'package:fashionista/data/models/clients/bloc/client_bloc.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_item_bloc.dart';
@@ -97,6 +98,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => WorkOrderBloc()),
         BlocProvider(create: (_) => WorkOrderStatusProgressBloc()),
         BlocProvider(create: (_) => DesignerFeedbackBloc()),
+        BlocProvider(create: (_) => GetstartedStatsCubit()),
       ],
 
       child: BlocBuilder<SettingsBloc, Settings>(
