@@ -1,5 +1,6 @@
 import 'package:fashionista/data/models/designers/social_handle_model.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 class SocialHandleFieldWidget extends StatefulWidget {
   final String provider;
@@ -95,13 +96,13 @@ class _SocialHandleFieldWidgetState extends State<SocialHandleFieldWidget> {
   IconData _getIconForProvider(String provider) {
     switch (provider.toLowerCase()) {
       case "facebook":
-        return Icons.facebook;
+        return HugeIcons.strokeRoundedFacebook01;
       case "instagram":
-        return Icons.camera_alt_outlined;
+        return HugeIcons.strokeRoundedInstagram;
       case "x":
-        return Icons.alternate_email; // (can replace with custom icon)
+        return HugeIcons.strokeRoundedNewTwitter; // (can replace with custom icon)
       case "tiktok":
-        return Icons.music_note;
+        return  HugeIcons.strokeRoundedTiktok;
       default:
         return Icons.link;
     }

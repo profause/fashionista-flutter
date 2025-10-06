@@ -1,3 +1,4 @@
+
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/presentation/screens/home/designer_home_page.dart';
@@ -8,7 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+    final VoidCallback? navigationCallback;
+  const HomeScreen({super.key, this.navigationCallback});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -21,22 +23,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    // Show status bar, hide navigation bar
-    // SystemChrome.setEnabledSystemUIMode(
-    //   SystemUiMode.manual,
-    //   overlays: [SystemUiOverlay.top], // keep only status bar
-    // );
     _tabController = TabController(initialIndex: 1, length: 3, vsync: this);
     _scrollController = ScrollController();
-    
+
     // Auto-collapse the SliverAppBar after the widget is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController!.hasClients) {
-        _scrollController!.animateTo(
-          120.0, // The expandedHeight of the collapsible SliverAppBar
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
+        // _scrollController!.animateTo(
+        //   120.0, // The expandedHeight of the collapsible SliverAppBar
+        //   duration: const Duration(milliseconds: 300),
+        //   curve: Curves.easeInOut,
+        // );
       }
     });
   }
@@ -62,22 +59,22 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
           return <Widget>[
             // Separate SliverAppBar for title that can collapse
-            SliverAppBar(
-              backgroundColor: colorScheme.onPrimary,
-              pinned: false, // Allow this to collapse
-              floating: false,
-              expandedHeight: 80,
-              flexibleSpace: FlexibleSpaceBar(
-                title: Text(
-                  "Fashionista",
-                  style: textTheme.titleLarge!.copyWith(
-                    color: colorScheme.primary,
-                  ),
-                ),
-                centerTitle: false,
-                titlePadding: const EdgeInsets.only(left: 16, bottom: 0),
-              ),
-            ),
+            // SliverAppBar(
+            //   backgroundColor: colorScheme.onPrimary,
+            //   pinned: false, // Allow this to collapse
+            //   floating: false,
+            //   expandedHeight: 12,
+            //   flexibleSpace: FlexibleSpaceBar(
+            //     title: Text(
+            //       "Fashionista",
+            //       style: textTheme.titleLarge!.copyWith(
+            //         color: colorScheme.primary,
+            //       ),
+            //     ),
+            //     centerTitle: false,
+            //     titlePadding: const EdgeInsets.only(left: 16, bottom: 0),
+            //   ),
+            // ),
             // Separate pinned SliverAppBar for tabs
             SliverAppBar(
               backgroundColor: colorScheme.onPrimary,
@@ -89,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   labelColor: colorScheme.primary,
                   unselectedLabelColor: AppTheme.darkGrey,
                   indicatorColor: colorScheme.primary,
-                  dividerHeight: 0.0,
+                  dividerHeight: 0.1,
                   indicatorWeight: 2,
                   tabAlignment: TabAlignment.center,
                   labelPadding: const EdgeInsets.all(0),
@@ -152,7 +149,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           controller: _tabController,
           children: <Widget>[
             user.accountType == 'Designer'
-                ? DesignerHomePage()
+                ? DesignerHomePage(
+                    navigationCallback: widget.navigationCallback?.call,
+                  )
                 : UserHomePage(),
             TrendsScreen(),
             DiscoverTrendsScreen(),

@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'dart:math';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/utils/get_image_aspect_ratio.dart';
+import 'package:fashionista/core/widgets/autosuggest_tag_input_field.dart';
 import 'package:fashionista/core/widgets/tag_input_field.dart';
 import 'package:fashionista/data/models/author/author_model.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
@@ -41,6 +43,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _descriptionController;
   late TextEditingController _tagsController;
+  final List<String> selectedInterests = [];
 
   int _currentLength = 0;
   final int _maxLength = 100; // keep in sync with input field
@@ -55,6 +58,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
   @override
   void initState() {
     super.initState();
+    _loadUserInterests();
     _descriptionController = TextEditingController();
     _tagsController = TextEditingController();
     _descriptionController.addListener(() {
@@ -199,16 +203,18 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CustomIconRounded(icon: Icons.tag, size: 20),
                     const SizedBox(width: 8),
 
                     //Text("Featured Tags"),
                     Expanded(
-                      child: TagInputField(
+                      child: AutosuggestTagInputField(
                         hint:
                             'Type and press Enter, Space or Comma to add a tag',
                         valueIn: [],
+                        options:selectedInterests,
                         valueOut: (value) =>
                             _tagsController.text = value.join(','),
                       ),
@@ -473,5 +479,26 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
       setState(() => isUploading = false);
       return dartz.Left(e.toString());
     }
+  }
+
+    Future<void> _loadUserInterests() async {
+    final user = firebase_auth.FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+
+    if (doc.exists) {
+      final data = doc.data();
+      final List<dynamic>? interests = data?['interests'];
+      if (interests != null) {
+        setState(() {
+          selectedInterests.addAll(interests.cast<String>());
+        });
+      }
+    }
+    //setState(() => _loadingUserInterests = false);
   }
 }

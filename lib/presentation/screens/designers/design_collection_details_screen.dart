@@ -124,23 +124,29 @@ class _DesignCollectionDetailsScreenState
                       return Center(
                         child: Hero(
                           tag: widget.designCollection.featuredImages.first,
-                          child: CachedNetworkImage(
-                            imageUrl: imageUrl,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => const Center(
-                              child: SizedBox(
-                                height: 18,
-                                width: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
+                          child: Container(
+                            clipBehavior: Clip.hardEdge,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: CachedNetworkImage(
+                              imageUrl: imageUrl,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => const Center(
+                                child: SizedBox(
+                                  height: 18,
+                                  width: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
                                 ),
                               ),
+                              errorWidget: (context, url, error) {
+                                return const CustomColoredBanner(
+                                  text: 'No Image',
+                                );
+                              },
                             ),
-                            errorWidget: (context, url, error) {
-                              return const CustomColoredBanner(
-                                text: 'No Image',
-                              );
-                            },
                           ),
                         ),
                       );

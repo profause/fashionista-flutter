@@ -51,7 +51,6 @@ dependencies:
   equatable: ^2.0.7
   json_annotation: ^4.9.0
   fluttericon: ^2.0.0
-  flutter_launcher_icons: ^0.14.4
   get_it: ^8.2.0
   dartz: ^0.10.1
   firebase_storage: ^13.0.0
@@ -88,6 +87,13 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  image_path: "assets/icons/fashionista_app.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

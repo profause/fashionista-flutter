@@ -10,6 +10,7 @@ import 'package:fashionista/presentation/widgets/custom_icon_rounded.dart';
 import 'package:fashionista/presentation/widgets/rating_input_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 class DesignerProfilePage extends StatefulWidget {
   final String designerUid;
@@ -59,10 +60,9 @@ class _DesignerProfilePageState extends State<DesignerProfilePage> {
                             ),
                           );
                         },
-                      )
+                      ),
                     ),
                   ],
-                  
                 ),
                 ProfileInfoCardWidget(
                   items: [
@@ -138,7 +138,9 @@ class _DesignerProfilePageState extends State<DesignerProfilePage> {
                 /// Likes & Ratings card
                 Card(
                   color: colorScheme.onPrimary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(0),
+                  ),
                   margin: const EdgeInsets.symmetric(vertical: 2),
                   elevation: 0,
                   child: Padding(
@@ -163,7 +165,9 @@ class _DesignerProfilePageState extends State<DesignerProfilePage> {
                 /// Socials card
                 Card(
                   color: colorScheme.onPrimary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(0),
+                  ),
                   margin: const EdgeInsets.symmetric(vertical: 2),
                   elevation: 0,
                   child: Padding(
@@ -175,21 +179,29 @@ class _DesignerProfilePageState extends State<DesignerProfilePage> {
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            Image.asset(
-                              AppIcons.facebook,
-                              width: 38,
-                              height: 38,
+                            Icon(
+                              HugeIcons.strokeRoundedFacebook01,
+                              size: 32,
+                              color: colorScheme.onSurface,
                             ),
                             const SizedBox(width: 8),
-                            Image.asset(AppIcons.x, width: 38, height: 38),
-                            const SizedBox(width: 8),
-                            Image.asset(
-                              AppIcons.instagram,
-                              width: 38,
-                              height: 38,
+                            Icon(
+                              HugeIcons.strokeRoundedNewTwitter,
+                              size: 32,
+                              color: colorScheme.onSurface,
                             ),
                             const SizedBox(width: 8),
-                            Image.asset(AppIcons.tiktok, width: 38, height: 38),
+                            Icon(
+                              HugeIcons.strokeRoundedInstagram,
+                              size: 32,
+                              color: colorScheme.onSurface,
+                            ),
+                            const SizedBox(width: 8),
+                            Icon(
+                              HugeIcons.strokeRoundedTiktok,
+                              size: 32,
+                              color: colorScheme.onSurface,
+                            ),
                           ],
                         ),
                       ],

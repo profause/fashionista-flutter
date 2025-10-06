@@ -1,9 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:fashionista/core/assets/app_images.dart';
+import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:flutter/material.dart';
 
 class DesignerHomePage extends StatelessWidget {
-  const DesignerHomePage({super.key});
+  final VoidCallback? navigationCallback;
+  const DesignerHomePage({super.key, this.navigationCallback});
 
   @override
   Widget build(BuildContext context) {
@@ -18,15 +19,24 @@ class DesignerHomePage extends StatelessWidget {
           // 🔍 Search Bar
           TextField(
             decoration: InputDecoration(
-              hintText: "Search clients, designs...",
-              prefixIcon: const Icon(Icons.search),
+              hintText: "Search clients, designers, styles...",
+              hintStyle: textTheme.bodyMedium!.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              enabled: false,
+              prefixIcon: Icon(Icons.search, color: colorScheme.primary),
               filled: true,
-              fillColor: colorScheme.onPrimary,
+              fillColor: colorScheme.surfaceContainerHighest,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 0,
+              ),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
+                borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
               ),
             ),
+            onChanged: (value) {},
           ),
           const SizedBox(height: 16),
 
@@ -34,15 +44,17 @@ class DesignerHomePage extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _quickAction(Icons.people_outline, "Clients", colorScheme),
-              _quickAction(Icons.straighten, "Measurements", colorScheme),
+              _quickAction(Icons.people_outline, "Clients", colorScheme,(){
+                navigationCallback!.call();
+              }),
               _quickAction(
                 Icons.design_services_outlined,
                 "Designs",
                 colorScheme,
+                (){}
               ),
-              _quickAction(Icons.checkroom_outlined, "Closet", colorScheme),
-              _quickAction(Icons.star_border, "Ratings", colorScheme),
+              _quickAction(Icons.checkroom_outlined, "Closet", colorScheme,(){}),
+              _quickAction(Icons.star_border, "Ratings", colorScheme,(){}),
             ],
           ),
           const SizedBox(height: 24),
@@ -137,12 +149,12 @@ class DesignerHomePage extends StatelessWidget {
   }
 
   // 🔹 Quick Action Widget
-  Widget _quickAction(IconData icon, String label, ColorScheme scheme) {
+  Widget _quickAction(IconData icon, String label, ColorScheme scheme,VoidCallback onTap) {
     return Column(
       children: [
-        CircleAvatar(
-          backgroundColor: scheme.primary.withValues(alpha: 0.1),
-          child: Icon(icon, color: scheme.primary),
+        CustomIconButtonRounded(onPressed: onTap.call, iconData: icon,
+        //backgroundColor: scheme.primary.withValues(alpha: 0.1),
+        size: 24,
         ),
         const SizedBox(height: 4),
         Text(label, style: const TextStyle(fontSize: 12)),
