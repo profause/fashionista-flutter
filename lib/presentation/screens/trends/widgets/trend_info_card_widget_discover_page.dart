@@ -62,10 +62,10 @@ class _TrendInfoCardWidgetDiscoverPageState
 
     return Material(
       color: colorScheme.onPrimary,
-      borderRadius: BorderRadius.circular(12),
+      //borderRadius: BorderRadius.circular(12),
       clipBehavior: Clip.antiAlias, // ensures ripple stays within rounded shape
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        //borderRadius: BorderRadius.circular(12),
         splashColor: colorScheme.primary.withValues(alpha: 0.1),
         highlightColor: Colors.transparent,
         onTap: () {
