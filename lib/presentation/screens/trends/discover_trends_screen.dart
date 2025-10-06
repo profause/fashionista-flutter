@@ -229,8 +229,16 @@ class _DiscoverTrendsScreenState extends State<DiscoverTrendsScreen> {
                             if (getStartedFollowings == -1) {
                               getStartedFollowings = 0;
                             }
+                            if (getStartedLikes > 10) {
+                              getStartedLikes = 10;
+                            }
                             getStartedFollowingsNotifier.value =
                                 getStartedFollowings;
+                            _getstartedStatsCubit.setStatsState(
+                              getStartedLikes,
+                              getStartedFollowings,
+                              getStartedInterests,
+                            );
                           });
                         },
                       );
@@ -280,6 +288,12 @@ class _DiscoverTrendsScreenState extends State<DiscoverTrendsScreen> {
                                   getStartedLikes = 10;
                                 }
                                 getStartedLikesNotifier.value = getStartedLikes;
+
+                                _getstartedStatsCubit.setStatsState(
+                                  getStartedLikes,
+                                  getStartedFollowings,
+                                  getStartedInterests,
+                                );
                               });
                             },
                           );
