@@ -214,7 +214,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
                         hint:
                             'Type and press Enter, Space or Comma to add a tag',
                         valueIn: [],
-                        options:selectedInterests,
+                        options: selectedInterests,
                         valueOut: (value) =>
                             _tagsController.text = value.join(','),
                       ),
@@ -481,7 +481,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
     }
   }
 
-    Future<void> _loadUserInterests() async {
+  Future<void> _loadUserInterests() async {
     final user = firebase_auth.FirebaseAuth.instance.currentUser;
     if (user == null) return;
 

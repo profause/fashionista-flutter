@@ -23,7 +23,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(initialIndex: 1, length: 3, vsync: this);
+    _tabController = TabController(initialIndex: 0, length: 2, vsync: this);
     _scrollController = ScrollController();
 
     // Auto-collapse the SliverAppBar after the widget is built
@@ -86,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   labelColor: colorScheme.primary,
                   unselectedLabelColor: AppTheme.darkGrey,
                   indicatorColor: colorScheme.primary,
-                  dividerHeight: 0.1,
+                  dividerHeight: 0.0,
                   indicatorWeight: 2,
                   tabAlignment: TabAlignment.center,
                   labelPadding: const EdgeInsets.all(0),
@@ -100,19 +100,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   dividerColor: colorScheme.primary.withValues(alpha: 0.2),
                   controller: _tabController,
                   tabs: <Widget>[
-                    Container(
-                      margin: const EdgeInsets.symmetric(
-                        vertical: 8,
-                        horizontal: 8,
-                      ),
-                      child: Text(
-                        "For You",
-                        style: textTheme.bodyMedium!.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.primary,
-                        ),
-                      ),
-                    ),
+                    // Container(
+                    //   margin: const EdgeInsets.symmetric(
+                    //     vertical: 8,
+                    //     horizontal: 8,
+                    //   ),
+                    //   child: Text(
+                    //     "For You",
+                    //     style: textTheme.bodyMedium!.copyWith(
+                    //       fontWeight: FontWeight.bold,
+                    //       color: colorScheme.primary,
+                    //     ),
+                    //   ),
+                    // ),
                     Container(
                       margin: const EdgeInsets.symmetric(
                         vertical: 8,
@@ -148,11 +148,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         body: TabBarView(
           controller: _tabController,
           children: <Widget>[
-            user.accountType == 'Designer'
-                ? DesignerHomePage(
-                    navigationCallback: widget.navigationCallback?.call,
-                  )
-                : UserHomePage(),
+            // user.accountType == 'Designer'
+            //     ? DesignerHomePage(
+            //         navigationCallback: widget.navigationCallback?.call,
+            //       )
+            //     : UserHomePage(),
             TrendsScreen(),
             DiscoverTrendsScreen(),
           ],
