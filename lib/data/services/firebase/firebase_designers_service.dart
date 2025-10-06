@@ -12,6 +12,10 @@ import 'package:image_cropper/image_cropper.dart';
 
 abstract class FirebaseDesignersService {
   Future<Either<String, List<Designer>>> findDesigners();
+  Future<Either<String, List<Designer>>> findDesignersWithFilter(
+    int limit,
+    String orderBy,
+  );
   Future<Either<String, List<Designer>>> findDesignersAfterCache(
     int lastCacheTimestamp,
   );
@@ -27,7 +31,7 @@ abstract class FirebaseDesignersService {
     String designerId,
   );
 
-    Future<Either> addFeedbackForDesigner(CommentModel comment);
+  Future<Either> addFeedbackForDesigner(CommentModel comment);
   Future<Either> deleteFeedbackForDesigner(CommentModel comment);
 }
 
@@ -71,6 +75,36 @@ class FirebaseDesignersServiceImpl implements FirebaseDesignersService {
           .collection('designers')
           //.where('created_by', isEqualTo: uid)
           .orderBy('created_date', descending: true)
+          .get();
+      // Map each document to a Designer
+      // Await all async maps
+      final designers = await Future.wait(
+        querySnapshot.docs.map((doc) async {
+          bool isFavourite = await isFavouriteDesigner(doc.reference.id);
+          final d = Designer.fromJson(doc.data());
+          return d.copyWith(isFavourite: isFavourite);
+        }),
+      );
+      //await sl<HiveDesignersService>().insertItems(items: designers);
+      return Right(designers);
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'An unknown Firebase error occurred');
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  @override
+  Future<Either<String, List<Designer>>> findDesignersWithFilter(
+    int limit,
+    String orderBy,
+  ) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final querySnapshot = await firestore
+          .collection('designers')
+          .orderBy(orderBy, descending: true)
+          .limit(limit)
           .get();
       // Map each document to a Designer
       // Await all async maps
@@ -259,7 +293,7 @@ class FirebaseDesignersServiceImpl implements FirebaseDesignersService {
   @override
   Future<bool> isFavouriteDesigner(String designerId) async {
     try {
-      String uid = 'La9DWF9gv9YEqpWzTrYVBiUzGHf1';
+      String uid = '';
       final us = firebase_auth.FirebaseAuth.instance.currentUser;
       if (us != null) {
         uid = firebase_auth.FirebaseAuth.instance.currentUser!.uid;

@@ -36,7 +36,7 @@ class _WorkOrderDetailsPageState extends State<WorkOrderDetailsPage> {
                       top: 12,
                     ),
                     itemCount: widget.workOrderInfo.featuredMedia!.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 8),
+                    separatorBuilder: (_, _) => const SizedBox(width: 8),
                     itemBuilder: (context, index) {
                       final image =
                           widget.workOrderInfo.featuredMedia![index].url;

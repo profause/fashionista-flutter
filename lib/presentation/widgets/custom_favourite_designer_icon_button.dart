@@ -54,7 +54,7 @@ class _CustomFavouriteDesignerIconButtonState
   Widget build(BuildContext context) {
     return ValueListenableBuilder<bool>(
       valueListenable: widget.isFavouriteNotifier!,
-      builder: (_, isFavourite, __) {
+      builder: (_, isFavourite, _) {
         return CustomIconButtonRounded(
           iconData: Icons.favorite,
           onPressed: () async {

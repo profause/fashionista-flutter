@@ -27,10 +27,10 @@ class CustomIconButtonRounded extends StatelessWidget {
         ThemeMode themeMode = ThemeMode.values[settings.displayMode as int];
         return Material(
           color: backgroundColor != Colors.transparent
-              ? backgroundColor
-              : (themeMode == ThemeMode.light
+              ? (themeMode == ThemeMode.light
                     ? Colors.grey.shade200
-                    : Colors.black.withValues(alpha: 0.4)),
+                    : Colors.black.withValues(alpha: 0.4))
+              : backgroundColor,
           //colorScheme.onSurface, // background color
           shape: const CircleBorder(),
           // borderRadius: BorderRadius.circular(size! / 2), // makes it round
