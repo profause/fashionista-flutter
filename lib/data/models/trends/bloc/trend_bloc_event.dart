@@ -24,6 +24,14 @@ class UpdateTrend extends TrendBlocEvent {
   List<Object?> get props => [trend];
 }
 
+class UpdateCachedTrend extends TrendBlocEvent {
+  final TrendFeedModel trend;
+  const UpdateCachedTrend(this.trend);
+
+  @override
+  List<Object?> get props => [trend];
+}
+
 class LoadTrends extends TrendBlocEvent {
   final String uid;
   const LoadTrends(this.uid);
