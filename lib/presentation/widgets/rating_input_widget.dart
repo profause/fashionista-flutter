@@ -32,9 +32,9 @@ class _RatingInputWidgetState extends State<RatingInputWidget> {
   }
 
   void _updateRating(double newRating) {
-    if (widget.readOnly) return; // 🔒 Prevent changes
+    if (widget.readOnly) return;
     setState(() => _rating = newRating);
-    if (widget.onChanged != null) widget.onChanged!(newRating);
+    widget.onChanged?.call(newRating);
   }
 
   @override
@@ -44,33 +44,17 @@ class _RatingInputWidgetState extends State<RatingInputWidget> {
       children: List.generate(widget.maxRating, (index) {
         final starIndex = index + 1;
 
-        Widget star = Icon(
-          _rating >= starIndex
-              ? Icons.star
-              : (_rating >= starIndex - 0.5
-                  ? Icons.star_half
-                  : Icons.star_border),
+        // full-star display only (no half)
+        final star = Icon(
+          _rating >= starIndex ? Icons.star : Icons.star_border,
           color: widget.color,
           size: widget.size,
         );
 
-        if (widget.readOnly) {
-          return star; // Just display, no interaction
-        }
+        if (widget.readOnly) return star;
 
         return GestureDetector(
-          onTapDown: (details) {
-            //final box = context.findRenderObject() as RenderBox;
-            final localX = details.localPosition.dx;
-            final starWidth = widget.size;
-
-            // Tap left half = 0.5, right half = full star
-            if (localX < starWidth / 2) {
-              _updateRating(starIndex - 0.5);
-            } else {
-              _updateRating(starIndex.toDouble());
-            }
-          },
+          onTap: () => _updateRating(starIndex.toDouble()),
           child: star,
         );
       }),

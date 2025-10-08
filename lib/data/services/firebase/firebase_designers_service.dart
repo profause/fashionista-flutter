@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:fashionista/data/models/comment/comment_model.dart';
 import 'package:fashionista/data/models/designers/designer_model.dart';
+import 'package:fashionista/data/models/designers/designer_review_model.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_storage/firebase_storage.dart';
@@ -33,6 +34,9 @@ abstract class FirebaseDesignersService {
 
   Future<Either> addFeedbackForDesigner(CommentModel comment);
   Future<Either> deleteFeedbackForDesigner(CommentModel comment);
+
+  Future<Either> addDesignerReview(DesignerReviewModel review);
+  Future<Either> deleteDesignerReview(DesignerReviewModel review);
 }
 
 class FirebaseDesignersServiceImpl implements FirebaseDesignersService {
@@ -400,6 +404,34 @@ class FirebaseDesignersServiceImpl implements FirebaseDesignersService {
       return const Right(
         'successfully deleted comment',
       ); // success without data
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'Unknown Firestore error');
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  @override
+  Future<Either> addDesignerReview(DesignerReviewModel review) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      firestore
+          .collection('designer_reviews')
+          .doc(review.uid)
+          .set(review.toJson(), SetOptions(merge: true));
+      return Right(review);
+    } on FirebaseException catch (e) {
+      return Left(e.message);
+    }
+  }
+
+  @override
+  Future<Either> deleteDesignerReview(DesignerReviewModel review) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      // Delete the document with the given uid
+      await firestore.collection('designer_reviews').doc(review.uid).delete();
+      return const Right('successfully deleted review'); // success without data
     } on FirebaseException catch (e) {
       return Left(e.message ?? 'Unknown Firestore error');
     } catch (e) {

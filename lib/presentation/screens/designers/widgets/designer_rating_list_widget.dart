@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 
 class DesignerRatingListWidget extends StatelessWidget {
   final Map<String, double> ratings;
+  final int totalRating;
 
-  const DesignerRatingListWidget({super.key, required this.ratings});
+  const DesignerRatingListWidget({super.key, required this.ratings, required this.totalRating});
 
   @override
   Widget build(BuildContext context) {
@@ -18,8 +19,8 @@ class DesignerRatingListWidget extends StatelessWidget {
       children: List.generate(entries.length, (index) {
         final rating = entries[index];
         final stars = int.parse(rating.key);
-        final value = rating.value.clamp(0.0, 1.0);
-
+        final count = rating.value;
+        final progress = totalRating == 0 ? 0.0 : count / totalRating;
         return Padding(
           padding: const EdgeInsets.only(bottom: 8),
           child: Row(
@@ -40,7 +41,7 @@ class DesignerRatingListWidget extends StatelessWidget {
               // Animated progress bar
               Expanded(
                 child: TweenAnimationBuilder<double>(
-                  tween: Tween<double>(begin: 0, end: value),
+                  tween: Tween<double>(begin: 0, end: progress),
                   duration: const Duration(milliseconds: 800),
                   curve: Curves.easeOutCubic,
                   builder: (context, animatedValue, _) {
