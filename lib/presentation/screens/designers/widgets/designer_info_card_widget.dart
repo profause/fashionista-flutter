@@ -159,7 +159,7 @@ class _DesignerInfoCardWidgetState extends State<DesignerInfoCardWidget> {
                         Container(
                           alignment: Alignment.centerLeft,
                           child: RatingInputWidget(
-                            initialRating: widget.designerInfo.ratings!,
+                            initialRating: widget.designerInfo.averageRating ?? 0.0,
                             color: colorScheme.primary,
                             size: 24,
                             readOnly: true,

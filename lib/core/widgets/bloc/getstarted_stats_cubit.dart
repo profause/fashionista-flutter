@@ -1,22 +1,29 @@
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 class GetstartedStatsCubit extends HydratedCubit<Map<String, int>> {
-  GetstartedStatsCubit() : super({});
+  GetstartedStatsCubit()
+      : super({'likes': 0, 'followings': 0, 'interests': 0});
 
-  Map<String, int> get stats => super.state;
+  Map<String, int> get stats => state;
 
-  void setStatsState(int likes, int followings, int interests) {
+  void setStats(int likes, int followings, int interests) {
     emit({'likes': likes, 'followings': followings, 'interests': interests});
   }
 
-  @override
-  Map<String, dynamic> toJson(Map<String, int> map) {
-    return {
-      'likes': map['likes'],
-      'followings': map['followings'],
-      'interests': map['interests'],
-    };
+  void updateLikes(int value) {
+    emit({...state, 'likes': value});
   }
+
+  void updateFollowings(int value) {
+    emit({...state, 'followings': value});
+  }
+
+  void updateInterests(int value) {
+    emit({...state, 'interests': value});
+  }
+
+  @override
+  Map<String, dynamic> toJson(Map<String, int> map) => map;
 
   @override
   Map<String, int>? fromJson(Map<String, dynamic> json) {

@@ -3,8 +3,7 @@ import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/designers/designer_model.dart';
 import 'package:fashionista/presentation/screens/designers/designer_collection_page.dart';
 import 'package:fashionista/presentation/screens/designers/designer_details_profile_page.dart';
-import 'package:fashionista/presentation/screens/designers/designer_feedback_page.dart';
-import 'package:fashionista/presentation/screens/designers/designer_highlights_page.dart';
+import 'package:fashionista/presentation/screens/designers/designer_review_page.dart';
 import 'package:fashionista/presentation/widgets/banner_image_widget.dart';
 import 'package:fashionista/presentation/widgets/custom_favourite_designer_icon_button.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
@@ -172,7 +171,7 @@ class _DesignerDetailsScreenState extends State<DesignerDetailsScreen> {
                         ),
                         // divider color
                         child: Text(
-                          "Feedback",
+                          "Reviews",
                           style: textTheme.bodyMedium!.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -188,7 +187,7 @@ class _DesignerDetailsScreenState extends State<DesignerDetailsScreen> {
             children: [
               DesignerDetailsProfilePage(designer: widget.designer),
               DesignerCollectionPage(designer: widget.designer),
-              DesignerFeedbackPage(designer: widget.designer,),
+              DesignerReviewPage(designer: widget.designer,),
             ],
           ),
         ),

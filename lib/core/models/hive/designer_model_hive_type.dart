@@ -13,4 +13,7 @@ class DesignerModelHiveType {
   static const int bannerImage = 11;
   static const int isFavourite = 12;
   static const int createdDate = 13;
+  static const int averageRating = 14;
+  static const int reviewCount = 15;
+  static const int totalRating = 16;
 }

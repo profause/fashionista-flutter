@@ -48,9 +48,21 @@ class Designer extends Equatable {
   @JsonKey(name: 'social_handles')
   @HiveField(DesignerModelHiveType.socialHandles)
   final List<SocialHandle>? socialHandles;
-  
+
   @HiveField(DesignerModelHiveType.ratings)
-  final double? ratings;
+  final Map<String, double>? ratings;
+
+  @JsonKey(name: 'average_rating')
+  @HiveField(DesignerModelHiveType.averageRating)
+  final double? averageRating;
+
+  @JsonKey(name: 'total_rating')
+  @HiveField(DesignerModelHiveType.totalRating)
+  final int? totalRating;
+
+  @JsonKey(name: 'review_count')
+  @HiveField(DesignerModelHiveType.reviewCount)
+  final int? reviewCount;
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @HiveField(DesignerModelHiveType.isFavourite)
@@ -71,10 +83,13 @@ class Designer extends Equatable {
     required this.tags,
     required this.businessName,
     this.socialHandles,
-    this.ratings = 0.0,
+    this.ratings,
     this.bannerImage,
     this.isFavourite = false,
     this.createdDate,
+    this.averageRating,
+    this.reviewCount,
+    this.totalRating,
   });
 
   factory Designer.fromJson(Map<String, dynamic> json) =>
@@ -93,10 +108,13 @@ class Designer extends Equatable {
     String? tags,
     String? businessName,
     List<SocialHandle>? socialHandles,
-    double? ratings,
+    Map<String, double>? ratings,
     String? bannerImage,
     bool? isFavourite,
     DateTime? createdDate,
+    double? averageRating,
+    int? reviewCount,
+    int? totalRating,
   }) {
     return Designer(
       uid: uid ?? this.uid,
@@ -113,6 +131,9 @@ class Designer extends Equatable {
       bannerImage: bannerImage ?? this.bannerImage,
       isFavourite: isFavourite ?? this.isFavourite,
       createdDate: createdDate ?? this.createdDate,
+      averageRating: averageRating ?? this.averageRating,
+      reviewCount: reviewCount ?? this.reviewCount,
+      totalRating: totalRating ?? this.totalRating,
     );
   }
 
@@ -128,9 +149,13 @@ class Designer extends Equatable {
       tags: '',
       businessName: '',
       socialHandles: [],
-      ratings: 0.0,
+      ratings: {'5': 0.0, '4': 0.0, '3': 0.0, '2': 0.0, '1': 0.0},
       bannerImage: '',
       isFavourite: false,
+      createdDate: DateTime.now(),
+      averageRating: 0.0,
+      reviewCount: 0,
+      totalRating: 0,
     );
   }
 
@@ -150,5 +175,8 @@ class Designer extends Equatable {
     bannerImage,
     isFavourite,
     createdDate,
+    averageRating,
+    reviewCount,
+    totalRating,
   ];
 }

@@ -27,17 +27,20 @@ class DesignerAdapter extends TypeAdapter<Designer> {
       tags: fields[7] as String,
       businessName: fields[8] as String,
       socialHandles: (fields[9] as List?)?.cast<SocialHandle>(),
-      ratings: fields[10] as double?,
+      ratings: (fields[10] as Map?)?.cast<String, double>(),
       bannerImage: fields[11] as String?,
       isFavourite: fields[12] as bool?,
       createdDate: fields[13] as DateTime?,
+      averageRating: fields[14] as double?,
+      reviewCount: fields[15] as int?,
+      totalRating: fields[16] as int?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Designer obj) {
     writer
-      ..writeByte(14)
+      ..writeByte(17)
       ..writeByte(0)
       ..write(obj.uid)
       ..writeByte(1)
@@ -62,6 +65,12 @@ class DesignerAdapter extends TypeAdapter<Designer> {
       ..write(obj.socialHandles)
       ..writeByte(10)
       ..write(obj.ratings)
+      ..writeByte(14)
+      ..write(obj.averageRating)
+      ..writeByte(16)
+      ..write(obj.totalRating)
+      ..writeByte(15)
+      ..write(obj.reviewCount)
       ..writeByte(12)
       ..write(obj.isFavourite)
       ..writeByte(13)
@@ -98,11 +107,16 @@ Designer _$DesignerFromJson(Map<String, dynamic> json) => Designer(
       socialHandles: (json['social_handles'] as List<dynamic>?)
           ?.map((e) => SocialHandle.fromJson(e as Map<String, dynamic>))
           .toList(),
-      ratings: (json['ratings'] as num?)?.toDouble() ?? 0.0,
+      ratings: (json['ratings'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, (e as num).toDouble()),
+      ),
       bannerImage: json['banner_image'] as String?,
       createdDate: json['created_date'] == null
           ? null
           : DateTime.parse(json['created_date'] as String),
+      averageRating: (json['average_rating'] as num?)?.toDouble(),
+      reviewCount: (json['review_count'] as num?)?.toInt(),
+      totalRating: (json['total_rating'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$DesignerToJson(Designer instance) => <String, dynamic>{
@@ -118,5 +132,8 @@ Map<String, dynamic> _$DesignerToJson(Designer instance) => <String, dynamic>{
       'business_name': instance.businessName,
       'social_handles': instance.socialHandles?.map((e) => e.toJson()).toList(),
       'ratings': instance.ratings,
+      'average_rating': instance.averageRating,
+      'total_rating': instance.totalRating,
+      'review_count': instance.reviewCount,
       'created_date': instance.createdDate?.toIso8601String(),
     };

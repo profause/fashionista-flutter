@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/widgets/bloc/getstarted_stats_cubit.dart';
@@ -7,9 +9,9 @@ import 'package:fashionista/data/models/trends/bloc/trend_bloc_event.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc_state.dart';
 import 'package:fashionista/data/services/firebase/firebase_designers_service.dart';
 import 'package:fashionista/presentation/screens/designers/widgets/designer_info_card_widget_discover_page.dart';
-import 'package:fashionista/presentation/screens/trends/widgets/trend_info_card_widget.dart';
+import 'package:fashionista/presentation/screens/trends/widgets/designer_shimmer_widget.dart';
+import 'package:fashionista/presentation/screens/trends/widgets/interest_shimmer_widget.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/trend_info_card_widget_discover_page.dart';
-import 'package:fashionista/presentation/screens/trends/widgets/trends_staggered_view.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -32,11 +34,12 @@ class _DiscoverTrendsScreenState extends State<DiscoverTrendsScreen> {
   late GetstartedStatsCubit _getstartedStatsCubit;
 
   final ValueNotifier<int> getStartedLikesNotifier = ValueNotifier<int>(0);
-  final ValueNotifier<int> getStartedFollowingsNotifier = ValueNotifier<int>(0);
 
   late int getStartedLikes = 0;
   late int getStartedFollowings = 0;
   late int getStartedInterests = 0;
+  Timer? _debounce;
+  Timer? _loadInterestsDebounce; // 👈 debounce timer
 
   @override
   void initState() {
@@ -112,20 +115,25 @@ class _DiscoverTrendsScreenState extends State<DiscoverTrendsScreen> {
                     leading: SizedBox(
                       width: 18,
                       height: 18,
-                      child: ValueListenableBuilder<int>(
-                        valueListenable: getStartedFollowingsNotifier,
-                        builder: (context, followings, _) {
-                          return CircularProgressIndicator(
-                            value: (followings / 10),
-                            strokeWidth: 3,
-                            backgroundColor:
-                                colorScheme.surfaceContainerHighest,
-                            valueColor: AlwaysStoppedAnimation(
-                              colorScheme.primary,
-                            ),
-                          );
-                        },
-                      ),
+                      child:
+                          BlocSelector<
+                            GetstartedStatsCubit,
+                            Map<String, int>,
+                            int
+                          >(
+                            selector: (state) => state['followings'] ?? 0,
+                            builder: (context, followings) {
+                              return CircularProgressIndicator(
+                                value: (followings / 10),
+                                strokeWidth: 3,
+                                backgroundColor:
+                                    colorScheme.surfaceContainerHighest,
+                                valueColor: AlwaysStoppedAnimation(
+                                  colorScheme.primary,
+                                ),
+                              );
+                            },
+                          ),
                     ),
                     title: Text(
                       'Follow designers',
@@ -149,13 +157,29 @@ class _DiscoverTrendsScreenState extends State<DiscoverTrendsScreen> {
                 valueListenable: selectedInterestsNotifier,
                 builder: (context, selectedInterests, _) {
                   if (loadingFashionInterests) {
-                    return const Center(
-                      child: SizedBox(
-                        height: 18,
-                        width: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                    return SizedBox(
+                      height: 40,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: 6, // number of shimmer placeholders
+                        separatorBuilder: (_, _) => const SizedBox(width: 8),
+                        itemBuilder: (_, __) {
+                          final randomWidth =
+                              70 + (30 * (__ % 3)); // variable chip widths
+                          return InterestShimmerWidget(
+                            width: randomWidth.toDouble(),
+                          );
+                        },
                       ),
                     );
+
+                    // return const Center(
+                    //   child: SizedBox(
+                    //     height: 18,
+                    //     width: 18,
+                    //     child: CircularProgressIndicator(strokeWidth: 2),
+                    //   ),
+                    // );
                   }
 
                   if (selectedInterests.isEmpty) {
@@ -194,13 +218,27 @@ class _DiscoverTrendsScreenState extends State<DiscoverTrendsScreen> {
               valueListenable: designersNotifier,
               builder: (context, designers, _) {
                 if (loadingFashionDesigners) {
-                  return const Center(
-                    child: SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                  return SizedBox(
+                    height: 240,
+                    child: ListView.separated(
+                      padding: const EdgeInsets.all(16),
+                      scrollDirection: Axis.horizontal,
+                      itemCount: 6, // number of shimmer placeholders
+                      separatorBuilder: (_, _) => const SizedBox(width: 8),
+                      itemBuilder: (_, _) {
+                        // variable chip widths
+                        return DesignerShimmerWidget();
+                      },
                     ),
                   );
+
+                  // return const Center(
+                  //   child: SizedBox(
+                  //     height: 18,
+                  //     width: 18,
+                  //     child: CircularProgressIndicator(strokeWidth: 2),
+                  //   ),
+                  // );
                 }
 
                 if (designers.isEmpty) {
@@ -222,24 +260,17 @@ class _DiscoverTrendsScreenState extends State<DiscoverTrendsScreen> {
                       return DesignerInfoCardWidgetDiscoverPage(
                         designerInfo: item,
                         onFollowTap: (bool isFollowing) {
-                          setState(() {
-                            getStartedFollowings = isFollowing
-                                ? getStartedFollowings + 1
-                                : getStartedFollowings - 1;
-                            if (getStartedFollowings == -1) {
-                              getStartedFollowings = 0;
-                            }
-                            if (getStartedLikes > 10) {
-                              getStartedLikes = 10;
-                            }
-                            getStartedFollowingsNotifier.value =
-                                getStartedFollowings;
-                            _getstartedStatsCubit.setStatsState(
-                              getStartedLikes,
-                              getStartedFollowings,
-                              getStartedInterests,
-                            );
-                          });
+                          //here
+                          final cubit = context.read<GetstartedStatsCubit>();
+                          final currentFollowings =
+                              cubit.state['followings'] ?? 0;
+                          final newFollowings = isFollowing
+                              ? currentFollowings + 1
+                              : (currentFollowings > 0
+                                    ? currentFollowings - 1
+                                    : 0);
+
+                          cubit.updateFollowings(newFollowings);
                         },
                       );
                     },
@@ -249,76 +280,51 @@ class _DiscoverTrendsScreenState extends State<DiscoverTrendsScreen> {
             ),
 
             const SizedBox(height: 2),
-
-            Container(
-              //padding: const EdgeInsets.only(left: 16, right: 16),
-              //color: colorScheme.onPrimary,
-              child: BlocBuilder<TrendBloc, TrendBlocState>(
-                builder: (context, state) {
-                  switch (state) {
-                    case TrendLoading():
-                      return const Center(
-                        child: SizedBox(
-                          height: 18,
-                          width: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+            BlocBuilder<TrendBloc, TrendBlocState>(
+              builder: (context, state) {
+                switch (state) {
+                  case TrendLoading():
+                    return const Center(
+                      child: SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    );
+                  case TrendsLoaded(:final trends):
+                    return ListView.separated(
+                      padding: const EdgeInsets.all(0),
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: trends.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: 2),
+                      itemBuilder: (context, index) {
+                        final item = trends[index];
+                        return TrendInfoCardWidgetDiscoverPage(
+                          trendInfo: item,
+                          onLikeTap: (bool isLiked) {},
+                        );
+                      },
+                    );
+                  case TrendError(:final message):
+                    debugPrint("Error: $message");
+                    return SizedBox(
+                      height: 400,
+                      child: Center(child: Text("Error: $message")),
+                    );
+                  default:
+                    return SizedBox(
+                      height: 400,
+                      child: Center(
+                        child: PageEmptyWidget(
+                          title: "No Trends Found",
+                          subtitle: "Add new trend to see them here.",
+                          icon: Icons.newspaper_outlined,
                         ),
-                      );
-                    case TrendsLoaded(:final trends, :final fromCache):
-                      return ListView.separated(
-                        padding: const EdgeInsets.all(0),
-                        physics: const NeverScrollableScrollPhysics(),
-                        shrinkWrap: true,
-                        itemCount: trends.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 2),
-                        itemBuilder: (context, index) {
-                          final item = trends[index];
-                          return TrendInfoCardWidgetDiscoverPage(
-                            trendInfo: item,
-                            onLikeTap: (bool isLiked) {
-                              setState(() {
-                                getStartedLikes = isLiked
-                                    ? getStartedLikes + 1
-                                    : getStartedLikes - 1;
-                                if (getStartedLikes == -1) {
-                                  getStartedLikes = 0;
-                                }
-
-                                if (getStartedLikes > 10) {
-                                  getStartedLikes = 10;
-                                }
-                                getStartedLikesNotifier.value = getStartedLikes;
-
-                                _getstartedStatsCubit.setStatsState(
-                                  getStartedLikes,
-                                  getStartedFollowings,
-                                  getStartedInterests,
-                                );
-                              });
-                            },
-                          );
-                        },
-                      );
-                    case TrendError(:final message):
-                      debugPrint("Error: $message");
-                      return SizedBox(
-                        height: 400,
-                        child: Center(child: Text("Error: $message")),
-                      );
-                    default:
-                      return SizedBox(
-                        height: 400,
-                        child: Center(
-                          child: PageEmptyWidget(
-                            title: "No Trends Found",
-                            subtitle: "Add new trend to see them here.",
-                            icon: Icons.newspaper_outlined,
-                          ),
-                        ),
-                      );
-                  }
-                },
-              ),
+                      ),
+                    );
+                }
+              },
             ),
           ],
         ),
@@ -327,28 +333,41 @@ class _DiscoverTrendsScreenState extends State<DiscoverTrendsScreen> {
   }
 
   Future<void> _loadFashionInterests() async {
-    final querySnapshot = await FirebaseFirestore.instance
-        .collection('fashion_interests')
-        .orderBy('category')
-        .get();
+    _loadInterestsDebounce?.cancel(); // cancel previous timer
+    _loadInterestsDebounce = Timer(
+      const Duration(milliseconds: 1500),
+      () async {
+        final querySnapshot = await FirebaseFirestore.instance
+            .collection('fashion_interests')
+            .orderBy('category')
+            .get();
 
-    final interests = querySnapshot.docs
-        .map((item) => item.data()['name'] as String)
-        .toList();
+        final interests = querySnapshot.docs
+            .map((item) => item.data()['name'] as String)
+            .toList();
 
-    selectedInterestsNotifier.value = interests;
-    loadingFashionInterests = false;
+        selectedInterestsNotifier.value = interests;
+        loadingFashionInterests = false;
+      },
+    );
   }
 
   Future<void> _loadFashionDesigners() async {
-    final result = await sl<FirebaseDesignersService>().findDesignersWithFilter(
-      4,
-      'created_date',
-    );
+    _debounce?.cancel(); // cancel previous timer
+    _debounce = Timer(const Duration(milliseconds: 1500), () async {
+      final result = await sl<FirebaseDesignersService>()
+          .findDesignersWithFilter(4, 'created_date');
 
-    await result.fold((failure) async {}, (designers) {
-      designersNotifier.value = designers;
-      loadingFashionDesigners = false;
+      await result.fold((failure) async {}, (designers) {
+        designersNotifier.value = designers;
+        final following = designers
+            .where((d) => d.isFavourite!)
+            .toList()
+            .length;
+        final cubit = context.read<GetstartedStatsCubit>();
+        cubit.updateFollowings(following);
+        loadingFashionDesigners = false;
+      });
     });
   }
 
@@ -360,13 +379,11 @@ class _DiscoverTrendsScreenState extends State<DiscoverTrendsScreen> {
 
   void _loadGetStartedStats() {
     _getstartedStatsCubit = context.read<GetstartedStatsCubit>();
-    final likes = _getstartedStatsCubit.state['likes'] as int;
-    final followings = _getstartedStatsCubit.state['followings'] as int;
-    final interests = _getstartedStatsCubit.state['interests'] as int;
+    final likes = _getstartedStatsCubit.state['likes'] ?? 0;
+    final followings = _getstartedStatsCubit.state['followings'] ?? 0;
+    final interests = _getstartedStatsCubit.state['interests'] ?? 0;
 
     getStartedLikesNotifier.value = likes;
-    getStartedFollowingsNotifier.value = followings;
-
     setState(() {
       getStartedLikes = likes;
       getStartedFollowings = followings;

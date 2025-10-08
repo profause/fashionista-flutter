@@ -1,4 +1,3 @@
-import 'package:fashionista/core/assets/app_icons.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_bloc.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_event.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_state.dart';
@@ -151,7 +150,7 @@ class _DesignerProfilePageState extends State<DesignerProfilePage> {
                         Text('Likes & Ratings', style: textTheme.titleSmall),
                         const SizedBox(height: 4),
                         RatingInputWidget(
-                          initialRating: designer.ratings!,
+                          initialRating: designer.averageRating ?? 0,
                           color: colorScheme.primary,
                           size: 24,
                           readOnly: true,

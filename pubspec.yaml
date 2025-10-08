@@ -73,6 +73,7 @@ dependencies:
   flutter_local_notifications: ^19.4.2
   timezone: ^0.10.0
   flutter_timezone: ^5.0.0
+  shimmer: ^3.0.0
   
 
 dev_dependencies:
@@ -93,7 +94,7 @@ flutter_launcher_icons:
   android: true
   ios: true
   remove_alpha_ios: true
-  image_path: "assets/icons/fashionista_app.png"
+  image_path: "assets/icons/app/fashionista_app_FFF500.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
