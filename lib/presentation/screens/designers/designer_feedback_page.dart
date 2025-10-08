@@ -76,7 +76,7 @@ class _DesignerFeedbackPageState extends State<DesignerFeedbackPage>
                   return CommentWidget(
                     comment: comment,
                     onDelete: () async {
-                      debugPrint("Delete feedback");
+                      //debugPrint("Delete feedback");
                       _deleteFeedback(comment);
                     },
                   );

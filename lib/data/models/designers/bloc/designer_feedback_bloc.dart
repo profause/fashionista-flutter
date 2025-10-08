@@ -46,12 +46,12 @@ class DesignerFeedbackBloc
     );
 
     result.fold((failure) => emit(DesignerFeedbackError(failure.toString())), (
-      designCollections,
+      designFeedback,
     ) {
-      if (designCollections.isEmpty) {
+      if (designFeedback.isEmpty) {
         emit(const DesignerFeedbackEmpty());
       } else {
-        emit(DesignerFeedbacksLoaded(designCollections));
+        emit(DesignerFeedbacksLoaded(designFeedback));
       }
     });
   }

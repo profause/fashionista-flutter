@@ -35,6 +35,9 @@ abstract class FirebaseDesignersService {
   Future<Either> addFeedbackForDesigner(CommentModel comment);
   Future<Either> deleteFeedbackForDesigner(CommentModel comment);
 
+  Future<Either<String, List<DesignerReviewModel>>> findDesignerReviews(
+    String designerId,
+  );
   Future<Either> addDesignerReview(DesignerReviewModel review);
   Future<Either> deleteDesignerReview(DesignerReviewModel review);
 }
@@ -434,6 +437,30 @@ class FirebaseDesignersServiceImpl implements FirebaseDesignersService {
       return const Right('successfully deleted review'); // success without data
     } on FirebaseException catch (e) {
       return Left(e.message ?? 'Unknown Firestore error');
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  @override
+  Future<Either<String, List<DesignerReviewModel>>> findDesignerReviews(
+    String designerId,
+  ) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final querySnapshot = await firestore
+          .collection('designer_reviews')
+          .where('ref_id', isEqualTo: designerId)
+          .orderBy('created_at', descending: true)
+          .get();
+      // Map each document to a comment
+      final reviews = querySnapshot.docs.map((doc) {
+        final d = DesignerReviewModel.fromJson(doc.data());
+        return d.copyWith(uid: doc.reference.id);
+      }).toList();
+      return Right(reviews);
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'An unknown Firebase error occurred');
     } catch (e) {
       return Left(e.toString());
     }

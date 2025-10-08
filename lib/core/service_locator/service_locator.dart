@@ -18,6 +18,7 @@ import 'package:fashionista/data/services/firebase/firebase_work_order_service.d
 import 'package:fashionista/data/services/hive/hive_client_service.dart';
 import 'package:fashionista/data/services/hive/hive_closet_item_service.dart';
 import 'package:fashionista/data/services/hive/hive_design_collection_service.dart';
+import 'package:fashionista/data/services/hive/hive_designer_reviews_service.dart';
 import 'package:fashionista/data/services/hive/hive_designers_service.dart';
 import 'package:fashionista/data/services/hive/hive_outfit_service.dart';
 import 'package:fashionista/data/services/hive/hive_trend_comment_service.dart';
@@ -210,5 +211,9 @@ Future<void> initialiseDependencies() async {
   );
   sl.registerSingleton<HiveWorkOrderStatusProgressService>(
     HiveWorkOrderStatusProgressService(),
+  );
+
+  sl.registerSingleton<HiveDesignerReviewsService>(
+    HiveDesignerReviewsService(),
   );
 }
