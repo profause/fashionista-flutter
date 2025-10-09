@@ -27,8 +27,18 @@ class _RatingInputWidgetState extends State<RatingInputWidget> {
 
   @override
   void initState() {
-    super.initState();
     _rating = widget.initialRating;
+    super.initState();
+  }
+
+  @override
+  void didUpdateWidget(covariant RatingInputWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialRating != widget.initialRating) {
+      setState(() {
+        _rating = widget.initialRating;
+      });
+    }
   }
 
   void _updateRating(double newRating) {

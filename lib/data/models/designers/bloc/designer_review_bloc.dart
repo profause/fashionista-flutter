@@ -12,6 +12,7 @@ class DesignerReviewBloc
     on<LoadDesignerReviewCacheFirstThenNetwork>(
       _onLoadDesignerReviewCacheFirstThenNetwork,
     );
+    on<DeleteDesignerReview>(_deleteDesignerReview);
     on<ClearDesignerReview>(
       (event, emit) => emit(const DesignerReviewInitial()),
     );
@@ -35,6 +36,40 @@ class DesignerReviewBloc
         emit(DesignerReviewsLoaded(designCollections));
       }
     });
+  }
+
+  Future<void> _deleteDesignerReview(
+    DeleteDesignerReview event,
+    Emitter<DesignerReviewBlocState> emit,
+  ) async {
+    final cachedItems = await sl<HiveDesignerReviewsService>().getItems(
+      event.designerReviewModel.refId,
+    );
+
+    // ✅ find index by matching uid
+    final index = cachedItems.indexWhere(
+      (item) => item.uid == event.designerReviewModel.uid,
+    );
+    if (index != -1) {
+      cachedItems.removeAt(index);
+      try {
+        // ✅ persist updated list back to Hive
+        await sl<HiveDesignerReviewsService>().insertItems(
+          event.designerReviewModel.refId,
+          items: cachedItems,
+        );
+
+        if (cachedItems.isEmpty) {
+          emit(const DesignerReviewEmpty());
+          return;
+        }
+
+        emit(DesignerReviewsLoaded(cachedItems, fromCache: true));
+      } catch (e) {
+        // ❌ Rollback if persistence failed (optional)
+        emit(DesignerReviewError("Failed to delete item: $e"));
+      }
+    }
   }
 
   Future<void> _onLoadDesignerReviewCacheFirstThenNetwork(

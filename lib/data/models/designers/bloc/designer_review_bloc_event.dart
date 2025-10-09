@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:fashionista/data/models/designers/designer_review_model.dart';
 
 abstract class DesignerReviewBlocEvent extends Equatable {
   const DesignerReviewBlocEvent();
@@ -13,6 +14,13 @@ class LoadDesignerReview extends DesignerReviewBlocEvent {
 
   @override
   List<Object?> get props => [refId];
+}
+
+class DeleteDesignerReview extends DesignerReviewBlocEvent {
+  final DesignerReviewModel designerReviewModel;
+  const DeleteDesignerReview(this.designerReviewModel);
+  @override
+  List<Object?> get props => [designerReviewModel];
 }
 
 class LoadDesignerReviewCacheFirstThenNetwork extends DesignerReviewBlocEvent {

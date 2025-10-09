@@ -1,5 +1,4 @@
 import 'package:fashionista/core/service_locator/service_locator.dart';
-import 'package:fashionista/core/utils/get_relative_time.dart';
 import 'package:fashionista/data/models/author/author_model.dart';
 import 'package:fashionista/data/models/comment/comment_model.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_review_bloc.dart';
@@ -12,13 +11,13 @@ import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/services/firebase/firebase_designers_service.dart';
 import 'package:fashionista/presentation/screens/designers/widgets/designer_rating_list_widget.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/designer_review_widget.dart';
-import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/custom_text_input_field_widget.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:fashionista/presentation/widgets/rating_input_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uuid/uuid.dart';
 
 class DesignerReviewPage extends StatefulWidget {
   final Designer designer;
@@ -28,8 +27,7 @@ class DesignerReviewPage extends StatefulWidget {
   State<DesignerReviewPage> createState() => _DesignerReviewPageState();
 }
 
-class _DesignerReviewPageState extends State<DesignerReviewPage>
-    with WidgetsBindingObserver {
+class _DesignerReviewPageState extends State<DesignerReviewPage> {
   final userId = firebase_auth.FirebaseAuth.instance.currentUser!.uid;
   late bool addReviewLoading = false;
 
@@ -38,7 +36,7 @@ class _DesignerReviewPageState extends State<DesignerReviewPage>
     context.read<DesignerReviewBloc>().add(
       LoadDesignerReviewCacheFirstThenNetwork(widget.designer.uid),
     );
-    WidgetsBinding.instance.addObserver(this);
+    //WidgetsBinding.instance.addObserver(this);
     super.initState();
   }
 
@@ -52,7 +50,12 @@ class _DesignerReviewPageState extends State<DesignerReviewPage>
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.only(
+              left: 16,
+              right: 16,
+              bottom: 12,
+              top: 16,
+            ),
             color: colorScheme.onPrimary,
             child: Column(
               children: [
@@ -219,8 +222,8 @@ class _DesignerReviewPageState extends State<DesignerReviewPage>
     Function(DesignerReviewModel review) onSave,
     DesignerReviewModel designerReviewModel,
   ) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
+    //final textTheme = Theme.of(context).textTheme;
+    //final colorScheme = Theme.of(context).colorScheme;
 
     final TextEditingController commentTextFieldController =
         TextEditingController();
@@ -228,180 +231,187 @@ class _DesignerReviewPageState extends State<DesignerReviewPage>
     double rating = 0.0;
 
     showModalBottomSheet(
-  context: context,
-  isScrollControlled: true,
-  backgroundColor: Theme.of(context).colorScheme.onPrimary,
-  shape: const RoundedRectangleBorder(
-    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-  ),
-  builder: (context) {
-    commentTextFieldController.text = designerReviewModel.comment.text;
-    rating = designerReviewModel.rating!.toDouble();
-
-    // FocusNode for auto-focus and scroll control
-    final focusNode = FocusNode();
-
-    return Padding(
-      // 👇 ensures bottom sheet shifts up when keyboard appears
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.onPrimary,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      child: StatefulBuilder(
-        builder: (context, setModalState) {
-          return DraggableScrollableSheet(
-            expand: false,
-            initialChildSize: 0.5,
-            minChildSize: 0.5,
-            maxChildSize: 0.9,
-            builder: (context, scrollController) {
-              return GestureDetector(
-                // Tap outside text field to dismiss keyboard
-                onTap: () => FocusScope.of(context).unfocus(),
-                child: SingleChildScrollView(
-                  controller: scrollController,
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Top handle
-                      Center(
-                        child: Container(
-                          height: 4,
-                          width: 40,
-                          margin: const EdgeInsets.only(bottom: 16),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[400],
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
+      builder: (context) {
+        commentTextFieldController.text = designerReviewModel.comment.text;
+        rating = designerReviewModel.rating!.toDouble();
 
-                      Text(
-                        "Write a Review",
-                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                              fontWeight: FontWeight.w600,
+        // FocusNode for auto-focus and scroll control
+        final focusNode = FocusNode();
+
+        return Padding(
+          // 👇 ensures bottom sheet shifts up when keyboard appears
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: StatefulBuilder(
+            builder: (context, setModalState) {
+              return DraggableScrollableSheet(
+                expand: false,
+                initialChildSize: 0.5,
+                minChildSize: 0.5,
+                maxChildSize: 0.9,
+                builder: (context, scrollController) {
+                  return GestureDetector(
+                    // Tap outside text field to dismiss keyboard
+                    onTap: () => FocusScope.of(context).unfocus(),
+                    child: SingleChildScrollView(
+                      controller: scrollController,
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Top handle
+                          Center(
+                            child: Container(
+                              height: 4,
+                              width: 40,
+                              margin: const EdgeInsets.only(bottom: 16),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[400],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
-                      ),
-                      const SizedBox(height: 32),
+                          ),
 
-                      // ⭐ Rating input
-                      RatingInputWidget(
-                        initialRating: rating,
-                        color: Theme.of(context).colorScheme.primary,
-                        size: 32,
-                        readOnly: false,
-                        onChanged: (r) => setModalState(() => rating = r),
-                      ),
-                      const SizedBox(height: 8),
+                          Text(
+                            "Write a Review",
+                            style: Theme.of(context).textTheme.bodyMedium!
+                                .copyWith(fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 24),
 
-                      // 💬 Comment input (auto-focus + scrolls above keyboard)
-                      Focus(
-                        onFocusChange: (hasFocus) {
-                          if (hasFocus) {
-                            // slight delay to ensure keyboard opens first
-                            Future.delayed(const Duration(milliseconds: 300))
-                                .then((_) {
-                              if (scrollController.hasClients) {
-                                scrollController.animateTo(
-                                  scrollController.position.maxScrollExtent,
-                                  duration:
-                                      const Duration(milliseconds: 300),
-                                  curve: Curves.easeOut,
-                                );
+                          // ⭐ Rating input
+                          RatingInputWidget(
+                            initialRating: rating,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 32,
+                            readOnly: false,
+                            onChanged: (r) => setModalState(() => rating = r),
+                          ),
+                          const SizedBox(height: 8),
+
+                          // 💬 Comment input (auto-focus + scrolls above keyboard)
+                          Focus(
+                            onFocusChange: (hasFocus) {
+                              if (hasFocus) {
+                                // slight delay to ensure keyboard opens first
+                                Future.delayed(
+                                  const Duration(milliseconds: 300),
+                                ).then((_) {
+                                  if (scrollController.hasClients) {
+                                    scrollController.animateTo(
+                                      scrollController.position.maxScrollExtent,
+                                      duration: const Duration(
+                                        milliseconds: 300,
+                                      ),
+                                      curve: Curves.easeOut,
+                                    );
+                                  }
+                                });
                               }
-                            });
-                          }
-                        },
-                        child: CustomTextInputFieldWidget(
-                          autofocus: true,
-                          //focusNode: focusNode,
-                          controller: commentTextFieldController,
-                          hint:
-                              'Share details of your experience with this designer',
-                          minLines: 2,
-                          maxLength: 150,
-                          validator: (value) {
-                            if ((value ?? "").isEmpty) {
-                              return 'Enter comment to proceed...';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // 💾 Save button
-                      SizedBox(
-                        height: 48,
-                        width: double.infinity,
-                        child: FilledButton(
-                          onPressed: () {
-                            if (commentTextFieldController.text.trim().isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Enter comment to proceed'),
-                                ),
-                              );
-                              return;
-                            }
-
-                            UserBloc userBloc = context.read<UserBloc>();
-                            User user = userBloc.state;
-                            final uid = user.uid;
-                            final author = AuthorModel.empty().copyWith(
-                              uid: user.uid,
-                              name: user.fullName,
-                              avatar: user.profileImage,
-                            );
-                            final comment = CommentModel.empty().copyWith(
-                              uid: uid,
-                              refId: widget.designer.uid,
-                              text: commentTextFieldController.text,
-                              createdAt:
-                                  DateTime.now().millisecondsSinceEpoch,
-                              author: author,
-                            );
-                            final review = designerReviewModel.copyWith(
-                              comment: comment,
-                              refId: widget.designer.uid,
-                              uid: uid,
-                              rating: rating.toInt(),
-                            );
-                            onSave(review);
-                          },
-                          style: FilledButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                            },
+                            child: CustomTextInputFieldWidget(
+                              onChanged: (_) {
+                                setModalState(() {});
+                              },
+                              autofocus: true,
+                              //focusNode: focusNode,
+                              controller: commentTextFieldController,
+                              hint:
+                                  'Share details of your experience with this designer',
+                              minLines: 2,
+                              maxLength: 150,
+                              validator: (value) {
+                                if ((value ?? "").isEmpty) {
+                                  return 'Enter review to proceed...';
+                                }
+                                return null;
+                              },
                             ),
-                            elevation: 0,
-                            backgroundColor:
-                                Theme.of(context).colorScheme.surface,
-                            foregroundColor:
-                                Theme.of(context).colorScheme.onSurface,
                           ),
-                          child: const Text('Save'),
-                        ),
+                          const SizedBox(height: 12),
+
+                          // 💾 Save button
+                          SizedBox(
+                            height: 48,
+                            width: double.infinity,
+                            child: FilledButton(
+                              onPressed: () {
+                                if (commentTextFieldController.text
+                                    .trim()
+                                    .isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Enter review to proceed'),
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                UserBloc userBloc = context.read<UserBloc>();
+                                User user = userBloc.state;
+                                final uid = designerReviewModel.uid!.isEmpty
+                                    ? Uuid().v4()
+                                    : designerReviewModel.uid;
+                                final author = AuthorModel.empty().copyWith(
+                                  uid: user.uid,
+                                  name: user.fullName,
+                                  avatar: user.profileImage,
+                                );
+                                final comment = CommentModel.empty().copyWith(
+                                  uid: uid,
+                                  refId: widget.designer.uid,
+                                  text: commentTextFieldController.text,
+                                  createdAt:
+                                      DateTime.now().millisecondsSinceEpoch,
+                                  author: author,
+                                );
+                                final review = designerReviewModel.copyWith(
+                                  comment: comment,
+                                  refId: widget.designer.uid,
+                                  uid: uid,
+                                  rating: rating.toInt(),
+                                  createdAt: comment.createdAt,
+                                );
+                                onSave(review);
+                              },
+                              style: FilledButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                elevation: 0,
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.surface,
+                                foregroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface,
+                              ),
+                              child: const Text('Save'),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                },
               );
             },
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
-  },
-);
-
   }
 
   void _onSaveReview(DesignerReviewModel review) async {
     try {
-      setState(() {
-        addReviewLoading = true;
-      });
       // Show progress dialog
       showDialog(
         context: context,
@@ -422,9 +432,6 @@ class _DesignerReviewPageState extends State<DesignerReviewPage>
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text(failure)));
-          setState(() {
-            addReviewLoading = false;
-          });
         },
         (review) {
           Navigator.pop(context);
@@ -463,10 +470,8 @@ class _DesignerReviewPageState extends State<DesignerReviewPage>
             context,
           ).showSnackBar(SnackBar(content: Text(failure)));
         },
-        (review) {
-          context.read<DesignerReviewBloc>().add(
-            LoadDesignerReviewCacheFirstThenNetwork(widget.designer.uid),
-          );
+        (s) {
+          context.read<DesignerReviewBloc>().add(DeleteDesignerReview(review));
           if (!mounted) return;
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
@@ -480,5 +485,10 @@ class _DesignerReviewPageState extends State<DesignerReviewPage>
         context,
       ).showSnackBar(SnackBar(content: Text(e.message!)));
     }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 }

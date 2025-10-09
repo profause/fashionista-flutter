@@ -127,7 +127,7 @@ class _WorkOrderInfoCardWidgetState extends State<WorkOrderInfoCardWidget>
                           ),
                           ValueListenableBuilder<bool>(
                             valueListenable: isBookmarkedNotifier!,
-                            builder: (_, isBookmarked, __) {
+                            builder: (_, isBookmarked, _) {
                               return CustomIconButtonRounded(
                                 onPressed: () async {
                                   isBookmarkedNotifier!.value = !isBookmarked;
