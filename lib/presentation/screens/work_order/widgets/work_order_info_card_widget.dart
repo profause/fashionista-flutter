@@ -178,6 +178,8 @@ class _WorkOrderInfoCardWidgetState extends State<WorkOrderInfoCardWidget>
                               CustomIconRounded(icon: Icons.person, size: 12),
                               const SizedBox(width: 4),
                               Text(
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 widget.workOrderInfo.client!.name!,
                                 style: textTheme.labelMedium,
                               ),
