@@ -54,7 +54,7 @@ class _AnimatedTitleState extends State<AnimatedTitle>
             child: Text(
               char,
               style: AppTheme.appTitleStyle.copyWith(
-                color: AppTheme.lightGrey,),
+                color: AppTheme.black,),
             ),
           ),
         );

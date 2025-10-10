@@ -1,4 +1,5 @@
 import 'package:fashionista/core/auth/auth_provider_cubit.dart';
+import 'package:fashionista/core/service_locator/app_config.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/widgets/bloc/button_loading_state_cubit.dart';
 import 'package:fashionista/core/widgets/bloc/previous_screen_state_cubit.dart';
@@ -238,8 +239,8 @@ class _SignInScreenState extends State<SignInScreen> {
 
   Future<RecaptchaClient> initialiseRecapture() async {
     final siteKey = Platform.isAndroid
-        ? "6LcvZLMrAAAAAC9BgMgVkpuuUZpxrBRW6rdvENEt"
-        : "6LerVrMrAAAAALXzsXfdT-v8p0iKKxIrK2FrByQU";
+        ? appConfig.get('recaptcha_site_key_android')
+        : appConfig.get('recaptcha_site_key_ios');
     RecaptchaClient client = await Recaptcha.fetchClient(siteKey);
 
     return client;

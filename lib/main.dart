@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:fashionista/app_starter.dart';
 import 'package:fashionista/core/auth/auth_provider_cubit.dart';
+import 'package:fashionista/core/config/app_remote_config.dart';
 import 'package:fashionista/core/onboarding/onboarding_cubit.dart';
 import 'package:fashionista/core/service_locator/hive_service.dart';
 import 'package:fashionista/core/service_locator/local_notification_service.dart';
@@ -57,6 +58,8 @@ Future<void> main() async {
 
   await _configureLocalTimeZone();
   await LocalNotificationService.init();
+
+  await AppRemoteConfig.instance.initialize();
 
   runApp(const MyApp());
 }

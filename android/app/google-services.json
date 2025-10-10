@@ -20,7 +20,15 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "562716328951-u5d1u507hjcf4k28f30lo5au638dt7cf.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.profause.fashionista.ios"
+              }
+            }
+          ]
         }
       }
     }

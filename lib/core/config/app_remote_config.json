@@ -1,0 +1,13 @@
+{
+  "prod": {
+    "name": "prod",
+    "recaptcha_site_key_android": "6LcvZLMrAAAAAC9BgMgVkpuuUZpxrBRW6rdvENEt",
+    "recaptcha_site_key_ios": "6LerVrMrAAAAALXzsXfdT-v8p0iKKxIrK2FrByQU"
+  },
+  "dev": {
+    "name": "dev",
+    "recaptcha_site_key_android": "6LcvZLMrAAAAAC9BgMgVkpuuUZpxrBRW6rdvENEt",
+    "recaptcha_site_key_ios": "6LerVrMrAAAAALXzsXfdT-v8p0iKKxIrK2FrByQU"
+  },
+  "CMD":"flutter run --dart-define=ENV=dev"
+}
