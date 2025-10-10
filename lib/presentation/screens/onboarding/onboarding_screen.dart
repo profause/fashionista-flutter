@@ -1,4 +1,5 @@
 import 'package:fashionista/core/onboarding/onboarding_cubit.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/widgets/animated_primary_button.dart';
 import 'package:fashionista/data/models/onboarding/models/onboarding_page_data.dart';
 import 'package:fashionista/presentation/screens/auth/sign_in_screen.dart';
@@ -56,11 +57,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> navigateToLogin() async {
-    _onboardingCubit.hasSeenOnboarding(true);
+    _onboardingCubit.hasSeenOnboarding(false);//here
     await Navigator.of(context).push(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 600),
-        pageBuilder: (_, animation, __) {
+        pageBuilder: (_, animation, _) {
           return FadeTransition(
             opacity: animation,
             child: const SignInScreen(),
@@ -80,6 +81,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
+      backgroundColor: AppTheme.appIconColor,
       body: SafeArea(
         child: Column(
           children: [
