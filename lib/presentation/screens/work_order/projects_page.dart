@@ -106,7 +106,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                     ),
                   ),
                 );
-              case WorkOrdersLoaded(:final workOrders, :final fromCache):
+              case WorkOrdersLoaded(:final workOrders,):
                 final filteredWorkOrders = _searchText.isEmpty
                     ? workOrders
                     : workOrders.where((workOrder) {

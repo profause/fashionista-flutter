@@ -242,7 +242,7 @@ class _DesignerReviewPageState extends State<DesignerReviewPage> {
         rating = designerReviewModel.rating!.toDouble();
 
         // FocusNode for auto-focus and scroll control
-        final focusNode = FocusNode();
+        //final focusNode = FocusNode();
 
         return Padding(
           // 👇 ensures bottom sheet shifts up when keyboard appears

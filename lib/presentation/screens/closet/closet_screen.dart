@@ -1,5 +1,4 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_item_bloc.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_item_bloc_state.dart';
@@ -9,7 +8,6 @@ import 'package:fashionista/data/models/closet/bloc/closet_outfit_bloc_state.dar
 import 'package:fashionista/data/models/closet/outfit_model.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
-import 'package:fashionista/data/services/firebase/firebase_closet_service.dart';
 import 'package:fashionista/presentation/screens/closet/add_or_edit_closet_items_page.dart';
 import 'package:fashionista/presentation/screens/closet/closet_items_page.dart';
 import 'package:fashionista/presentation/screens/closet/outfit_planner_screen.dart';
@@ -36,7 +34,6 @@ class _ClosetScreenState extends State<ClosetScreen>
   void initState() {
     _tabController = TabController(length: 3, vsync: this);
     userBloc = context.read<UserBloc>();
-    //getItemsCountFromCloset();
     context.read<ClosetOutfitBloc>().add(const OutfitCounter(''));
     super.initState();
   }
@@ -367,32 +364,6 @@ class _ClosetScreenState extends State<ClosetScreen>
             )
           : SizedBox.shrink(), // 👈 FAB hidden when not tab 0 or 1
     );
-  }
-
-  int _closetItemCount = 0;
-  int _outfitCount = 0;
-
-  Future<void> getItemsCountFromCloset() async {
-    try {
-      final results = await Future.wait([
-        sl<FirebaseClosetService>().getClosetItemCount(userBloc.state.uid!),
-        sl<FirebaseClosetService>().getOutfitCount(userBloc.state.uid!),
-      ]);
-
-      // Unwrap results
-      final itemCount = results[0].fold(
-        (l) => 0,
-        (r) => r,
-      ); // return 0 on failure
-      final outfitCount = results[1].fold((l) => 0, (r) => r);
-
-      setState(() {
-        _closetItemCount = itemCount;
-        _outfitCount = outfitCount;
-      });
-    } catch (e) {
-      debugPrint("Error loading closet counts: $e");
-    }
   }
 
   @override

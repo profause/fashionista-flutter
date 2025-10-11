@@ -1,12 +1,8 @@
 
 import 'package:fashionista/core/theme/app.theme.dart';
-import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
-import 'package:fashionista/presentation/screens/home/designer_home_page.dart';
-import 'package:fashionista/presentation/screens/home/user_home_page.dart';
 import 'package:fashionista/presentation/screens/trends/discover_trends_screen.dart';
 import 'package:fashionista/presentation/screens/trends/trends_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class HomeScreen extends StatefulWidget {
     final VoidCallback? navigationCallback;
@@ -50,8 +46,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    UserBloc userBloc = context.read<UserBloc>();
-    final user = userBloc.state;
+    //UserBloc userBloc = context.read<UserBloc>();
+    //final user = userBloc.state;
 
     return Scaffold(
       body: NestedScrollView(

@@ -89,7 +89,11 @@ class _FeaturedMediaWidgetState extends State<FeaturedMediaWidget> {
                   imageUrl: imageUrl!,
                   fit: BoxFit.fill,
                   placeholder: (context, url) => const Center(
-                    child: CircularProgressIndicator(strokeWidth: 2),
+                    child: SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
                   ),
                   errorWidget: (context, url, error) =>
                       const Center(child: Text('No Image')),

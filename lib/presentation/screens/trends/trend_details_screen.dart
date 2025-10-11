@@ -19,6 +19,7 @@ import 'package:fashionista/domain/usecases/trends/delete_trend_comment_usecase.
 import 'package:fashionista/presentation/screens/trends/widgets/comment_widget.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/custom_trend_like_button_widget.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
+import 'package:fashionista/presentation/widgets/custom_icon_rounded.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:fashionista/presentation/widgets/featured_media_widget.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
@@ -238,6 +239,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                           CustomIconButtonRounded(
                             onPressed: () {
                               //show bottomsheet
+                              _showOptionsBottomsheet(context);
                             },
                             iconData: Icons.more_horiz_outlined,
                             size: 20,
@@ -290,13 +292,16 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                           },
                         );
                       case TrendCommentsEmpty():
-                        return Center(
-                          child: PageEmptyWidget(
-                            title: "No comments yet",
-                            subtitle: "Add new comments to see them here.",
-                            icon: Icons.comment_outlined,
-                            iconSize: 48,
-                            fontSize: 16,
+                        return Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Center(
+                            child: PageEmptyWidget(
+                              title: "No comments yet",
+                              subtitle: "Add new comments to see them here.",
+                              icon: Icons.comment_outlined,
+                              iconSize: 48,
+                              fontSize: 16,
+                            ),
                           ),
                         );
                       default:
@@ -513,14 +518,82 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
     super.dispose();
   }
 
-  Future<ImageInfo> _getImageInfo(String url) async {
-    final image = Image.network(url);
-    final completer = Completer<ImageInfo>();
-    image.image
-        .resolve(const ImageConfiguration())
-        .addListener(
-          ImageStreamListener((info, _) => completer.complete(info)),
+  void _showOptionsBottomsheet(BuildContext context) {
+    //final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: colorScheme.onPrimary,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.4, // how tall it opens initially
+          minChildSize: 0.4,
+          maxChildSize: 0.5,
+          shouldCloseOnMinExtent: false,
+          builder: (context, scrollController) {
+            return SingleChildScrollView(
+              controller: scrollController,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    /// Handle bar
+                    Center(
+                      child: Container(
+                        height: 4,
+                        width: 40,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[400],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: FilledButton(
+                        onPressed: () {
+                          //show request workorder bottomsheet
+                        },
+                        style: FilledButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.surface,
+                          foregroundColor: Theme.of(
+                            context,
+                          ).colorScheme.onSurface,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Icon(Icons.share_outlined, size: 18),
+                            const SizedBox(width: 8),
+                            const Text('Share with your favorite designers'),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                ),
+              ),
+            );
+          },
         );
-    return completer.future;
+      },
+    );
   }
 }

@@ -140,7 +140,7 @@ class _ClientsScreenState extends State<ClientsScreen> with RouteAware {
                   ),
                 );
 
-              case ClientsLoaded(:final clients, :final fromCache):
+              case ClientsLoaded(:final clients,):
                 final filteredClients = _searchText.isEmpty
                     ? clients
                     : clients.where((client) {

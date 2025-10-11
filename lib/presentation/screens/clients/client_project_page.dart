@@ -42,7 +42,7 @@ class _ClientProjectPageState extends State<ClientProjectPage> {
                 ),
               ),
             );
-          case WorkOrdersLoaded(:final workOrders, :final fromCache):
+          case WorkOrdersLoaded(:final workOrders,):
             final filteredWorkOrders = workOrders;
 
             if (filteredWorkOrders.isEmpty) {

@@ -41,7 +41,7 @@ class _DesignerFeedbackPageState extends State<DesignerFeedbackPage>
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    //final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       body: //commemts
       BlocBuilder<DesignerFeedbackBloc, DesignerFeedbackBlocState>(

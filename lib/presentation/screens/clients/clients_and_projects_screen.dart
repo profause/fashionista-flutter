@@ -262,7 +262,7 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
   }
 
   void _showOptionsBottomsheet(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+    //final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
     showModalBottomSheet(

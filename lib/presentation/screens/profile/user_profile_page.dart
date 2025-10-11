@@ -32,7 +32,7 @@ class UserProfilePage extends StatelessWidget {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       body: ListView(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.only(top:4,bottom: 8),
         children: [
           // personal info
           ProfileInfoCardWidget(
@@ -164,15 +164,6 @@ class UserProfilePage extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  /// 🔹 Show a simple loading dialog
-  Future<void> _showLoadingDialog(BuildContext context) {
-    return showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator()),
     );
   }
 

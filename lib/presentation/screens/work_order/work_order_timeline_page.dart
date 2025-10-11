@@ -110,7 +110,6 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
                       );
                     case WorkOrderProgressLoaded(
                       :final workOrderProgress,
-                      :final fromCache,
                     ):
                       return ListView.separated(
                         shrinkWrap: true, // 👈 fixes unbounded height

@@ -238,7 +238,7 @@ class _WorkOrderDetailsPageState extends State<WorkOrderDetailsPage> {
               const SizedBox(height: 12),
               if (widget.workOrderInfo.tags!.trim().isNotEmpty) ...[
                 Container(
-                  padding: const EdgeInsets.only(left: 12),
+                  padding: const EdgeInsets.only(left: 12,bottom: 16),
                   alignment: Alignment.centerLeft,
                   child: Wrap(
                     spacing: 8,

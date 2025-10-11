@@ -1,9 +1,6 @@
-import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/widgets/animated_primary_button.dart';
 import 'package:fashionista/presentation/widgets/custom_mobilenumber_form_field_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:intl_phone_field/intl_phone_field.dart';
-import 'package:intl_phone_field/phone_number.dart';
 
 class MobileNumberAuthPage extends StatefulWidget {
   final PageController controller;

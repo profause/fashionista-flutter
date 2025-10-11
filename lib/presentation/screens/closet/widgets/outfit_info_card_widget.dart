@@ -1,4 +1,3 @@
-import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
@@ -117,19 +116,19 @@ class _OutfitInfoCardWidgetState extends State<OutfitInfoCardWidget>
                   final preview = featuredMedia[index];
                   // 👇 Assign different aspect ratios randomly for variety
                   // ✅ aspect ratio adapts too
-                  double aspectRatio;
-                  if (featuredMedia.length == 1) {
-                    aspectRatio = 3 / 2; // square full width
-                  } else if (featuredMedia.length == 2) {
-                    aspectRatio = 4 / 5; // taller
-                  } else {
-                    // variety for larger grids
-                    final aspectRatioOptions = [1 / 1, 3 / 4, 3 / 1];
-                    aspectRatio =
-                        aspectRatioOptions[Random().nextInt(
-                          aspectRatioOptions.length,
-                        )];
-                  }
+                  // double aspectRatio;
+                  // if (featuredMedia.length == 1) {
+                  //   aspectRatio = 3 / 2; // square full width
+                  // } else if (featuredMedia.length == 2) {
+                  //   aspectRatio = 4 / 5; // taller
+                  // } else {
+                  //   // variety for larger grids
+                  //   final aspectRatioOptions = [1 / 1, 3 / 4, 3 / 1];
+                  //   aspectRatio =
+                  //       aspectRatioOptions[Random().nextInt(
+                  //         aspectRatioOptions.length,
+                  //       )];
+                  // }
                   return Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),

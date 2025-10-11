@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:fashionista/core/auth/auth_provider_cubit.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc_event.dart';
@@ -22,19 +21,19 @@ class TrendsScreen extends StatefulWidget {
 
 class _TrendsScreenState extends State<TrendsScreen> with RouteAware {
   late Query<Client> query;
-  late AuthProviderCubit _authProviderCubit;
+  //late AuthProviderCubit _authProviderCubit;
   //bool _isLoading = false;
   final collectionRef = FirebaseFirestore.instance.collection('clients');
-  bool _isSearching = false;
+  //bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
-  String _searchText = "";
+  //String _searchText = "";
 
   final GlobalKey<RefreshIndicatorState> _refreshKey =
       GlobalKey<RefreshIndicatorState>();
 
   @override
   void initState() {
-    _authProviderCubit = context.read<AuthProviderCubit>();
+    //_authProviderCubit = context.read<AuthProviderCubit>();
 
     context.read<TrendBloc>().add(const LoadTrendsCacheFirstThenNetwork(''));
     super.initState();
@@ -70,7 +69,7 @@ class _TrendsScreenState extends State<TrendsScreen> with RouteAware {
                     children: const [SizedBox(height: 400)],
                   );
 
-                case TrendsLoaded(:final trends, :final fromCache):
+                case TrendsLoaded(:final trends,):
                   return TrendsStaggeredView(items: trends);
                 case TrendError(:final message):
                   return ListView(

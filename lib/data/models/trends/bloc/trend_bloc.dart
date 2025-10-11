@@ -6,7 +6,6 @@ import 'package:fashionista/data/services/hive/hive_trend_service.dart';
 import 'package:fashionista/domain/usecases/trends/find_trend_by_id_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/find_trends_usecase.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class TrendBloc extends Bloc<TrendBlocEvent, TrendBlocState> {

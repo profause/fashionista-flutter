@@ -177,10 +177,7 @@ class _OutfitPlannerScreenState extends State<OutfitPlannerScreen> {
                         const Divider(height: .1, thickness: .1, indent: 40),
                   ),
                 );
-              case OutfitPlansCalendarLoaded(
-                :final outfitPlans,
-                :final fromCache,
-              ):
+              case OutfitPlansCalendarLoaded(:final outfitPlans):
                 // 1️⃣ Flatten and group by date
                 // 1. Normalize outfitPlans keys
                 final grouped = <DateTime, List<OutfitPlanModel>>{};
@@ -515,7 +512,6 @@ class _OutfitPlannerScreenState extends State<OutfitPlannerScreen> {
     );
 
     //final thumbnailUrl = outfitPlan.thumbnailUrl ?? '';
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -787,5 +783,4 @@ class _OutfitPlannerScreenState extends State<OutfitPlannerScreen> {
       ).showSnackBar(SnackBar(content: Text(e.message!)));
     }
   }
-
 }
