@@ -7,6 +7,7 @@ import 'package:fashionista/domain/usecases/profile/update_user_profile_usecase.
 import 'package:fashionista/presentation/screens/profile/widgets/custom_chip_form_field_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/date_picker_form_field_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_text_field_widget.dart';
+import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -113,13 +114,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           canPop: false, // We decide manually
           onPopInvokedWithResult: (didPop, result) async {
             if (didPop) return; // Already popped
-
             if (_hasMissingRequiredFields()) {
               bool leave = await _showIncompleteDialog();
               if (leave) {} //Navigator.of(context).pop(result);
             } else {
-              await _saveProfile(user); // Auto-save before leaving
-              //Navigator.of(context).pop(result);
+              Navigator.of(context).pop(result);
             }
           },
           child: Scaffold(
@@ -134,13 +133,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
               ),
               elevation: 0,
-              //toolbarHeight: 0,
-              // systemOverlayStyle: SystemUiOverlayStyle(
-              //   statusBarColor: colorScheme.onPrimary,
-              //   statusBarIconBrightness: Brightness.dark,
-              //   //systemNavigationBarColor: Colors.white,
-              //   systemNavigationBarIconBrightness: Brightness.dark,
-              // ),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(
+                    right: 12.0,
+                  ), // match iOS trailing spacing
+                  child: CustomIconButtonRounded(
+                    onPressed: () async {
+                      if (_formKey.currentState!.validate()) {
+                        await _saveProfile(user);
+                        //Navigator.of(context).pop();
+                      }
+                    },
+                    iconData: Icons.check,
+                  ),
+                ),
+              ],
             ),
 
             body: SafeArea(
@@ -426,7 +434,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         (ifLeft) {
           if (mounted) {
             // Dismiss the dialog manually
-            Navigator.of(context, rootNavigator: true).pop();
+            Navigator.of(context).pop();
           }
           ScaffoldMessenger.of(
             context,
@@ -438,14 +446,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           );
           if (mounted) {
             // Dismiss the dialog manually
-            Navigator.of(context, rootNavigator: true).pop();
+            Navigator.of(context).pop();
+            Navigator.pop(context); // Go back to previous page
           }
         },
       );
-
-      if (!mounted) return;
-
-      Navigator.pop(context); // Go back to previous page
     }
   }
 }

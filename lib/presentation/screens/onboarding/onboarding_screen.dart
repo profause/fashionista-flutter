@@ -57,7 +57,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> navigateToLogin() async {
-    _onboardingCubit.hasSeenOnboarding(false);//here
+    _onboardingCubit.hasSeenOnboarding(true);//here
     await Navigator.of(context).push(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 600),

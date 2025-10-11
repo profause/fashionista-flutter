@@ -197,7 +197,6 @@ class _DesignersScreenState extends State<DesignersScreen> {
                           );
                         case DesignersLoaded(
                           :final designers,
-                          :final fromCache,
                         ):
                           final filteredDesigners = _searchText.isEmpty
                               ? designers

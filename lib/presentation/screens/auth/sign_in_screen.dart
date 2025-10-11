@@ -1,5 +1,4 @@
 import 'package:fashionista/core/auth/auth_provider_cubit.dart';
-import 'package:fashionista/core/onboarding/onboarding_cubit.dart';
 import 'package:fashionista/core/service_locator/app_config.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/widgets/bloc/button_loading_state_cubit.dart';
@@ -19,8 +18,6 @@ import 'dart:io' show Platform;
 
 import 'package:recaptcha_enterprise_flutter/recaptcha_client.dart';
 
-bool isIOS = Platform.isIOS;
-
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
 
@@ -38,7 +35,6 @@ class _SignInScreenState extends State<SignInScreen> {
   late AuthProviderCubit _authProviderCubit;
   late UserBloc _userBloc;
   final ValueNotifier<String> _verificationId = ValueNotifier('');
-  late OnboardingCubit _onboardingCubit;
 
   @override
   void initState() {
@@ -51,8 +47,6 @@ class _SignInScreenState extends State<SignInScreen> {
       _previousScreenStateCubit.setPreviousScreen('SignInScreen');
       _authProviderCubit = context.read<AuthProviderCubit>();
       _userBloc = context.read<UserBloc>();
-      _onboardingCubit = context.read<OnboardingCubit>();
-      _onboardingCubit.hasSeenOnboarding(false); //here
     }
   }
 

@@ -58,16 +58,16 @@ class _CustomTrendLikeButtonWidgetState
   Widget build(BuildContext context) {
     return ValueListenableBuilder<LikeObject>(
       valueListenable: widget.isLikedNotifier!,
-      builder: (_, isLikedObject, __) {
+      builder: (_, isLikedObject, _) {
         //isLiked = isLikedObject.isLiked;
         return Row(
           children: [
-            Text(
-              '$count',
-              style: Theme.of(
-                context,
-              ).textTheme.labelSmall!.copyWith(fontWeight: FontWeight.bold),
-            ),
+            // Text(
+            //   '$count',
+            //   style: Theme.of(
+            //     context,
+            //   ).textTheme.labelSmall!.copyWith(fontWeight: FontWeight.bold),
+            // ),
             const SizedBox(width: 8),
             CustomIconButtonRounded(
               size: 18,
@@ -120,7 +120,7 @@ class _CustomTrendLikeButtonWidgetState
                   key: ValueKey(
                     isLikedObject.isLiked,
                   ), // important for switcher
-                  color: isLikedObject.isLiked ? Colors.red : Colors.grey,
+                  //color: isLikedObject.isLiked ? Colors.red : Colors.grey,
                   size: 18,
                 ),
               ),
