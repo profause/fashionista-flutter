@@ -21,6 +21,7 @@ import 'package:fashionista/data/models/designers/bloc/design_collection_bloc.da
 import 'package:fashionista/data/models/designers/bloc/designer_bloc.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_feedback_bloc.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_review_bloc.dart';
+import 'package:fashionista/data/models/notification/bloc/notification_bloc.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/settings/bloc/settings_bloc.dart';
 import 'package:fashionista/data/models/settings/models/settings_model.dart';
@@ -104,6 +105,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => DesignerFeedbackBloc()),
         BlocProvider(create: (_) => GetstartedStatsCubit()),
         BlocProvider(create: (_) => DesignerReviewBloc()),
+        BlocProvider(create: (_) => NotificationBloc()),
       ],
 
       child: BlocBuilder<SettingsBloc, Settings>(

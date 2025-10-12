@@ -12,6 +12,7 @@ import 'package:fashionista/data/services/firebase/firebase_closet_service.dart'
 import 'package:fashionista/data/services/firebase/firebase_design_collection_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_designers_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_fashion_interest_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_notification_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_trends_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_user_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_work_order_service.dart';
@@ -20,6 +21,7 @@ import 'package:fashionista/data/services/hive/hive_closet_item_service.dart';
 import 'package:fashionista/data/services/hive/hive_design_collection_service.dart';
 import 'package:fashionista/data/services/hive/hive_designer_reviews_service.dart';
 import 'package:fashionista/data/services/hive/hive_designers_service.dart';
+import 'package:fashionista/data/services/hive/hive_notification_service.dart';
 import 'package:fashionista/data/services/hive/hive_outfit_service.dart';
 import 'package:fashionista/data/services/hive/hive_trend_comment_service.dart';
 import 'package:fashionista/data/services/hive/hive_trend_service.dart';
@@ -215,5 +217,13 @@ Future<void> initialiseDependencies() async {
 
   sl.registerSingleton<HiveDesignerReviewsService>(
     HiveDesignerReviewsService(),
+  );
+
+  sl.registerSingleton<FirebaseNotificationService>(
+    FirebaseNotificationServiceImpl(),
+  );
+  
+    sl.registerSingleton<HiveNotificationService>(
+    HiveNotificationService(),
   );
 }

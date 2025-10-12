@@ -19,6 +19,7 @@ import 'package:fashionista/presentation/screens/profile/widgets/profile_info_ca
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:intl/intl.dart';
 
 class UserProfilePage extends StatelessWidget {
@@ -32,7 +33,7 @@ class UserProfilePage extends StatelessWidget {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       body: ListView(
-        padding: const EdgeInsets.only(top:4,bottom: 8),
+        padding: const EdgeInsets.only(top: 4, bottom: 8),
         children: [
           // personal info
           ProfileInfoCardWidget(
@@ -122,7 +123,8 @@ class UserProfilePage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => UserInterestScreen(fromWhere: 'UserProfilePage'),
+                        builder: (context) =>
+                            UserInterestScreen(fromWhere: 'UserProfilePage'),
                       ),
                     );
                   },
@@ -207,6 +209,10 @@ class UserProfilePage extends StatelessWidget {
       await sl<HiveWorkOrderService>().clearCache();
       await sl<HiveWorkOrderStatusProgressService>().clearCache();
       await sl<HiveDesignerReviewsService>().clearCache();
+      await DefaultCacheManager().emptyCache();
+      PaintingBinding.instance.imageCache.clear(); // Clears memory cache
+      PaintingBinding.instance.imageCache
+          .clearLiveImages(); // Clears any live images still in use
 
       // ✅ remove loading dialog safely
       //if (context.mounted) {

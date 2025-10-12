@@ -10,6 +10,7 @@ import 'package:fashionista/data/models/designers/designer_model.dart';
 import 'package:fashionista/data/models/designers/designer_review_model.dart';
 import 'package:fashionista/data/models/designers/social_handle_model.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
+import 'package:fashionista/data/models/notification/notification_model.dart';
 import 'package:fashionista/data/models/social_interactions/social_interaction_model.dart';
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
 import 'package:fashionista/data/models/work_order/work_order_model.dart';
@@ -38,6 +39,7 @@ class HiveService {
   late final Box workOrderBox;
   late final Box workOrderStatusProgressBox;
   late final Box designerReviewsBox;
+  late final Box notificationsBox;
 
   /// Initialize Hive + boxes (call once at startup)
   Future<void> init() async {
@@ -60,6 +62,7 @@ class HiveService {
       Hive.registerAdapter(WorkOrderModelAdapter());
       Hive.registerAdapter(WorkOrderStatusProgressModelAdapter());
       Hive.registerAdapter(DesignerReviewModelAdapter());
+      Hive.registerAdapter(NotificationModelAdapter());
 
       designersBox = await Hive.openBox('designers_cache');
       designCollectionsBox = await Hive.openBox('design_collections_cache');
@@ -73,6 +76,8 @@ class HiveService {
         'work_orders_status_progress_cache',
       );
       designerReviewsBox = await Hive.openBox('designer_reviews_cache');
+
+      notificationsBox = await Hive.openBox('notifications_cache');
 
       debugPrint('✅ Hive initialized');
     } catch (e) {

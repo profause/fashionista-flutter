@@ -12,31 +12,33 @@ class TrendsStaggeredView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final random = Random();
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: MasonryGridView.builder(
-        padding: const EdgeInsets.only(top: 8),
-        shrinkWrap: false,
-        cacheExtent: 500,
-        physics: const BouncingScrollPhysics(),
-        gridDelegate: const SliverSimpleGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-        ),
-        mainAxisSpacing: 2,
-        crossAxisSpacing: 2,
-        itemCount: items.length,
-        itemBuilder: (context, index) {
-          final trend = items[index];
-          // 👇 Assign different aspect ratios randomly for variety
-          final aspectRatioOptions = [1 / 1, 4 / 5, 2 / 3];
-          final aspectRatio =
-              aspectRatioOptions[random.nextInt(aspectRatioOptions.length)];
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: MasonryGridView.builder(
+          padding: const EdgeInsets.only(top: 8),
+          shrinkWrap: true,
+          cacheExtent: 500,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverSimpleGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+          ),
+          mainAxisSpacing: 2,
+          crossAxisSpacing: 2,
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            final trend = items[index];
+            // 👇 Assign different aspect ratios randomly for variety
+            final aspectRatioOptions = [1 / 1, 4 / 5, 2 / 3];
+            final aspectRatio =
+                aspectRatioOptions[random.nextInt(aspectRatioOptions.length)];
 
-          return TrendInfoCardWidget(
-            trendInfo: trend,
-            aspectRatio: aspectRatio,
-          );
-        },
+            return TrendInfoCardWidget(
+              trendInfo: trend,
+              aspectRatio: aspectRatio,
+            );
+          },
+        ),
       ),
     );
   }
