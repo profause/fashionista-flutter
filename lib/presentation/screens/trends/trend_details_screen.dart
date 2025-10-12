@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:fashionista/core/service_locator/app_toast.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/author/author_model.dart';
 import 'package:fashionista/data/models/comment/comment_model.dart';
+import 'package:fashionista/data/models/designers/designer_model.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc.dart';
@@ -13,6 +15,7 @@ import 'package:fashionista/data/models/trends/bloc/trend_comment_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_comment_bloc_event.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_comment_bloc_state.dart';
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
+import 'package:fashionista/data/services/firebase/firebase_designers_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_trends_service.dart';
 import 'package:fashionista/domain/usecases/trends/add_trend_comment_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/delete_trend_comment_usecase.dart';
@@ -20,6 +23,7 @@ import 'package:fashionista/presentation/screens/trends/widgets/comment_widget.d
 import 'package:fashionista/presentation/screens/trends/widgets/custom_trend_like_button_widget.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_rounded.dart';
+import 'package:fashionista/presentation/widgets/custom_text_input_field_widget.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:fashionista/presentation/widgets/featured_media_widget.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
@@ -27,6 +31,7 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dartz/dartz.dart' as dartz;
+import 'package:fluttertoast/fluttertoast.dart';
 
 class TrendDetailsScreen extends StatefulWidget {
   final TrendFeedModel trendInfo;
@@ -49,12 +54,21 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
 
   bool addCommentLoading = false;
 
+  final ValueNotifier<List<Designer>> designersNotifier =
+      ValueNotifier<List<Designer>>([]);
+  bool loadingFashionDesigners = true;
+  Timer? _debounce;
+  late ValueNotifier<List<Designer>>
+  _selectedDesignersNotifier; // ✅ selection state
+
   @override
   void initState() {
     context.read<TrendCommentBloc>().add(
       LoadTrendCommentsCacheFirstThenNetwork(widget.trendInfo.uid!),
     );
     WidgetsBinding.instance.addObserver(this);
+    _selectedDesignersNotifier = ValueNotifier<List<Designer>>([]);
+    _loadFashionDesigners();
     super.initState();
   }
 
@@ -562,6 +576,8 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                       child: FilledButton(
                         onPressed: () {
                           //show request workorder bottomsheet
+                          Navigator.pop(context);
+                          _showRequestBottomsheet(context);
                         },
                         style: FilledButton.styleFrom(
                           shape: RoundedRectangleBorder(
@@ -590,6 +606,323 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                   ],
                 ),
               ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _loadFashionDesigners() async {
+    _debounce?.cancel(); // cancel previous timer
+    _debounce = Timer(const Duration(milliseconds: 1500), () async {
+      final result = await sl<FirebaseDesignersService>()
+          .findDesignersWithFilter(4, 'created_date');
+
+      await result.fold((failure) async {}, (designers) {
+        designersNotifier.value = designers;
+        loadingFashionDesigners = false;
+      });
+    });
+  }
+
+  void _showRequestBottomsheet(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    final TextEditingController designerSearchTextFieldController =
+        TextEditingController();
+    final TextEditingController commentTextFieldController =
+        TextEditingController();
+    String searchText = "";
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.onPrimary,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return DraggableScrollableSheet(
+              expand: false,
+              initialChildSize: 0.7,
+              minChildSize: 0.5,
+              maxChildSize: 0.9,
+              builder: (context, scrollController) {
+                return GestureDetector(
+                  // Tap outside text field to dismiss keyboard
+                  onTap: () => FocusScope.of(context).unfocus(),
+                  child: SingleChildScrollView(
+                    controller: scrollController,
+                    padding: const EdgeInsets.only(top: 16, bottom: 16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Top handle
+                        Center(
+                          child: Container(
+                            height: 4,
+                            width: 40,
+                            margin: const EdgeInsets.only(bottom: 16),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[400],
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+
+                        Center(
+                          child: Text(
+                            "Share this trend with your favorite designers",
+                            style: Theme.of(context).textTheme.bodyMedium!
+                                .copyWith(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 12, right: 12),
+                          child: TextField(
+                            controller: designerSearchTextFieldController,
+                            decoration: InputDecoration(
+                              hintText: "Search designer's name",
+                              hintStyle: textTheme.bodyMedium!.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                              prefixIcon: Icon(
+                                Icons.search,
+                                color: colorScheme.primary,
+                              ),
+                              filled: true,
+                              fillColor: colorScheme.surfaceContainerHighest,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 0,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                            onChanged: (value) {
+                              setModalState(() => searchText = value);
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.only(
+                            left: 12,
+                            right: 12,
+                            top: 0,
+                            bottom: 8,
+                          ),
+                          child: ValueListenableBuilder<List<Designer>>(
+                            valueListenable: designersNotifier,
+                            builder: (context, designers, _) {
+                              if (loadingFashionDesigners) {
+                                return const Center(
+                                  child: SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                );
+                              }
+
+                              if (designers.isEmpty) {
+                                return Text(
+                                  "No designers found",
+                                  style: textTheme.bodyMedium,
+                                );
+                              }
+
+                              final filteredDesigners = searchText.isEmpty
+                                  ? designers
+                                  : designers.where((designer) {
+                                      final name = designer.name.toLowerCase();
+                                      final mobileNumber = designer.mobileNumber
+                                          .toLowerCase();
+                                      final businessName = designer.businessName
+                                          .toLowerCase();
+                                      return name.contains(
+                                            searchText.toLowerCase(),
+                                          ) ||
+                                          mobileNumber.contains(
+                                            searchText.toLowerCase(),
+                                          ) ||
+                                          businessName.contains(
+                                            searchText.toLowerCase(),
+                                          );
+                                    }).toList();
+
+                              return ValueListenableBuilder<List<Designer>>(
+                                valueListenable: _selectedDesignersNotifier,
+                                builder: (context, selectedDesigners, _) {
+                                  return SizedBox(
+                                    height: 300,
+                                    child: ListView.separated(
+                                      padding: EdgeInsets.zero,
+                                      itemCount: filteredDesigners.length,
+                                      separatorBuilder: (_, _) =>
+                                          const SizedBox(height: 0.5),
+                                      itemBuilder: (context, index) {
+                                        final item = filteredDesigners[index];
+                                        final isSelected = selectedDesigners
+                                            .any((d) => d.uid == item.uid);
+                                        return InkWell(
+                                          onTap: () {
+                                            final current = List<Designer>.from(
+                                              selectedDesigners,
+                                            );
+                                            if (isSelected) {
+                                              current.removeWhere(
+                                                (d) => d.uid == item.uid,
+                                              );
+                                            } else {
+                                              current.add(item);
+                                            }
+                                            _selectedDesignersNotifier.value =
+                                                current;
+                                          },
+                                          child: Container(
+                                            padding: EdgeInsets.only(
+                                              left: 4,
+                                              right: 4,
+                                            ),
+                                            color: isSelected
+                                                ? colorScheme.primary
+                                                      .withValues(alpha: 0.05)
+                                                : Colors.transparent,
+                                            child: ListTile(
+                                              dense: true,
+                                              contentPadding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 4,
+                                                    vertical: 0,
+                                                  ),
+                                              horizontalTitleGap: 6,
+                                              minLeadingWidth: 24,
+                                              leading: CircleAvatar(
+                                                radius: 18,
+                                                backgroundColor:
+                                                    AppTheme.lightGrey,
+                                                backgroundImage:
+                                                    item
+                                                            .profileImage
+                                                            ?.isNotEmpty ==
+                                                        true
+                                                    ? CachedNetworkImageProvider(
+                                                        item.profileImage!,
+                                                      )
+                                                    : null,
+                                                child:
+                                                    item
+                                                            .profileImage
+                                                            ?.isEmpty ==
+                                                        true
+                                                    ? DefaultProfileAvatar(
+                                                        name: null,
+                                                        size: 18 * 1.6,
+                                                        uid: widget
+                                                            .trendInfo
+                                                            .author
+                                                            .uid!,
+                                                      )
+                                                    : null,
+                                              ),
+                                              title: Text(
+                                                item.name,
+                                                style: textTheme.bodyMedium,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              subtitle: Text(
+                                                item.businessName,
+                                                style: textTheme.bodySmall,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              trailing: isSelected
+                                                  ? Icon(
+                                                      Icons.check_circle,
+                                                      size: 18,
+                                                      color:
+                                                          colorScheme.primary,
+                                                    )
+                                                  : null,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Divider(height: 0.5, color: colorScheme.surface),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 10.0, right: 10),
+                          child: CustomTextInputFieldWidget(
+                            onChanged: (_) {
+                              setModalState(() {});
+                            },
+                            autofocus: true,
+                            //focusNode: focusNode,
+                            controller: commentTextFieldController,
+                            hint: 'Add your comment...',
+                            minLines: 2,
+                            maxLength: 150,
+                            validator: (value) {
+                              if ((value ?? "").isEmpty) {
+                                return 'Enter comment to proceed...';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+
+                        const SizedBox(height: 12),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 12.0, right: 12),
+                          child: SizedBox(
+                            height: 48,
+                            width: double.infinity,
+                            child: FilledButton(
+                              onPressed: () {
+                                if (commentTextFieldController.text
+                                    .trim()
+                                    .isEmpty) {
+                                  AppToast.info(
+                                    context,
+                                    "Enter comment to proceed",
+                                  );
+                                  return;
+                                }
+                              },
+                              style: FilledButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                elevation: 0,
+                                backgroundColor: colorScheme.surface,
+                                foregroundColor: colorScheme.onSurface,
+                              ),
+                              child: const Text('Send'),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             );
           },
         );

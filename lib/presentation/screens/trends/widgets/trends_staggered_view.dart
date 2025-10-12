@@ -17,7 +17,7 @@ class TrendsStaggeredView extends StatelessWidget {
       child: MasonryGridView.builder(
         padding: const EdgeInsets.only(top: 8),
         shrinkWrap: false,
-        cacheExtent: 200,
+        cacheExtent: 500,
         physics: const BouncingScrollPhysics(),
         gridDelegate: const SliverSimpleGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,

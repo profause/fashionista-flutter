@@ -95,12 +95,6 @@ class _WorkOrderFlowPage2State extends State<WorkOrderFlowPage2> {
                             autofocus: true,
                             controller: _clientSearchTextFieldController,
                             hint: 'Search client\'s name',
-                            validator: (value) {
-                              if ((value ?? "").isEmpty) {
-                                return 'Enter your client name...';
-                              }
-                              return null;
-                            },
                             onChanged: (value) {
                               setState(() => _searchText = value);
                             },
@@ -141,7 +135,7 @@ class _WorkOrderFlowPage2State extends State<WorkOrderFlowPage2> {
                                   .clamp(0, 300),
                               child: ValueListenableBuilder<AuthorModel?>(
                                 valueListenable: _selectedClientNotifier,
-                                builder: (context, selectedClient, __) {
+                                builder: (context, selectedClient, _) {
                                   return ListView.builder(
                                     itemCount: filteredClients.length,
                                     itemBuilder: (context, index) {
