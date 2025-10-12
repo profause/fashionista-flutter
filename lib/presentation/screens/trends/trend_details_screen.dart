@@ -15,8 +15,10 @@ import 'package:fashionista/data/models/trends/bloc/trend_comment_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_comment_bloc_event.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_comment_bloc_state.dart';
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
+import 'package:fashionista/data/models/work_order/work_order_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_designers_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_trends_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_work_order_service.dart';
 import 'package:fashionista/domain/usecases/trends/add_trend_comment_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/delete_trend_comment_usecase.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/comment_widget.dart';
@@ -30,6 +32,7 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dartz/dartz.dart' as dartz;
+import 'package:uuid/uuid.dart';
 
 class TrendDetailsScreen extends StatefulWidget {
   final TrendFeedModel trendInfo;
@@ -51,6 +54,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
   final ScrollController _scrollController = ScrollController();
 
   bool addCommentLoading = false;
+  late UserBloc _userBloc;
 
   final ValueNotifier<List<Designer>> designersNotifier =
       ValueNotifier<List<Designer>>([]);
@@ -61,6 +65,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
 
   @override
   void initState() {
+    _userBloc = context.read<UserBloc>();
     context.read<TrendCommentBloc>().add(
       LoadTrendCommentsCacheFirstThenNetwork(widget.trendInfo.uid!),
     );
@@ -632,6 +637,23 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
     final TextEditingController commentTextFieldController =
         TextEditingController();
     String searchText = "";
+
+    final AuthorModel client = AuthorModel.empty().copyWith(
+      name: _userBloc.state.fullName,
+      mobileNumber: _userBloc.state.mobileNumber,
+      uid: _userBloc.state.uid,
+      avatar: _userBloc.state.profileImage,
+    );
+
+    WorkOrderModel workOrderRequest = WorkOrderModel.empty().copyWith(
+      description: '',
+      title: widget.trendInfo.description,
+      status: 'REQUEST',
+      workOrderType: 'REQUEST',
+      featuredMedia: widget.trendInfo.featuredMedia,
+      tags: widget.trendInfo.tags,
+      client: client,
+    );
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -737,7 +759,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                                   style: textTheme.bodyMedium,
                                 );
                               }
-
+                              const itemHeight = 64.0;
                               final filteredDesigners = searchText.isEmpty
                                   ? designers
                                   : designers.where((designer) {
@@ -761,101 +783,112 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                                 valueListenable: _selectedDesignersNotifier,
                                 builder: (context, selectedDesigners, _) {
                                   return SizedBox(
-                                    height: 300,
-                                    child: ListView.separated(
-                                      padding: EdgeInsets.zero,
-                                      itemCount: filteredDesigners.length,
-                                      separatorBuilder: (_, _) =>
-                                          const SizedBox(height: 0.5),
-                                      itemBuilder: (context, index) {
-                                        final item = filteredDesigners[index];
-                                        final isSelected = selectedDesigners
-                                            .any((d) => d.uid == item.uid);
-                                        return InkWell(
-                                          onTap: () {
-                                            final current = List<Designer>.from(
-                                              selectedDesigners,
-                                            );
-                                            if (isSelected) {
-                                              current.removeWhere(
-                                                (d) => d.uid == item.uid,
-                                              );
-                                            } else {
-                                              current.add(item);
-                                            }
-                                            _selectedDesignersNotifier.value =
-                                                current;
-                                          },
-                                          child: Container(
-                                            padding: EdgeInsets.only(
-                                              left: 4,
-                                              right: 4,
-                                            ),
-                                            color: isSelected
-                                                ? colorScheme.primary
-                                                      .withValues(alpha: 0.05)
-                                                : Colors.transparent,
-                                            child: ListTile(
-                                              dense: true,
-                                              contentPadding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 4,
-                                                    vertical: 0,
-                                                  ),
-                                              horizontalTitleGap: 6,
-                                              minLeadingWidth: 24,
-                                              leading: CircleAvatar(
-                                                radius: 18,
-                                                backgroundColor:
-                                                    AppTheme.lightGrey,
-                                                backgroundImage:
-                                                    item
-                                                            .profileImage
-                                                            ?.isNotEmpty ==
-                                                        true
-                                                    ? CachedNetworkImageProvider(
-                                                        item.profileImage!,
+                                    height:
+                                        (filteredDesigners.length * itemHeight)
+                                            .clamp(0, 300),
+                                    child: Container(
+                                      clipBehavior: Clip.antiAlias,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: ListView.separated(
+                                        padding: EdgeInsets.zero,
+                                        itemCount: filteredDesigners.length,
+                                        separatorBuilder: (_, _) =>
+                                            const SizedBox(height: 0.5),
+                                        itemBuilder: (context, index) {
+                                          final item = filteredDesigners[index];
+                                          final isSelected = selectedDesigners
+                                              .any((d) => d.uid == item.uid);
+                                          return InkWell(
+                                            onTap: () {
+                                              final current =
+                                                  List<Designer>.from(
+                                                    selectedDesigners,
+                                                  );
+                                              if (isSelected) {
+                                                current.removeWhere(
+                                                  (d) => d.uid == item.uid,
+                                                );
+                                              } else {
+                                                current.add(item);
+                                              }
+                                              _selectedDesignersNotifier.value =
+                                                  current;
+                                            },
+                                            child: Container(
+                                              padding: EdgeInsets.only(
+                                                left: 4,
+                                                right: 4,
+                                              ),
+                                              color: isSelected
+                                                  ? colorScheme.primary
+                                                        .withValues(alpha: 0.05)
+                                                  : Colors.transparent,
+                                              child: ListTile(
+                                                dense: true,
+                                                contentPadding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 4,
+                                                      vertical: 0,
+                                                    ),
+                                                horizontalTitleGap: 6,
+                                                minLeadingWidth: 24,
+                                                leading: CircleAvatar(
+                                                  radius: 18,
+                                                  backgroundColor:
+                                                      AppTheme.lightGrey,
+                                                  backgroundImage:
+                                                      item
+                                                              .profileImage
+                                                              ?.isNotEmpty ==
+                                                          true
+                                                      ? CachedNetworkImageProvider(
+                                                          item.profileImage!,
+                                                        )
+                                                      : null,
+                                                  child:
+                                                      item
+                                                              .profileImage
+                                                              ?.isEmpty ==
+                                                          true
+                                                      ? DefaultProfileAvatar(
+                                                          name: null,
+                                                          size: 18 * 1.6,
+                                                          uid: widget
+                                                              .trendInfo
+                                                              .author
+                                                              .uid!,
+                                                        )
+                                                      : null,
+                                                ),
+                                                title: Text(
+                                                  item.name,
+                                                  style: textTheme.bodyMedium,
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                                subtitle: Text(
+                                                  item.businessName,
+                                                  style: textTheme.bodySmall,
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                                trailing: isSelected
+                                                    ? Icon(
+                                                        Icons.check_circle,
+                                                        size: 18,
+                                                        color:
+                                                            colorScheme.primary,
                                                       )
                                                     : null,
-                                                child:
-                                                    item
-                                                            .profileImage
-                                                            ?.isEmpty ==
-                                                        true
-                                                    ? DefaultProfileAvatar(
-                                                        name: null,
-                                                        size: 18 * 1.6,
-                                                        uid: widget
-                                                            .trendInfo
-                                                            .author
-                                                            .uid!,
-                                                      )
-                                                    : null,
                                               ),
-                                              title: Text(
-                                                item.name,
-                                                style: textTheme.bodyMedium,
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                              subtitle: Text(
-                                                item.businessName,
-                                                style: textTheme.bodySmall,
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                              trailing: isSelected
-                                                  ? Icon(
-                                                      Icons.check_circle,
-                                                      size: 18,
-                                                      color:
-                                                          colorScheme.primary,
-                                                    )
-                                                  : null,
                                             ),
-                                          ),
-                                        );
-                                      },
+                                          );
+                                        },
+                                      ),
                                     ),
                                   );
                                 },
@@ -903,6 +936,21 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                                   );
                                   return;
                                 }
+
+                                if (_selectedDesignersNotifier.value.isEmpty) {
+                                  AppToast.info(
+                                    context,
+                                    "Select a designer to proceed",
+                                  );
+                                  return;
+                                }
+                                workOrderRequest = workOrderRequest.copyWith(
+                                  description: commentTextFieldController.text,
+                                );
+                                _shareWorkOrderRequest(
+                                  context,
+                                  workOrderRequest,
+                                );
                               },
                               style: FilledButton.styleFrom(
                                 shape: RoundedRectangleBorder(
@@ -912,7 +960,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                                 backgroundColor: colorScheme.surface,
                                 foregroundColor: colorScheme.onSurface,
                               ),
-                              child: const Text('Send'),
+                              child: const Text('Share'),
                             ),
                           ),
                         ),
@@ -926,5 +974,70 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
         );
       },
     );
+  }
+
+  Future<void> _shareWorkOrderRequest(
+    BuildContext context,
+    WorkOrderModel workOrderRequest,
+  ) async {
+    try {
+      final List<Designer> selectedDesigners = _selectedDesignersNotifier.value;
+
+      showDialog(
+        context: context,
+        barrierDismissible: false, // Prevent dismissing
+        builder: (_) => const Center(child: CircularProgressIndicator()),
+      );
+
+      int dateTime = DateTime.now().millisecondsSinceEpoch;
+
+      final results = await Future.wait(
+        selectedDesigners.map((designer) {
+          final author = AuthorModel.empty().copyWith(
+            uid: designer.uid,
+            name: designer.name,
+            avatar: designer.profileImage,
+            mobileNumber: designer.mobileNumber,
+          );
+          workOrderRequest = workOrderRequest.copyWith(
+            uid: Uuid().v4(),
+            author: author,
+            createdBy: designer.uid,
+            createdAt: dateTime,
+            updatedAt: dateTime,
+          );
+          return sl<FirebaseWorkOrderService>().createWorkOrder(
+            workOrderRequest,
+          );
+        }),
+      );
+
+      // handle each result
+      for (final result in results) {
+        result.fold(
+          (failure) {
+            // handle failure
+            debugPrint("Create failed: $failure");
+          },
+          (success) {
+            // handle success
+            //debugPrint("Create success: $success");
+          },
+        );
+      }
+
+      _selectedDesignersNotifier.value = [];
+      // close dialog
+      if (!mounted) return;
+      Navigator.pop(context);
+
+      // show success message
+      AppToast.normal(context, "Work order request shared successfully");
+
+      if (!mounted) return;
+      Navigator.pop(context);
+    } on firebase_auth.FirebaseException catch (e) {
+      debugPrint(e.message);
+    }
   }
 }

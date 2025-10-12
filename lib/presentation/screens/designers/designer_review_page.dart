@@ -1,3 +1,4 @@
+import 'package:fashionista/core/service_locator/app_toast.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/author/author_model.dart';
 import 'package:fashionista/data/models/comment/comment_model.dart';
@@ -347,10 +348,14 @@ class _DesignerReviewPageState extends State<DesignerReviewPage> {
                                 if (commentTextFieldController.text
                                     .trim()
                                     .isEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Enter review to proceed'),
-                                    ),
+                                  // ScaffoldMessenger.of(context).showSnackBar(
+                                  //   const SnackBar(
+                                  //     content: Text('Enter review to proceed'),
+                                  //   ),
+                                  // );
+                                  AppToast.info(
+                                    context,
+                                    "Enter review to proceed",
                                   );
                                   return;
                                 }

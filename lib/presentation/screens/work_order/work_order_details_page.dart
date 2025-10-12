@@ -165,9 +165,11 @@ class _WorkOrderDetailsPageState extends State<WorkOrderDetailsPage> {
                         children: [
                           Text("Start"),
                           Text(
-                            DateFormat(
-                              'yyyy-MM-dd',
-                            ).format(widget.workOrderInfo.startDate!),
+                            widget.workOrderInfo.startDate != null
+                                ? DateFormat(
+                                    'yyyy-MM-dd',
+                                  ).format(widget.workOrderInfo.startDate!)
+                                : 'no start date',
                             style: textTheme.bodyMedium!.copyWith(
                               fontWeight: FontWeight.w500,
                             ),
@@ -183,9 +185,11 @@ class _WorkOrderDetailsPageState extends State<WorkOrderDetailsPage> {
                         children: [
                           Text("Due date"),
                           Text(
-                            DateFormat(
-                              'yyyy-MM-dd',
-                            ).format(widget.workOrderInfo.dueDate!),
+                            widget.workOrderInfo.dueDate != null
+                                ? DateFormat(
+                                    'yyyy-MM-dd',
+                                  ).format(widget.workOrderInfo.dueDate!)
+                                : 'no due date',
                             style: textTheme.bodyMedium!.copyWith(
                               fontWeight: FontWeight.w500,
                             ),
@@ -238,7 +242,7 @@ class _WorkOrderDetailsPageState extends State<WorkOrderDetailsPage> {
               const SizedBox(height: 12),
               if (widget.workOrderInfo.tags!.trim().isNotEmpty) ...[
                 Container(
-                  padding: const EdgeInsets.only(left: 12,bottom: 16),
+                  padding: const EdgeInsets.only(left: 12, bottom: 16),
                   alignment: Alignment.centerLeft,
                   child: Wrap(
                     spacing: 8,

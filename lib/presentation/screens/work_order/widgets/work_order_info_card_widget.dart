@@ -187,9 +187,11 @@ class _WorkOrderInfoCardWidgetState extends State<WorkOrderInfoCardWidget>
                           ),
                           const Spacer(),
                           Text(
-                            DateFormat(
-                              'yyyy-MM-dd',
-                            ).format(widget.workOrderInfo.dueDate!),
+                            widget.workOrderInfo.dueDate != null
+                                ? DateFormat(
+                                    'yyyy-MM-dd',
+                                  ).format(widget.workOrderInfo.dueDate!)
+                                : 'no due date',
                             style: textTheme.labelSmall,
                           ),
                         ],
