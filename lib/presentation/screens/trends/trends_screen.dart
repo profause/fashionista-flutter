@@ -28,8 +28,8 @@ class _TrendsScreenState extends State<TrendsScreen> with RouteAware {
   final TextEditingController _searchController = TextEditingController();
   //String _searchText = "";
 
-  final GlobalKey<RefreshIndicatorState> _refreshKey =
-      GlobalKey<RefreshIndicatorState>();
+  // final GlobalKey<RefreshIndicatorState> _refreshKey =
+  //     GlobalKey<RefreshIndicatorState>();
 
   @override
   void initState() {

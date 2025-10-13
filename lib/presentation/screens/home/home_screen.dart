@@ -1,5 +1,6 @@
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
+import 'package:fashionista/presentation/screens/notification/notification_screen.dart';
 import 'package:fashionista/presentation/screens/trends/discover_trends_screen.dart';
 import 'package:fashionista/presentation/screens/trends/trends_screen.dart';
 import 'package:flutter/material.dart';
@@ -86,10 +87,28 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               Opacity(
                                 opacity:
                                     percent, // ✅ fade name out as it collapses
-                                child: IconButton(
-                                  icon: const Icon(Icons.notifications),
-                                  color: colorScheme.primary,
-                                  onPressed: () {},
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      'Fashionista',
+                                      style: textTheme.titleMedium,
+                                    ),
+                                    const Spacer(),
+                                    IconButton(
+                                      icon: const Icon(Icons.notifications),
+                                      color: colorScheme.primary,
+                                      onPressed: () {
+                                        //navigate to notification screen
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const NotificationScreen(),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],

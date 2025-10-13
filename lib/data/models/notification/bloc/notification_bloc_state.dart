@@ -33,13 +33,13 @@ class NotificationUpdated extends NotificationBlocState {
 }
 
 class NotificationsLoaded extends NotificationBlocState {
-  final List<NotificationModel> workOrders;
+  final List<NotificationModel> notifications;
   final bool fromCache;
-  const NotificationsLoaded(this.workOrders, {this.fromCache = false})
-    : super(notificationCount: workOrders.length);
+  const NotificationsLoaded(this.notifications, {this.fromCache = false})
+    : super(notificationCount: notifications.length);
 
   @override
-  List<Object?> get props => [workOrders, fromCache, notificationCount];
+  List<Object?> get props => [notifications, fromCache, notificationCount];
 }
 
 class NotificationsCounted extends NotificationBlocState {
@@ -61,11 +61,11 @@ class NotificationError extends NotificationBlocState {
 }
 
 class NotificationsNewData extends NotificationBlocState {
-  final List<NotificationModel> workOrders;
-  const NotificationsNewData(this.workOrders);
+  final List<NotificationModel> notifications;
+  const NotificationsNewData(this.notifications);
 
   @override
-  List<Object?> get props => [workOrders];
+  List<Object?> get props => [notifications];
 }
 
 class NotificationDeleted extends NotificationBlocState {
