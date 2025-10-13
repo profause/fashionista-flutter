@@ -7,6 +7,7 @@ import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/author/author_model.dart';
 import 'package:fashionista/data/models/comment/comment_model.dart';
 import 'package:fashionista/data/models/designers/designer_model.dart';
+import 'package:fashionista/data/models/notification/notification_model.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc.dart';
@@ -17,6 +18,7 @@ import 'package:fashionista/data/models/trends/bloc/trend_comment_bloc_state.dar
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
 import 'package:fashionista/data/models/work_order/work_order_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_designers_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_notification_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_trends_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_work_order_service.dart';
 import 'package:fashionista/domain/usecases/trends/add_trend_comment_usecase.dart';
@@ -983,6 +985,12 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
     try {
       final List<Designer> selectedDesigners = _selectedDesignersNotifier.value;
 
+      final authorUser = AuthorModel.empty().copyWith(
+        uid: _userBloc.state.uid,
+        name: _userBloc.state.fullName,
+        avatar: _userBloc.state.profileImage,
+        mobileNumber: _userBloc.state.mobileNumber,
+      );
       showDialog(
         context: context,
         barrierDismissible: false, // Prevent dismissing
@@ -1019,7 +1027,24 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
             // handle failure
             debugPrint("Create failed: $failure");
           },
-          (success) {
+          (success) async {
+            final notification = NotificationModel.empty().copyWith(
+              uid: Uuid().v4(),
+              title: "Work order request",
+              description: "You have a new work order request",
+              createdAt: DateTime.now().millisecondsSinceEpoch,
+              type: 'workOrderRequest',
+              refId: success.uid,
+              refType: "work_order",
+              from: _userBloc.state.uid,
+              to: success.createdBy,
+              author: authorUser,
+              status: 'new',
+            );
+
+            await sl<FirebaseNotificationService>().createNotification(
+              notification,
+            );
             // handle success
             //debugPrint("Create success: $success");
           },

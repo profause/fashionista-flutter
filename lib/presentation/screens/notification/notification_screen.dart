@@ -52,6 +52,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 itemBuilder: (context, index) {
                   final notification = notifications[index];
                   return Card(
+                    elevation: 0.5,
                     child: ListTile(
                       title: Text(notification.title),
                       subtitle: Text(notification.description),

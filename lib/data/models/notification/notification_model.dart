@@ -23,8 +23,8 @@ class NotificationModel extends Equatable {
   @HiveField(NotificationModelHiveType.description)
   final String description;
   @HiveField(NotificationModelHiveType.notificationType)
-  @JsonKey(name: 'notification_type')
-  final NotificationType notificationType;
+  @JsonKey(name: 'type')
+  final String type;
   @HiveField(NotificationModelHiveType.author)
   final AuthorModel? author;
   @HiveField(NotificationModelHiveType.createdAt)
@@ -43,7 +43,7 @@ class NotificationModel extends Equatable {
     this.refType,
     required this.title,
     required this.description,
-    required this.notificationType,
+    required this.type,
     this.author,
     this.createdAt = 0,
     this.status,
@@ -63,7 +63,7 @@ class NotificationModel extends Equatable {
     refType,
     title,
     description,
-    notificationType,
+    type,
     author,
     createdAt,
     status,
@@ -77,7 +77,7 @@ class NotificationModel extends Equatable {
     String? refType,
     String? title,
     String? description,
-    NotificationType? notificationType,
+    String? type,
     AuthorModel? author,
     int? createdAt,
     String? status,
@@ -90,7 +90,7 @@ class NotificationModel extends Equatable {
       refType: refType ?? this.refType,
       title: title ?? this.title,
       description: description ?? this.description,
-      notificationType: notificationType ?? this.notificationType,
+      type: type ?? this.type,
       author: author ?? this.author,
       createdAt: createdAt ?? this.createdAt,
       status: status ?? this.status,
@@ -106,7 +106,7 @@ class NotificationModel extends Equatable {
       refType: '',
       title: '',
       description: '',
-      notificationType: NotificationType.like,
+      type: 'default',
       author: null,
       createdAt: 0,
       status: '',

@@ -22,7 +22,7 @@ class NotificationModelAdapter extends TypeAdapter<NotificationModel> {
       refType: fields[9] as String?,
       title: fields[1] as String,
       description: fields[2] as String,
-      notificationType: fields[8] as NotificationType,
+      type: fields[8] as String,
       author: fields[7] as AuthorModel?,
       createdAt: fields[4] as int,
       status: fields[3] as String?,
@@ -45,7 +45,7 @@ class NotificationModelAdapter extends TypeAdapter<NotificationModel> {
       ..writeByte(2)
       ..write(obj.description)
       ..writeByte(8)
-      ..write(obj.notificationType)
+      ..write(obj.type)
       ..writeByte(7)
       ..write(obj.author)
       ..writeByte(4)
@@ -78,8 +78,7 @@ NotificationModel _$NotificationModelFromJson(Map<String, dynamic> json) =>
       refType: json['ref_type'] as String?,
       title: json['title'] as String,
       description: json['description'] as String,
-      notificationType:
-          $enumDecode(_$NotificationTypeEnumMap, json['notification_type']),
+      type: json['type'] as String,
       author: json['author'] == null
           ? null
           : AuthorModel.fromJson(json['author'] as Map<String, dynamic>),
@@ -96,19 +95,10 @@ Map<String, dynamic> _$NotificationModelToJson(NotificationModel instance) =>
       'ref_type': instance.refType,
       'title': instance.title,
       'description': instance.description,
-      'notification_type':
-          _$NotificationTypeEnumMap[instance.notificationType]!,
+      'type': instance.type,
       'author': instance.author?.toJson(),
       'created_at': instance.createdAt,
       'status': instance.status,
       'from': instance.from,
       'to': instance.to,
     };
-
-const _$NotificationTypeEnumMap = {
-  NotificationType.like: 'like',
-  NotificationType.comment: 'comment',
-  NotificationType.follow: 'follow',
-  NotificationType.workOrderRequest: 'workOrderRequest',
-  NotificationType.share: 'share',
-};
