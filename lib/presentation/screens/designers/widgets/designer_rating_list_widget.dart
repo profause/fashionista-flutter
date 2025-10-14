@@ -1,3 +1,4 @@
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:flutter/material.dart';
 
 class DesignerRatingListWidget extends StatelessWidget {
@@ -50,8 +51,8 @@ class DesignerRatingListWidget extends StatelessWidget {
                       child: LinearProgressIndicator(
                         value: animatedValue,
                         minHeight: 8,
-                        backgroundColor: colorScheme.surfaceContainerHighest,
-                        color: Colors.amber,
+                        backgroundColor: AppTheme.appIconColor.withValues(alpha: .1),
+                        color: AppTheme.appIconColor.withValues(alpha: 1),
                       ),
                     );
                   },

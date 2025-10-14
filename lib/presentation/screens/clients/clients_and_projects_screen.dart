@@ -94,7 +94,7 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
                   controller: _tabController,
                   labelColor: colorScheme.primary,
                   unselectedLabelColor: AppTheme.darkGrey,
-                  indicatorColor: colorScheme.primary,
+                  indicatorColor: AppTheme.appIconColor.withValues(alpha: 1),
                   dividerColor: AppTheme.lightGrey,
                   physics: const BouncingScrollPhysics(),
                   dividerHeight: 0,
@@ -104,7 +104,7 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(
                       width: 4,
-                      color: colorScheme.primary,
+                      color: AppTheme.appIconColor.withValues(alpha: 1),
                     ),
                   ),
                   tabs: [

@@ -119,7 +119,7 @@ class _SplashScreenState extends State<SplashScreen>
                     height: 120,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppTheme.white.withValues(alpha: 0.1),
+                      color: AppTheme.appIconColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(30),
                     ),
                     child: Container(

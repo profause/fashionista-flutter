@@ -67,6 +67,7 @@ class _DesignerReviewWidgetState extends State<DesignerReviewWidget> {
                             backgroundColor: AppTheme.lightGrey,
                             backgroundImage: CachedNetworkImageProvider(
                               widget.designerReviewModel.comment.author.avatar!,
+                              errorListener: (error) {},
                             ),
                           )
                         : DefaultProfileAvatar(
@@ -82,45 +83,38 @@ class _DesignerReviewWidgetState extends State<DesignerReviewWidget> {
                 child: Text(
                   widget.designerReviewModel.comment.author.name!,
                   style: textTheme.bodyMedium!.copyWith(
-                    fontWeight: FontWeight.bold
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
+              const Spacer(),
+              Text(
+                formatRelativeTime(widget.designerReviewModel.createdAt!),
+                style: textTheme.bodySmall,
+              ),
             ],
           ),
-          const SizedBox(height: 4),
-          RatingInputWidget(
-            initialRating: widget.designerReviewModel.rating!.toDouble(),
-            color: colorScheme.primary,
-            size: 18,
-            readOnly: true,
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.only(left: 4.0),
+            child: RatingInputWidget(
+              initialRating: widget.designerReviewModel.rating!.toDouble(),
+              color: colorScheme.primary,
+              size: 18,
+              readOnly: true,
+            ),
           ),
           const SizedBox(height: 2),
-          Text(
-            widget.designerReviewModel.comment.text,
-            style: textTheme.bodyLarge!.copyWith(
-              fontSize: 15
+          Padding(
+            padding: const EdgeInsets.only(left: 4.0),
+            child: Text(
+              widget.designerReviewModel.comment.text,
+              style: textTheme.bodyLarge!.copyWith(fontSize: 15),
             ),
           ),
           const SizedBox(height: 8),
           Row(
             children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CustomIconButtonRounded(
-                    backgroundColor: Colors.transparent,
-                    onPressed: () {},
-                    iconData: Icons.access_time,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    formatRelativeTime(widget.designerReviewModel.createdAt!),
-                    style: textTheme.bodySmall,
-                  ),
-                ],
-              ),
               if (userBloc.state.uid ==
                   widget.designerReviewModel.comment.author.uid!) ...[
                 const Spacer(),

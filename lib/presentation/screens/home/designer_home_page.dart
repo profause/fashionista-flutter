@@ -108,9 +108,10 @@ class DesignerHomePage extends StatelessWidget {
           Column(
             children: List.generate(3, (index) {
               return ListTile(
-                leading: const CircleAvatar(
+                leading: CircleAvatar(
                   backgroundImage: CachedNetworkImageProvider(
                     "https://placehold.co/100.jpg",
+                    errorListener: (error) {},
                   ),
                 ),
                 title: Text("Client ${index + 1}"),

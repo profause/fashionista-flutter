@@ -20,7 +20,7 @@ class ProfileAvatar extends StatelessWidget {
                 radius: radius,
                 backgroundColor: Colors.grey.shade300,
                 backgroundImage: user.profileImage.isNotEmpty
-                    ? CachedNetworkImageProvider(user.profileImage)
+                    ? CachedNetworkImageProvider(user.profileImage,errorListener: (error) {},)
                     : null,
                 child: user.profileImage.isEmpty
                     ? Icon(

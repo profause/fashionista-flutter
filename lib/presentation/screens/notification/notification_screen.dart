@@ -2,6 +2,8 @@ import 'package:fashionista/data/models/notification/bloc/notification_bloc.dart
 import 'package:fashionista/data/models/notification/bloc/notification_bloc_event.dart';
 import 'package:fashionista/data/models/notification/bloc/notification_bloc_state.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
+import 'package:fashionista/presentation/screens/notification/widgets/notification_info_widget.dart';
+import 'package:fashionista/presentation/screens/notification/widgets/notification_work_order_request_widget.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -34,7 +36,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
       appBar: AppBar(
         foregroundColor: colorScheme.primary,
         backgroundColor: colorScheme.onPrimary,
-        title: Text('Notifications', style: textTheme.titleMedium),
+        title: Text(
+          'Notifications',
+          style: textTheme.titleMedium!.copyWith(color: colorScheme.primary),
+        ),
         elevation: 0,
       ),
       body: BlocBuilder<NotificationBloc, NotificationBlocState>(
@@ -51,13 +56,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 itemCount: notifications.length,
                 itemBuilder: (context, index) {
                   final notification = notifications[index];
-                  return Card(
-                    elevation: 0.5,
-                    child: ListTile(
-                      title: Text(notification.title),
-                      subtitle: Text(notification.description),
-                    ),
-                  );
+                  switch (notification.type) {
+                    case "workOrderRequest":
+                      return NotificationWorkOrderRequestWidget(
+                        notification: notification,
+                      );
+                    default:
+                      return NotificationInfoWidget(notification: notification);
+                  }
                 },
               );
             case NotificationError(:final message):

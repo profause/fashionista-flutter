@@ -1,5 +1,6 @@
 import 'package:fashionista/core/service_locator/app_toast.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/author/author_model.dart';
 import 'package:fashionista/data/models/comment/comment_model.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_review_bloc.dart';
@@ -85,7 +86,7 @@ class _DesignerReviewPageState extends State<DesignerReviewPage> {
                         const SizedBox(height: 4),
                         RatingInputWidget(
                           initialRating: widget.designer.averageRating ?? 0,
-                          color: colorScheme.primary,
+                          color: AppTheme.appIconColor.withValues(alpha: 1),
                           size: 18,
                           readOnly: true,
                         ),

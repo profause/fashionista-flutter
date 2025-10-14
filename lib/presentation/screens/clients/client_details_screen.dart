@@ -198,7 +198,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                         bottom: TabBar(
                           labelColor: colorScheme.primary,
                           unselectedLabelColor: AppTheme.darkGrey,
-                          indicatorColor: colorScheme.primary,
+                          indicatorColor: AppTheme.appIconColor.withValues(alpha: 1),
                           dividerColor: AppTheme.lightGrey,
                           dividerHeight: 0,
                           indicatorWeight: 2,
@@ -206,7 +206,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                             borderRadius: BorderRadius.circular(8),
                             borderSide: BorderSide(
                               width: 4,
-                              color: colorScheme.primary,
+                              color: AppTheme.appIconColor.withValues(alpha: 1),
                             ),
                           ),
                           tabs: [

@@ -181,6 +181,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                                       backgroundImage:
                                           CachedNetworkImageProvider(
                                             widget.trendInfo.author.avatar!,
+                                            errorListener: (error) {},
                                           ),
                                     )
                                   : DefaultProfileAvatar(
@@ -847,6 +848,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                                                           true
                                                       ? CachedNetworkImageProvider(
                                                           item.profileImage!,
+                                                          errorListener: (error) {},
                                                         )
                                                       : null,
                                                   child:

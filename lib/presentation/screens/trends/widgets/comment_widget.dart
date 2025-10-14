@@ -48,6 +48,7 @@ class _CommentWidgetState extends State<CommentWidget> {
                         backgroundColor: AppTheme.lightGrey,
                         backgroundImage: CachedNetworkImageProvider(
                           widget.comment.author.avatar!,
+                          errorListener: (error) {},
                         ),
                       )
                     : DefaultProfileAvatar(

@@ -91,12 +91,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   children: [
                                     Text(
                                       'Fashionista',
-                                      style: textTheme.titleMedium,
+                                      style: textTheme.titleMedium!.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: colorScheme.primary,
+                                        ),
                                     ),
                                     const Spacer(),
                                     IconButton(
                                       icon: const Icon(Icons.notifications),
-                                      color: colorScheme.primary,
+                                      color: AppTheme.appIconColor.withValues(alpha: 1),
                                       onPressed: () {
                                         //navigate to notification screen
                                         Navigator.push(
@@ -121,7 +124,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 bottom: TabBar(
                   labelColor: colorScheme.primary,
                   unselectedLabelColor: AppTheme.darkGrey,
-                  indicatorColor: colorScheme.primary,
+                  indicatorColor: AppTheme.appIconColor.withValues(alpha: 1),
                   dividerHeight: 0.0,
                   indicatorWeight: 2,
                   tabAlignment: TabAlignment.center,
@@ -130,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(
                       width: 4,
-                      color: colorScheme.primary,
+                      color: AppTheme.appIconColor.withValues(alpha: 1),
                     ),
                   ),
                   dividerColor: colorScheme.primary.withValues(alpha: 0.2),

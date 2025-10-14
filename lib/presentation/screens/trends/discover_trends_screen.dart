@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/widgets/bloc/getstarted_stats_cubit.dart';
 import 'package:fashionista/data/models/designers/designer_model.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc.dart';
@@ -97,9 +98,9 @@ class _DiscoverTrendsScreenState extends State<DiscoverTrendsScreen> {
                                 value: (likes / 10),
                                 strokeWidth: 3,
                                 backgroundColor:
-                                    colorScheme.surfaceContainerHighest,
+                                    AppTheme.appIconColor.withValues(alpha: .1),
                                 valueColor: AlwaysStoppedAnimation(
-                                  colorScheme.primary,
+                                  AppTheme.appIconColor.withValues(alpha: 1),
                                 ),
                               );
                             },
@@ -132,9 +133,9 @@ class _DiscoverTrendsScreenState extends State<DiscoverTrendsScreen> {
                                     value: (followings / 10),
                                     strokeWidth: 3,
                                     backgroundColor:
-                                        colorScheme.surfaceContainerHighest,
+                                        AppTheme.appIconColor.withValues(alpha: .1),
                                     valueColor: AlwaysStoppedAnimation(
-                                      colorScheme.primary,
+                                      AppTheme.appIconColor.withValues(alpha: 1),
                                     ),
                                   );
                                 },

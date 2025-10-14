@@ -16,7 +16,7 @@ class CustomIconRounded extends StatelessWidget {
         return Material(
           color: themeMode == ThemeMode.light
               ? Colors.grey.shade200
-              : Colors.black.withValues(alpha: 0.5), // background color
+              : Colors.black.withValues(alpha: 0.3), // background color
           shape: const CircleBorder(),
           // borderRadius: BorderRadius.circular(size! / 2), // makes it round
           child: InkWell(

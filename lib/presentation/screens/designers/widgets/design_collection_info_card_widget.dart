@@ -93,6 +93,7 @@ class DesignCollectionInfoCardWidget extends StatelessWidget {
                                   backgroundColor: AppTheme.lightGrey,
                                   backgroundImage: CachedNetworkImageProvider(
                                     designCollectionInfo.author.avatar!,
+                                    errorListener: (error) {},
                                   ),
                                 )
                               : DefaultProfileAvatar(

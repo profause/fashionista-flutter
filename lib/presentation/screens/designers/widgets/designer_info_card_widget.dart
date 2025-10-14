@@ -106,6 +106,7 @@ class _DesignerInfoCardWidgetState extends State<DesignerInfoCardWidget> {
                                         backgroundImage:
                                             CachedNetworkImageProvider(
                                               widget.designerInfo.profileImage!,
+                                              errorListener: (error) {},
                                             ),
                                       )
                                     : DefaultProfileAvatar(

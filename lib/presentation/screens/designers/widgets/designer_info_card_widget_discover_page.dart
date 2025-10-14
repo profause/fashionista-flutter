@@ -118,11 +118,12 @@ class _DesignerInfoCardWidgetDiscoverPageState
                                     backgroundColor: AppTheme.lightGrey,
                                     backgroundImage: CachedNetworkImageProvider(
                                       widget.designerInfo.profileImage!,
+                                      errorListener: (error) {},
                                     ),
                                   )
                                 : DefaultProfileAvatar(
                                     name: null,
-                                    size: 30,
+                                    size: 52,
                                     uid: widget.designerInfo.uid,
                                   ),
                           ),

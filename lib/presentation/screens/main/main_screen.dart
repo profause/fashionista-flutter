@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/presentation/screens/clients/clients_and_projects_screen.dart';
@@ -83,7 +84,7 @@ class _MainScreenState extends State<MainScreen> {
       backgroundColor: colorScheme.surface,
       body: ValueListenableBuilder<int>(
         valueListenable: _selectedIndex,
-        builder: (_, currentIndex, __) {
+        builder: (_, currentIndex, _) {
           return _userBloc.state.accountType == 'Designer'
               ? _designerPageList[currentIndex]
               : _regularUserPageList[currentIndex];
@@ -103,7 +104,7 @@ class _MainScreenState extends State<MainScreen> {
           color: colorScheme.primary.withValues(alpha: 0.7),
         ),
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: colorScheme.primary,
+        selectedItemColor: AppTheme.appIconColor,
         backgroundColor: colorScheme.onPrimary,
         //unselectedItemColor: colorScheme.primary.withValues(alpha: 0.5),
         items: <BottomNavigationBarItem>[
@@ -131,7 +132,7 @@ class _MainScreenState extends State<MainScreen> {
                   radius: 16,
                   backgroundColor: Colors.grey.shade300,
                   backgroundImage: user.profileImage.isNotEmpty
-                      ? CachedNetworkImageProvider(user.profileImage)
+                      ? CachedNetworkImageProvider(user.profileImage,errorListener: (error) {},)
                       : null,
                   child: user.profileImage.isEmpty
                       ? Icon(
@@ -157,7 +158,7 @@ class _MainScreenState extends State<MainScreen> {
                     radius: 16,
                     backgroundColor: Colors.grey.shade300,
                     backgroundImage: user.profileImage.isNotEmpty
-                        ? CachedNetworkImageProvider(user.profileImage)
+                        ? CachedNetworkImageProvider(user.profileImage,errorListener: (error) {},)
                         : null,
                     child: user.profileImage.isEmpty
                         ? Icon(
