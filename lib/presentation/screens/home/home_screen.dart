@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/presentation/screens/notification/notification_screen.dart';
@@ -80,7 +81,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       collapseMode: CollapseMode.parallax,
                       background: SafeArea(
                         child: Padding(
-                          padding: const EdgeInsets.only(left: 16, right: 8),
+                          padding: const EdgeInsets.only(left: 16, right: 12),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
@@ -94,19 +95,66 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                       style: textTheme.titleMedium!.copyWith(
                                         fontWeight: FontWeight.bold,
                                         color: colorScheme.primary,
-                                        ),
+                                      ),
                                     ),
                                     const Spacer(),
-                                    IconButton(
-                                      icon: const Icon(Icons.notifications),
-                                      color: AppTheme.appIconColor.withValues(alpha: 1),
-                                      onPressed: () {
-                                        //navigate to notification screen
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                const NotificationScreen(),
+
+                                    StreamBuilder<QuerySnapshot>(
+                                      stream: FirebaseFirestore.instance
+                                          .collection('notifications')
+                                          .where(
+                                            'to',
+                                            isEqualTo: userBloc.state.uid,
+                                          ) // optional if user-based
+                                          .where('status', isEqualTo: 'new')
+                                          .limit(1)
+                                          .snapshots(), // 🔥 live updates
+                                      builder: (context, snapshot) {
+                                        final hasNew =
+                                            snapshot.hasData &&
+                                            snapshot.data!.docs.isNotEmpty;
+
+                                        return GestureDetector(
+                                          onTap: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    const NotificationScreen(),
+                                              ),
+                                            );
+                                          },
+                                          child: Stack(
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets.all(
+                                                  8.0,
+                                                ),
+                                                child: Icon(
+                                                  size: 24,
+                                                  Icons.notifications,
+                                                  color: AppTheme.appIconColor,
+                                                ),
+                                              ),
+                                              if (hasNew) // ✅ only show dot when there are new notifications
+                                                Positioned(
+                                                  top: 8,
+                                                  right: 10,
+                                                  child: Container(
+                                                    width: 8,
+                                                    height: 8,
+                                                    decoration: BoxDecoration(
+                                                      color: Theme.of(context)
+                                                          .colorScheme
+                                                          .onSurface
+                                                          .withValues(
+                                                            alpha: 0.9,
+                                                          ),
+                                                      shape: BoxShape.circle,
+                                                    ),
+                                                  ),
+                                                ),
+                                            ],
                                           ),
                                         );
                                       },

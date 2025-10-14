@@ -1,66 +1,72 @@
-import 'package:fashionista/core/repository/hive_repository.dart';
 import 'package:fashionista/core/service_locator/hive_service.dart';
 import 'package:fashionista/data/models/notification/notification_model.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:hive_flutter/adapters.dart';
 
-class HiveNotificationService implements HiveRepository<NotificationModel> {
+class HiveNotificationService {
   //late final Box notificationsBox;
 
   final hive = HiveService();
 
-  @override
   Future<List<NotificationModel>> getItems(String key) async {
     try {
-      final data = hive.notificationsBox.get(key);
-      if (data == null) {
-        return ([]);
-      }
-      final List<NotificationModel> notificationList = data.cast<NotificationModel>();
-      return (notificationList);
+      final data = hive.notificationsBox.values;
+      return data.toList();
     } catch (e) {
       debugPrint(e.toString());
     }
     return [];
   }
 
-  @override
-  Future<void> insertItems(String key, {required List<NotificationModel> items}) async {
+  Future<void> insertItems(
+    String key, {
+    required List<NotificationModel> items,
+  }) async {
     try {
       await hive.notificationsBox.clear();
-      await Future.wait([
-        hive.notificationsBox.put(key, items),
-        hive.notificationsBox.put(
-          'cacheTimestamp',
-          DateTime.now().millisecondsSinceEpoch,
-        ),
-      ]);
+      final allI = items.map((e) {
+        return hive.notificationsBox.put(e.uid, e);
+      });
+      await Future.wait(allI);
     } catch (e) {
       debugPrint(e.toString());
     }
   }
 
-  @override
+  Future<void> updateItem(NotificationModel item) async {
+    try {
+      await hive.notificationsBox.put(item.uid, item);
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  Future<void> deleteItem(String uid) async {
+    await hive.notificationsBox.delete(uid);
+  }
+
   Future<bool> isCacheEmpty() async {
     return hive.notificationsBox.isEmpty;
   }
 
-  @override
-  Future<void> clearCache() async{
+  Future<void> clearCache() async {
     await hive.notificationsBox.clear();
   }
-  
-  @override
+
   Future<NotificationModel> getItem(String key, String identifier) async {
     try {
       final data = hive.notificationsBox.get(key);
       if (data == null) {
         return NotificationModel.empty();
       }
-      final List<NotificationModel> notificationList = data.cast<NotificationModel>();
-      return (notificationList.where((notification) => notification.uid == identifier).first);
+      return data;
     } catch (e) {
       debugPrint(e.toString());
     }
     return NotificationModel.empty();
+  }
+
+  ValueListenable<Box<NotificationModel>> itemListener() {
+    return hive.notificationsBox.listenable();
   }
 }

@@ -5,41 +5,47 @@ import 'package:flutter/material.dart';
 
 class NotificationInfoWidget extends StatelessWidget {
   final NotificationModel notification;
-  const NotificationInfoWidget({super.key, required this.notification});
+  final VoidCallback? onTap; // 👈 optional callback when tapped
+
+  const NotificationInfoWidget({
+    super.key,
+    required this.notification,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    return Container(
-      padding: const EdgeInsets.all(12),
-      margin: const EdgeInsets.only(bottom: 2, top: 4),
-      decoration: BoxDecoration(
-        color: colorScheme.onPrimary,
-        borderRadius: BorderRadius.circular(0),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+
+    return Material(
+      color: colorScheme.onPrimary, // 👈 Needed for ripple to show
+      child: InkWell(
+        onTap: onTap ?? () {}, // 👈 Trigger ripple effect
+        splashColor: colorScheme.primary.withOpacity(0.1),
+        highlightColor: colorScheme.primary.withOpacity(0.05),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: ListTile(
+            visualDensity: VisualDensity.compact,
+            contentPadding: EdgeInsets.zero,
+            leading: CustomIconRounded(icon: Icons.info, size: 24),
+            title: Text(
+              notification.title,
+              style: textTheme.titleSmall!.copyWith(
+                color: colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            subtitle: Text(
+              notification.description,
+              style: textTheme.labelMedium,
+            ),
+            trailing: Text(
+              formatRelativeTime(notification.createdAt),
+              style: textTheme.bodySmall,
+            ),
           ),
-        ],
-      ),
-      child: ListTile(
-        visualDensity: VisualDensity.compact,
-        leading: CustomIconRounded(icon: Icons.info, size: 24),
-        contentPadding: const EdgeInsets.all(0),
-        title: Text(
-          notification.title,
-          style: textTheme.titleSmall!.copyWith(
-            color: colorScheme.primary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        subtitle: Text(notification.description, style: textTheme.labelMedium),
-        trailing: Text(
-          formatRelativeTime(notification.createdAt),
-          style: textTheme.bodySmall,
         ),
       ),
     );

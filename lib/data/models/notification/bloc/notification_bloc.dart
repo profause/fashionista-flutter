@@ -43,8 +43,19 @@ class NotificationBloc
     UpdateNotification event,
     Emitter<NotificationBlocState> emit,
   ) async {
-    emit(NotificationLoading());
-    emit(NotificationUpdated(event.notification));
+    final result = await sl<FirebaseNotificationService>().updateNotification(
+      event.notification,
+    );
+
+    await result.fold(
+      (failure) async {
+        emit(NotificationError(failure.toString()));
+      },
+      (notification) async {
+        await sl<HiveNotificationService>().updateItem(event.notification);
+        emit(NotificationLoaded(notification)); // ✅ safe emit
+      },
+    );
   }
 
   Future<void> _onLoadNotifications(
@@ -71,29 +82,23 @@ class NotificationBloc
     DeleteNotification event,
     Emitter<NotificationBlocState> emit,
   ) async {
-    final cachedItems = await sl<HiveNotificationService>().getItems(event.uid);
+    try {
+      final result = await sl<FirebaseNotificationService>().deleteNotification(
+        event.uid,
+      );
 
-    // ✅ find index by matching uid
-    final index = cachedItems.indexWhere((item) => item.uid == event.uid);
-    if (index != -1) {
-      cachedItems.removeAt(index);
-      try {
-        // ✅ persist updated list back to Hive
-        await sl<HiveNotificationService>().insertItems(
-          event.uid,
-          items: cachedItems,
-        );
-
-        if (cachedItems.isEmpty) {
-          emit(const NotificationsEmpty());
-          return;
-        }
-
-        emit(NotificationsLoaded(cachedItems, fromCache: true));
-      } catch (e) {
-        // ❌ Rollback if persistence failed (optional)
-        emit(NotificationError("Failed to delete item: $e"));
-      }
+      await result.fold(
+        (failure) async {
+          emit(NotificationError(failure.toString()));
+        },
+        (notification) async {
+          await sl<HiveNotificationService>().deleteItem(event.uid);
+          emit(NotificationLoaded(notification)); // ✅ safe emit
+        },
+      );
+    } catch (e) {
+      // ❌ Rollback if persistence failed (optional)
+      emit(NotificationError("Failed to delete item: $e"));
     }
   }
 
@@ -190,5 +195,11 @@ class NotificationBloc
         }
       },
     );
+  }
+
+  @override
+  Future<void> close() {
+    // _hiveSubscription?.cancel(); // 👈 clean up
+    return super.close();
   }
 }

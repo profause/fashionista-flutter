@@ -39,7 +39,7 @@ class HiveService {
   late final Box workOrderBox;
   late final Box workOrderStatusProgressBox;
   late final Box designerReviewsBox;
-  late final Box notificationsBox;
+  late final Box<NotificationModel> notificationsBox;
 
   /// Initialize Hive + boxes (call once at startup)
   Future<void> init() async {
@@ -76,7 +76,6 @@ class HiveService {
         'work_orders_status_progress_cache',
       );
       designerReviewsBox = await Hive.openBox('designer_reviews_cache');
-
       notificationsBox = await Hive.openBox('notifications_cache');
 
       debugPrint('✅ Hive initialized');
