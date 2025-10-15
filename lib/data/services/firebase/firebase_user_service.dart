@@ -11,6 +11,7 @@ import 'package:image_cropper/image_cropper.dart';
 
 abstract class FirebaseUserService {
   Future<Either> fetchUserDetailsFromFirestore(String uid);
+  Future<Either<String, User>> findUserByMobileNumber(String mobileNumber);
   Future<Either> updateUserDetails(User user);
   Future<Either> updateUserDisplayName(String name);
   Future<Either> updateUserEmail(String email);
@@ -254,6 +255,26 @@ class FirebaseUserServiceImpl implements FirebaseUserService {
       }
     } catch (e) {
       return false;
+    }
+  }
+
+  @override
+  Future<Either<String, User>> findUserByMobileNumber(
+    String mobileNumber,
+  ) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      QuerySnapshot querySnapshot = await firestore
+          .collection('users')
+          .where('mobile_number', isEqualTo: mobileNumber)
+          .limit(1)
+          .get();
+      User user = User.fromJson(
+        querySnapshot.docs.first.data() as Map<String, dynamic>,
+      );
+      return Right(user);
+    } on FirebaseException catch (e) {
+      return Left(e.message!);
     }
   }
 }

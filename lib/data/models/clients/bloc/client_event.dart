@@ -24,6 +24,14 @@ class UpdateClient extends ClientBlocEvent {
   List<Object?> get props => [client];
 }
 
+class AddClient extends ClientBlocEvent {
+  final Client client;
+  const AddClient(this.client);
+
+  @override
+  List<Object?> get props => [client];
+}
+
 class LoadClients extends ClientBlocEvent {
   final String uid;
   const LoadClients(this.uid);

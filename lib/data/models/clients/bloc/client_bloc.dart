@@ -2,9 +2,11 @@ import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/clients/bloc/client_event.dart';
 import 'package:fashionista/data/models/clients/bloc/client_state.dart';
 import 'package:fashionista/data/services/hive/hive_client_service.dart';
+import 'package:fashionista/domain/usecases/clients/add_client_usecase.dart';
 import 'package:fashionista/domain/usecases/clients/delete_client_usecase.dart';
 import 'package:fashionista/domain/usecases/clients/find_client_by_id_usecase.dart';
 import 'package:fashionista/domain/usecases/clients/find_clients_usecase.dart';
+import 'package:fashionista/domain/usecases/clients/update_client_usecase.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -13,6 +15,7 @@ class ClientBloc extends Bloc<ClientBlocEvent, ClientBlocState> {
     on<LoadClient>(_onLoadClient);
     on<LoadClients>(_onLoadClients);
     on<UpdateClient>(_updateClient);
+    on<AddClient>(_addClient);
     on<DeleteClient>(_deleteClient);
     //on<UpdateClient>((event, emit) => emit(ClientUpdated(event.client)));
     on<LoadClientsCacheFirstThenNetwork>(_onLoadClientsCacheFirstThenNetwork);
@@ -38,8 +41,22 @@ class ClientBloc extends Bloc<ClientBlocEvent, ClientBlocState> {
     DeleteClient event,
     Emitter<ClientBlocState> emit,
   ) async {
-    var result = await sl<DeleteClientUsecase>().call(event.uid);
-    result.fold((l) => null, (r) => emit(ClientDeleted(r)));
+    try {
+      var result = await sl<DeleteClientUsecase>().call(event.uid);
+
+      await result.fold(
+        (failure) async {
+          emit(ClientError(failure.toString()));
+        },
+        (message) async {
+          await sl<HiveClientService>().deleteItem(event.uid);
+          emit(ClientDeleted(message)); // ✅ safe emit
+        },
+      );
+    } catch (e) {
+      // ❌ Rollback if persistence failed (optional)
+      emit(ClientError("Failed to delete item: $e"));
+    }
   }
 
   Future<void> _onLoadClients(
@@ -64,8 +81,34 @@ class ClientBloc extends Bloc<ClientBlocEvent, ClientBlocState> {
     Emitter<ClientBlocState> emit,
   ) async {
     emit(ClientLoading());
-    emit(ClientUpdated(event.client));
-    //emit(ClientLoaded(event.client));
+    final result = await sl<UpdateClientUsecase>().call(event.client);
+
+    await result.fold(
+      (failure) async {
+        emit(ClientError(failure.toString()));
+      },
+      (client) async {
+        await sl<HiveClientService>().updateItem(event.client);
+        emit(ClientUpdated(client)); // ✅ safe emit
+      },
+    );
+  }
+
+  Future<void> _addClient(
+    AddClient event,
+    Emitter<ClientBlocState> emit,
+  ) async {
+    emit(ClientLoading());
+    final result = await sl<AddClientUsecase>().call(event.client);
+    await result.fold(
+      (failure) async {
+        emit(ClientError(failure.toString()));
+      },
+      (client) async {
+        await sl<HiveClientService>().addItem(event.client);
+        emit(ClientAdded(client)); // ✅ safe emit
+      },
+    );
   }
 
   Future<void> _onCountClients(
@@ -119,33 +162,10 @@ class ClientBloc extends Bloc<ClientBlocEvent, ClientBlocState> {
             return;
           }
 
-          // 3️⃣ Detect if data has changed
-          // int? cachedFirstTimestamp = cachedItems.isNotEmpty
-          //     ? cachedItems.first.createdDate!.millisecondsSinceEpoch
-          //     : null;
-
-          // int freshFirstTimestamp =
-          //     clients.first.createdDate!.millisecondsSinceEpoch;
-
-          // if (cachedFirstTimestamp == null ||
-          //     cachedFirstTimestamp != freshFirstTimestamp) {
-          //   emit(ClientsLoaded(clients, fromCache: false));
-          //   // 4️⃣ Update cache and emit fresh data
-          //   await sl<HiveClientService>().insertItems(
-          //     uid,
-          //     items: clients,
-          //   );
-          //   debugPrint('Clients updated');
-          //   // emit(
-          //   //   ClientsNewData(clients),
-          //   // ); // optional "new data" state
-          //   // 🔑 Do NOT call `on<Event>` here again!
-          // }
-
           if (cachedItems.toString() != clients.toString()) {
             emit(ClientsLoaded(clients, fromCache: false));
             // 4️⃣ Update cache and emit fresh data
-            await sl<HiveClientService>().insertItems(uid, items: clients);
+            await sl<HiveClientService>().insertItems(clients);
           } else {
             // no change
             emit(ClientsLoaded(cachedItems, fromCache: true));

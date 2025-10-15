@@ -74,10 +74,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                             child: Row(
                               children: [
                                 CustomPinnedClientIconButton(
-                                  clientId: widget.client.uid,
-                                  isPinnedNotifier: ValueNotifier(
-                                    widget.client.isPinned ?? false,
-                                  ),
+                                  client: widget.client,
                                 ),
                                 const SizedBox(width: 8),
                                 // DELETE
@@ -198,7 +195,9 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                         bottom: TabBar(
                           labelColor: colorScheme.primary,
                           unselectedLabelColor: AppTheme.darkGrey,
-                          indicatorColor: AppTheme.appIconColor.withValues(alpha: 1),
+                          indicatorColor: AppTheme.appIconColor.withValues(
+                            alpha: 1,
+                          ),
                           dividerColor: AppTheme.lightGrey,
                           dividerHeight: 0,
                           indicatorWeight: 2,
@@ -265,33 +264,9 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
   }
 
   Future<void> _deleteClient(Client client) async {
-    try {
-      final result = await sl<FirebaseClientsService>().deleteClientById(
-        client.uid,
-      );
-      result.fold(
-        (l) {
-          if (!mounted) return;
-          Navigator.of(context, rootNavigator: true).pop(); // remove loader
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(l)));
-        },
-        (r) {
-          if (!mounted) return;
-          Navigator.of(context, rootNavigator: true).pop(); // remove loader
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(r)));
-          Navigator.pop(context, true); // notify ClientsScreen
-        },
-      );
-    } on FirebaseException catch (e) {
-      if (!mounted) return;
-      Navigator.of(context, rootNavigator: true).pop();
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.message!)));
-    }
+    context.read<ClientBloc>().add(DeleteClient(client.uid));
+    if (!mounted) return;
+    Navigator.of(context, rootNavigator: true).pop();
+    Navigator.pop(context, true); // notify ClientsScreen
   }
 }

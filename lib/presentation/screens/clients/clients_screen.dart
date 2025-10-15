@@ -1,6 +1,9 @@
+import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/clients/bloc/client_bloc.dart';
 import 'package:fashionista/data/models/clients/bloc/client_event.dart';
 import 'package:fashionista/data/models/clients/bloc/client_state.dart';
+import 'package:fashionista/data/models/clients/client_model.dart';
+import 'package:fashionista/data/services/hive/hive_client_service.dart';
 import 'package:fashionista/presentation/screens/clients/client_details_screen.dart';
 import 'package:fashionista/presentation/screens/clients/widgets/client_info_card_widget.dart';
 import 'package:fashionista/presentation/screens/clients/widgets/client_info_pinned_widget.dart';
@@ -8,6 +11,7 @@ import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hive/hive.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
 final RouteObserver<ModalRoute<void>> routeObserver =
@@ -20,7 +24,7 @@ class ClientsScreen extends StatefulWidget {
   State<ClientsScreen> createState() => _ClientsScreenState();
 }
 
-class _ClientsScreenState extends State<ClientsScreen> with RouteAware {
+class _ClientsScreenState extends State<ClientsScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchText = "";
   String selectedFilter = 'All';
@@ -33,27 +37,9 @@ class _ClientsScreenState extends State<ClientsScreen> with RouteAware {
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    routeObserver.subscribe(this, ModalRoute.of(context)!);
-  }
-
-  @override
   void dispose() {
-    routeObserver.unsubscribe(this);
     _searchController.dispose();
     super.dispose();
-  }
-
-  /// Called when coming back to this screen
-  @override
-  void didPopNext() {
-    //debugPrint("ClientsScreen: didPopNext → refreshing clients");
-    context.read<ClientBloc>().add(const LoadClientsCacheFirstThenNetwork(''));
-  }
-
-  Future<void> refreshDesigners() async {
-    context.read<ClientBloc>().add(const LoadClientsCacheFirstThenNetwork(''));
   }
 
   @override
@@ -123,174 +109,139 @@ class _ClientsScreenState extends State<ClientsScreen> with RouteAware {
             ),
           ),
         ),
-        BlocBuilder<ClientBloc, ClientBlocState>(
-          builder: (context, state) {
-            switch (state) {
-              case ClientLoading():
-                return const SliverToBoxAdapter(
-                  child: SizedBox(
-                    height: 400,
-                    child: Center(
-                      child: SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: CircularProgressIndicator(),
+
+        ValueListenableBuilder<Box<Client>>(
+          valueListenable: sl<HiveClientService>().itemListener(),
+          builder: (context, box, _) {
+            final clients = box.values.toList().cast<Client>();
+            final filteredClients = _searchText.isEmpty
+                ? clients
+                : clients.where((client) {
+                    final name = client.fullName.toLowerCase();
+                    final mobileNumber = client.mobileNumber.toLowerCase();
+                    return name.contains(_searchText.toLowerCase()) ||
+                        mobileNumber.contains(_searchText.toLowerCase());
+                  }).toList();
+
+            if (filteredClients.isEmpty) {
+              return SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(
+                  child: PageEmptyWidget(
+                    title: "No Clients Found",
+                    subtitle: "Add new clients to see them here.",
+                    icon: Icons.people_outline,
+                    iconSize: 48,
+                  ),
+                ),
+              );
+            }
+            final pinnedClients = filteredClients
+                .where((c) => c.isPinned ?? false)
+                .toList()
+                .reversed
+                .toList();
+            final unpinnedClients = filteredClients
+                .where((c) => c.isPinned == false)
+                .toList();
+            return MultiSliver(
+              children: [
+                if (pinnedClients.isNotEmpty) ...[
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 16, bottom: 8),
+                      child: Text(
+                        "Pinned Clients",
+                        style: textTheme.labelLarge,
                       ),
                     ),
                   ),
-                );
-
-              case ClientsLoaded(:final clients,):
-                final filteredClients = _searchText.isEmpty
-                    ? clients
-                    : clients.where((client) {
-                        final name = client.fullName.toLowerCase();
-                        final mobileNumber = client.mobileNumber.toLowerCase();
-                        return name.contains(_searchText.toLowerCase()) ||
-                            mobileNumber.contains(_searchText.toLowerCase());
-                      }).toList();
-
-                if (filteredClients.isEmpty) {
-                  return SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: Center(
-                      child: PageEmptyWidget(
-                        title: "No Clients Found",
-                        subtitle: "Add new clients to see them here.",
-                        icon: Icons.people_outline,
-                        iconSize: 48,
+                  SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: 100,
+                      child: CustomScrollView(
+                        scrollDirection: Axis.horizontal,
+                        shrinkWrap: true, // ✅ don’t expand infinitely
+                        primary: false, // ✅ don’t hijack the parent scroll
+                        physics:
+                            const ClampingScrollPhysics(), // ✅ smoother nested scroll
+                        slivers: [
+                          SliverPadding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                            ), // ✅ add spacing at edges
+                            sliver: SliverList(
+                              delegate: SliverChildBuilderDelegate((
+                                context,
+                                index,
+                              ) {
+                                if (index.isEven) {
+                                  final client = pinnedClients[index ~/ 2];
+                                  return ClientInfoPinnedWidget(
+                                    clientInfo: client,
+                                  );
+                                } else {
+                                  return const SizedBox(
+                                    width: 8,
+                                  ); // separator between items
+                                }
+                              }, childCount: pinnedClients.length * 2 - 1),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  );
-                }
-                final pinnedClients = filteredClients
-                    .where((c) => c.isPinned ?? false)
-                    .toList()
-                    .reversed
-                    .toList();
-                final unpinnedClients = filteredClients
-                    .where((c) => c.isPinned == false)
-                    .toList();
-                return MultiSliver(
-                  children: [
-                    if (pinnedClients.isNotEmpty) ...[
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 16, bottom: 8),
-                          child: Text(
-                            "Pinned Clients",
-                            style: textTheme.labelLarge,
-                          ),
-                        ),
-                      ),
-                      SliverToBoxAdapter(
-                        child: SizedBox(
-                          height: 100,
-                          child: CustomScrollView(
-                            scrollDirection: Axis.horizontal,
-                            shrinkWrap: true, // ✅ don’t expand infinitely
-                            primary: false, // ✅ don’t hijack the parent scroll
-                            physics:
-                                const ClampingScrollPhysics(), // ✅ smoother nested scroll
-                            slivers: [
-                              SliverPadding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                ), // ✅ add spacing at edges
-                                sliver: SliverList(
-                                  delegate: SliverChildBuilderDelegate((
-                                    context,
-                                    index,
-                                  ) {
-                                    if (index.isEven) {
-                                      final client = pinnedClients[index ~/ 2];
-                                      return ClientInfoPinnedWidget(
-                                        clientInfo: client,
-                                      );
-                                    } else {
-                                      return const SizedBox(
-                                        width: 8,
-                                      ); // separator between items
-                                    }
-                                  }, childCount: pinnedClients.length * 2 - 1),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+                  ),
 
-                      const SliverToBoxAdapter(
-                        child: Divider(
+                  const SliverToBoxAdapter(
+                    child: Divider(
+                      height: .1,
+                      thickness: .1,
+                      indent: 16,
+                      endIndent: 16,
+                    ),
+                  ),
+                ],
+
+                if (unpinnedClients.isNotEmpty) ...[
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        left: 16,
+                        bottom: 8,
+                        top: 8,
+                      ),
+                      child: Text("All Clients", style: textTheme.labelLarge),
+                    ),
+                  ),
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      if (index.isEven) {
+                        final client = unpinnedClients[index ~/ 2];
+                        return ClientInfoCardWidget(
+                          clientInfo: client,
+                          onTap: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    ClientDetailsScreen(client: client),
+                              ),
+                            );
+                          },
+                        );
+                      } else {
+                        return const Divider(
                           height: .1,
                           thickness: .1,
-                          indent: 16,
-                          endIndent: 16,
-                        ),
-                      ),
-                    ],
-
-                    if (unpinnedClients.isNotEmpty) ...[
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                            left: 16,
-                            bottom: 8,
-                            top: 8,
-                          ),
-                          child: Text(
-                            "All Clients",
-                            style: textTheme.labelLarge,
-                          ),
-                        ),
-                      ),
-                      SliverList(
-                        delegate: SliverChildBuilderDelegate((context, index) {
-                          if (index.isEven) {
-                            final client = unpinnedClients[index ~/ 2];
-                            return ClientInfoCardWidget(
-                              clientInfo: client,
-                              onTap: () async {
-                                await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        ClientDetailsScreen(client: client),
-                                  ),
-                                );
-                              },
-                            );
-                          } else {
-                            return const Divider(
-                              height: .1,
-                              thickness: .1,
-                              indent: 80,
-                            );
-                          }
-                        }, childCount: unpinnedClients.length * 2 - 1),
-                      ),
-                    ],
-                  ],
-                );
-
-              case ClientError(:final message):
-                return SliverToBoxAdapter(
-                  child: Center(child: Text("Error: $message")),
-                );
-
-              default:
-                return SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Center(
-                    child: PageEmptyWidget(
-                      title: "No Clients Found",
-                      subtitle: "Add new clients to see them here.",
-                      icon: Icons.people_outline,
-                      iconSize: 48,
-                    ),
+                          indent: 80,
+                        );
+                      }
+                    }, childCount: unpinnedClients.length * 2 - 1),
                   ),
-                );
-            }
+                ],
+              ],
+            );
           },
         ),
       ],

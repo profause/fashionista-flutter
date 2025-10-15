@@ -1,65 +1,76 @@
-import 'package:fashionista/core/repository/hive_repository.dart';
 import 'package:fashionista/core/service_locator/hive_service.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-class HiveClientService implements HiveRepository<Client> {
+class HiveClientService  {
   //late final Box clientsBox;
   final hive = HiveService();
 
-  @override
   Future<List<Client>> getItems(String key) async {
     try {
-      final data = hive.clientsBox.get(key);
-      if (data == null) {
-        return ([]);
-      }
-      final List<Client> clientList = data.cast<Client>();
-      return (clientList);
+      final data = hive.clientsBox.values;
+      return data.toList();
     } catch (e) {
       debugPrint(e.toString());
     }
     return [];
   }
 
-  @override
-  Future<void> insertItems(String key, {required List<Client> items}) async {
+  Future<void> insertItems(List<Client> items) async {
     try {
-      //await hive.clientsBox.clear();
-      await Future.wait([
-        hive.clientsBox.put(key, items),
-        hive.clientsBox.put(
-          'cacheTimestamp',
-          DateTime.now().millisecondsSinceEpoch,
-        ),
-      ]);
+      await hive.clientsBox.clear();
+      final allI = items.map((e) {
+        return hive.clientsBox.put(e.uid, e);
+      });
+      await Future.wait(allI);
     } catch (e) {
       debugPrint(e.toString());
     }
   }
 
-  @override
+  Future<void> updateItem(Client item) async {
+    try {
+      await hive.clientsBox.put(item.uid, item);
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+    Future<void> addItem(Client item) async {
+    try {
+      await hive.clientsBox.put(item.uid, item);
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  Future<void> deleteItem(String uid) async {
+    await hive.clientsBox.delete(uid);
+  }
+
   Future<bool> isCacheEmpty() async {
     return hive.clientsBox.isEmpty;
   }
 
-  @override
-  Future<void> clearCache() {
-    return hive.clientsBox.clear();
+  Future<void> clearCache() async {
+    await hive.clientsBox.clear();
   }
 
-  @override
-  Future<Client> getItem(String key, String identifier) async {
+  Future<Client> getItem(String key) async {
     try {
       final data = hive.clientsBox.get(key);
       if (data == null) {
         return Client.empty();
       }
-      final List<Client> clientList = data.cast<Client>();
-      return (clientList.where((client) => client.uid == identifier).first);
+      return data;
     } catch (e) {
       debugPrint(e.toString());
     }
     return Client.empty();
+  }
+
+  ValueListenable<Box<Client>> itemListener() {
+    return hive.clientsBox.listenable();
   }
 }

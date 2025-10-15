@@ -2,11 +2,16 @@ import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/widgets/animated_primary_button.dart';
 import 'package:fashionista/core/widgets/bloc/button_loading_state_cubit.dart';
+import 'package:fashionista/data/models/author/author_model.dart';
+import 'package:fashionista/data/models/clients/bloc/client_bloc.dart';
+import 'package:fashionista/data/models/clients/bloc/client_event.dart';
 import 'package:fashionista/data/models/clients/client_measurement_model.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
+import 'package:fashionista/data/models/notification/notification_model.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
-import 'package:fashionista/domain/usecases/clients/add_client_usecase.dart';
+import 'package:fashionista/data/services/firebase/firebase_notification_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_user_service.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/custom_chip_form_field_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_text_field_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
@@ -221,28 +226,46 @@ class _AddClientScreenState extends State<AddClientScreen> {
             .toList(),
       );
 
-      final result = await sl<AddClientUsecase>().call(newClient);
+      //final result = await sl<AddClientUsecase>().call(newClient);
 
-      result.fold(
-        (l) {
-          _buttonLoadingStateCubit.setLoading(false);
-          if (!mounted) return;
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(l)));
-        },
-        (r) {
-          _buttonLoadingStateCubit.setLoading(false);
-          //context.read<ClientBloc>().add(LoadClientsCacheFirstThenNetwork(''));
-          //BlocProvider.of<ClientBloc>(context).add(const LoadClientsCacheFirstThenNetwork(''));
-          if (!mounted) return;
-          //Navigator.pop(context);
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Client added successfully!')));
-          Navigator.pop(context, true);
-        },
+      context.read<ClientBloc>().add(AddClient(newClient));
+
+      final userResult = await sl<FirebaseUserService>().findUserByMobileNumber(
+        mobileNumber,
       );
+
+      userResult.fold((l) {}, (r) async {
+        if (r.uid != null) {
+          //send notification to user who created the client
+          final authorUser = AuthorModel.empty().copyWith(
+            uid: user.uid,
+            name: user.fullName,
+            avatar: user.profileImage,
+            mobileNumber: user.mobileNumber,
+          );
+
+          final notification = NotificationModel.empty().copyWith(
+            uid: Uuid().v4(),
+            title: 'New Client',
+            description: '${user.fullName} has added you as a client',
+            createdAt: DateTime.now().millisecondsSinceEpoch,
+            type: 'info',
+            refId: uid,
+            refType: "client",
+            from: user.uid,
+            to: r.uid,
+            author: authorUser,
+            status: 'new',
+          );
+
+          await sl<FirebaseNotificationService>().createNotification(
+            notification,
+          );
+
+          _buttonLoadingStateCubit.setLoading(false);
+          Navigator.pop(context, true);
+        }
+      });
     } on FirebaseException catch (e) {
       _buttonLoadingStateCubit.setLoading(false);
       if (!mounted) return;

@@ -1,18 +1,17 @@
 import 'dart:async';
 
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/data/models/clients/bloc/client_bloc.dart';
+import 'package:fashionista/data/models/clients/bloc/client_event.dart';
+import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/domain/usecases/clients/pin_or_unpin_client_usecase.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CustomPinnedClientIconButton extends StatefulWidget {
-  final String clientId;
-  final ValueNotifier<bool>? isPinnedNotifier;
-  const CustomPinnedClientIconButton({
-    super.key,
-    required this.clientId,
-    this.isPinnedNotifier,
-  });
+  final Client client;
+  const CustomPinnedClientIconButton({super.key, required this.client});
 
   @override
   State<CustomPinnedClientIconButton> createState() =>
@@ -24,41 +23,35 @@ class _CustomPinnedClientIconButtonState
     with SingleTickerProviderStateMixin {
   late bool isPinned = false;
   late AnimationController _controller;
+  late ValueNotifier<bool> isPinnedNotifier;
+
   Timer? _debounce; // 👈 debounce timer
   @override
   initState() {
-    //getIsPinned();
-    //widget.isPinnedNotifier?.value = isPinned;
-
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 200),
     );
 
-    // _scale = Tween<double>(
-    //   begin: 0.7,
-    //   end: 1.2,
-    // ).chain(CurveTween(curve: Curves.elasticOut)).animate(_controller);
-
-    widget.isPinnedNotifier!.addListener(() {
-      if (widget.isPinnedNotifier!.value) {
+    isPinnedNotifier = ValueNotifier(widget.client.isPinned!);
+    isPinnedNotifier.addListener(() {
+      if (isPinnedNotifier.value) {
         if (!mounted) return;
         _controller.forward(from: 0); // restart burst animation
       }
     });
-
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<bool>(
-      valueListenable: widget.isPinnedNotifier!,
-      builder: (_, isPinned, __) {
+      valueListenable: isPinnedNotifier,
+      builder: (_, isPinned, _) {
         return CustomIconButtonRounded(
           iconData: Icons.push_pin_outlined,
           onPressed: () async {
-            widget.isPinnedNotifier!.value = !isPinned;
+            isPinnedNotifier.value = !isPinned;
             setState(() {
               isPinned = !isPinned;
             });
@@ -87,12 +80,13 @@ class _CustomPinnedClientIconButtonState
   void _debouncePinOrUnpin() {
     _debounce?.cancel(); // cancel previous timer
     _debounce = Timer(const Duration(milliseconds: 500), () async {
-      final result = await sl<PinOrUnpinClientUsecase>().call(widget.clientId);
+      final result = await sl<PinOrUnpinClientUsecase>().call(
+        widget.client.uid,
+      );
       result.fold((l) {}, (r) {
-        widget.isPinnedNotifier!.value = r;
-        // setState(() {
-        //   isPinned = r;
-        // });
+        isPinnedNotifier.value = r;
+        final updateClient = widget.client.copyWith(isPinned: r);
+        context.read<ClientBloc>().add(UpdateClient(updateClient));
       });
     });
   }
@@ -103,12 +97,4 @@ class _CustomPinnedClientIconButtonState
     _debounce?.cancel();
     super.dispose();
   }
-
-  // void getIsPinned() async {
-  //   if (!mounted) return;
-  //   isPinned = await sl<IsPinnedClientUsecase>().call(
-  //     widget.clientId,
-  //   );
-  //   widget.isPinnedNotifier!.value = isPinned;
-  // }
 }

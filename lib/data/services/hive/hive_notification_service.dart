@@ -18,10 +18,7 @@ class HiveNotificationService {
     return [];
   }
 
-  Future<void> insertItems(
-    String key, {
-    required List<NotificationModel> items,
-  }) async {
+  Future<void> insertItems(List<NotificationModel> items) async {
     try {
       await hive.notificationsBox.clear();
       final allI = items.map((e) {

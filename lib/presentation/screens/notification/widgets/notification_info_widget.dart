@@ -22,8 +22,8 @@ class NotificationInfoWidget extends StatelessWidget {
       color: colorScheme.onPrimary, // 👈 Needed for ripple to show
       child: InkWell(
         onTap: onTap ?? () {}, // 👈 Trigger ripple effect
-        splashColor: colorScheme.primary.withOpacity(0.1),
-        highlightColor: colorScheme.primary.withOpacity(0.05),
+        splashColor: colorScheme.primary.withValues(alpha: 0.1),
+        highlightColor: colorScheme.primary.withValues(alpha: 0.05),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: ListTile(

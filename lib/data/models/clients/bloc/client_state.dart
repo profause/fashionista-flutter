@@ -30,6 +30,13 @@ class ClientUpdated extends ClientBlocState {
   @override
   List<Object?> get props => [client];
 }
+class ClientAdded extends ClientBlocState {
+  final Client client;
+  const ClientAdded(this.client);
+  @override
+  List<Object?> get props => [client];
+}
+
 
 class ClientsLoaded extends ClientBlocState {
   final List<Client> clients;

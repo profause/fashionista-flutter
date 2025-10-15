@@ -186,9 +186,7 @@ class NotificationBloc
 
         if (cachedItems.toString() != notifications.toString()) {
           emit(NotificationsLoaded(notifications, fromCache: false));
-          await sl<HiveNotificationService>().insertItems(
-            uid,
-            items: notifications,
+          await sl<HiveNotificationService>().insertItems(notifications,
           );
         } else {
           emit(NotificationsLoaded(cachedItems, fromCache: true));
