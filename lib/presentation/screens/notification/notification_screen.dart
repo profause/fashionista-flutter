@@ -51,15 +51,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
         valueListenable: sl<HiveNotificationService>().itemListener(),
         builder: (context, box, _) {
           final notifications = box.values.toList().cast<NotificationModel>();
+          final sortedNotifications = [...notifications]
+            ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
           return ListView.separated(
             padding: const EdgeInsets.only(top: 2),
             scrollDirection: Axis.vertical,
             shrinkWrap: true,
             separatorBuilder: (context, index) =>
                 const Divider(height: .1, thickness: .1),
-            itemCount: notifications.length,
+            itemCount: sortedNotifications.length,
             itemBuilder: (context, index) {
-              final notification = notifications[index];
+              final notification = sortedNotifications[index];
               switch (notification.type) {
                 case "workOrderRequest":
                   return NotificationWorkOrderRequestWidget(
@@ -67,8 +69,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     notification: notification,
                     onDelete: () {
                       context.read<NotificationBloc>().add(
-                            DeleteNotification(notification.uid!),
-                          );
+                        DeleteNotification(notification.uid!),
+                      );
                     },
                     onTap: () {
                       if (notification.status != 'new') return;

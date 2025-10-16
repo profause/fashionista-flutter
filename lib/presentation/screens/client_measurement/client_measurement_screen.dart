@@ -32,7 +32,7 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
 
   @override
   void initState() {
-     context.read<ClientBloc>().add(UpdateClient(widget.client));
+     //context.read<ClientBloc>().add(UpdateClient(widget.client));
     super.initState();
   }
 

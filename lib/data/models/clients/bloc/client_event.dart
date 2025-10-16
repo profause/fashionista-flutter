@@ -10,10 +10,11 @@ abstract class ClientBlocEvent extends Equatable {
 
 class LoadClient extends ClientBlocEvent {
   final String uid;
-  const LoadClient(this.uid);
+  final bool isFromCache;
+  const LoadClient(this.uid, {this.isFromCache = false});
 
   @override
-  List<Object?> get props => [uid];
+  List<Object?> get props => [uid,isFromCache];
 }
 
 class UpdateClient extends ClientBlocEvent {

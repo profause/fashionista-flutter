@@ -1,10 +1,8 @@
-import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/clients/bloc/client_bloc.dart';
 import 'package:fashionista/data/models/clients/bloc/client_event.dart';
 import 'package:fashionista/data/models/clients/bloc/client_state.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
-import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
 import 'package:fashionista/presentation/screens/client_measurement/client_measurement_screen.dart';
 import 'package:fashionista/presentation/screens/clients/client_profile_page.dart';
 import 'package:fashionista/presentation/screens/clients/client_project_page.dart';
@@ -12,7 +10,6 @@ import 'package:fashionista/presentation/screens/clients/edit_client_screen.dart
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/custom_pinned_client_icon_button.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -29,7 +26,9 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
 
   @override
   void initState() {
-    context.read<ClientBloc>().add(UpdateClient(widget.client));
+    context.read<ClientBloc>().add(
+      LoadClient(widget.client.uid, isFromCache: true),
+    );
     super.initState();
   }
 

@@ -8,6 +8,7 @@ import 'package:fashionista/domain/usecases/clients/find_client_by_id_usecase.da
 import 'package:fashionista/domain/usecases/clients/find_clients_usecase.dart';
 import 'package:fashionista/domain/usecases/clients/update_client_usecase.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ClientBloc extends Bloc<ClientBlocEvent, ClientBlocState> {
@@ -28,13 +29,17 @@ class ClientBloc extends Bloc<ClientBlocEvent, ClientBlocState> {
     Emitter<ClientBlocState> emit,
   ) async {
     emit(const ClientLoading());
-
-    final result = await sl<FindClientByIdUsecase>().call(event.uid);
-
-    result.fold(
-      (failure) => emit(ClientError(failure.toString())),
-      (client) => emit(ClientLoaded(client)),
-    );
+    if (event.isFromCache) {
+      // 1️⃣ Try cache first
+      final cachedItem = await sl<HiveClientService>().getItem(event.uid);
+      emit(ClientUpdated(cachedItem));
+    } else {
+      final result = await sl<FindClientByIdUsecase>().call(event.uid);
+      result.fold(
+        (failure) => emit(ClientError(failure.toString())),
+        (client) => emit(ClientUpdated(client)),
+      );
+    }
   }
 
   Future<void> _deleteClient(

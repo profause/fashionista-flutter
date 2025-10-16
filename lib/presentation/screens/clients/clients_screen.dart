@@ -114,9 +114,12 @@ class _ClientsScreenState extends State<ClientsScreen> {
           valueListenable: sl<HiveClientService>().itemListener(),
           builder: (context, box, _) {
             final clients = box.values.toList().cast<Client>();
+            final sortedClients = [...clients]
+              ..sort((a, b) => b.createdDate!.compareTo(a.createdDate!));
+
             final filteredClients = _searchText.isEmpty
-                ? clients
-                : clients.where((client) {
+                ? sortedClients
+                : sortedClients.where((client) {
                     final name = client.fullName.toLowerCase();
                     final mobileNumber = client.mobileNumber.toLowerCase();
                     return name.contains(_searchText.toLowerCase()) ||

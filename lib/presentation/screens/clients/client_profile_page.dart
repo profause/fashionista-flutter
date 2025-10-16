@@ -1,5 +1,4 @@
 import 'package:fashionista/data/models/clients/bloc/client_bloc.dart';
-import 'package:fashionista/data/models/clients/bloc/client_event.dart';
 import 'package:fashionista/data/models/clients/bloc/client_state.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +16,7 @@ class ClientProfilePage extends StatefulWidget {
 class _ClientProfilePageState extends State<ClientProfilePage> {
   @override
   void initState() {
-    context.read<ClientBloc>().add(UpdateClient(widget.client));
+    //context.read<ClientBloc>().add(LoadClient(widget.client.uid));
     super.initState();
   }
 

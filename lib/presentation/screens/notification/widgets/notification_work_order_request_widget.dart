@@ -78,11 +78,13 @@ class NotificationWorkOrderRequestWidget extends StatelessWidget {
                 ),
               ),
               subtitle: Padding(
-                padding: const EdgeInsets.only(top: 8.0),
+                padding: const EdgeInsets.only(top: 3.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       notification.description,
                       style: textTheme.labelMedium,
                     ),

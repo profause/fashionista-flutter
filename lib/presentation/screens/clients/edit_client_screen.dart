@@ -1,11 +1,9 @@
-import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/widgets/animated_primary_button.dart';
 import 'package:fashionista/core/widgets/bloc/button_loading_state_cubit.dart';
 import 'package:fashionista/data/models/clients/bloc/client_bloc.dart';
 import 'package:fashionista/data/models/clients/bloc/client_event.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
-import 'package:fashionista/domain/usecases/clients/update_client_usecase.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/custom_chip_form_field_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_text_field_widget.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -169,23 +167,12 @@ class _EditClientScreenState extends State<EditClientScreen> {
   Future<void> _saveClient(Client updatedClient) async {
     try {
       _buttonLoadingStateCubit.setLoading(true);
-      final result = await sl<UpdateClientUsecase>().call(updatedClient);
 
-      result.fold(
-        (failure) {
-          _buttonLoadingStateCubit.setLoading(false);
-          if (!mounted) return;
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(failure)));
-        },
-        (success) {
-          _buttonLoadingStateCubit.setLoading(false);
-          context.read<ClientBloc>().add(UpdateClient(updatedClient));
-          if (!mounted) return;
-           Navigator.pop(context); // ❌ no need for `true`
-        },
-      );
+      context.read<ClientBloc>().add(UpdateClient(updatedClient));
+      _buttonLoadingStateCubit.setLoading(false);
+
+      if (!mounted) return;
+      Navigator.pop(context); // ❌ no need for `true`
     } on FirebaseException catch (e) {
       _buttonLoadingStateCubit.setLoading(false);
       if (!mounted) return;
