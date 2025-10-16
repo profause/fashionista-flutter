@@ -22,6 +22,22 @@ class UpdateWorkOrder extends WorkOrderBlocEvent {
   List<Object?> get props => [workorder];
 }
 
+class PatchWorkOrder extends WorkOrderBlocEvent {
+  final WorkOrderModel workorder;
+  const PatchWorkOrder(this.workorder);
+
+  @override
+  List<Object?> get props => [workorder];
+}
+
+class AddWorkOrder extends WorkOrderBlocEvent {
+  final WorkOrderModel workorder;
+  const AddWorkOrder(this.workorder);
+
+  @override
+  List<Object?> get props => [workorder];
+}
+
 class LoadWorkOrders extends WorkOrderBlocEvent {
   final String uid;
   const LoadWorkOrders(this.uid);

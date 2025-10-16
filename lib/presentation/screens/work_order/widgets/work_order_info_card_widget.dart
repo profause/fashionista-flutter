@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/data/models/work_order/bloc/work_order_bloc.dart';
+import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_event.dart';
 import 'package:fashionista/data/models/work_order/work_order_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_work_order_service.dart';
 import 'package:fashionista/presentation/screens/work_order/project_details_screen.dart';
@@ -9,16 +11,15 @@ import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_rounded.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 class WorkOrderInfoCardWidget extends StatefulWidget {
   final WorkOrderModel workOrderInfo;
-  final VoidCallback? onTap; // Callback for navigation or action
 
   const WorkOrderInfoCardWidget({
     super.key,
     required this.workOrderInfo,
-    this.onTap,
   });
 
   @override
@@ -154,8 +155,8 @@ class _WorkOrderInfoCardWidgetState extends State<WorkOrderInfoCardWidget>
                                       isBookmarked,
                                     ), // important for switcher
                                     color: isBookmarked
-                                        ? Colors.black
-                                        : Colors.grey,
+                                        ? colorScheme.onPrimary
+                                        : colorScheme.primary,
                                     size: 20,
                                   ),
                                 ),
@@ -215,7 +216,8 @@ class _WorkOrderInfoCardWidgetState extends State<WorkOrderInfoCardWidget>
       );
       result.fold((l) {}, (r) {
         isBookmarkedNotifier!.value = r;
-        widget.onTap!();
+        final updateWorkOrder = widget.workOrderInfo.copyWith(isBookmarked: r);
+        context.read<WorkOrderBloc>().add(UpdateWorkOrder(updateWorkOrder));
       });
     });
   }

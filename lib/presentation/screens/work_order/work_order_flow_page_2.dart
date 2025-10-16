@@ -54,9 +54,12 @@ class _WorkOrderFlowPage2State extends State<WorkOrderFlowPage2> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: BlocBuilder<WorkOrderBloc, WorkOrderBlocState>(
+                        buildWhen: (context, state) {
+              return state is WorkOrderPatched;
+            },
             builder: (context, state) {
               // ✅ pre-fill values when coming back
-              if (state is WorkOrderUpdated) current = state.workorder;
+              if (state is WorkOrderPatched) current = state.workorder;
               _selectedClientNotifier.value = current.client;
               _startDateTextFieldController.text = DateFormat(
                 'yyyy-MM-dd',
@@ -309,7 +312,7 @@ class _WorkOrderFlowPage2State extends State<WorkOrderFlowPage2> {
                             client: client,
                           );
                           context.read<WorkOrderBloc>().add(
-                            UpdateWorkOrder(workOrder),
+                            PatchWorkOrder(workOrder),
                           );
                           widget.onNext!();
                         },

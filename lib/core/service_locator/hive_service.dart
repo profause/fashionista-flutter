@@ -36,7 +36,7 @@ class HiveService {
   late final Box trendCommentsBox;
   late final Box closetBox;
   late final Box userInterestsBox;
-  late final Box workOrderBox;
+  late final Box<WorkOrderModel> workOrderBox;
   late final Box workOrderStatusProgressBox;
   late final Box designerReviewsBox;
   late final Box<NotificationModel> notificationsBox;

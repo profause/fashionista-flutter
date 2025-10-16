@@ -36,9 +36,12 @@ class _WorkOrderFlowPage4State extends State<WorkOrderFlowPage4> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: BlocBuilder<WorkOrderBloc, WorkOrderBlocState>(
+                      buildWhen: (context, state) {
+              return state is WorkOrderPatched;
+            },
           builder: (context, state) {
             // ✅ pre-fill values when coming back
-            if (state is WorkOrderUpdated) current = state.workorder;
+            if (state is WorkOrderPatched) current = state.workorder;
             if (current.featuredMedia!.isNotEmpty) {
               previewImages = current.featuredMedia!
                   .map((p) => XFile(p.url!))
@@ -225,7 +228,7 @@ class _WorkOrderFlowPage4State extends State<WorkOrderFlowPage4> {
                     OutlinedButton(
                       onPressed: () {
                         context.read<WorkOrderBloc>().add(
-                          UpdateWorkOrder(current),
+                          PatchWorkOrder(current),
                         );
                         widget.onNext!(current);
                       },

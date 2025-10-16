@@ -1,7 +1,6 @@
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/clients/bloc/client_bloc.dart';
 import 'package:fashionista/data/models/clients/bloc/client_event.dart';
-import 'package:fashionista/data/models/clients/bloc/client_state.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/data/services/hive/hive_client_service.dart';
 import 'package:fashionista/presentation/screens/clients/client_details_screen.dart';
@@ -13,9 +12,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
 import 'package:sliver_tools/sliver_tools.dart';
-
-final RouteObserver<ModalRoute<void>> routeObserver =
-    RouteObserver<ModalRoute<void>>();
 
 class ClientsScreen extends StatefulWidget {
   const ClientsScreen({super.key});
@@ -181,6 +177,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                                 if (index.isEven) {
                                   final client = pinnedClients[index ~/ 2];
                                   return ClientInfoPinnedWidget(
+                                    key: ValueKey(client.uid),
                                     clientInfo: client,
                                   );
                                 } else {
@@ -222,6 +219,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                       if (index.isEven) {
                         final client = unpinnedClients[index ~/ 2];
                         return ClientInfoCardWidget(
+                          key: ValueKey(client.uid),
                           clientInfo: client,
                           onTap: () async {
                             await Navigator.push(

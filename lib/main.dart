@@ -29,8 +29,6 @@ import 'package:fashionista/data/models/trends/bloc/trend_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_comment_bloc.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_status_progress_bloc.dart';
-import 'package:fashionista/presentation/screens/clients/clients_screen.dart';
-import 'package:fashionista/presentation/screens/closet/closet_items_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -114,7 +112,6 @@ class MyApp extends StatelessWidget {
           theme: fashionistaLightTheme,
           darkTheme: fashionistaDarkTheme,
           themeMode: ThemeMode.values[settings.displayMode as int],
-          navigatorObservers: [routeObserver, closetItemPageRouteObserver],
           home: const AppStarter(),
           // routes: {
           //   '/clients': (_) => const ClientsScreen(),

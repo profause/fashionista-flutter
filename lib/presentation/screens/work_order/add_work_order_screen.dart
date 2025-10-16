@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dartz/dartz.dart' as dartz;
+import 'package:fashionista/core/service_locator/app_toast.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/utils/get_image_aspect_ratio.dart';
 import 'package:fashionista/data/models/author/author_model.dart';
@@ -182,14 +183,10 @@ class _AddWorkOrderScreenState extends State<AddWorkOrderScreen> {
         },
         (r) {
           if (!mounted) return;
-          context.read<WorkOrderBloc>().add(
-            const LoadWorkOrdersCacheFirstThenNetwork(''),
-          );
+          context.read<WorkOrderBloc>().add(AddWorkOrder(workorder));
           Navigator.pop(context);
           Navigator.pop(context, true);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Work Order created successfully!')),
-          );
+          AppToast.info(context, 'Work Order created successfully!');
         },
       );
     } on firebase_auth.FirebaseException catch (e) {

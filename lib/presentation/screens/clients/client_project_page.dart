@@ -60,12 +60,8 @@ class _ClientProjectPageState extends State<ClientProjectPage> {
               itemBuilder: (context, index) {
                 final workOrder = filteredWorkOrders[index];
                 return WorkOrderInfoCardWidget(
+                  key: ValueKey(workOrder.uid),
                   workOrderInfo: workOrder,
-                  onTap: () {
-                    context.read<WorkOrderBloc>().add(
-                      const LoadWorkOrdersCacheFirstThenNetwork(''),
-                    );
-                  },
                 );
               },
               separatorBuilder: (context, index) => const SizedBox(height: 12),

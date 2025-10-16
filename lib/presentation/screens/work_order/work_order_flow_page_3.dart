@@ -55,9 +55,12 @@ class _WorkOrderFlowPage3State extends State<WorkOrderFlowPage3> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: BlocBuilder<WorkOrderBloc, WorkOrderBlocState>(
+          buildWhen: (context, state) {
+            return state is WorkOrderPatched;
+          },
           builder: (context, state) {
             // ✅ pre-fill values when coming back
-            if (state is WorkOrderUpdated) current = state.workorder;
+            if (state is WorkOrderPatched) current = state.workorder;
             if (current.featuredMedia!.isNotEmpty) {
               for (var i = 0; i < current.featuredMedia!.length; i++) {
                 previewImages.add(XFile(current.featuredMedia![i].url!));
@@ -82,7 +85,7 @@ class _WorkOrderFlowPage3State extends State<WorkOrderFlowPage3> {
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.all(8),
                       itemCount: previewImages.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 8),
+                      separatorBuilder: (_, _) => const SizedBox(width: 8),
                       itemBuilder: (context, index) {
                         final image = previewImages[index];
                         return Stack(
@@ -207,7 +210,7 @@ class _WorkOrderFlowPage3State extends State<WorkOrderFlowPage3> {
                           featuredMedia: featuredMedia,
                         );
                         context.read<WorkOrderBloc>().add(
-                          UpdateWorkOrder(workOrder),
+                          PatchWorkOrder(workOrder),
                         );
                         widget.onNext!();
                       },

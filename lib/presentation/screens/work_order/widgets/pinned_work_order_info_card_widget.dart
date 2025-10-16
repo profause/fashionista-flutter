@@ -2,10 +2,11 @@ import 'dart:async';
 
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/settings/bloc/settings_bloc.dart';
+import 'package:fashionista/data/models/work_order/bloc/work_order_bloc.dart';
+import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_event.dart';
 import 'package:fashionista/data/models/work_order/work_order_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_work_order_service.dart';
 import 'package:fashionista/presentation/screens/work_order/project_details_screen.dart';
-import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_rounded.dart';
 import 'package:flutter/material.dart';
@@ -14,12 +15,10 @@ import 'package:intl/intl.dart';
 
 class PinnedWorkOrderInfoCardWidget extends StatefulWidget {
   final WorkOrderModel workOrderInfo;
-  final VoidCallback? onTap;
 
   const PinnedWorkOrderInfoCardWidget({
     super.key,
     required this.workOrderInfo,
-    this.onTap,
   });
 
   @override
@@ -105,9 +104,9 @@ class _PinnedWorkOrderInfoCardWidgetState
                       const Spacer(),
                       ValueListenableBuilder<bool>(
                         valueListenable: isBookmarkedNotifier!,
-                        builder: (_, isBookmarked, __) {
+                        builder: (_, isBookmarked, _) {
                           return CustomIconButtonRounded(
-                            backgroundColor: Colors.grey.shade200,
+                            backgroundColor: Colors.grey.shade200.withValues(alpha: 0),
                             onPressed: () async {
                               isBookmarkedNotifier!.value = !isBookmarked;
                               _pinOrUnpinWorkOrder();
@@ -133,9 +132,9 @@ class _PinnedWorkOrderInfoCardWidgetState
                                   isBookmarked,
                                 ), // important for switcher
                                 color: isBookmarked
-                                    ? Colors.black
-                                    : Colors.grey,
-                                size: 16,
+                                    ? colorScheme.primary
+                                    : colorScheme.onPrimary,
+                                size: 18,
                               ),
                             ),
                           );
@@ -167,6 +166,7 @@ class _PinnedWorkOrderInfoCardWidgetState
                       ),
                       const Spacer(),
                       Text(
+                        widget.workOrderInfo.dueDate == null ? 'no due date' : 
                         DateFormat(
                           'yyyy-MM-dd',
                         ).format(widget.workOrderInfo.dueDate!),
@@ -191,7 +191,8 @@ class _PinnedWorkOrderInfoCardWidgetState
       );
       result.fold((l) {}, (r) {
         isBookmarkedNotifier!.value = r;
-        widget.onTap!();
+        final updateWorkOrder = widget.workOrderInfo.copyWith(isBookmarked: r);
+        context.read<WorkOrderBloc>().add(UpdateWorkOrder(updateWorkOrder));
       });
     });
   }

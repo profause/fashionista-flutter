@@ -22,6 +22,14 @@ class UpdateStatusProgress extends WorkOrderStatusProgressBlocEvent {
   List<Object?> get props => [workOrderStatusProgressModel];
 }
 
+class AddStatusProgress extends WorkOrderStatusProgressBlocEvent {
+  final WorkOrderStatusProgressModel workOrderStatusProgressModel;
+  const AddStatusProgress(this.workOrderStatusProgressModel);
+
+  @override
+  List<Object?> get props => [workOrderStatusProgressModel];
+}
+
 class LoadWorkOrderProgress extends WorkOrderStatusProgressBlocEvent {
   final String uid;
   const LoadWorkOrderProgress(this.uid);

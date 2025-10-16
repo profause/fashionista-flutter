@@ -14,6 +14,8 @@ class WorkOrderBloc extends Bloc<WorkOrderBlocEvent, WorkOrderBlocState> {
     on<LoadWorkOrder>(_onLoadWorkOrder);
     on<LoadWorkOrders>(_onLoadWorkOrders);
     on<UpdateWorkOrder>(_updateWorkOrder);
+    on<PatchWorkOrder>(_patchWorkOrder);
+    on<AddWorkOrder>(_addWorkOrder);
     on<DeleteWorkOrder>(_deleteWorkOrder);
     on<LoadWorkOrdersCacheFirstThenNetwork>(
       _onLoadWorkOrdersCacheFirstThenNetwork,
@@ -48,7 +50,15 @@ class WorkOrderBloc extends Bloc<WorkOrderBlocEvent, WorkOrderBlocState> {
     final result = await sl<FirebaseWorkOrderService>().deleteWorkOrder(
       event.uid,
     );
-    result.fold((l) => null, (r) => emit(WorkOrderDeleted(r)));
+    await result.fold(
+      (failure) async {
+        emit(WorkOrderError(failure.toString()));
+      },
+      (message) async {
+        await sl<HiveWorkOrderService>().deleteItem(event.uid);
+        emit(WorkOrderDeleted(message)); // ✅ safe emit
+      },
+    );
   }
 
   Future<void> _onLoadWorkOrders(
@@ -75,6 +85,46 @@ class WorkOrderBloc extends Bloc<WorkOrderBlocEvent, WorkOrderBlocState> {
     UpdateWorkOrder event,
     Emitter<WorkOrderBlocState> emit,
   ) async {
+    emit(WorkOrderLoading());
+    final result = await sl<FirebaseWorkOrderService>().updateWorkOrder(
+      event.workorder,
+    );
+
+    await result.fold(
+      (failure) async {
+        emit(WorkOrderError(failure.toString()));
+      },
+      (workOrder) async {
+        await sl<HiveWorkOrderService>().updateItem(event.workorder);
+        emit(WorkOrderUpdated(workOrder)); // ✅ safe emit
+      },
+    );
+  }
+
+  Future<void> _addWorkOrder(
+    AddWorkOrder event,
+    Emitter<WorkOrderBlocState> emit,
+  ) async {
+    emit(WorkOrderLoading());
+    final result = await sl<FirebaseWorkOrderService>().updateWorkOrder(
+      event.workorder,
+    );
+
+    await result.fold(
+      (failure) async {
+        emit(WorkOrderError(failure.toString()));
+      },
+      (workOrder) async {
+        await sl<HiveWorkOrderService>().updateItem(event.workorder);
+        emit(WorkOrderAdded(workOrder)); // ✅ safe emit
+      },
+    );
+  }
+
+  Future<void> _patchWorkOrder(
+    PatchWorkOrder event,
+    Emitter<WorkOrderBlocState> emit,
+  ) async {
     // 🔑 merge with existing draft
     if (_current == null) {
       _current = event.workorder;
@@ -96,7 +146,7 @@ class WorkOrderBloc extends Bloc<WorkOrderBlocEvent, WorkOrderBlocState> {
       );
     }
 
-    emit(WorkOrderUpdated(_current!));
+    emit(WorkOrderPatched(_current!));
   }
 
   Future<void> _onCountWorkOrders(
@@ -145,7 +195,7 @@ class WorkOrderBloc extends Bloc<WorkOrderBlocEvent, WorkOrderBlocState> {
 
         if (cachedItems.toString() != workorders.toString()) {
           emit(WorkOrdersLoaded(workorders, fromCache: false));
-          await sl<HiveWorkOrderService>().insertItems(uid, items: workorders);
+          await sl<HiveWorkOrderService>().insertItems(workorders);
         } else {
           emit(WorkOrdersLoaded(cachedItems, fromCache: true));
         }
@@ -171,9 +221,9 @@ class WorkOrderBloc extends Bloc<WorkOrderBlocEvent, WorkOrderBlocState> {
       return;
     }
 
-    final workOrderItems = cachedItems.where(
-      (WorkOrderModel item) => item.client!.uid == event.uid,
-    ).toList();
+    final workOrderItems = cachedItems
+        .where((WorkOrderModel item) => item.client!.uid == event.uid)
+        .toList();
 
     if (workOrderItems.isEmpty) {
       emit(const WorkOrdersEmpty());

@@ -38,8 +38,11 @@ class _WorkOrderFlowPage1State extends State<WorkOrderFlowPage1> {
           // ensures it's still scrollable on small screens
           padding: const EdgeInsets.all(16),
           child: BlocBuilder<WorkOrderBloc, WorkOrderBlocState>(
+            buildWhen: (context, state) {
+              return state is WorkOrderPatched;
+            },
             builder: (context, state) {
-              if (state is WorkOrderUpdated) current = state.workorder;
+              if (state is WorkOrderPatched) current = state.workorder;
               _titleTextFieldController.text = current.title;
               _descriptionTextFieldController.text = current.description ?? "";
 
@@ -131,7 +134,7 @@ class _WorkOrderFlowPage1State extends State<WorkOrderFlowPage1> {
                               .trim(),
                         );
                         context.read<WorkOrderBloc>().add(
-                          UpdateWorkOrder(workOrder),
+                          PatchWorkOrder(workOrder),
                         );
                         widget.onNext!();
                       },

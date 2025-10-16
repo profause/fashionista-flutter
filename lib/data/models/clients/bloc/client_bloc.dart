@@ -8,7 +8,6 @@ import 'package:fashionista/domain/usecases/clients/find_client_by_id_usecase.da
 import 'package:fashionista/domain/usecases/clients/find_clients_usecase.dart';
 import 'package:fashionista/domain/usecases/clients/update_client_usecase.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ClientBloc extends Bloc<ClientBlocEvent, ClientBlocState> {

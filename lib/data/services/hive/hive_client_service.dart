@@ -3,7 +3,7 @@ import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-class HiveClientService  {
+class HiveClientService {
   //late final Box clientsBox;
   final hive = HiveService();
 
@@ -19,7 +19,6 @@ class HiveClientService  {
 
   Future<void> insertItems(List<Client> items) async {
     try {
-      await hive.clientsBox.clear();
       final allI = items.map((e) {
         return hive.clientsBox.put(e.uid, e);
       });
@@ -37,7 +36,7 @@ class HiveClientService  {
     }
   }
 
-    Future<void> addItem(Client item) async {
+  Future<void> addItem(Client item) async {
     try {
       await hive.clientsBox.put(item.uid, item);
     } catch (e) {

@@ -1,4 +1,3 @@
-
 import 'package:equatable/equatable.dart';
 import 'package:fashionista/data/models/work_order/work_order_model.dart';
 
@@ -28,6 +27,20 @@ class WorkOrderLoaded extends WorkOrderBlocState {
 class WorkOrderUpdated extends WorkOrderBlocState {
   final WorkOrderModel workorder;
   const WorkOrderUpdated(this.workorder);
+  @override
+  List<Object?> get props => [workorder];
+}
+
+class WorkOrderPatched extends WorkOrderBlocState {
+  final WorkOrderModel workorder;
+  const WorkOrderPatched(this.workorder);
+  @override
+  List<Object?> get props => [workorder];
+}
+
+class WorkOrderAdded extends WorkOrderBlocState {
+  final WorkOrderModel workorder;
+  const WorkOrderAdded(this.workorder);
   @override
   List<Object?> get props => [workorder];
 }
