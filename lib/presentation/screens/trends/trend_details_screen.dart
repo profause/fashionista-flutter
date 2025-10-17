@@ -1041,7 +1041,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
               from: _userBloc.state.uid,
               to: success.createdBy,
               author: authorUser,
-              status: 'new',
+              status: 'REQUEST',
             );
 
             await sl<FirebaseNotificationService>().createNotification(

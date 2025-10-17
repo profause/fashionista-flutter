@@ -1,6 +1,8 @@
+import 'package:fashionista/core/assets/app_vectors.dart';
 import 'package:fashionista/core/widgets/animated_primary_button.dart';
 import 'package:fashionista/presentation/widgets/custom_mobilenumber_form_field_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class MobileNumberAuthPage extends StatefulWidget {
   final PageController controller;
@@ -35,6 +37,15 @@ class _MobileNumberAuthPageState extends State<MobileNumberAuthPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Center(
+                  child: SvgPicture.asset(
+                    AppVectors.mobileLoginImage,
+                    width: 220,
+                    height: 220,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                const SizedBox(height: 16),
                 Text(
                   "Enter Your Mobile Number",
                   style: Theme.of(context).textTheme.headlineMedium,

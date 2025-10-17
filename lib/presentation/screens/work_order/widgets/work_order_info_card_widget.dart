@@ -7,6 +7,7 @@ import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_event.da
 import 'package:fashionista/data/models/work_order/work_order_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_work_order_service.dart';
 import 'package:fashionista/presentation/screens/work_order/project_details_screen.dart';
+import 'package:fashionista/presentation/screens/work_order/work_order_request_screen.dart';
 import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_rounded.dart';
@@ -17,10 +18,7 @@ import 'package:intl/intl.dart';
 class WorkOrderInfoCardWidget extends StatefulWidget {
   final WorkOrderModel workOrderInfo;
 
-  const WorkOrderInfoCardWidget({
-    super.key,
-    required this.workOrderInfo,
-  });
+  const WorkOrderInfoCardWidget({super.key, required this.workOrderInfo});
 
   @override
   State<WorkOrderInfoCardWidget> createState() =>
@@ -74,13 +72,24 @@ class _WorkOrderInfoCardWidgetState extends State<WorkOrderInfoCardWidget>
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    ProjectDetailsScreen(workOrderInfo: widget.workOrderInfo),
-              ),
-            );
+            if (widget.workOrderInfo.status == 'REQUEST') {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => WorkOrderRequestScreen(
+                    workOrderRequestId: widget.workOrderInfo.uid!,
+                  ),
+                ),
+              );
+            } else {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      ProjectDetailsScreen(workOrderInfo: widget.workOrderInfo),
+                ),
+              );
+            }
           },
           child: Padding(
             padding: const EdgeInsets.all(8),

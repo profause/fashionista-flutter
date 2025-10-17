@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'package:fashionista/core/assets/app_vectors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 import 'package:fashionista/core/widgets/animated_primary_button.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
@@ -82,7 +84,15 @@ class _OtpVerificationPageState extends State<OtpVerificationPage>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 16),
+                  Center(
+                    child: SvgPicture.asset(
+                      AppVectors.enterPasswordImage,
+                      width: 200,
+                      height: 200,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
                   Text(
                     "Enter the 6-digit code sent to your phone",
                     style: Theme.of(context).textTheme.headlineSmall,

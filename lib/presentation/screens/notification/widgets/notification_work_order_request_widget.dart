@@ -1,6 +1,7 @@
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/utils/get_relative_time.dart';
 import 'package:fashionista/data/models/notification/notification_model.dart';
+import 'package:fashionista/presentation/screens/work_order/work_order_request_screen.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_rounded.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -98,7 +99,16 @@ class NotificationWorkOrderRequestWidget extends StatelessWidget {
                             minimumSize: Size.zero,
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => WorkOrderRequestScreen(
+                                  workOrderRequestId: notification.refId!,
+                                ),
+                              ),
+                            );
+                          },
                           child: Text(
                             "View",
                             style: textTheme.bodySmall!.copyWith(

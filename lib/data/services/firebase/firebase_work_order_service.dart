@@ -5,7 +5,7 @@ import 'package:fashionista/data/models/work_order/work_order_status_progress_mo
 import 'package:firebase_auth/firebase_auth.dart';
 
 abstract class FirebaseWorkOrderService {
-  Future<Either> createWorkOrder(WorkOrderModel workOrder);
+  Future<Either<String, WorkOrderModel>> createWorkOrder(WorkOrderModel workOrder);
   Future<Either> updateWorkOrder(WorkOrderModel workOrder);
   Future<Either> deleteWorkOrder(String workOrderId);
   Future<Either> pinOrUnpinWorkOrder(String workOrderId);
@@ -35,7 +35,7 @@ abstract class FirebaseWorkOrderService {
 
 class FirebaseWorkOrderServiceImpl implements FirebaseWorkOrderService {
   @override
-  Future<Either> createWorkOrder(WorkOrderModel workOrder) async {
+  Future<Either<String, WorkOrderModel>> createWorkOrder(WorkOrderModel workOrder) async {
     try {
       final firestore = FirebaseFirestore.instance;
       firestore
@@ -44,7 +44,7 @@ class FirebaseWorkOrderServiceImpl implements FirebaseWorkOrderService {
           .set(workOrder.toJson(), SetOptions(merge: true));
       return Right(workOrder);
     } on FirebaseException catch (e) {
-      return Left(e.message);
+      return Left(e.message!);
     }
   }
 

@@ -30,17 +30,23 @@ class WorkOrderBloc extends Bloc<WorkOrderBlocEvent, WorkOrderBlocState> {
     Emitter<WorkOrderBlocState> emit,
   ) async {
     emit(const WorkOrderLoading());
-
-    final result = await sl<FirebaseWorkOrderService>().findWorkOrderById(
-      event.uid,
-    );
-
-    result.fold((failure) => emit(WorkOrderError(failure.toString())), (
-      workorder,
-    ) {
-      _current = workorder;
-      emit(WorkOrderLoaded(workorder));
-    });
+    if (event.isFromCache) {
+      // 1️⃣ Try cache first
+      final cachedItem = await sl<HiveWorkOrderService>().getItem(event.uid);
+      _current = cachedItem;
+      emit(WorkOrderLoaded(cachedItem));
+    } else {
+      final result = await sl<FirebaseWorkOrderService>().findWorkOrderById(
+        event.uid,
+      );
+      result.fold((failure) => emit(WorkOrderError(failure.toString())), (
+        workorder,
+      ) async {
+        _current = workorder;
+        await sl<HiveWorkOrderService>().updateItem(workorder);
+        emit(WorkOrderLoaded(workorder));
+      });
+    }
   }
 
   Future<void> _deleteWorkOrder(

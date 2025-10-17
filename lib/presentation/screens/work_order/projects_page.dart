@@ -128,6 +128,13 @@ class _ProjectsPageState extends State<ProjectsPage> {
                 .toList()
                 .reversed
                 .toList();
+
+            final workOrderRequests = filteredWorkOrders
+                .where((c) =>['REQUEST','new'].contains(c.status))
+                .toList()
+                .reversed
+                .toList();
+
             final unpinnedWorkOrders = filteredWorkOrders
                 .where((c) => c.isBookmarked == false)
                 .toList();
@@ -174,13 +181,55 @@ class _ProjectsPageState extends State<ProjectsPage> {
                     ),
                   ),
                 ],
+
+                if (workOrderRequests.isNotEmpty) ...[
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 16, bottom: 8, top: 12),
+                      child: Text("Requests", style: textTheme.labelLarge),
+                    ),
+                  ),
+                  // ✅ Pinned work orders (horizontal)
+                  SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: 110,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        itemBuilder: (context, index) {
+                          final workOrder = workOrderRequests[index];
+                          return SizedBox(
+                            width: 280, // 👈 give fixed width
+                            child: PinnedWorkOrderInfoCardWidget(
+                              key: ValueKey(workOrder.uid),
+                              workOrderInfo: workOrder,
+                            ),
+                          );
+                        },
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(width: 8),
+                        itemCount: workOrderRequests.length,
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                  const SliverToBoxAdapter(
+                    child: Divider(
+                      height: .1,
+                      thickness: .1,
+                      indent: 16,
+                      endIndent: 16,
+                    ),
+                  ),
+                ],
+
                 if (unpinnedWorkOrders.isNotEmpty) ...[
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.only(
                         left: 16,
                         bottom: 8,
-                        top: 8,
+                        top: 12,
                       ),
                       child: Text("All", style: textTheme.labelLarge),
                     ),

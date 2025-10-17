@@ -1,13 +1,11 @@
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/notification/bloc/notification_bloc.dart';
 import 'package:fashionista/data/models/notification/bloc/notification_bloc_event.dart';
-import 'package:fashionista/data/models/notification/bloc/notification_bloc_state.dart';
 import 'package:fashionista/data/models/notification/notification_model.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/services/hive/hive_notification_service.dart';
 import 'package:fashionista/presentation/screens/notification/widgets/notification_info_widget.dart';
 import 'package:fashionista/presentation/screens/notification/widgets/notification_work_order_request_widget.dart';
-import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
@@ -80,6 +78,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       context.read<NotificationBloc>().add(
                         UpdateNotification(updateNotification),
                       );
+                      
                     },
                   );
                 default:

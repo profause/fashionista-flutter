@@ -1,3 +1,4 @@
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/widgets/bloc/button_loading_state_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -85,9 +86,9 @@ class _AnimatedPrimaryButtonState extends State<AnimatedPrimaryButton>
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor:
-                        widget.backgroundColor ?? colorScheme.primary,
+                        widget.backgroundColor ?? AppTheme.appIconColor,
                     foregroundColor:
-                        widget.foregroundColor ?? colorScheme.onPrimary,
+                        widget.foregroundColor ?? colorScheme.primary,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 32,
                       vertical: 14,
@@ -95,7 +96,7 @@ class _AnimatedPrimaryButtonState extends State<AnimatedPrimaryButton>
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    elevation: widget.elevation,
+                    elevation: 0,
                   ),
                   onPressed: _handlePress,
                   child: AnimatedSwitcher(

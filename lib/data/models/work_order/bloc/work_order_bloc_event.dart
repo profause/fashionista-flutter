@@ -9,9 +9,10 @@ abstract class WorkOrderBlocEvent extends Equatable {
 
 class LoadWorkOrder extends WorkOrderBlocEvent {
   final String uid;
-  const LoadWorkOrder(this.uid);
+  final bool isFromCache;
+  const LoadWorkOrder(this.uid, {this.isFromCache = false});
   @override
-  List<Object?> get props => [uid];
+  List<Object?> get props => [uid, isFromCache];
 }
 
 class UpdateWorkOrder extends WorkOrderBlocEvent {
@@ -61,7 +62,6 @@ class LoadWorkOrdersByClientId extends WorkOrderBlocEvent {
   @override
   List<Object?> get props => [uid];
 }
-
 
 class WorkOrdersCounter extends WorkOrderBlocEvent {
   final String uid;

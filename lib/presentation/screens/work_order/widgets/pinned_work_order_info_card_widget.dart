@@ -7,6 +7,7 @@ import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_event.da
 import 'package:fashionista/data/models/work_order/work_order_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_work_order_service.dart';
 import 'package:fashionista/presentation/screens/work_order/project_details_screen.dart';
+import 'package:fashionista/presentation/screens/work_order/work_order_request_screen.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_rounded.dart';
 import 'package:flutter/material.dart';
@@ -16,10 +17,7 @@ import 'package:intl/intl.dart';
 class PinnedWorkOrderInfoCardWidget extends StatefulWidget {
   final WorkOrderModel workOrderInfo;
 
-  const PinnedWorkOrderInfoCardWidget({
-    super.key,
-    required this.workOrderInfo,
-  });
+  const PinnedWorkOrderInfoCardWidget({super.key, required this.workOrderInfo});
 
   @override
   State<PinnedWorkOrderInfoCardWidget> createState() =>
@@ -79,16 +77,33 @@ class _PinnedWorkOrderInfoCardWidgetState
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      ProjectDetailsScreen(workOrderInfo: widget.workOrderInfo),
-                ),
-              );
+              if (widget.workOrderInfo.status == 'REQUEST') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => WorkOrderRequestScreen(
+                      workOrderRequestId: widget.workOrderInfo.uid!,
+                    ),
+                  ),
+                );
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProjectDetailsScreen(
+                      workOrderInfo: widget.workOrderInfo,
+                    ),
+                  ),
+                );
+              }
             },
             child: Padding(
-              padding: const EdgeInsets.only(left: 10,right: 10, top: 4, bottom: 8),
+              padding: const EdgeInsets.only(
+                left: 10,
+                right: 10,
+                top: 4,
+                bottom: 8,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -106,7 +121,9 @@ class _PinnedWorkOrderInfoCardWidgetState
                         valueListenable: isBookmarkedNotifier!,
                         builder: (_, isBookmarked, _) {
                           return CustomIconButtonRounded(
-                            backgroundColor: Colors.grey.shade200.withValues(alpha: 0),
+                            backgroundColor: Colors.grey.shade200.withValues(
+                              alpha: 0,
+                            ),
                             onPressed: () async {
                               isBookmarkedNotifier!.value = !isBookmarked;
                               _pinOrUnpinWorkOrder();
@@ -160,16 +177,17 @@ class _PinnedWorkOrderInfoCardWidgetState
                           Text(
                             widget.workOrderInfo.client!.name!,
                             style: textTheme.labelMedium,
-                            overflow: TextOverflow.ellipsis
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
                       const Spacer(),
                       Text(
-                        widget.workOrderInfo.dueDate == null ? 'no due date' : 
-                        DateFormat(
-                          'yyyy-MM-dd',
-                        ).format(widget.workOrderInfo.dueDate!),
+                        widget.workOrderInfo.dueDate == null
+                            ? 'no due date'
+                            : DateFormat(
+                                'yyyy-MM-dd',
+                              ).format(widget.workOrderInfo.dueDate!),
                         style: textTheme.labelSmall,
                       ),
                     ],
