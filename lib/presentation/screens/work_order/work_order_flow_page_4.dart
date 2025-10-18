@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_event.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_state.dart';
@@ -20,7 +21,7 @@ class WorkOrderFlowPage4 extends StatefulWidget {
 
 class _WorkOrderFlowPage4State extends State<WorkOrderFlowPage4> {
   late WorkOrderModel current;
-  List<XFile> previewImages = [];
+  List<String> previewImages = [];
 
   @override
   void initState() {
@@ -36,15 +37,15 @@ class _WorkOrderFlowPage4State extends State<WorkOrderFlowPage4> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: BlocBuilder<WorkOrderBloc, WorkOrderBlocState>(
-                      buildWhen: (context, state) {
-              return state is WorkOrderPatched;
-            },
+          buildWhen: (context, state) {
+            return state is WorkOrderPatched;
+          },
           builder: (context, state) {
             // ✅ pre-fill values when coming back
             if (state is WorkOrderPatched) current = state.workorder;
             if (current.featuredMedia!.isNotEmpty) {
               previewImages = current.featuredMedia!
-                  .map((p) => XFile(p.url!))
+                  .map((p) => (p.url!))
                   .toList();
             }
             return Column(
@@ -71,12 +72,35 @@ class _WorkOrderFlowPage4State extends State<WorkOrderFlowPage4> {
                               aspectRatio: 3 / 4,
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(12),
-                                child: Image.file(
-                                  File(image.path),
-                                  //width: 180,
-                                  //height: 180,
-                                  fit: BoxFit.cover,
-                                ),
+                                child: image.startsWith('http')
+                                    ? CachedNetworkImage(
+                                        imageUrl: image,
+                                        fit: BoxFit.cover,
+                                        height: 180,
+                                        width: 180,
+                                        placeholder: (context, url) =>
+                                            const Center(
+                                              child: SizedBox(
+                                                height: 24,
+                                                width: 24,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                    ),
+                                              ),
+                                            ),
+                                        errorWidget: (context, url, error) =>
+                                            const Icon(
+                                              Icons.broken_image,
+                                              size: 40,
+                                            ),
+                                      )
+                                    : Image.file(
+                                        File(image),
+                                        //width: 180,
+                                        //height: 180,
+                                        fit: BoxFit.cover,
+                                      ),
                               ),
                             ),
                             Positioned(

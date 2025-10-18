@@ -4,8 +4,8 @@ import 'package:fashionista/data/models/work_order/bloc/work_order_bloc.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_event.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_state.dart';
 import 'package:fashionista/data/models/work_order/work_order_model.dart';
+import 'package:fashionista/presentation/screens/work_order/add_work_order_screen.dart';
 import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
-import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,7 +25,7 @@ class _WorkOrderRequestScreenState extends State<WorkOrderRequestScreen> {
   @override
   void initState() {
     context.read<WorkOrderBloc>().add(
-      LoadWorkOrder(widget.workOrderRequestId, isFromCache: true),
+      LoadWorkOrder(widget.workOrderRequestId, isFromCache: false),
     );
     super.initState();
   }
@@ -223,7 +223,16 @@ class _WorkOrderRequestScreenState extends State<WorkOrderRequestScreen> {
                               style: TextButton.styleFrom(
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
-                              onPressed: () {},
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => AddWorkOrderScreen(
+                                      workOrder: workOrderInfo,
+                                    ),
+                                  ),
+                                );
+                              },
                               child: Text(
                                 "Edit",
                                 style: textTheme.bodySmall!.copyWith(

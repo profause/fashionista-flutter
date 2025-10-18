@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/widgets/tag_input_field.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc.dart';
@@ -28,7 +29,7 @@ class _WorkOrderFlowPage3State extends State<WorkOrderFlowPage3> {
   List<XFile> pickedImages = [];
   List<double> uploadProgress = [];
   List<String> uploadedUrls = [];
-  List<XFile> previewImages = [];
+  List<String> previewImages = [];
   bool isUploading = false;
 
   @override
@@ -63,7 +64,7 @@ class _WorkOrderFlowPage3State extends State<WorkOrderFlowPage3> {
             if (state is WorkOrderPatched) current = state.workorder;
             if (current.featuredMedia!.isNotEmpty) {
               for (var i = 0; i < current.featuredMedia!.length; i++) {
-                previewImages.add(XFile(current.featuredMedia![i].url!));
+                previewImages.add((current.featuredMedia![i].url!));
               }
             }
             return Column(
@@ -94,12 +95,33 @@ class _WorkOrderFlowPage3State extends State<WorkOrderFlowPage3> {
                               aspectRatio: 3 / 4,
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(12),
-                                child: Image.file(
-                                  File(image.path),
-                                  //width: 180,
-                                  //height: 180,
-                                  fit: BoxFit.cover,
-                                ),
+                                child: image.startsWith('http')
+                                    ? CachedNetworkImage(
+                                        imageUrl: image,
+                                        fit: BoxFit.cover,
+                                        placeholder: (context, url) =>
+                                            const Center(
+                                              child: SizedBox(
+                                                height: 24,
+                                                width: 24,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                    ),
+                                              ),
+                                            ),
+                                        errorWidget: (context, url, error) =>
+                                            const Icon(
+                                              Icons.error,
+                                              color: Colors.red,
+                                            ),
+                                      )
+                                    : Image.file(
+                                        File(image),
+                                        //width: 180,
+                                        //height: 180,
+                                        fit: BoxFit.cover,
+                                      ),
                               ),
                             ),
                             Positioned(
@@ -201,7 +223,7 @@ class _WorkOrderFlowPage3State extends State<WorkOrderFlowPage3> {
                         }
                         final featuredMedia = previewImages.map((e) {
                           return FeaturedMediaModel.empty().copyWith(
-                            url: e.path,
+                            url: e,
                             type: 'image',
                           );
                         }).toList();
@@ -244,7 +266,7 @@ class _WorkOrderFlowPage3State extends State<WorkOrderFlowPage3> {
     setState(() {
       pickedImages = images;
       for (var i = 0; i < images.length; i++) {
-        previewImages.add(images[i]);
+        previewImages.add(images[i].path);
       }
       //images.forEach((i)=>previewImages.add(i));
       uploadProgress = List.filled(images.length, 0.0);
@@ -261,7 +283,7 @@ class _WorkOrderFlowPage3State extends State<WorkOrderFlowPage3> {
     final pickedFile = await ImagePicker().pickImage(source: source);
     setState(() {
       if (pickedFile != null) {
-        previewImages.add(pickedFile);
+        previewImages.add(pickedFile.path);
         pickedImages.add(pickedFile);
       }
     });

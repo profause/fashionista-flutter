@@ -46,6 +46,14 @@ class _WorkOrderFlowPage2State extends State<WorkOrderFlowPage2> {
   }
 
   @override
+  void dispose() {
+    _startDateTextFieldController.dispose();
+    _dueDateTextFieldController.dispose();
+    _clientSearchTextFieldController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
@@ -54,13 +62,17 @@ class _WorkOrderFlowPage2State extends State<WorkOrderFlowPage2> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: BlocBuilder<WorkOrderBloc, WorkOrderBlocState>(
-                        buildWhen: (context, state) {
+            buildWhen: (context, state) {
               return state is WorkOrderPatched;
             },
             builder: (context, state) {
               // ✅ pre-fill values when coming back
               if (state is WorkOrderPatched) current = state.workorder;
               _selectedClientNotifier.value = current.client;
+              _clientListValueNotifier.value = [current.client!];
+
+              _clientSearchTextFieldController.text =
+                  current.client?.name ?? "";
               _startDateTextFieldController.text = DateFormat(
                 'yyyy-MM-dd',
               ).format(current.startDate ?? DateTime.now());
@@ -117,7 +129,6 @@ class _WorkOrderFlowPage2State extends State<WorkOrderFlowPage2> {
                                 ),
                               );
                             }
-
                             const itemHeight = 70.0;
                             final filteredClients = _searchText.isEmpty
                                 ? clients
@@ -137,16 +148,21 @@ class _WorkOrderFlowPage2State extends State<WorkOrderFlowPage2> {
                               height: (filteredClients.length * itemHeight)
                                   .clamp(0, 300),
                               child: ValueListenableBuilder<AuthorModel?>(
+                                key: ValueKey(_selectedClientNotifier.value),
                                 valueListenable: _selectedClientNotifier,
                                 builder: (context, selectedClient, _) {
+                                  //debugPrint("selectedClient: ${selectedClient!.name}");
                                   return ListView.builder(
                                     itemCount: filteredClients.length,
                                     itemBuilder: (context, index) {
                                       final client = filteredClients[index];
                                       final isSelected =
-                                          selectedClient?.uid == client.uid;
-
+                                          selectedClient!.mobileNumber ==
+                                          client.mobileNumber;
+                                      //debugPrint("selectedClient: ${selectedClient.uid}");
+                                      //debugPrint("isSelected: ${client.uid}");
                                       return Container(
+                                        key: ValueKey(client.uid),
                                         color: isSelected
                                             ? colorScheme.surface.withValues(
                                                 alpha: 1,

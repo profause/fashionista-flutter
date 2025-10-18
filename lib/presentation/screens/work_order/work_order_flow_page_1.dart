@@ -9,7 +9,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class WorkOrderFlowPage1 extends StatefulWidget {
   final VoidCallback? onNext;
   final VoidCallback? onPrev;
-  const WorkOrderFlowPage1({super.key, this.onNext, this.onPrev});
+  final WorkOrderModel? workOrder;
+  const WorkOrderFlowPage1({
+    super.key,
+    this.onNext,
+    this.onPrev,
+    this.workOrder,
+  });
 
   @override
   State<WorkOrderFlowPage1> createState() => _WorkOrderFlowPage1State();
@@ -21,7 +27,10 @@ class _WorkOrderFlowPage1State extends State<WorkOrderFlowPage1> {
   late WorkOrderModel current;
   @override
   void initState() {
-    current = WorkOrderModel.empty();
+    if (widget.workOrder != null) {
+      current = WorkOrderModel.empty();
+      context.read<WorkOrderBloc>().add(PatchWorkOrder(widget.workOrder!));
+    }
     _titleTextFieldController = TextEditingController();
     _descriptionTextFieldController = TextEditingController();
     super.initState();
@@ -42,10 +51,12 @@ class _WorkOrderFlowPage1State extends State<WorkOrderFlowPage1> {
               return state is WorkOrderPatched;
             },
             builder: (context, state) {
-              if (state is WorkOrderPatched) current = state.workorder;
-              _titleTextFieldController.text = current.title;
-              _descriptionTextFieldController.text = current.description ?? "";
-
+              if (state is WorkOrderPatched) {
+                current = state.workorder;
+                _titleTextFieldController.text = current.title;
+                _descriptionTextFieldController.text =
+                    current.description ?? "";
+              }
               return Column(
                 mainAxisAlignment:
                     MainAxisAlignment.start, // centers vertically

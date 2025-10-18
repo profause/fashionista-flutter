@@ -78,13 +78,21 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       context.read<NotificationBloc>().add(
                         UpdateNotification(updateNotification),
                       );
-                      
                     },
                   );
                 default:
                   return NotificationInfoWidget(
                     key: ValueKey(index),
                     notification: notification,
+                    onTap: () {
+                      if (notification.status != 'new') return;
+                      final updateNotification = notification.copyWith(
+                        status: 'read',
+                      );
+                      context.read<NotificationBloc>().add(
+                        UpdateNotification(updateNotification),
+                      );
+                    },
                   );
               }
             },

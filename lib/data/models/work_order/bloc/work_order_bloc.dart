@@ -41,9 +41,9 @@ class WorkOrderBloc extends Bloc<WorkOrderBlocEvent, WorkOrderBlocState> {
       );
       result.fold((failure) => emit(WorkOrderError(failure.toString())), (
         workorder,
-      ) async {
+      ) {
         _current = workorder;
-        await sl<HiveWorkOrderService>().updateItem(workorder);
+        sl<HiveWorkOrderService>().updateItem(workorder).whenComplete(() {});
         emit(WorkOrderLoaded(workorder));
       });
     }
@@ -57,7 +57,7 @@ class WorkOrderBloc extends Bloc<WorkOrderBlocEvent, WorkOrderBlocState> {
       event.uid,
     );
     await result.fold(
-      (failure) async {
+      (failure) {
         emit(WorkOrderError(failure.toString()));
       },
       (message) async {

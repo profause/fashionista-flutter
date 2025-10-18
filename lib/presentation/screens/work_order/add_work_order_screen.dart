@@ -24,7 +24,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 
 class AddWorkOrderScreen extends StatefulWidget {
-  const AddWorkOrderScreen({super.key});
+  const AddWorkOrderScreen({super.key, this.workOrder});
+  final WorkOrderModel? workOrder;
 
   @override
   State<AddWorkOrderScreen> createState() => _AddWorkOrderScreenState();
@@ -46,7 +47,7 @@ class _AddWorkOrderScreenState extends State<AddWorkOrderScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     final pages = [
-      WorkOrderFlowPage1(onNext: () => nextPage()),
+      WorkOrderFlowPage1(onNext: () => nextPage(), workOrder: widget.workOrder),
       WorkOrderFlowPage2(onNext: () => nextPage(), onPrev: () => prevPage()),
       WorkOrderFlowPage3(onNext: () => nextPage(), onPrev: () => prevPage()),
       WorkOrderFlowPage4(
@@ -61,7 +62,9 @@ class _AddWorkOrderScreenState extends State<AddWorkOrderScreen> {
           foregroundColor: colorScheme.primary,
           backgroundColor: colorScheme.onPrimary,
           title: Text(
-            'Start a new Work Order',
+            widget.workOrder == null
+                ? 'Start a new Work Order'
+                : 'Edit Work Order',
             style: Theme.of(context).textTheme.titleMedium,
           ),
           elevation: 0,
@@ -107,13 +110,19 @@ class _AddWorkOrderScreenState extends State<AddWorkOrderScreen> {
       User user = _userBloc.state;
       String createdBy =
           user.uid ?? firebase_auth.FirebaseAuth.instance.currentUser!.uid;
-      final workOrderId = Uuid().v4();
+      final bool isEdit = workorder.uid!.isNotEmpty;
+      final workOrderId = workorder.uid ?? Uuid().v4();
 
       List<FeaturedMediaModel> featuredImages = [];
       List<XFile> pickedImages = [];
       if (workorder.featuredMedia!.isNotEmpty) {
         for (var i = 0; i < workorder.featuredMedia!.length; i++) {
-          pickedImages.add(XFile(workorder.featuredMedia![i].url!));
+          final imagePath = workorder.featuredMedia![i].url;
+          if (!imagePath!.startsWith('http')) {
+            featuredImages = workorder.featuredMedia!;
+          } else {
+            pickedImages.add(XFile(workorder.featuredMedia![i].url!));
+          }
         }
       }
       // Show progress dialog
@@ -132,7 +141,7 @@ class _AddWorkOrderScreenState extends State<AddWorkOrderScreen> {
         (ifLeft) {
           // _buttonLoadingStateCubit.setLoading(false);
           if (mounted) {
-            Navigator.of(context).pop();
+            //Navigator.of(context).pop();
           }
           debugPrint(ifLeft);
           ScaffoldMessenger.of(
@@ -142,37 +151,41 @@ class _AddWorkOrderScreenState extends State<AddWorkOrderScreen> {
         },
         (ifRight) {
           //_buttonLoadingStateCubit.setLoading(false);
-          featuredImages = ifRight;
+          featuredImages.addAll(ifRight);
           setState(() {
             //isUploading = false;
           });
         },
       );
 
-      final author = AuthorModel.empty().copyWith(
-        uid: createdBy,
-        name: user.fullName,
-        avatar: user.profileImage,
-      );
+      final author =
+          workorder.author ??
+          AuthorModel.empty().copyWith(
+            uid: createdBy,
+            name: user.fullName,
+            avatar: user.profileImage,
+          );
 
       workorder = workorder.copyWith(
         createdBy: createdBy,
         uid: workOrderId,
         featuredMedia: featuredImages,
-        createdAt: DateTime.now().millisecondsSinceEpoch,
-        updatedAt: DateTime.now().millisecondsSinceEpoch,
+        createdAt: workorder.createdAt ?? DateTime.now().millisecondsSinceEpoch,
+        updatedAt: workorder.updatedAt ?? DateTime.now().millisecondsSinceEpoch,
         status: 'DRAFT',
-        workOrderType: '',
+        workOrderType: workorder.workOrderType ?? '',
         author: author,
       );
+
       // Save via FirebaseWorkOrderService
-      final result = await sl<FirebaseWorkOrderService>().createWorkOrder(
-        workorder,
-      );
+      final result = isEdit
+          ? await sl<FirebaseWorkOrderService>().updateWorkOrder(workorder)
+          : await sl<FirebaseWorkOrderService>().createWorkOrder(workorder);
 
       result.fold(
         (l) {
           // _buttonLoadingStateCubit.setLoading(false);
+          debugPrint(l);
           if (mounted) {
             Navigator.of(context).pop();
           }
@@ -185,8 +198,17 @@ class _AddWorkOrderScreenState extends State<AddWorkOrderScreen> {
           if (!mounted) return;
           context.read<WorkOrderBloc>().add(AddWorkOrder(workorder));
           Navigator.pop(context);
-          Navigator.pop(context, true);
           AppToast.info(context, 'Work Order created successfully!');
+          if (isEdit) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AddWorkOrderScreen(workOrder: workorder),
+              ),
+            );
+          } else {
+            Navigator.pop(context); //
+          }
         },
       );
     } on firebase_auth.FirebaseException catch (e) {

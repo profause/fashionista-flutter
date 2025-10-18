@@ -210,7 +210,9 @@ class _PinnedWorkOrderInfoCardWidgetState
       result.fold((l) {}, (r) {
         isBookmarkedNotifier!.value = r;
         final updateWorkOrder = widget.workOrderInfo.copyWith(isBookmarked: r);
-        context.read<WorkOrderBloc>().add(UpdateWorkOrder(updateWorkOrder));
+        if (mounted) {
+          context.read<WorkOrderBloc>().add(UpdateWorkOrder(updateWorkOrder));
+        }
       });
     });
   }
