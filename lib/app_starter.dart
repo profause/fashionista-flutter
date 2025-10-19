@@ -1,16 +1,17 @@
-import 'package:fashionista/core/onboarding/onboarding_cubit.dart';
-import 'package:fashionista/presentation/screens/splash/splash_screen.dart';
+import 'package:fashionista/core/routes/app_router.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AppStarter extends StatelessWidget {
   const AppStarter({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [BlocProvider(create: (_) => OnboardingCubit())],
-      child: const SplashScreen(),
+    return MaterialApp.router(
+      debugShowCheckedModeBanner: false,
+      theme: fashionistaLightTheme,
+      darkTheme: fashionistaDarkTheme,
+      routerConfig: AppRouter.router,
     );
   }
 }

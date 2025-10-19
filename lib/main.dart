@@ -104,6 +104,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => GetstartedStatsCubit()),
         BlocProvider(create: (_) => DesignerReviewBloc()),
         BlocProvider(create: (_) => NotificationBloc()),
+        BlocProvider(create: (_) => OnboardingCubit())
       ],
 
       child: BlocBuilder<SettingsBloc, Settings>(

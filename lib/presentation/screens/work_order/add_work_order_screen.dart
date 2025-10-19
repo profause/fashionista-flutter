@@ -118,7 +118,7 @@ class _AddWorkOrderScreenState extends State<AddWorkOrderScreen> {
       if (workorder.featuredMedia!.isNotEmpty) {
         for (var i = 0; i < workorder.featuredMedia!.length; i++) {
           final imagePath = workorder.featuredMedia![i].url;
-          if (!imagePath!.startsWith('http')) {
+          if (imagePath!.startsWith('http')) {
             featuredImages = workorder.featuredMedia!;
           } else {
             pickedImages.add(XFile(workorder.featuredMedia![i].url!));
@@ -144,9 +144,9 @@ class _AddWorkOrderScreenState extends State<AddWorkOrderScreen> {
             //Navigator.of(context).pop();
           }
           debugPrint(ifLeft);
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(ifLeft)));
+          // ScaffoldMessenger.of(
+          //   context,
+          // ).showSnackBar(SnackBar(content: Text(ifLeft)));
           return;
         },
         (ifRight) {
@@ -199,16 +199,7 @@ class _AddWorkOrderScreenState extends State<AddWorkOrderScreen> {
           context.read<WorkOrderBloc>().add(AddWorkOrder(workorder));
           Navigator.pop(context);
           AppToast.info(context, 'Work Order created successfully!');
-          if (isEdit) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => AddWorkOrderScreen(workOrder: workorder),
-              ),
-            );
-          } else {
-            Navigator.pop(context); //
-          }
+          Navigator.pop(context); //
         },
       );
     } on firebase_auth.FirebaseException catch (e) {

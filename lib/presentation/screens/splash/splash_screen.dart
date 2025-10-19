@@ -4,13 +4,10 @@ import 'package:fashionista/core/auth/auth_provider_cubit.dart';
 import 'package:fashionista/core/onboarding/onboarding_cubit.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
-import 'package:fashionista/presentation/screens/auth/sign_in_screen.dart';
-import 'package:fashionista/presentation/screens/main/main_screen.dart';
-import 'package:fashionista/presentation/screens/onboarding/onboarding_screen.dart';
-import 'package:fashionista/presentation/screens/profile/create_profile_screen.dart';
 import 'package:fashionista/presentation/screens/splash/widgets/animated_title.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -66,30 +63,20 @@ class _SplashScreenState extends State<SplashScreen>
         _onboardingCubit = context.read<OnboardingCubit>();
         _authProviderCubit = context.read<AuthProviderCubit>();
         _userBloc = context.read<UserBloc>();
-        Widget nextScreen;
+        String nextScreen;
 
         if (!_onboardingCubit.hasCompletedOnboarding) {
-          nextScreen = const OnboardingScreen();
+          nextScreen = '/onboarding';
         } else if (!_authProviderCubit.authState.isAuthenticated) {
-          nextScreen = const SignInScreen();
+          nextScreen = '/sign-in';
         } else if (_userBloc.state.accountType.isEmpty ||
             _userBloc.state.gender.isEmpty) {
-          nextScreen = const CreateProfileScreen();
+          nextScreen = '/create-profile';
         } else {
-          nextScreen = const MainScreen();
+          nextScreen = '/main';
         }
 
-        Navigator.pushReplacement(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => nextScreen,
-            transitionsBuilder:
-                (context, animation, secondaryAnimation, child) {
-                  return FadeTransition(opacity: animation, child: child);
-                },
-            transitionDuration: const Duration(milliseconds: 800),
-          ),
-        );
+        context.go(nextScreen);
       }
     });
   }
