@@ -2,10 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/domain/usecases/profile/update_user_profile_usecase.dart';
-import 'package:fashionista/presentation/screens/main/main_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class UserInterestScreen extends StatefulWidget {
   final String? fromWhere;
@@ -193,12 +193,9 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
           );
 
           if (widget.fromWhere!.contains('UserProfilePage')) {
-            Navigator.of(context).pop();
+            context.pop();
           } else {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (_) => const MainScreen()),
-              (route) => false,
-            );
+            context.go('/home');
           }
         }
       },

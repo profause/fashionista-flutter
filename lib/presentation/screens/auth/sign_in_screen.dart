@@ -13,6 +13,7 @@ import 'package:fashionista/presentation/screens/profile/create_profile_screen.d
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:recaptcha_enterprise_flutter/recaptcha.dart';
 import 'dart:io' show Platform;
 
@@ -212,13 +213,15 @@ class _SignInScreenState extends State<SignInScreen> {
               ),
             );
           } else {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                builder: (BuildContext context) => const MainScreen(),
-              ),
-              (route) => false,
-            );
+            // Navigator.pushAndRemoveUntil(
+            //   context,
+            //   MaterialPageRoute(
+            //     builder: (BuildContext context) => const MainScreen(),
+            //   ),
+            //   (route) => false,
+            // );
+
+            context.go('/home');
           }
         },
       );

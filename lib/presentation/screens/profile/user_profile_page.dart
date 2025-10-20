@@ -20,6 +20,7 @@ import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 class UserProfilePage extends StatelessWidget {
@@ -120,13 +121,11 @@ class UserProfilePage extends StatelessWidget {
                   iconData: Icons.interests_outlined,
                   size: 24,
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            UserInterestScreen(fromWhere: 'UserProfilePage'),
-                      ),
+                    final uri = Uri(
+                      path: '/user-interests',
+                      queryParameters: {'fromwhere': 'UserProfilePage'},
                     );
+                    context.push(uri.toString());
                   },
                 ),
               ),

@@ -6,10 +6,12 @@ import 'package:fashionista/presentation/screens/trends/discover_trends_screen.d
 import 'package:fashionista/presentation/screens/trends/trends_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback? navigationCallback;
-  const HomeScreen({super.key, this.navigationCallback});
+  final String? route;
+  const HomeScreen({super.key, this.navigationCallback, this.route});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -24,7 +26,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(initialIndex: 0, length: 2, vsync: this);
+    int tabIndex = 0;
+    if (widget.route != null) {
+      if (widget.route == '/trends') {
+        tabIndex = 0;
+      } else if (widget.route == '/discover-trends') {
+        tabIndex = 1;
+      }
+    }
+    _tabController = TabController(
+      initialIndex: tabIndex,
+      length: 2,
+      vsync: this,
+    );
     _scrollController = ScrollController();
     userBloc = context.read<UserBloc>();
 
@@ -116,13 +130,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
                                         return GestureDetector(
                                           onTap: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    const NotificationScreen(),
-                                              ),
-                                            );
+                                            context.push('/notifications');
                                           },
                                           child: Stack(
                                             children: [

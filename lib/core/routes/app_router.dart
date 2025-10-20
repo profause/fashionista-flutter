@@ -7,6 +7,7 @@ import 'package:fashionista/presentation/screens/notification/notification_scree
 import 'package:fashionista/presentation/screens/onboarding/onboarding_screen.dart';
 import 'package:fashionista/presentation/screens/profile/create_profile_screen.dart';
 import 'package:fashionista/presentation/screens/profile/profile_screen.dart';
+import 'package:fashionista/presentation/screens/profile/user_interest_screen.dart';
 import 'package:fashionista/presentation/screens/splash/splash_screen.dart';
 import 'package:fashionista/presentation/screens/trends/discover_trends_screen.dart';
 import 'package:fashionista/presentation/screens/trends/trends_screen.dart';
@@ -100,7 +101,7 @@ class AppRouter {
           ),
         ],
         pageBuilder: (context, state) => const CustomTransitionPage(
-          child: MainScreen(),
+          child: ProfileScreen(),
           transitionsBuilder: _fadeTransition,
           transitionDuration: Duration(milliseconds: 800),
         ),
@@ -117,3 +118,118 @@ Widget _fadeTransition(
 ) {
   return FadeTransition(opacity: animation, child: child);
 }
+
+GoRouter appRouter = GoRouter(
+  debugLogDiagnostics: true,
+  initialLocation: '/',
+  routes: [
+    GoRoute(
+      name: 'SplashScreen',
+      path: '/',
+      builder: (context, state) => const SplashScreen(),
+    ),
+    GoRoute(
+      name: 'OnboardingScreen',
+      path: '/onboarding',
+      pageBuilder: (context, state) => const CustomTransitionPage(
+        child: OnboardingScreen(),
+        transitionsBuilder: _fadeTransition,
+        transitionDuration: Duration(milliseconds: 800),
+      ),
+    ),
+    GoRoute(
+      name: 'SignInScreen',
+      path: '/sign-in',
+      pageBuilder: (context, state) => const CustomTransitionPage(
+        child: SignInScreen(),
+        transitionsBuilder: _fadeTransition,
+        transitionDuration: Duration(milliseconds: 800),
+      ),
+    ),
+    GoRoute(
+      name: 'CreateProfileScreen',
+      path: '/create-profile',
+      pageBuilder: (context, state) => const CustomTransitionPage(
+        child: CreateProfileScreen(),
+        transitionsBuilder: _fadeTransition,
+        transitionDuration: Duration(milliseconds: 800),
+      ),
+    ),
+    GoRoute(
+      name: 'UserInterestScreen',
+      path: '/user-interests',
+      pageBuilder: (context, state) {
+        final fromWhere = state.uri.queryParameters['fromwhere'];
+        return CustomTransitionPage(
+          child: UserInterestScreen(fromWhere: fromWhere),
+          transitionsBuilder: _fadeTransition,
+          transitionDuration: Duration(milliseconds: 800),
+        );
+      },
+    ),
+    GoRoute(
+      name: 'NotificationScreen',
+      path: '/notifications',
+      builder: (context, state) => const NotificationScreen(),
+    ),
+    StatefulShellRoute.indexedStack(
+      builder: (context, state, navigationShell) =>
+          MainScreen(navigationShell: navigationShell),
+      branches: [
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              name: 'HomeScreen',
+              path: '/main',
+              builder: (context, state) => const HomeScreen(),
+              routes: [
+                GoRoute(
+                  name: 'TrendsScreen',
+                  path: '/trends',
+                  builder: (context, state) =>
+                      const HomeScreen(route: '/trends'),
+                ),
+                GoRoute(
+                  name: 'DiscoverTrendsScreen',
+                  path: '/discover-trends',
+                  builder: (context, state) =>
+                      const HomeScreen(route: '/discover-trends'),
+                ),
+              ],
+            ),
+          ],
+        ),
+
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              name: ' ClientsAndProjectsScreen',
+              path: '/clients',
+              builder: (context, state) => const ClientsAndProjectsScreen(),
+            ),
+          ],
+        ),
+
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              name: 'ClosetScreen',
+              path: '/closet',
+              builder: (context, state) => const ClosetScreen(),
+            ),
+          ],
+        ),
+
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              name: 'ProfileScreen',
+              path: '/profile',
+              builder: (context, state) => const ProfileScreen(),
+            ),
+          ],
+        ),
+      ],
+    ),
+  ],
+);

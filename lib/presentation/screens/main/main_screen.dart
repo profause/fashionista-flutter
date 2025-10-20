@@ -9,16 +9,17 @@ import 'package:fashionista/presentation/screens/home/home_screen.dart';
 import 'package:fashionista/presentation/screens/profile/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final StatefulNavigationShell navigationShell;
+  const MainScreen({super.key, required this.navigationShell});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0;
   final PageController _pageController = PageController();
   final ValueNotifier<int> _selectedIndex = ValueNotifier(0);
   late UserBloc _userBloc;
@@ -42,24 +43,7 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     _pageController.addListener(() {});
     super.initState();
-
     _userBloc = context.read<UserBloc>();
-    final user = _userBloc.state;
-    final isFullNameEmpty = user.fullName.isEmpty;
-    final isUserNameEmpty = user.userName == 'Guest user';
-    final isAccountTypeEmpty = user.accountType.isEmpty;
-    final isGenderEmpty = user.gender.isEmpty;
-
-    if (isFullNameEmpty ||
-        isUserNameEmpty ||
-        isAccountTypeEmpty ||
-        isGenderEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          //_onNavItemTapped(5);
-        }
-      });
-    }
   }
 
   @override
@@ -70,9 +54,7 @@ class _MainScreenState extends State<MainScreen> {
 
   void _onItemTapped(int index) {
     _selectedIndex.value = index;
-    setState(() {
-      _currentIndex = index;
-    });
+    widget.navigationShell.goBranch(index);
   }
 
   @override
@@ -132,7 +114,10 @@ class _MainScreenState extends State<MainScreen> {
                   radius: 16,
                   backgroundColor: Colors.grey.shade300,
                   backgroundImage: user.profileImage.isNotEmpty
-                      ? CachedNetworkImageProvider(user.profileImage,errorListener: (error) {},)
+                      ? CachedNetworkImageProvider(
+                          user.profileImage,
+                          errorListener: (error) {},
+                        )
                       : null,
                   child: user.profileImage.isEmpty
                       ? Icon(
@@ -158,7 +143,10 @@ class _MainScreenState extends State<MainScreen> {
                     radius: 16,
                     backgroundColor: Colors.grey.shade300,
                     backgroundImage: user.profileImage.isNotEmpty
-                        ? CachedNetworkImageProvider(user.profileImage,errorListener: (error) {},)
+                        ? CachedNetworkImageProvider(
+                            user.profileImage,
+                            errorListener: (error) {},
+                          )
                         : null,
                     child: user.profileImage.isEmpty
                         ? Icon(
@@ -174,7 +162,7 @@ class _MainScreenState extends State<MainScreen> {
             label: 'Profile',
           ),
         ],
-        currentIndex: _currentIndex,
+        currentIndex: widget.navigationShell.currentIndex,
         onTap: _onItemTapped,
         elevation: 0,
       ),

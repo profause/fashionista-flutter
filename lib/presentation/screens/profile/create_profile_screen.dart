@@ -14,6 +14,7 @@ import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 class CreateProfileScreen extends StatefulWidget {
@@ -471,7 +472,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
           if (mounted) {
             // Dismiss the dialog manually
             //Navigator.of(context, rootNavigator: true).pop();
-            Navigator.of(context).pop();
+            context.pop();
           }
           ScaffoldMessenger.of(
             context,
@@ -484,7 +485,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
           if (mounted) {
             // Dismiss the dialog manually
             //Navigator.of(context, rootNavigator: true).pop();
-            Navigator.of(context).pop();
+            context.pop();
           }
         },
       );
@@ -497,13 +498,11 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
       //   (route) => false,
       // );
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) =>
-              UserInterestScreen(fromWhere: 'CreateProfileScreen'),
-        ),
+      final uri = Uri(
+        path: '/user-interests',
+        queryParameters: {'fromwhere': 'CreateProfileScreen'},
       );
+      context.go(uri.toString());
     }
   }
 

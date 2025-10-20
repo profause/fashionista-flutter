@@ -11,7 +11,7 @@ class AppStarter extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: fashionistaLightTheme,
       darkTheme: fashionistaDarkTheme,
-      routerConfig: AppRouter.router,
+      routerConfig: appRouter,
     );
   }
 }
