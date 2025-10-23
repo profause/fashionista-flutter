@@ -60,7 +60,7 @@ class AppRouter {
 
       GoRoute(
         name: 'MainScreen',
-        path: '/main',
+        path: '/home',
         routes: [
           GoRoute(
             name: 'HomeScreen',
@@ -180,7 +180,7 @@ GoRouter appRouter = GoRouter(
           routes: [
             GoRoute(
               name: 'HomeScreen',
-              path: '/main',
+              path: '/home',
               builder: (context, state) => const HomeScreen(),
               routes: [
                 GoRoute(

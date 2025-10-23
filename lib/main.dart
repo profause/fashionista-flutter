@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:app_links/app_links.dart';
 import 'package:fashionista/app_starter.dart';
 import 'package:fashionista/core/auth/auth_provider_cubit.dart';
 import 'package:fashionista/core/config/app_remote_config.dart';
@@ -60,6 +61,12 @@ Future<void> main() async {
 
   await AppRemoteConfig.instance.initialize();
 
+  final appLinks = AppLinks();
+
+  final sub = appLinks.uriLinkStream.listen((uri) {
+    debugPrint('Deep link: $uri');
+  });
+
   runApp(const MyApp());
 }
 
@@ -104,21 +111,12 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => GetstartedStatsCubit()),
         BlocProvider(create: (_) => DesignerReviewBloc()),
         BlocProvider(create: (_) => NotificationBloc()),
-        BlocProvider(create: (_) => OnboardingCubit())
+        BlocProvider(create: (_) => OnboardingCubit()),
       ],
 
-      child: BlocBuilder<SettingsBloc, Settings>(
-        builder: (context, settings) => MaterialApp(
-          debugShowCheckedModeBanner: false,
-          theme: fashionistaLightTheme,
-          darkTheme: fashionistaDarkTheme,
-          themeMode: ThemeMode.values[settings.displayMode as int],
-          home: const AppStarter(),
-          // routes: {
-          //   '/clients': (_) => const ClientsScreen(),
-          //   '/add-client': (_) => const AddClientScreen(),
-          // },
-        ),
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: const AppStarter(),
       ),
     );
   }

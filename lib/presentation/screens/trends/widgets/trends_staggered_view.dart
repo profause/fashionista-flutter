@@ -34,6 +34,7 @@ class TrendsStaggeredView extends StatelessWidget {
                 aspectRatioOptions[random.nextInt(aspectRatioOptions.length)];
 
             return TrendInfoCardWidget(
+              key: ValueKey(trend.uid),
               trendInfo: trend,
               aspectRatio: aspectRatio,
             );

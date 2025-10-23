@@ -6,7 +6,6 @@ import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/domain/usecases/profile/fetch_user_profile_usecase.dart';
 import 'package:fashionista/domain/usecases/profile/update_user_profile_usecase.dart';
-import 'package:fashionista/presentation/screens/profile/user_interest_screen.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/custom_chip_form_field_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/date_picker_form_field_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_text_field_widget.dart';
@@ -154,7 +153,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
           ),
           body: SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(0),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -163,11 +162,11 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                     Card(
                       color: colorScheme.onPrimary,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(0),
                       ),
                       elevation: 0,
                       child: Padding(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(12),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -216,7 +215,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                     Card(
                       color: colorScheme.onPrimary,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(0),
                       ),
                       elevation: 0,
                       child: Padding(
@@ -290,7 +289,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                     Card(
                       color: colorScheme.onPrimary,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(0),
                       ),
                       elevation: 0,
                       child: Padding(
@@ -484,20 +483,13 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
           // );
           if (mounted) {
             // Dismiss the dialog manually
-            //Navigator.of(context, rootNavigator: true).pop();
-            context.pop();
+            Navigator.of(context, rootNavigator: true).pop();
+            //context.pop();
           }
         },
       );
 
       if (!mounted) return;
-      // // Close progress dialog
-      //Navigator.of(context).pop();
-      // Navigator.of(context).pushAndRemoveUntil(
-      //   MaterialPageRoute(builder: (_) => const MainScreen()),
-      //   (route) => false,
-      // );
-
       final uri = Uri(
         path: '/user-interests',
         queryParameters: {'fromwhere': 'CreateProfileScreen'},

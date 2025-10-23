@@ -57,7 +57,7 @@ class _CustomChipFormFieldState extends State<CustomChipFormFieldWidget> {
             ),
             contentPadding: const EdgeInsets.symmetric(
               vertical: 8,
-              horizontal: 4,
+              horizontal: 0,
             ),
           ),
           child: Wrap(

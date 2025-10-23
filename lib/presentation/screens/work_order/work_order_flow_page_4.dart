@@ -7,7 +7,6 @@ import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_state.da
 import 'package:fashionista/data/models/work_order/work_order_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 class WorkOrderFlowPage4 extends StatefulWidget {

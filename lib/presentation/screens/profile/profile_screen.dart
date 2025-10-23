@@ -8,7 +8,6 @@ import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/services/firebase/firebase_user_service.dart';
 import 'package:fashionista/domain/usecases/profile/fetch_user_profile_usecase.dart';
-import 'package:fashionista/presentation/screens/auth/sign_in_screen.dart';
 import 'package:fashionista/presentation/screens/designers/designer_profile_page.dart';
 import 'package:fashionista/presentation/screens/profile/edit_profile_screen.dart';
 import 'package:fashionista/presentation/screens/profile/user_profile_page.dart';
@@ -19,6 +18,7 @@ import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.d
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -46,10 +46,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           .listen((firebase_auth.User? user) {
             if (user == null && !_authProviderCubit.state.isAuthenticated) {
               // User signed out → redirect to login
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const SignInScreen()),
-                (route) => false,
-              );
+              context.go('/sign-in');
             } else {
               _getUserDetails();
             }
@@ -347,31 +344,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  _chooseImageSource(BuildContext context) {
-    if (mounted) {
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Upload Image'),
-          content: const Text('Choose your image source:'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                _pickImage(ImageSource.camera);
-              },
-              child: const Text('Camera'),
-            ),
-            TextButton(
-              onPressed: () {
-                _pickImage(ImageSource.gallery);
-              },
-              child: const Text('Gallery'),
-            ),
-          ],
-        ),
-      );
-    }
-  }
+  // _chooseImageSource(BuildContext context) {
+  //   if (mounted) {
+  //     showDialog(
+  //       context: context,
+  //       builder: (ctx) => AlertDialog(
+  //         title: const Text('Upload Image'),
+  //         content: const Text('Choose your image source:'),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () {
+  //               _pickImage(ImageSource.camera);
+  //             },
+  //             child: const Text('Camera'),
+  //           ),
+  //           TextButton(
+  //             onPressed: () {
+  //               _pickImage(ImageSource.gallery);
+  //             },
+  //             child: const Text('Gallery'),
+  //           ),
+  //         ],
+  //       ),
+  //     );
+  //   }
+  // }
 
   XFile? _imageFile;
   CroppedFile? _croppedFile;

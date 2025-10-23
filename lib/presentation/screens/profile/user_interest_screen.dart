@@ -16,9 +16,10 @@ class UserInterestScreen extends StatefulWidget {
 }
 
 class _UserInterestScreenState extends State<UserInterestScreen> {
-  final Set<String> selectedInterests = {};
+  final ValueNotifier<Set<String>> selectedInterestsNotifier = ValueNotifier(
+    {},
+  );
   final int maxSelection = 8;
-  bool _loadingUserInterests = true;
 
   /// Fetch interests grouped by category
   Future<Map<String, List<String>>> fetchInterests() async {
@@ -41,25 +42,28 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
     return grouped;
   }
 
-  void _toggleInterest(String interest, bool selected) {
-    setState(() {
-      _loadingUserInterests = false;
-      if (selected) {
-        if (selectedInterests.length < maxSelection) {
-          selectedInterests.add(interest);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                "You can only select up to $maxSelection interests.",
-              ),
-            ),
-          );
-        }
+  void _toggleInterest(String interest, bool isSelected) {
+    final selected = Set<String>.from(selectedInterestsNotifier.value);
+
+    if (isSelected) {
+      if (selected.length < maxSelection) {
+        selected.add(interest);
       } else {
-        selectedInterests.remove(interest);
+        _showMaxSelectionWarning();
       }
-    });
+    } else {
+      selected.remove(interest);
+    }
+
+    selectedInterestsNotifier.value = selected;
+  }
+
+  void _showMaxSelectionWarning() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("You can only select up to $maxSelection interests."),
+      ),
+    );
   }
 
   @override
@@ -77,60 +81,65 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
           style: textTheme.titleLarge!.copyWith(fontWeight: FontWeight.bold),
         ),
       ),
-      body: _loadingUserInterests
-          ? const Center(child: CircularProgressIndicator())
-          : FutureBuilder<Map<String, List<String>>>(
-              future: fetchInterests(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text("No interests available"));
-                }
+      body: FutureBuilder<Map<String, List<String>>>(
+        future: fetchInterests(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text("No interests available"));
+          }
 
-                final interestsByCategory = snapshot.data!;
+          final interestsByCategory = snapshot.data!;
 
-                return ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: interestsByCategory.entries.map((entry) {
-                    final category = entry.key;
-                    final interests = entry.value;
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: interestsByCategory.entries.map((entry) {
+              final category = entry.key;
+              final interests = entry.value;
 
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          category,
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: interests.map((interest) {
-                            final isSelected = selectedInterests.contains(
-                              interest,
-                            );
-                            return ChoiceChip(
-                              label: Text(interest),
-                              selected: isSelected,
-                              onSelected: (selected) =>
-                                  _toggleInterest(interest, selected),
-                            );
-                          }).toList(),
-                        ),
-                        Divider(
-                          height: 32,
-                          thickness: 1,
-                          color: Colors.grey[300]!.withValues(alpha: 0.5),
-                        ),
-                      ],
-                    );
-                  }).toList(),
-                );
-              },
-            ),
+              return Column(
+                key: ValueKey(category),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    category,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: interests.map((interest) {
+                      return ValueListenableBuilder<Set<String>>(
+                        valueListenable: selectedInterestsNotifier,
+                        builder: (context, selectedInterests, _) {
+                          final isSelected = selectedInterests.contains(
+                            interest,
+                          );
+                          return ChoiceChip(
+                            key: ValueKey(interest),
+                            label: Text(interest),
+                            selected: isSelected,
+                            onSelected: (selected) =>
+                                _toggleInterest(interest, selected),
+                          );
+                        },
+                      );
+                    }).toList(),
+                  ),
+                  Divider(
+                    height: 32,
+                    thickness: 1,
+                    color: Colors.grey[300]!.withValues(alpha: 0.5),
+                  ),
+                ],
+              );
+            }).toList(),
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _saveInterests,
         icon: const Icon(Icons.check),
@@ -150,12 +159,6 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
       return;
     }
 
-    if (mounted) {
-      setState(() {
-        _loadingUserInterests = true;
-      });
-    }
-
     // await FirebaseFirestore.instance.collection('users').doc(user.uid).set(
     //   {
     //     'interests': selectedInterests.toList(),
@@ -165,10 +168,9 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
     // );
 
     final currentUser = context.read<UserBloc>().state;
+    final selected = Set<String>.from(selectedInterestsNotifier.value);
 
-    final updatedUser = currentUser.copyWith(
-      interests: selectedInterests.toList(),
-    );
+    final updatedUser = currentUser.copyWith(interests: selected.toList());
 
     context.read<UserBloc>().add(UpdateUser(updatedUser));
 
@@ -218,12 +220,12 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
       final data = doc.data();
       final List<dynamic>? interests = data?['interests'];
       if (interests != null) {
-        setState(() {
-          selectedInterests.addAll(interests.cast<String>());
-        });
+        final selected = Set<String>.from(selectedInterestsNotifier.value);
+        selected.addAll(interests.cast<String>());
+        selectedInterestsNotifier.value = selected;
       }
     }
-    setState(() => _loadingUserInterests = false);
+    //setState(() => _loadingUserInterests = false);
   }
 
   @override

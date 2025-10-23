@@ -73,7 +73,7 @@ class _SplashScreenState extends State<SplashScreen>
             _userBloc.state.gender.isEmpty) {
           nextScreen = '/create-profile';
         } else {
-          nextScreen = '/main';
+          nextScreen = '/home';
         }
 
         context.go(nextScreen);

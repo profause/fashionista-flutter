@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
-import 'package:fashionista/presentation/screens/notification/notification_screen.dart';
 import 'package:fashionista/presentation/screens/trends/discover_trends_screen.dart';
 import 'package:fashionista/presentation/screens/trends/trends_screen.dart';
 import 'package:flutter/material.dart';

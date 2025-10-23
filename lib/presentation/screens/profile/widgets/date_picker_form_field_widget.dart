@@ -86,7 +86,7 @@ class _DatePickerFormFieldState extends State<DatePickerFormField> {
             filled: true,
             fillColor: Colors.transparent,
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: 4,
+              horizontal: 0,
               vertical: 0,
             ),
           ),

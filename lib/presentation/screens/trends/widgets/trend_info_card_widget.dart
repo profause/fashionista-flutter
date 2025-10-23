@@ -3,7 +3,6 @@ import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
 import 'package:fashionista/presentation/screens/trends/trend_details_screen.dart';
-import 'package:fashionista/presentation/screens/trends/widgets/custom_trend_like_button_widget.dart';
 import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:fashionista/presentation/widgets/video_preview_widget.dart';
@@ -149,17 +148,17 @@ class TrendInfoCardWidget extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          CustomTrendLikeButtonWidget(
-                            trendId: trendInfo.uid!,
-                            isLikedNotifier: ValueNotifier(
-                              LikeObject(
-                                count: trendInfo.numberOfLikes == null
-                                    ? 0
-                                    : trendInfo.numberOfLikes!,
-                                isLiked: trendInfo.isLiked!,
-                              ),
-                            ),
-                          ),
+                          // CustomTrendLikeButtonWidget(
+                          //   trendId: trendInfo.uid!,
+                          //   isLikedNotifier: ValueNotifier(
+                          //     LikeObject(
+                          //       count: trendInfo.numberOfLikes == null
+                          //           ? 0
+                          //           : trendInfo.numberOfLikes!,
+                          //       isLiked: trendInfo.isLiked!,
+                          //     ),
+                          //   ),
+                          // ),
                         ],
                       ),
                     ),

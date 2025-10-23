@@ -2,8 +2,8 @@ import 'package:fashionista/core/onboarding/onboarding_cubit.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/widgets/animated_primary_button.dart';
 import 'package:fashionista/data/models/onboarding/models/onboarding_page_data.dart';
-import 'package:fashionista/presentation/screens/auth/sign_in_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
@@ -58,17 +58,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Future<void> navigateToLogin() async {
     _onboardingCubit.hasSeenOnboarding(true);//here
-    await Navigator.of(context).push(
-      PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 600),
-        pageBuilder: (_, animation, _) {
-          return FadeTransition(
-            opacity: animation,
-            child: const SignInScreen(),
-          );
-        },
-      ),
-    );
+    context.go('/sign-in');
   }
 
   @override

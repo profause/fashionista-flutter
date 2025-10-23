@@ -13,8 +13,6 @@ import 'package:fashionista/data/services/hive/hive_trend_service.dart';
 import 'package:fashionista/data/services/hive/hive_work_order_service.dart';
 import 'package:fashionista/data/services/hive/hive_work_order_status_progress_service.dart';
 import 'package:fashionista/domain/usecases/auth/signout_usecase.dart';
-import 'package:fashionista/presentation/screens/auth/sign_in_screen.dart';
-import 'package:fashionista/presentation/screens/profile/user_interest_screen.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_card_widget.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:flutter/material.dart';
@@ -220,18 +218,7 @@ class UserProfilePage extends StatelessWidget {
 
       // ✅ navigate to sign in
       // if (context.mounted) {
-      Navigator.pushAndRemoveUntil(
-        context,
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              const SignInScreen(),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-          transitionDuration: const Duration(milliseconds: 400),
-        ),
-        (route) => false,
-      );
+      context.go('/sign-in');
       //}
     }
   }

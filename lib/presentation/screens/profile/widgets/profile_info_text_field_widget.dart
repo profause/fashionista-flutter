@@ -61,7 +61,7 @@ class ProfileInfoTextFieldWidget extends StatelessWidget {
             filled: true,
             fillColor: enabled ? Colors.transparent : Colors.grey[50],
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: 4,
+              horizontal: 0,
               vertical: 0,
             ),
           ),

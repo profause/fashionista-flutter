@@ -1,4 +1,5 @@
 import 'package:fashionista/core/auth/auth_provider_cubit.dart';
+import 'package:fashionista/core/onboarding/onboarding_cubit.dart';
 import 'package:fashionista/core/service_locator/app_config.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/widgets/bloc/button_loading_state_cubit.dart';
@@ -8,8 +9,6 @@ import 'package:fashionista/domain/usecases/auth/signin_usecase.dart';
 import 'package:fashionista/domain/usecases/auth/verify_otp_usecase.dart';
 import 'package:fashionista/presentation/screens/auth/mobile_number_auth_page.dart';
 import 'package:fashionista/presentation/screens/auth/otp_verification_page.dart';
-import 'package:fashionista/presentation/screens/main/main_screen.dart';
-import 'package:fashionista/presentation/screens/profile/create_profile_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -36,9 +35,12 @@ class _SignInScreenState extends State<SignInScreen> {
   late AuthProviderCubit _authProviderCubit;
   late UserBloc _userBloc;
   final ValueNotifier<String> _verificationId = ValueNotifier('');
+  late OnboardingCubit _onboardingCubit;
 
   @override
   void initState() {
+    _onboardingCubit = context.read<OnboardingCubit>();
+    _onboardingCubit.hasSeenOnboarding(false); //here
     super.initState();
     _initRecaptcha(); // 👈 kick off async call
     _pageController.addListener(() {});
@@ -88,43 +90,47 @@ class _SignInScreenState extends State<SignInScreen> {
         },
       ),
     ];
-    return ValueListenableBuilder<String>(
-      valueListenable: _verificationId,
-      builder: (context, verificationId, _) {
-        otpString = verificationId;
-        return Scaffold(
-          appBar: AppBar(
-            automaticallyImplyLeading: false,
-            foregroundColor: colorScheme.primary,
-            backgroundColor: colorScheme.onPrimary,
-            title: Text(
-              'Sign In',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall!.copyWith(fontWeight: FontWeight.bold),
-            ),
-            elevation: 0,
-          ),
-          backgroundColor: colorScheme.surface,
-          body: SafeArea(
-            //tag: "getStartedButton",
-            child: Column(
-              children: [
-                Expanded(
-                  child: PageView.builder(
-                    controller: _pageController,
-                    itemCount: pages.length,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemBuilder: (context, index) {
-                      return pages[index];
-                    },
-                  ),
+    return AnimatedOpacity(
+      opacity: 1,
+      duration: const Duration(milliseconds: 300),
+      child: ValueListenableBuilder<String>(
+        valueListenable: _verificationId,
+        builder: (context, verificationId, _) {
+          otpString = verificationId;
+          return Scaffold(
+            appBar: AppBar(
+              automaticallyImplyLeading: false,
+              foregroundColor: colorScheme.primary,
+              backgroundColor: colorScheme.onPrimary,
+              title: Text(
+                'Sign In',
+                style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                  fontWeight: FontWeight.bold,
                 ),
-              ],
+              ),
+              elevation: 0,
             ),
-          ),
-        );
-      },
+            backgroundColor: colorScheme.surface,
+            body: SafeArea(
+              //tag: "getStartedButton",
+              child: Column(
+                children: [
+                  Expanded(
+                    child: PageView.builder(
+                      controller: _pageController,
+                      itemCount: pages.length,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        return pages[index];
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -138,7 +144,7 @@ class _SignInScreenState extends State<SignInScreen> {
     try {
       _buttonLoadingStateCubit.setLoading(true);
       var result = await sl<SignInUsecase>().call(number);
-
+      _authProviderCubit.setAuthState('Guest user', number, '', true);
       result.fold(
         (ifLeft) {
           _buttonLoadingStateCubit.setLoading(false);
@@ -183,7 +189,7 @@ class _SignInScreenState extends State<SignInScreen> {
           _buttonLoadingStateCubit.setLoading(false);
           _authProviderCubit.setAuthState(
             ifRight?.displayName ?? 'Guest user',
-            ifRight?.phoneNumber ?? '',
+            ifRight?.phoneNumber ?? _authProviderCubit.authState.mobileNumber,
             ifRight?.uid ?? '',
             true,
           );
@@ -191,7 +197,9 @@ class _SignInScreenState extends State<SignInScreen> {
           var loggedInUser = _userBloc.state.copyWith(
             fullName: ifRight?.displayName ?? 'Guest user',
             userName: ifRight?.displayName ?? 'Guest user',
-            mobileNumber: ifRight?.phoneNumber ?? '233543756168',
+            mobileNumber:
+                ifRight?.phoneNumber ??
+                _authProviderCubit.authState.mobileNumber,
             uid: ifRight?.uid ?? '',
             joinedDate: ifRight.metadata.creationTime,
           );
@@ -206,22 +214,10 @@ class _SignInScreenState extends State<SignInScreen> {
               isUserNameEmpty ||
               isAccountTypeEmpty ||
               isGenderEmpty) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const CreateProfileScreen(),
-              ),
-            );
+            context.push('/create-profile');
           } else {
-            // Navigator.pushAndRemoveUntil(
-            //   context,
-            //   MaterialPageRoute(
-            //     builder: (BuildContext context) => const MainScreen(),
-            //   ),
-            //   (route) => false,
-            // );
-
-            context.go('/home');
+            context.go('/create-profile');
+            //context.go('/home');
           }
         },
       );
