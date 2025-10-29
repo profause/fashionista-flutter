@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:fashionista/data/models/comment/comment_model.dart';
 
 abstract class TrendCommentBlocEvent extends Equatable {
   const TrendCommentBlocEvent();
@@ -7,9 +8,16 @@ abstract class TrendCommentBlocEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class LoadTrend extends TrendCommentBlocEvent {
+class AddTrendComment extends TrendCommentBlocEvent {
+  final CommentModel comment;
+  const AddTrendComment(this.comment);
+  @override
+  List<Object?> get props => [comment];
+}
+
+class LoadTrendComment extends TrendCommentBlocEvent {
   final String uid;
-  const LoadTrend(this.uid);
+  const LoadTrendComment(this.uid);
 
   @override
   List<Object?> get props => [uid];
@@ -30,7 +38,6 @@ class LoadTrendCommentsCacheFirstThenNetwork extends TrendCommentBlocEvent {
   @override
   List<Object?> get props => [refId];
 }
-
 
 class ClearTrendComment extends TrendCommentBlocEvent {
   const ClearTrendComment();

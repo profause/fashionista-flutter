@@ -5,19 +5,19 @@ import 'package:flutter/material.dart';
 
 class HiveTrendCommentService
     implements HiveRepository<CommentModel> {
-  //late final Box designCollectionsBox;
+  //late final Box trendCommentsBox;
   final hive = HiveService();
 
   @override
   Future<List<CommentModel>> getItems(String key) async {
     try {
-      final data = hive.designCollectionsBox.get(key);
+      final data = hive.trendCommentsBox.get(key);
       if (data == null) {
         return ([]);
       }
-      final List<CommentModel> designCollectionList = data
+      final List<CommentModel> commentList = data
           .cast<CommentModel>();
-      return (designCollectionList);
+      return (commentList);
     } catch (e) {
       debugPrint(e.toString());
     }
@@ -30,10 +30,10 @@ class HiveTrendCommentService
     required List<CommentModel> items,
   }) async {
     try {
-      //await hive.designCollectionsBox.clear();
+      //await hive.trendCommentsBox.clear();
       await Future.wait([
-        hive.designCollectionsBox.put(key, items),
-        hive.designCollectionsBox.put(
+        hive.trendCommentsBox.put(key, items),
+        hive.trendCommentsBox.put(
           'cacheTimestamp',
           DateTime.now().millisecondsSinceEpoch,
         ),
@@ -45,18 +45,18 @@ class HiveTrendCommentService
 
   @override
   Future<bool> isCacheEmpty() async {
-    return hive.designCollectionsBox.isEmpty;
+    return hive.trendCommentsBox.isEmpty;
   }
 
   @override
   Future<void> clearCache() async {
-    await hive.designCollectionsBox.clear();
+    await hive.trendCommentsBox.clear();
   }
   
   @override
   Future<CommentModel> getItem(String key, String identifier) async {
     try {
-      final data = hive.designCollectionsBox.get(key);
+      final data = hive.trendCommentsBox.get(key);
       if (data == null) {
         return CommentModel.empty();
       }

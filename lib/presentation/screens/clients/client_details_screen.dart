@@ -14,8 +14,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ClientDetailsScreen extends StatefulWidget {
-  final Client client;
-  const ClientDetailsScreen({super.key, required this.client});
+  final String clientId; // uid client;
+  const ClientDetailsScreen({super.key, required this.clientId});
 
   @override
   State<ClientDetailsScreen> createState() => _ClientDetailsScreenState();
@@ -27,7 +27,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
   @override
   void initState() {
     context.read<ClientBloc>().add(
-      LoadClient(widget.client.uid, isFromCache: true),
+      LoadClient(widget.clientId, isFromCache: true),
     );
     super.initState();
   }
@@ -73,7 +73,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                             child: Row(
                               children: [
                                 CustomPinnedClientIconButton(
-                                  client: widget.client,
+                                  client: client,
                                 ),
                                 const SizedBox(width: 8),
                                 // DELETE

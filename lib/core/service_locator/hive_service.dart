@@ -32,7 +32,7 @@ class HiveService {
   late final Box designersBox;
   late final Box designCollectionsBox;
   late final Box<Client> clientsBox;
-  late final Box trendsBox;
+  late final Box<TrendFeedModel> trendsBox;
   late final Box trendCommentsBox;
   late final Box closetBox;
   late final Box userInterestsBox;

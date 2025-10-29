@@ -18,17 +18,26 @@ class ProfileAvatar extends StatelessWidget {
         final avatar = user.profileImage.isNotEmpty
             ? CircleAvatar(
                 radius: radius,
-                backgroundColor: Colors.grey.shade300,
-                backgroundImage: user.profileImage.isNotEmpty
-                    ? CachedNetworkImageProvider(user.profileImage,errorListener: (error) {},)
-                    : null,
-                child: user.profileImage.isEmpty
-                    ? Icon(
-                        Icons.person_outline,
-                        size: radius * 1.5,
-                        color: Colors.grey.shade600,
-                      )
-                    : null,
+                backgroundColor: Colors.white,
+                child: Container(
+                  margin: const EdgeInsets.all(2),
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(shape: BoxShape.circle),
+                  child: CachedNetworkImage(
+                    imageUrl: user.profileImage,
+                    errorListener: (error) {},
+                    placeholder: (context, url) => DefaultProfileAvatar(
+                      name: null,
+                      size: radius * 2,
+                      uid: user.uid!,
+                    ),
+                    errorWidget: (context, url, error) => DefaultProfileAvatar(
+                      name: null,
+                      size: radius * 2,
+                      uid: user.uid!,
+                    ),
+                  ),
+                ),
               )
             : DefaultProfileAvatar(
                 name: user.fullName,

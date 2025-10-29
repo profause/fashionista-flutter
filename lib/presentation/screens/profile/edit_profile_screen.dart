@@ -10,6 +10,7 @@ import 'package:fashionista/presentation/screens/profile/widgets/profile_info_te
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -370,6 +371,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
+  void showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // prevent accidental dismiss
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  void dismissLoadingDialog(BuildContext context) {
+    if (Navigator.canPop(context)) {
+      Navigator.of(context, rootNavigator: true).pop();
+    }
+  }
+
   Future<void> _saveProfile(User user) async {
     if (!mounted) return;
     final colorScheme = Theme.of(context).colorScheme;
@@ -397,11 +412,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         return; // Stop save process
       }
       // Show progress dialog
-      showDialog(
-        context: context,
-        barrierDismissible: false, // Prevent dismissing
-        builder: (_) => const Center(child: CircularProgressIndicator()),
-      );
+      showLoadingDialog(context);
 
       final updatedUser = user.copyWith(
         fullName: _fullNameController.text,
@@ -434,7 +445,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         (ifLeft) {
           if (mounted) {
             // Dismiss the dialog manually
-            Navigator.of(context).pop();
+            dismissLoadingDialog(context);
           }
           ScaffoldMessenger.of(
             context,
@@ -446,8 +457,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           );
           if (mounted) {
             // Dismiss the dialog manually
-            Navigator.of(context).pop();
-            Navigator.pop(context); // Go back to previous page
+            dismissLoadingDialog(context);
+            context.pop(); // Go back to previous page
           }
         },
       );

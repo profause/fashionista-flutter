@@ -1,7 +1,7 @@
 import 'package:fashionista/data/models/clients/client_model.dart';
-import 'package:fashionista/presentation/screens/clients/client_details_screen.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class ClientInfoPinnedWidget extends StatelessWidget {
   final Client clientInfo;
@@ -18,17 +18,17 @@ class ClientInfoPinnedWidget extends StatelessWidget {
     //final colorScheme = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: () {
+        context.push('/clients/${clientInfo.uid}');
         // Navigate to client details
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ClientDetailsScreen(client: clientInfo),
-          ),
-        );
       },
       child: Column(
         children: [
-          DefaultProfileAvatar(name: null, size: 60, uid: clientInfo.uid),
+          DefaultProfileAvatar(
+            key: ValueKey(clientInfo.uid),
+            name: null,
+            size: 60,
+            uid: clientInfo.uid,
+          ),
           const SizedBox(height: 6),
           SizedBox(
             width: 70,

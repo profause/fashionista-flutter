@@ -29,6 +29,8 @@ class BannerImageWidget extends StatefulWidget {
 }
 
 class _BannerImageWidgetState extends State<BannerImageWidget> {
+
+
   final ImagePicker picker = ImagePicker();
   double uploadProgress = 0.0;
   String uploadedUrl = '';
@@ -36,12 +38,18 @@ class _BannerImageWidgetState extends State<BannerImageWidget> {
   bool _isUploading = false;
 
   @override
+  void initState() {
+    super.initState();
+    
+  }
+
+  @override
   Widget build(BuildContext context) {
     //final colorScheme = Theme.of(context).colorScheme;
     //final textTheme = Theme.of(context).textTheme;
     return ValueListenableBuilder<String>(
       valueListenable: widget.url,
-      builder: (_, currentUrl, __) {
+      builder: (_, currentUrl, _) {
         return SizedBox(
           width: double.infinity, // make it stretch
           height: widget.height,
@@ -80,8 +88,8 @@ class _BannerImageWidgetState extends State<BannerImageWidget> {
                 ),
                 if (_isUploading) ...[
                   Positioned(
-                    right: 8,
-                    bottom: 8,
+                    right: 14.5,
+                    bottom: 6,
                     child: CircularProgressIndicator(
                       strokeWidth: 3,
                       strokeAlign: 0,
@@ -160,7 +168,7 @@ class _BannerImageWidgetState extends State<BannerImageWidget> {
       setState(() {
         _isUploading = true;
       });
-      final result = await sl<FirebaseDesignersService>().uploadBannerImage(
+      final result = await sl<FirebaseDesignersService>().uploadBannerImageToCloudinary(
         uid,
         _croppedFile!,
       );
@@ -183,8 +191,6 @@ class _BannerImageWidgetState extends State<BannerImageWidget> {
           userBloc.add(UpdateUser(user));
 
           widget.url.value = url;
-
-          debugPrint('Uploaded! Image URL: $url');
           _clearImageFile();
           setState(() {
             _isUploading = false;

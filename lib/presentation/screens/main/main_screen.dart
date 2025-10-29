@@ -7,6 +7,7 @@ import 'package:fashionista/presentation/screens/closet/closet_screen.dart';
 import 'package:fashionista/presentation/screens/designers/designers_screen.dart';
 import 'package:fashionista/presentation/screens/home/home_screen.dart';
 import 'package:fashionista/presentation/screens/profile/profile_screen.dart';
+import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -113,19 +114,28 @@ class _MainScreenState extends State<MainScreen> {
                 return CircleAvatar(
                   radius: 16,
                   backgroundColor: Colors.grey.shade300,
-                  backgroundImage: user.profileImage.isNotEmpty
-                      ? CachedNetworkImageProvider(
-                          user.profileImage,
-                          errorListener: (error) {},
-                        )
-                      : null,
-                  child: user.profileImage.isEmpty
-                      ? Icon(
-                          Icons.person_outline,
-                          size: 24,
-                          color: Colors.grey.shade600,
-                        )
-                      : null,
+                  child: Container(
+                    margin: const EdgeInsets.all(2),
+                    clipBehavior: Clip.antiAlias,
+                    decoration: BoxDecoration(shape: BoxShape.circle),
+                    child: CachedNetworkImage(
+                      imageUrl: user.profileImage,
+                      errorListener: (error) {},
+                      placeholder: (context, url) => DefaultProfileAvatar(
+                        key: ValueKey(user.uid),
+                        name: null,
+                        size: 18 * 1.8,
+                        uid: user.uid!,
+                      ),
+                      errorWidget: (context, url, error) =>
+                          DefaultProfileAvatar(
+                            key: ValueKey(user.uid),
+                            name: null,
+                            size: 18 * 1.8,
+                            uid: user.uid!,
+                          ),
+                    ),
+                  ),
                 );
               },
             ),
@@ -134,27 +144,33 @@ class _MainScreenState extends State<MainScreen> {
                 return Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Theme.of(context).colorScheme.primary,
-                      width: 2,
-                    ),
+                    border: Border.all(color: AppTheme.appIconColor, width: 1),
                   ),
                   child: CircleAvatar(
                     radius: 16,
                     backgroundColor: Colors.grey.shade300,
-                    backgroundImage: user.profileImage.isNotEmpty
-                        ? CachedNetworkImageProvider(
-                            user.profileImage,
-                            errorListener: (error) {},
-                          )
-                        : null,
-                    child: user.profileImage.isEmpty
-                        ? Icon(
-                            Icons.person,
-                            size: 24,
-                            color: Theme.of(context).colorScheme.primary,
-                          )
-                        : null,
+                    child: Container(
+                      margin: const EdgeInsets.all(2),
+                      clipBehavior: Clip.antiAlias,
+                      decoration: BoxDecoration(shape: BoxShape.circle),
+                      child: CachedNetworkImage(
+                        imageUrl: user.profileImage,
+                        errorListener: (error) {},
+                        placeholder: (context, url) => DefaultProfileAvatar(
+                          key: ValueKey(user.uid),
+                          name: null,
+                          size: 18 * 1.8,
+                          uid: user.uid!,
+                        ),
+                        errorWidget: (context, url, error) =>
+                            DefaultProfileAvatar(
+                              key: ValueKey(user.uid),
+                              name: null,
+                              size: 18 * 1.8,
+                              uid: user.uid!,
+                            ),
+                      ),
+                    ),
                   ),
                 );
               },

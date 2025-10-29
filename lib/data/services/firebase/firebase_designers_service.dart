@@ -1,7 +1,13 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloudinary_url_gen/cloudinary.dart';
+import 'package:cloudinary_url_gen/config/cloudinary_config.dart';
+import 'package:cloudinary_url_gen/transformation/resize/resize.dart';
+import 'package:cloudinary_url_gen/transformation/transformation.dart';
 import 'package:dartz/dartz.dart';
+import 'package:fashionista/core/service_locator/app_config.dart';
 import 'package:fashionista/data/models/comment/comment_model.dart';
 import 'package:fashionista/data/models/designers/designer_model.dart';
 import 'package:fashionista/data/models/designers/designer_review_model.dart';
@@ -10,6 +16,8 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_cropper/image_cropper.dart';
+import 'package:cloudinary_api/uploader/cloudinary_uploader.dart';
+import 'package:cloudinary_api/src/request/model/uploader_params.dart';
 
 abstract class FirebaseDesignersService {
   Future<Either<String, List<Designer>>> findDesigners();
@@ -25,6 +33,10 @@ abstract class FirebaseDesignersService {
   Future<Either> deleteDesignerById(String uid);
   Future<Either> findDesignerById(String uid);
   Future<Either> uploadBannerImage(String uid, CroppedFile croppedFile);
+  Future<Either> uploadBannerImageToCloudinary(
+    String uid,
+    CroppedFile croppedFile,
+  );
   Future<Either> addOrRemoveFavouriteDesigner(String designerId);
   Future<bool> isFavouriteDesigner(String designerId);
   Future<Either> fetchFavouriteDesigners(List<String> designerIds);
@@ -202,6 +214,84 @@ class FirebaseDesignersServiceImpl implements FirebaseDesignersService {
       return Right(designer);
     } on FirebaseException catch (e) {
       return Left(e.message);
+    }
+  }
+
+  @override
+  Future<Either<String, String>> uploadBannerImageToCloudinary(
+    String uid,
+    CroppedFile croppedFile,
+  ) async {
+    try {
+      final bytes = await croppedFile.readAsBytes();
+      final base64Image = base64Encode(bytes);
+
+      CloudinaryConfig config = CloudinaryConfig.fromUri(
+        appConfig.get('cloudinary_url'),
+      );
+      final bannerImageFolder = appConfig.get(
+        'cloudinary_banner_images_folder',
+      );
+      final baseFolder = appConfig.get('cloudinary_base_folder');
+      final cloudinary = Cloudinary.fromConfiguration(config);
+
+      final fileName = "$uid.jpg";
+      final publicId = uid;
+
+      final transformation = Transformation()
+          .resize(Resize.auto().height(240).aspectRatio(16 / 9))
+          //.addTransformation('q_60')
+          .addTransformation('q_auto:eco');
+
+      final uploadResult = await cloudinary.uploader().upload(
+        'data:image/jpeg;base64,$base64Image',
+        params: UploadParams(
+          filename: fileName,
+          publicId: publicId,
+          useFilename: true,
+          folder: '$baseFolder/$bannerImageFolder',
+          uploadPreset: 'ml_default',
+          type: 'image/jpeg',
+          transformation: transformation,
+        ),
+      );
+
+      if (uploadResult == null) {
+        debugPrint("Upload failed — no response from Cloudinary");
+        throw Exception("Upload failed — no response from Cloudinary");
+      }
+      if (uploadResult.error != null) {
+        debugPrint("Upload failed: ${uploadResult.error!.message}");
+        throw Exception(uploadResult.error!.message);
+      }
+
+      final url = uploadResult.data?.secureUrl;
+      if (url == null) {
+        debugPrint("Upload failed — no URL returned");
+        throw Exception("Upload failed — no URL returned");
+      }
+      // Get download URL
+      final link = url;
+
+      await FirebaseFirestore.instance.collection('users').doc(uid).update({
+        'banner_image': link,
+      });
+
+      try {
+        // Update Firestore profile image URL
+        await FirebaseFirestore.instance
+            .collection('designers')
+            .doc(uid)
+            .update({'banner_image': link});
+      } catch (e) {
+        debugPrint(e.toString());
+      }
+
+      return Right(link);
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'Upload failed');
+    } catch (e) {
+      return Left(e.toString());
     }
   }
 

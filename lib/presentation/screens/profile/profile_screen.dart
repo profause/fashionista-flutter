@@ -9,9 +9,7 @@ import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/services/firebase/firebase_user_service.dart';
 import 'package:fashionista/domain/usecases/profile/fetch_user_profile_usecase.dart';
 import 'package:fashionista/presentation/screens/designers/designer_profile_page.dart';
-import 'package:fashionista/presentation/screens/profile/edit_profile_screen.dart';
 import 'package:fashionista/presentation/screens/profile/user_profile_page.dart';
-import 'package:fashionista/presentation/screens/settings/settings_screen.dart';
 import 'package:fashionista/presentation/widgets/banner_image_widget.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
@@ -95,18 +93,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 size: 20,
                                 iconData: Icons.edit,
                                 onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => BlocProvider.value(
-                                        value: context
-                                            .read<
-                                              UserBloc
-                                            >(), // reuse existing cubit
-                                        child: EditProfileScreen(),
-                                      ),
-                                    ),
-                                  );
+                                  context.push('/edit-profile');
                                 },
                               ),
                               const SizedBox(width: 8),
@@ -114,18 +101,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 size: 20,
                                 iconData: Icons.settings,
                                 onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => BlocProvider.value(
-                                        value: context
-                                            .read<
-                                              UserBloc
-                                            >(), // reuse existing cubit
-                                        child: SettingsScreen(),
-                                      ),
-                                    ),
-                                  );
+                                  context.push('/settings');
                                 },
                               ),
                             ],
@@ -172,7 +148,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: TabBar(
                           labelColor: colorScheme.primary,
                           unselectedLabelColor: AppTheme.darkGrey,
-                          indicatorColor: AppTheme.appIconColor.withValues(alpha: 1),
+                          indicatorColor: AppTheme.appIconColor.withValues(
+                            alpha: 1,
+                          ),
                           dividerColor: AppTheme.lightGrey,
                           dividerHeight: 0,
                           indicatorWeight: 2,
@@ -239,7 +217,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           );
         } else {
-          return const Center(child: CircularProgressIndicator());
+          return const SizedBox.shrink();
         }
       },
     );
@@ -249,29 +227,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        Material(
-          color: Colors.white,
-          borderOnForeground: true,
-          borderRadius: BorderRadius.circular(60),
-          child: Padding(
-            padding: const EdgeInsets.all(4.0),
-            child: InkWell(
+        CircleAvatar(
+          radius: radius,
+          backgroundColor: Colors.white,
+          child: Container(
+            margin: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(radius),
-              onTap: () {},
-              child: user.profileImage != ''
-                  ? CircleAvatar(
-                      radius: radius,
-                      backgroundColor: AppTheme.lightGrey,
-                      backgroundImage: CachedNetworkImageProvider(
-                        user.profileImage,
-                        errorListener: (error) {},
-                      ),
-                    )
-                  : DefaultProfileAvatar(
-                      name: null,
-                      size: radius * 1.8,
-                      uid: user.uid!,
-                    ),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: CachedNetworkImage(
+              fit: BoxFit.fill,
+              imageUrl: user.profileImage,
+              errorListener: (error) {},
+              placeholder: (context, url) => DefaultProfileAvatar(
+                key: ValueKey(user.uid),
+                name: null,
+                size: radius * 2,
+                uid: user.uid!,
+              ),
+              errorWidget: (context, url, error) => DefaultProfileAvatar(
+                key: ValueKey(user.uid),
+                name: null,
+                size: radius * 2,
+                uid: user.uid!,
+              ),
             ),
           ),
         ),
@@ -300,11 +280,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _getUserDetails() async {
     try {
-      showDialog(
-        context: context,
-        barrierDismissible: false, // Prevent dismissing
-        builder: (_) => const Center(child: CircularProgressIndicator()),
-      );
+      //showLoadingDialog(context);
       final userBloc = context.read<UserBloc>();
       String uid =
           //firebase_auth.FirebaseAuth.instance.currentUser.uid ??
@@ -313,33 +289,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (uid.isEmpty) {
         uid = userBloc.state.uid!;
       }
-     // if (uid.isEmpty) return;
+      // if (uid.isEmpty) return;
 
       final result = await sl<FetchUserProfileUsecase>().call(uid);
       result.fold(
         (ifLeft) {
           if (mounted) {
             // Dismiss the dialog manually
-            Navigator.of(context, rootNavigator: true).pop();
+            //dismissLoadingDialog(context);
           }
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text(ifLeft)));
         },
         (ifRight) {
-          
           userBloc.add(UpdateUser(ifRight));
 
           if (mounted) {
             // Dismiss the dialog manually
-            Navigator.of(context, rootNavigator: true).pop();
+            //dismissLoadingDialog(context);
           }
         },
       );
     } catch (e) {
       if (mounted) {
         // Dismiss the dialog manually
-        Navigator.of(context, rootNavigator: true).pop();
+        dismissLoadingDialog(context);
       }
     }
   }
@@ -489,9 +464,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         _isUploading = true;
       });
-      final result = await sl<FirebaseUserService>().uploadProfileImage(
-        _croppedFile!,
-      );
+      final result = await sl<FirebaseUserService>()
+          .uploadProfileImageToCloudinary(_croppedFile!);
 
       result.fold(
         (error) {
@@ -523,6 +497,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _imageFile = null;
       _croppedFile = null;
     });
+  }
+
+  void showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // prevent accidental dismiss
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  void dismissLoadingDialog(BuildContext context) {
+    if (Navigator.canPop(context)) {
+      Navigator.of(context, rootNavigator: true).pop();
+    }
   }
 }
 

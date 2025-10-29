@@ -9,7 +9,6 @@ import 'package:fashionista/core/onboarding/onboarding_cubit.dart';
 import 'package:fashionista/core/service_locator/hive_service.dart';
 import 'package:fashionista/core/service_locator/local_notification_service.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
-import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/theme/theme_cubit.dart';
 import 'package:fashionista/core/widgets/bloc/button_loading_state_cubit.dart';
 import 'package:fashionista/core/widgets/bloc/getstarted_stats_cubit.dart';
@@ -25,7 +24,6 @@ import 'package:fashionista/data/models/designers/bloc/designer_review_bloc.dart
 import 'package:fashionista/data/models/notification/bloc/notification_bloc.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/settings/bloc/settings_bloc.dart';
-import 'package:fashionista/data/models/settings/models/settings_model.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_comment_bloc.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc.dart';

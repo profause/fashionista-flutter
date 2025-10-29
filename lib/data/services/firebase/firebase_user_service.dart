@@ -1,13 +1,21 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloudinary_url_gen/cloudinary.dart';
+import 'package:cloudinary_url_gen/config/cloudinary_config.dart';
+import 'package:cloudinary_url_gen/transformation/resize/resize.dart';
+import 'package:cloudinary_url_gen/transformation/transformation.dart';
 import 'package:dartz/dartz.dart';
+import 'package:fashionista/core/service_locator/app_config.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_cropper/image_cropper.dart';
+import 'package:cloudinary_api/uploader/cloudinary_uploader.dart';
+import 'package:cloudinary_api/src/request/model/uploader_params.dart';
 
 abstract class FirebaseUserService {
   Future<Either> fetchUserDetailsFromFirestore(String uid);
@@ -16,7 +24,9 @@ abstract class FirebaseUserService {
   Future<Either> updateUserDisplayName(String name);
   Future<Either> updateUserEmail(String email);
   Future<Either> uploadProfileImage(CroppedFile croppedFile);
+  Future<Either> uploadProfileImageToCloudinary(CroppedFile croppedFile);
   Future<Either> uploadBannerImage(CroppedFile croppedFile);
+  Future<Either> uploadBannerImageToCloudinary(CroppedFile croppedFile);
   Future<Either> findFavouriteDesignerIds();
   Future<bool> hasBookmarkedDesignCollection();
   Future<Either> findBookmarkedDesignCollectionIds();
@@ -122,6 +132,172 @@ class FirebaseUserServiceImpl implements FirebaseUserService {
 
       // Also update FirebaseAuth profile photo
       await user.updatePhotoURL(link);
+
+      return Right(link);
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'Upload failed');
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  @override
+  Future<Either<String, String>> uploadProfileImageToCloudinary(
+    CroppedFile croppedFile,
+  ) async {
+    try {
+      final user = firebase_auth.FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        return const Left("User not logged in");
+      }
+      final bytes = await croppedFile.readAsBytes();
+      final base64Image = base64Encode(bytes);
+
+      CloudinaryConfig config = CloudinaryConfig.fromUri(
+        appConfig.get('cloudinary_url'),
+      );
+      final profileImageFolder = appConfig.get(
+        'cloudinary_profile_images_folder',
+      );
+      final baseFolder = appConfig.get('cloudinary_base_folder');
+      final cloudinary = Cloudinary.fromConfiguration(config);
+
+      final fileName = "${user.uid}.jpg";
+      final publicId = user.uid;
+
+      final transformation = Transformation()
+          .resize(Resize.auto().width(640).height(640).aspectRatio(1 / 1))
+          //.addTransformation('q_60')
+          .addTransformation('q_auto:eco');
+
+      final uploadResult = await cloudinary.uploader().upload(
+        'data:image/jpeg;base64,$base64Image',
+        params: UploadParams(
+          filename: fileName,
+          publicId: publicId,
+          useFilename: true,
+          folder: '$baseFolder/$profileImageFolder',
+          uploadPreset: 'ml_default',
+          type: 'image/jpeg',
+          transformation: transformation,
+        ),
+      );
+
+      if (uploadResult == null) {
+        debugPrint("Upload failed — no response from Cloudinary");
+        throw Exception("Upload failed — no response from Cloudinary");
+      }
+      if (uploadResult.error != null) {
+        debugPrint("Upload failed: ${uploadResult.error!.message}");
+        throw Exception(uploadResult.error!.message);
+      }
+
+      final url = uploadResult.data?.secureUrl;
+      if (url == null) {
+        debugPrint("Upload failed — no URL returned");
+        throw Exception("Upload failed — no URL returned");
+      }
+      // Get download URL
+      final link = url;
+
+      // Update Firestore profile image URL
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).update(
+        {'profile_image': link},
+      );
+
+      try {
+        // Update Firestore profile image URL
+        await FirebaseFirestore.instance
+            .collection('designers')
+            .doc(user.uid)
+            .update({'profile_image': link});
+      } catch (e) {
+        debugPrint(e.toString());
+      }
+
+      // Also update FirebaseAuth profile photo
+      await user.updatePhotoURL(link);
+
+      return Right(link);
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'Upload failed');
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  @override
+  Future<Either<String, String>> uploadBannerImageToCloudinary(
+    CroppedFile croppedFile,
+  ) async {
+    try {
+      final user = firebase_auth.FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        return const Left("User not logged in");
+      }
+      final bytes = await croppedFile.readAsBytes();
+      final base64Image = base64Encode(bytes);
+
+      CloudinaryConfig config = CloudinaryConfig.fromUri(
+        appConfig.get('cloudinary_url'),
+      );
+      final bannerImageFolder = appConfig.get(
+        'cloudinary_banner_images_folder',
+      );
+      final baseFolder = appConfig.get('cloudinary_base_folder');
+      final cloudinary = Cloudinary.fromConfiguration(config);
+
+      final fileName = "${user.uid}.jpg";
+      final publicId = user.uid;
+
+      final transformation = Transformation()
+          .resize(Resize.auto().height(240).aspectRatio(16 / 9))
+          //.addTransformation('q_60')
+          .addTransformation('q_auto:eco');
+
+      final uploadResult = await cloudinary.uploader().upload(
+        'data:image/jpeg;base64,$base64Image',
+        params: UploadParams(
+          filename: fileName,
+          publicId: publicId,
+          useFilename: true,
+          folder: '$baseFolder/$bannerImageFolder',
+          uploadPreset: 'ml_default',
+          type: 'image/jpeg',
+          transformation: transformation,
+        ),
+      );
+
+      if (uploadResult == null) {
+        debugPrint("Upload failed — no response from Cloudinary");
+        throw Exception("Upload failed — no response from Cloudinary");
+      }
+      if (uploadResult.error != null) {
+        debugPrint("Upload failed: ${uploadResult.error!.message}");
+        throw Exception(uploadResult.error!.message);
+      }
+
+      final url = uploadResult.data?.secureUrl;
+      if (url == null) {
+        debugPrint("Upload failed — no URL returned");
+        throw Exception("Upload failed — no URL returned");
+      }
+      // Get download URL
+      final link = url;
+
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).update(
+        {'banner_image': link},
+      );
+
+      try {
+        // Update Firestore profile image URL
+        await FirebaseFirestore.instance
+            .collection('designers')
+            .doc(user.uid)
+            .update({'banner_image': link});
+      } catch (e) {
+        debugPrint(e.toString());
+      }
 
       return Right(link);
     } on FirebaseException catch (e) {

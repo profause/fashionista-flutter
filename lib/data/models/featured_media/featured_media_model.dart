@@ -19,7 +19,11 @@ class FeaturedMediaModel extends Equatable {
   @JsonKey(name: 'aspect_ratio')
   final double? aspectRatio;
 
-  const FeaturedMediaModel({this.url, this.type, this.aspectRatio});
+  @HiveField(FeaturedMediaModelHiveType.thumbnailUrl)
+  @JsonKey(name: 'thumbnail_url')
+  final String? thumbnailUrl;
+
+  const FeaturedMediaModel({this.url, this.type, this.aspectRatio,this.thumbnailUrl,});
 
   factory FeaturedMediaModel.fromJson(Map<String, dynamic> json) =>
       _$FeaturedMediaModelFromJson(json);
@@ -27,20 +31,22 @@ class FeaturedMediaModel extends Equatable {
   Map<String, dynamic> toJson() => _$FeaturedMediaModelToJson(this);
 
   @override
-  List<Object?> get props => [url, type, aspectRatio];
+  List<Object?> get props => [url, type, aspectRatio, thumbnailUrl];
 
   factory FeaturedMediaModel.empty() =>
-      const FeaturedMediaModel(url: '', type: '', aspectRatio: 16 / 9);
+      const FeaturedMediaModel(url: '', type: '', aspectRatio: 16 / 9, thumbnailUrl: '');
 
   FeaturedMediaModel copyWith({
     String? url,
     String? type,
     double? aspectRatio,
+    String? thumbnailUrl
   }) {
     return FeaturedMediaModel(
       url: url ?? this.url,
       type: type ?? this.type,
       aspectRatio: aspectRatio ?? this.aspectRatio,
+      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl
     );
   }
 }

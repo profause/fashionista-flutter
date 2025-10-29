@@ -10,16 +10,24 @@ abstract class TrendBlocEvent extends Equatable {
 
 class LoadTrend extends TrendBlocEvent {
   final String uid;
-  const LoadTrend(this.uid);
+  final bool isFromCache;
+  const LoadTrend(this.uid, {this.isFromCache = false});
 
   @override
-  List<Object?> get props => [uid];
+  List<Object?> get props => [uid, isFromCache];
 }
 
 class UpdateTrend extends TrendBlocEvent {
   final TrendFeedModel trend;
   const UpdateTrend(this.trend);
 
+  @override
+  List<Object?> get props => [trend];
+}
+
+class AddTrend extends TrendBlocEvent {
+  final TrendFeedModel trend;
+  const AddTrend(this.trend);
   @override
   List<Object?> get props => [trend];
 }
@@ -57,11 +65,11 @@ class LoadTrendsCacheForDiscoverPage extends TrendBlocEvent {
 }
 
 class DeleteTrend extends TrendBlocEvent {
-  final TrendFeedModel trend;
-  const DeleteTrend(this.trend);
+  final String uid;
+  const DeleteTrend(this.uid);
 
   @override
-  List<Object?> get props => [trend];
+  List<Object?> get props => [uid];
 }
 
 class ClearTrend extends TrendBlocEvent {

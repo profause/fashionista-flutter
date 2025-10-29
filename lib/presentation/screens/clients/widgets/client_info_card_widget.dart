@@ -1,7 +1,7 @@
 import 'package:fashionista/data/models/clients/client_model.dart';
-import 'package:fashionista/presentation/screens/clients/client_details_screen.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class ClientInfoCardWidget extends StatefulWidget {
   final Client clientInfo;
@@ -34,13 +34,7 @@ class _ClientInfoCardWidgetState extends State<ClientInfoCardWidget> {
           () {
             //context.read<ClientCubit>().updateClient(widget.clientInfo);
             // Example: Navigate to Client Details Screen
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    ClientDetailsScreen(client: widget.clientInfo),
-              ),
-            );
+            context.push('/clients/${widget.clientInfo.uid}');
           },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
@@ -61,23 +55,11 @@ class _ClientInfoCardWidgetState extends State<ClientInfoCardWidget> {
             children: [
               // Avatar
               DefaultProfileAvatar(
+                key: ValueKey(widget.clientInfo.uid),
                 name: null,
                 size: 60,
                 uid: widget.clientInfo.uid,
               ),
-              // ClipOval(
-              //   child:
-              //       widget.clientInfo.imageUrl != null &&
-              //           widget.clientInfo.imageUrl!.isNotEmpty
-              //       ? CircleAvatar(
-              //           radius: 30,
-              //           backgroundColor: AppTheme.lightGrey,
-              //           backgroundImage: CachedNetworkImageProvider(
-              //             widget.clientInfo.imageUrl!,
-              //           ),
-              //         )
-              //       : _buildInitialsAvatar(colorScheme),
-              // ),
               const SizedBox(width: 12),
               // Client info
               Expanded(

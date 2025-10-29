@@ -10,13 +10,13 @@ import 'package:fashionista/data/models/trends/bloc/trend_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc_event.dart';
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
 import 'package:fashionista/domain/usecases/trends/like_or_unlike_trend_usecase.dart';
-import 'package:fashionista/presentation/screens/trends/trend_details_screen.dart';
 import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:fashionista/presentation/widgets/video_preview_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class TrendInfoCardWidgetDiscoverPage extends StatefulWidget {
   final TrendFeedModel trendInfo;
@@ -74,15 +74,7 @@ class _TrendInfoCardWidgetDiscoverPageState
         splashColor: colorScheme.primary.withValues(alpha: 0.1),
         highlightColor: Colors.transparent,
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => TrendDetailsScreen(
-                trendInfo: widget.trendInfo,
-                initialIndex: 0,
-              ),
-            ),
-          );
+          context.push('/trends/${widget.trendInfo.uid}');
         },
         child: Padding(
           padding: const EdgeInsets.all(16),

@@ -3,6 +3,8 @@ import 'package:fashionista/data/models/trends/bloc/trend_bloc_event.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc_state.dart';
 import 'package:fashionista/data/services/firebase/firebase_trends_service.dart';
 import 'package:fashionista/data/services/hive/hive_trend_service.dart';
+import 'package:fashionista/domain/usecases/trends/add_trend_usecase.dart';
+import 'package:fashionista/domain/usecases/trends/delete_trend_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/find_trend_by_id_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/find_trends_usecase.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,10 +14,9 @@ class TrendBloc extends Bloc<TrendBlocEvent, TrendBlocState> {
   TrendBloc() : super(const TrendInitial()) {
     on<LoadTrend>(_onLoadTrend);
     on<LoadTrends>(_onLoadTrends);
+    on<AddTrend>(_addTrend);
     on<UpdateTrend>(_updateTrend);
-    on<UpdateCachedTrend>(_updateCachedTrend);
     on<DeleteTrend>(_deleteTrend);
-    //on<UpdateTrend>((event, emit) => emit(TrendUpdated(event.trend)));
     on<LoadTrendsCacheFirstThenNetwork>(_onLoadTrendsCacheFirstThenNetwork);
     on<LoadTrendsCacheForDiscoverPage>(_onLoadTrendsCacheForDiscoverPage);
 
@@ -27,12 +28,30 @@ class TrendBloc extends Bloc<TrendBlocEvent, TrendBlocState> {
     Emitter<TrendBlocState> emit,
   ) async {
     emit(const TrendLoading());
+    if (event.isFromCache) {
+      // 1️⃣ Try cache first
+      final cachedItem = await sl<HiveTrendService>().getItem(event.uid);
+      emit(TrendUpdated(cachedItem));
+    } else {
+      final result = await sl<FindTrendByIdUsecase>().call(event.uid);
+      result.fold(
+        (failure) => emit(TrendError(failure.toString())),
+        (trend) => emit(TrendUpdated(trend)),
+      );
+    }
+  }
 
-    final result = await sl<FindTrendByIdUsecase>().call(event.uid);
-
-    result.fold(
-      (failure) => emit(TrendError(failure.toString())),
-      (trend) => emit(TrendLoaded(trend)),
+  Future<void> _addTrend(AddTrend event, Emitter<TrendBlocState> emit) async {
+    emit(TrendLoading());
+    final result = await sl<AddTrendUsecase>().call(event.trend);
+    await result.fold(
+      (failure) async {
+        emit(TrendError(failure.toString()));
+      },
+      (client) async {
+        await sl<HiveTrendService>().addItem(event.trend);
+        emit(TrendAdded(client)); // ✅ safe emit
+      },
     );
   }
 
@@ -40,36 +59,21 @@ class TrendBloc extends Bloc<TrendBlocEvent, TrendBlocState> {
     DeleteTrend event,
     Emitter<TrendBlocState> emit,
   ) async {
-    // var result = await sl<DeleteTrendUsecase>().call(event.uid);
-    // result.fold((l) => null, (r) => emit(TrendDeleted(r)));
+    try {
+      var result = await sl<DeleteTrendUsecase>().call(event.uid);
 
-    final cachedItems = await sl<HiveTrendService>().getItems(
-      event.trend.createdBy,
-    );
-    // ✅ find index by matching uid
-    final index = cachedItems.indexWhere((item) => item.uid == event.trend.uid);
-
-    if (index != -1) {
-      cachedItems.removeAt(index);
-
-      try {
-        // ✅ persist updated list back to Hive
-        await sl<HiveTrendService>().insertItems(
-          event.trend.createdBy,
-          items: cachedItems,
-        );
-
-        if (cachedItems.isEmpty) {
-          emit(const TrendsEmpty());
-          return;
-        }
-
-        emit(TrendsLoaded(cachedItems, fromCache: true));
-      } catch (e) {
-        // ❌ Rollback if persistence failed (optional)
-        if (emit.isDone) return;
-        emit(TrendError(e.toString()));
-      }
+      await result.fold(
+        (failure) async {
+          emit(TrendError(failure.toString()));
+        },
+        (message) async {
+          await sl<HiveTrendService>().deleteItem(event.uid);
+          emit(TrendDeleted(message)); // ✅ safe emit
+        },
+      );
+    } catch (e) {
+      // ❌ Rollback if persistence failed (optional)
+      emit(TrendError("Failed to delete item: $e"));
     }
   }
 
@@ -96,109 +100,62 @@ class TrendBloc extends Bloc<TrendBlocEvent, TrendBlocState> {
   ) async {
     emit(TrendLoading());
     emit(TrendUpdated(event.trend));
-    //emit(TrendLoaded(event.trend));
-  }
-
-  Future<void> _updateCachedTrend(
-    UpdateCachedTrend event,
-    Emitter<TrendBlocState> emit,
-  ) async {
-    final cachedItems = await sl<HiveTrendService>().getItems('discover');
-    //debugPrint('cachedItems: ${event.trend.isLiked}');
-    // ✅ find index by matching uid
-    final index = cachedItems.indexWhere((item) => item.uid == event.trend.uid);
-
-    if (index != -1) {
-      cachedItems.removeAt(index);
-      cachedItems.insert(index, event.trend);
-      try {
-        // ✅ persist updated list back to Hive
-        await sl<HiveTrendService>().insertItems(
-          'discover',
-          items: cachedItems,
-        );
-      } catch (e) {
-        // ❌ Rollback if persistence failed (optional)
-        emit(TrendError("Failed to update item: $e"));
-      }
-    }
-    //emit(TrendUpdated(event.trend));
   }
 
   Future<void> _onLoadTrendsCacheFirstThenNetwork(
     LoadTrendsCacheFirstThenNetwork event,
     Emitter<TrendBlocState> emit,
   ) async {
-    String uid = event.uid;
-    final us = FirebaseAuth.instance.currentUser;
-    if (us != null) {
-      uid = FirebaseAuth.instance.currentUser!.uid;
-    }
+    try {
+      String uid = event.uid;
+      final us = FirebaseAuth.instance.currentUser;
+      if (us != null) {
+        uid = FirebaseAuth.instance.currentUser!.uid;
+      }
+      emit(const TrendLoading());
+      // 1️⃣ Try cache first
+      final cachedItems = await sl<HiveTrendService>().getItems(uid);
 
-    emit(const TrendLoading());
-    // 1️⃣ Try cache first
-    final cachedItems = await sl<HiveTrendService>().getItems(uid);
+      if (cachedItems.isNotEmpty) {
+        emit(TrendsLoaded(cachedItems, fromCache: true));
+      }
+      // 2️⃣ Fetch from network
+      final result = await sl<FirebaseTrendsService>().fetchTrends();
 
-    if (cachedItems.isNotEmpty) {
-      emit(TrendsLoaded(cachedItems, fromCache: true));
-    }
-
-    // 2️⃣ Fetch from network
-    final result = await sl<FindTrendsUsecase>().call(uid);
-
-    result.fold(
-      (failure) async {
-        if (cachedItems.isEmpty) {
-          emit(TrendError(failure.toString()));
-        }
-        // else → keep showing cached quietly
-      },
-      (trends) async {
-        try {
-          if (trends.isEmpty) {
-            if (cachedItems.isEmpty) {
-              emit(const TrendsEmpty());
+      result.fold(
+        (failure) async {
+          if (cachedItems.isEmpty) {
+            emit(TrendError(failure.toString()));
+          }
+          // else → keep showing cached quietly
+        },
+        (clients) async {
+          try {
+            if (clients.isEmpty) {
+              if (cachedItems.isEmpty) {
+                emit(const TrendsEmpty());
+              }
+              return;
             }
-            return;
+
+            if (cachedItems.toString() != clients.toString()) {
+              emit(TrendsLoaded(clients, fromCache: false));
+              // 4️⃣ Update cache and emit fresh data
+              await sl<HiveTrendService>().insertItems(clients);
+            } else {
+              // no change
+              emit(TrendsLoaded(cachedItems, fromCache: true));
+            }
+          } catch (e) {
+            if (emit.isDone) return; // <- safeguard
+            emit(TrendError(e.toString()));
           }
-
-          // 3️⃣ Detect if data has changed
-          // int? cachedFirstTimestamp = cachedItems.isNotEmpty
-          //     ? cachedItems.first.createdDate!.millisecondsSinceEpoch
-          //     : null;
-
-          // int freshFirstTimestamp =
-          //     trends.first.createdDate!.millisecondsSinceEpoch;
-
-          // if (cachedFirstTimestamp == null ||
-          //     cachedFirstTimestamp != freshFirstTimestamp) {
-          //   emit(TrendsLoaded(trends, fromCache: false));
-          //   // 4️⃣ Update cache and emit fresh data
-          //   await sl<HiveTrendService>().insertItems(
-          //     uid,
-          //     items: trends,
-          //   );
-          //   debugPrint('Trends updated');
-          //   // emit(
-          //   //   TrendsNewData(trends),
-          //   // ); // optional "new data" state
-          //   // 🔑 Do NOT call `on<Event>` here again!
-          // }
-
-          if (cachedItems.toString() != trends.toString()) {
-            emit(TrendsLoaded(trends, fromCache: false));
-            // 4️⃣ Update cache and emit fresh data
-            await sl<HiveTrendService>().insertItems(uid, items: trends);
-          } else {
-            // no change
-            emit(TrendsLoaded(cachedItems, fromCache: true));
-          }
-        } catch (e) {
-          if (emit.isDone) return; // <- safeguard
-          emit(TrendError(e.toString()));
-        }
-      },
-    );
+        },
+      );
+    } catch (e) {
+      if (emit.isDone) return; // <- safeguard
+      emit(TrendError(e.toString()));
+    }
   }
 
   Future<void> _onLoadTrendsCacheForDiscoverPage(
@@ -235,7 +192,7 @@ class TrendBloc extends Bloc<TrendBlocEvent, TrendBlocState> {
           if (cachedItems.toString() != trends.toString()) {
             emit(TrendsLoaded(trends, fromCache: false));
             // 4️⃣ Update cache and emit fresh data
-            await sl<HiveTrendService>().insertItems(event.uid, items: trends);
+            await sl<HiveTrendService>().insertItems(trends);
           } else {
             // no change
             emit(TrendsLoaded(cachedItems, fromCache: true));

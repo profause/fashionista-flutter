@@ -6,10 +6,7 @@ class DefaultProfileAvatarColorPair {
       "background": Color(0xFFC8E6C9), // Light Green 100
       "foreground": Color(0xFF2E7D32), // Green 800
     },
-    {
-      "background": Color(0xFFBBDEFB), // Light Blue 100
-      "foreground": Color(0xFF1565C0), // Blue 800
-    },
+
     {
       "background": Color(0xFFFFCDD2), // Red 100
       "foreground": Color(0xFFC62828), // Red 800
@@ -33,6 +30,11 @@ class DefaultProfileAvatarColorPair {
     {
       "background": Color(0xFFDCEDC8), // Lime 100
       "foreground": Color(0xFF558B2F), // Lime 800
+    },
+
+    {
+      "background": Color(0xFFBBDEFB), // Light Blue 100
+      "foreground": Color(0xFF1565C0), // Blue 800
     },
   ];
 

@@ -372,17 +372,14 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
     try {
       final userBloc = context.read<UserBloc>();
       final uid = userBloc.state.uid;
-      showDialog(
-        context: context,
-        barrierDismissible: false, // Prevent dismissing
-        builder: (_) => const Center(child: CircularProgressIndicator()),
-      );
+
       final result = await sl<FetchUserProfileUsecase>().call(uid!);
       result.fold(
         (ifLeft) {
           if (mounted) {
             // Dismiss the dialog manually
-            Navigator.of(context, rootNavigator: true).pop();
+            debugPrint(ifLeft);
+            //dismissLoadingDialog(context);
           }
           ScaffoldMessenger.of(
             context,
@@ -393,15 +390,29 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
           userBloc.add(UpdateUser(ifRight));
           if (mounted) {
             // Dismiss the dialog manually
-            Navigator.of(context, rootNavigator: true).pop();
+            //dismissLoadingDialog(context);
           }
         },
       );
     } catch (e) {
       if (mounted) {
         // Dismiss the dialog manually
-        Navigator.of(context, rootNavigator: true).pop();
+        //dismissLoadingDialog(context);
       }
+    }
+  }
+
+  void showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // prevent accidental dismiss
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  void dismissLoadingDialog(BuildContext context) {
+    if (Navigator.canPop(context)) {
+      Navigator.of(context, rootNavigator: true).pop();
     }
   }
 

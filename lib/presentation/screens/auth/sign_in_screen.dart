@@ -40,7 +40,7 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   void initState() {
     _onboardingCubit = context.read<OnboardingCubit>();
-    _onboardingCubit.hasSeenOnboarding(false); //here
+    _onboardingCubit.hasSeenOnboarding(true); //here
     super.initState();
     _initRecaptcha(); // 👈 kick off async call
     _pageController.addListener(() {});

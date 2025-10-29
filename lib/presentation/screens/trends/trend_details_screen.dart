@@ -12,6 +12,7 @@ import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc_event.dart';
+import 'package:fashionista/data/models/trends/bloc/trend_bloc_state.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_comment_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_comment_bloc_event.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_comment_bloc_state.dart';
@@ -37,13 +38,8 @@ import 'package:dartz/dartz.dart' as dartz;
 import 'package:uuid/uuid.dart';
 
 class TrendDetailsScreen extends StatefulWidget {
-  final TrendFeedModel trendInfo;
-  final int initialIndex;
-  const TrendDetailsScreen({
-    super.key,
-    required this.trendInfo,
-    required this.initialIndex,
-  });
+  final String trendId;
+  const TrendDetailsScreen({super.key, required this.trendId});
 
   @override
   State<TrendDetailsScreen> createState() => _TrendDetailsScreenState();
@@ -54,6 +50,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
   final userId = firebase_auth.FirebaseAuth.instance.currentUser!.uid;
   final TextEditingController _commentController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  late TrendFeedModel trendInfo;
 
   bool addCommentLoading = false;
   late UserBloc _userBloc;
@@ -67,14 +64,15 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
 
   @override
   void initState() {
+    super.initState();
     _userBloc = context.read<UserBloc>();
+    context.read<TrendBloc>().add(LoadTrend(widget.trendId, isFromCache: true));
     context.read<TrendCommentBloc>().add(
-      LoadTrendCommentsCacheFirstThenNetwork(widget.trendInfo.uid!),
+      LoadTrendCommentsCacheFirstThenNetwork(widget.trendId),
     );
     WidgetsBinding.instance.addObserver(this);
     _selectedDesignersNotifier = ValueNotifier<List<Designer>>([]);
     _loadFashionDesigners();
-    super.initState();
   }
 
   /// 🔑 Detect keyboard changes
@@ -99,296 +97,323 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        foregroundColor: colorScheme.primary,
-        backgroundColor: colorScheme.onPrimary,
-        title: Text(
-          'Trend',
-          style: textTheme.titleMedium!.copyWith(
-            fontWeight: FontWeight.bold,
-            color: colorScheme.primary,
-          ),
-        ),
-        elevation: 0,
-        actions: [
-          if (userId == widget.trendInfo.createdBy) ...[
-            IconButton(
-              onPressed: () async {
-                final canDelete = await showDialog<bool>(
-                  context: context,
-                  builder: (ctx) => AlertDialog(
-                    title: const Text('Delete Post'),
-                    content: const Text(
-                      'Are you sure you want to delete this post?',
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(ctx).pop(false),
-                        child: const Text('Cancel'),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.of(ctx).pop(true),
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.red,
-                        ),
-                        child: const Text('Delete'),
-                      ),
-                    ],
+    return BlocBuilder<TrendBloc, TrendBlocState>(
+      buildWhen: (context, state) {
+        return state is TrendLoaded || state is TrendUpdated;
+      },
+      builder: (context, state) {
+        switch (state) {
+          case TrendLoaded(:final trend):
+          case TrendUpdated(:final trend):
+            trendInfo = trend;
+            return Scaffold(
+              resizeToAvoidBottomInset: false,
+              backgroundColor: colorScheme.surface,
+              appBar: AppBar(
+                foregroundColor: colorScheme.primary,
+                backgroundColor: colorScheme.onPrimary,
+                title: Text(
+                  'Trend',
+                  style: textTheme.titleMedium!.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.primary,
                   ),
-                );
-
-                if (canDelete == true) {
-                  _deleteTrend(widget.trendInfo);
-                }
-              },
-              icon: Icon(Icons.delete),
-              color: colorScheme.primary,
-            ),
-          ],
-        ],
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          controller: _scrollController,
-          //padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                color: colorScheme.onPrimary,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Material(
-                          color: Colors.white,
-                          borderOnForeground: true,
-                          borderRadius: BorderRadius.circular(48),
-                          child: Padding(
-                            padding: const EdgeInsets.all(3.0),
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(18),
-                              onTap: () {},
-                              child: widget.trendInfo.author.avatar!.isNotEmpty
-                                  ? CircleAvatar(
-                                      radius: 20,
-                                      backgroundColor: AppTheme.lightGrey,
-                                      backgroundImage:
-                                          CachedNetworkImageProvider(
-                                            widget.trendInfo.author.avatar!,
-                                            errorListener: (error) {},
-                                          ),
-                                    )
-                                  : DefaultProfileAvatar(
-                                      name: null,
-                                      size: 18 * 1.8,
-                                      uid: widget.trendInfo.author.uid!,
-                                    ),
+                ),
+                elevation: 0,
+                actions: [
+                  if (userId == trendInfo.createdBy) ...[
+                    IconButton(
+                      onPressed: () async {
+                        final canDelete = await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('Delete Post'),
+                            content: const Text(
+                              'Are you sure you want to delete this post?',
                             ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          widget.trendInfo.author.name!,
-                          style: textTheme.labelLarge,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      widget.trendInfo.description.trim(),
-                      style: textTheme.bodyLarge,
-                      textAlign: TextAlign.start,
-                    ),
-                    const SizedBox(height: 16),
-                    if (widget.trendInfo.featuredMedia.isNotEmpty) ...[
-                      FeaturedMediaWidget(
-                        featuredMedia: widget.trendInfo.featuredMedia,
-                      ),
-                    ],
-                    const SizedBox(height: 12),
-                    Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  Icon(
-                                    Icons.comment_outlined,
-                                    color: colorScheme.primary,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    widget.trendInfo.numberOfComments
-                                        .toString(),
-                                    style: textTheme.bodyMedium,
-                                  ),
-                                ],
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(ctx).pop(false),
+                                child: const Text('Cancel'),
                               ),
-                              const SizedBox(width: 12),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  CustomTrendLikeButtonWidget(
-                                    trendId: widget.trendInfo.uid!,
-                                    isLikedNotifier: ValueNotifier(
-                                      LikeObject(
-                                        count:
-                                            widget.trendInfo.numberOfLikes ==
-                                                null
-                                            ? 0
-                                            : widget.trendInfo.numberOfLikes!,
-                                        isLiked: widget.trendInfo.isLiked!,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                              TextButton(
+                                onPressed: () => Navigator.of(ctx).pop(true),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.red,
+                                ),
+                                child: const Text('Delete'),
                               ),
                             ],
                           ),
-                          const Spacer(),
-                          CustomIconButtonRounded(
-                            onPressed: () {
-                              //show bottomsheet
-                              _showOptionsBottomsheet(context);
-                            },
-                            iconData: Icons.more_horiz_outlined,
-                            size: 20,
-                          ),
-                        ],
-                      ),
+                        );
+
+                        if (canDelete == true) {
+                          _deleteTrend(trendInfo);
+                        }
+                      },
+                      icon: Icon(Icons.delete),
+                      color: colorScheme.primary,
                     ),
                   ],
+                ],
+              ),
+              body: SafeArea(
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  //padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        color: colorScheme.onPrimary,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Material(
+                                  color: Colors.white,
+                                  borderOnForeground: true,
+                                  borderRadius: BorderRadius.circular(48),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(3.0),
+                                    child: InkWell(
+                                      borderRadius: BorderRadius.circular(18),
+                                      onTap: () {},
+                                      child: trendInfo.author.avatar!.isNotEmpty
+                                          ? CircleAvatar(
+                                              radius: 20,
+                                              backgroundColor:
+                                                  AppTheme.lightGrey,
+                                              backgroundImage:
+                                                  CachedNetworkImageProvider(
+                                                    trendInfo.author.avatar!,
+                                                    errorListener: (error) {},
+                                                  ),
+                                            )
+                                          : DefaultProfileAvatar(
+                                              name: null,
+                                              size: 18 * 1.8,
+                                              uid: trendInfo.author.uid!,
+                                            ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  trendInfo.author.name!,
+                                  style: textTheme.labelLarge,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              trendInfo.description.trim(),
+                              style: textTheme.bodyLarge,
+                              textAlign: TextAlign.start,
+                            ),
+                            const SizedBox(height: 16),
+                            if (trendInfo.featuredMedia.isNotEmpty) ...[
+                              FeaturedMediaWidget(
+                                featuredMedia: trendInfo.featuredMedia,
+                              ),
+                            ],
+                            const SizedBox(height: 12),
+                            Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          Icon(
+                                            Icons.comment_outlined,
+                                            color: colorScheme.primary,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            trendInfo.numberOfComments
+                                                .toString(),
+                                            style: textTheme.bodyMedium,
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          CustomTrendLikeButtonWidget(
+                                            trendId: trendInfo.uid!,
+                                            isLikedNotifier: ValueNotifier(
+                                              LikeObject(
+                                                count:
+                                                    trendInfo.numberOfLikes ==
+                                                        null
+                                                    ? 0
+                                                    : trendInfo.numberOfLikes!,
+                                                isLiked: trendInfo.isLiked!,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  const Spacer(),
+                                  CustomIconButtonRounded(
+                                    onPressed: () {
+                                      //show bottomsheet
+                                      _showOptionsBottomsheet(context);
+                                    },
+                                    iconData: Icons.more_horiz_outlined,
+                                    size: 20,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 4),
+                      Container(
+                        color: colorScheme.onPrimary,
+                        //padding: EdgeInsets.all(12),
+                        child: BlocBuilder<TrendCommentBloc, TrendCommentBlocState>(
+                          builder: (context, state) {
+                            switch (state) {
+                              case TrendCommentLoading():
+                                return const Center(
+                                  child: SizedBox(
+                                    height: 18,
+                                    width: 18,
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                );
+                              case TrendCommentError(:final message):
+                                return Center(child: Text("Error: $message"));
+                              case TrendCommentsLoaded(:final comments):
+                                return ListView.separated(
+                                  scrollDirection: Axis.vertical,
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                  ),
+                                  itemCount: comments.length,
+                                  separatorBuilder: (context, index) =>
+                                      const Divider(
+                                        height: .1,
+                                        thickness: .1,
+                                        indent: 40,
+                                      ),
+                                  itemBuilder: (context, index) {
+                                    final comment = comments[index];
+                                    return CommentWidget(
+                                      comment: comment,
+                                      onDelete: () async {
+                                        debugPrint("Delete comment");
+                                        _deleteComment(comment);
+                                      },
+                                    );
+                                  },
+                                );
+                              case TrendCommentsEmpty():
+                                return Padding(
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: Center(
+                                    child: PageEmptyWidget(
+                                      title: "No comments yet",
+                                      subtitle:
+                                          "Add new comments to see them here.",
+                                      icon: Icons.comment_outlined,
+                                      iconSize: 48,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                );
+                              default:
+                                return Center(
+                                  child: PageEmptyWidget(
+                                    title: "No comments yet",
+                                    subtitle:
+                                        "Add new comments to see them here.",
+                                    icon: Icons.comment_outlined,
+                                    iconSize: 48,
+                                    fontSize: 16,
+                                  ),
+                                );
+                            }
+                          },
+                        ),
+                      ),
+                      //comment
+                    ],
+                  ),
                 ),
               ),
 
-              const SizedBox(height: 4),
-              Container(
-                color: colorScheme.onPrimary,
-                //padding: EdgeInsets.all(12),
-                child: BlocBuilder<TrendCommentBloc, TrendCommentBlocState>(
-                  builder: (context, state) {
-                    switch (state) {
-                      case TrendCommentLoading():
-                        return const Center(
-                          child: SizedBox(
-                            height: 18,
-                            width: 18,
-                            child: CircularProgressIndicator(),
-                          ),
-                        );
-                      case TrendCommentError(:final message):
-                        return Center(child: Text("Error: $message"));
-                      case TrendCommentsLoaded(:final comments):
-                        return ListView.separated(
-                          scrollDirection: Axis.vertical,
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          itemCount: comments.length,
-                          separatorBuilder: (context, index) => const Divider(
-                            height: .1,
-                            thickness: .1,
-                            indent: 40,
-                          ),
-                          itemBuilder: (context, index) {
-                            final comment = comments[index];
-                            return CommentWidget(
-                              comment: comment,
-                              onDelete: () async {
-                                debugPrint("Delete comment");
-                                _deleteComment(comment);
-                              },
-                            );
-                          },
-                        );
-                      case TrendCommentsEmpty():
-                        return Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Center(
-                            child: PageEmptyWidget(
-                              title: "No comments yet",
-                              subtitle: "Add new comments to see them here.",
-                              icon: Icons.comment_outlined,
-                              iconSize: 48,
-                              fontSize: 16,
+              /// 🟢 WhatsApp-style input
+              bottomNavigationBar: SafeArea(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surface,
+                      border: Border(top: BorderSide(color: Colors.grey[300]!)),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _commentController,
+                            minLines: 1,
+                            maxLines: 3,
+                            style: textTheme.bodyLarge,
+                            decoration: const InputDecoration(
+                              hintText: "Add a comment...",
+                              border: InputBorder.none,
                             ),
                           ),
-                        );
-                      default:
-                        return Center(
-                          child: PageEmptyWidget(
-                            title: "No comments yet",
-                            subtitle: "Add new comments to see them here.",
-                            icon: Icons.comment_outlined,
-                            iconSize: 48,
-                            fontSize: 16,
-                          ),
-                        );
-                    }
-                  },
-                ),
-              ),
-              //comment
-            ],
-          ),
-        ),
-      ),
-
-      /// 🟢 WhatsApp-style input
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              border: Border(top: BorderSide(color: Colors.grey[300]!)),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _commentController,
-                    minLines: 1,
-                    maxLines: 3,
-                    style: textTheme.bodyLarge,
-                    decoration: const InputDecoration(
-                      hintText: "Add a comment...",
-                      border: InputBorder.none,
+                        ),
+                        addCommentLoading
+                            ? const SizedBox(
+                                height: 18,
+                                width: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : CustomIconButtonRounded(
+                                backgroundColor: colorScheme.primary.withValues(
+                                  alpha: 0,
+                                ),
+                                size: 24,
+                                onPressed: _addComment,
+                                iconData: Icons.send_rounded,
+                              ),
+                      ],
                     ),
                   ),
                 ),
-                addCommentLoading
-                    ? const SizedBox(
-                        height: 18,
-                        width: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : CustomIconButtonRounded(
-                        backgroundColor: colorScheme.primary.withValues(
-                          alpha: 0,
-                        ),
-                        size: 24,
-                        onPressed: _addComment,
-                        iconData: Icons.send_rounded,
-                      ),
-              ],
-            ),
-          ),
-        ),
-      ),
+              ),
+            );
+        }
+        return const SizedBox.shrink();
+      },
     );
   }
 
@@ -403,7 +428,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
         },
         (comment) {
           context.read<TrendCommentBloc>().add(
-            LoadTrendCommentsCacheFirstThenNetwork(widget.trendInfo.uid!),
+            LoadTrendCommentsCacheFirstThenNetwork(trendInfo.uid!),
           );
           setState(() {});
           _commentController.clear();
@@ -460,7 +485,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
       //   LoadClosetItemsCacheFirstThenNetwork(''),
       // );
 
-      context.read<TrendBloc>().add(DeleteTrend(trend));
+      context.read<TrendBloc>().add(DeleteTrend(trend.uid!));
 
       Navigator.pop(context, true);
     } on firebase_auth.FirebaseException catch (e) {
@@ -494,7 +519,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
           text: text,
           author: author,
           createdAt: DateTime.now().millisecondsSinceEpoch,
-          refId: widget.trendInfo.uid,
+          refId: trendInfo.uid,
         );
 
         final result = await sl<AddTrendCommentUsecase>().call(comment);
@@ -507,7 +532,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
           },
           (comment) {
             context.read<TrendCommentBloc>().add(
-              LoadTrendCommentsCacheFirstThenNetwork(widget.trendInfo.uid!),
+              LoadTrendCommentsCacheFirstThenNetwork(trendInfo.uid!),
             );
             setState(() {
               addCommentLoading = false;
@@ -650,11 +675,11 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
 
     WorkOrderModel workOrderRequest = WorkOrderModel.empty().copyWith(
       description: '',
-      title: widget.trendInfo.description,
+      title: trendInfo.description,
       status: 'REQUEST',
       workOrderType: 'REQUEST',
-      featuredMedia: widget.trendInfo.featuredMedia,
-      tags: widget.trendInfo.tags,
+      featuredMedia: trendInfo.featuredMedia,
+      tags: trendInfo.tags,
       client: client,
     );
     showModalBottomSheet(
@@ -848,7 +873,8 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                                                           true
                                                       ? CachedNetworkImageProvider(
                                                           item.profileImage!,
-                                                          errorListener: (error) {},
+                                                          errorListener:
+                                                              (error) {},
                                                         )
                                                       : null,
                                                   child:
@@ -859,8 +885,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                                                       ? DefaultProfileAvatar(
                                                           name: null,
                                                           size: 18 * 1.6,
-                                                          uid: widget
-                                                              .trendInfo
+                                                          uid: trendInfo
                                                               .author
                                                               .uid!,
                                                         )

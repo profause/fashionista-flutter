@@ -22,7 +22,7 @@ abstract class FirebaseTrendsService {
   Future<Either> addCommentToTrend(CommentModel comment);
   Future<Either> deleteCommentToTrend(CommentModel comment);
   Future<Either> findTrendComments(String uid);
-    Future<Either> deleteTrendImage(String imageUrl);
+  Future<Either> deleteTrendImage(String imageUrl);
 }
 
 class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
@@ -84,7 +84,6 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
           //.where('created_by', isEqualTo: createdBy)
           .orderBy('created_at', descending: true)
           .get();
-
       //Await all async maps
 
       final trends = await Future.wait(
@@ -99,7 +98,6 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
           );
         }),
       );
-
       //await importTrends(sampleTrendsData);
       return Right(trends);
     } on FirebaseException catch (e) {
@@ -110,7 +108,9 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
   }
 
   @override
-  Future<Either<String, List<TrendFeedModel>>> fetchTrendsWithFilter(int limit) async {
+  Future<Either<String, List<TrendFeedModel>>> fetchTrendsWithFilter(
+    int limit,
+  ) async {
     try {
       final firestore = FirebaseFirestore.instance;
       final querySnapshot = await firestore
@@ -375,7 +375,9 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
   }
 
   @override
-  Future<Either<String, List<CommentModel>>> findTrendComments(String trendId) async {
+  Future<Either<String, List<CommentModel>>> findTrendComments(
+    String trendId,
+  ) async {
     try {
       final firestore = FirebaseFirestore.instance;
       final querySnapshot = await firestore
@@ -653,8 +655,7 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
     },
   ];
 
-
-      @override
+  @override
   Future<Either> deleteTrendImage(String imageUrl) async {
     try {
       // Delete from storage

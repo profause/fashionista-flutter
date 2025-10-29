@@ -18,6 +18,7 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
 class AddClientScreen extends StatefulWidget {
@@ -263,7 +264,9 @@ class _AddClientScreenState extends State<AddClientScreen> {
           );
 
           _buttonLoadingStateCubit.setLoading(false);
-          Navigator.pop(context, true);
+          if (mounted) {
+            context.pop();
+          }
         }
       });
     } on FirebaseException catch (e) {

@@ -20,19 +20,22 @@ class FeaturedMediaModelAdapter extends TypeAdapter<FeaturedMediaModel> {
       url: fields[0] as String?,
       type: fields[1] as String?,
       aspectRatio: fields[2] as double?,
+      thumbnailUrl: fields[3] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, FeaturedMediaModel obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(4)
       ..writeByte(0)
       ..write(obj.url)
       ..writeByte(1)
       ..write(obj.type)
       ..writeByte(2)
-      ..write(obj.aspectRatio);
+      ..write(obj.aspectRatio)
+      ..writeByte(3)
+      ..write(obj.thumbnailUrl);
   }
 
   @override
@@ -55,6 +58,7 @@ FeaturedMediaModel _$FeaturedMediaModelFromJson(Map<String, dynamic> json) =>
       url: json['url'] as String?,
       type: json['type'] as String?,
       aspectRatio: (json['aspect_ratio'] as num?)?.toDouble(),
+      thumbnailUrl: json['thumbnail_url'] as String?,
     );
 
 Map<String, dynamic> _$FeaturedMediaModelToJson(FeaturedMediaModel instance) =>
@@ -62,4 +66,5 @@ Map<String, dynamic> _$FeaturedMediaModelToJson(FeaturedMediaModel instance) =>
       'url': instance.url,
       'type': instance.type,
       'aspect_ratio': instance.aspectRatio,
+      'thumbnail_url': instance.thumbnailUrl,
     };
