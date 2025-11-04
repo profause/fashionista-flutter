@@ -166,7 +166,7 @@ class FirebaseUserServiceImpl implements FirebaseUserService {
       final publicId = user.uid;
 
       final transformation = Transformation()
-          .resize(Resize.auto().width(640).height(640).aspectRatio(1 / 1))
+          .resize(Resize.auto().width(360).height(360).aspectRatio(1 / 1))
           //.addTransformation('q_60')
           .addTransformation('q_auto:eco');
 

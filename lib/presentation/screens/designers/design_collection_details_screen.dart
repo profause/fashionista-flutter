@@ -120,7 +120,7 @@ class _DesignCollectionDetailsScreenState
                     },
                     itemBuilder: (context, index) {
                       final imageUrl =
-                          widget.designCollection.featuredImages[index];
+                          widget.designCollection.featuredImages[index].thumbnailUrl;
                       return Center(
                         child: Hero(
                           tag: widget.designCollection.featuredImages.first,
@@ -130,7 +130,7 @@ class _DesignCollectionDetailsScreenState
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: CachedNetworkImage(
-                              imageUrl: imageUrl,
+                              imageUrl: imageUrl!,
                               fit: BoxFit.cover,
                               placeholder: (context, url) => const Center(
                                 child: SizedBox(
@@ -230,7 +230,7 @@ class _DesignCollectionDetailsScreenState
       final List<Future<dartz.Either>> futures = designCollection.featuredImages
           .map(
             (e) => sl<FirebaseDesignCollectionService>()
-                .deleteDesignCollectionImage(e),
+                .deleteDesignCollectionImage(e.url!),
           )
           .toList();
 

@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:fashionista/core/models/hive/design_collection_model_hive_type.dart';
 import 'package:fashionista/data/models/author/author_model.dart';
+import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
 import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:fashionista/core/models/hive/hive_type.dart' as hive;
@@ -30,8 +31,8 @@ class DesignCollectionModel extends Equatable {
   final String? visibility;
 
   @JsonKey(name: 'featured_images')
-    @HiveField(DesignCollectionModelHiveType.featuredImages)
-  final List<String> featuredImages;
+  @HiveField(DesignCollectionModelHiveType.featuredImages)
+  final List<FeaturedMediaModel> featuredImages;
 
     @HiveField(DesignCollectionModelHiveType.author)
   final AuthorModel author;
@@ -107,7 +108,7 @@ class DesignCollectionModel extends Equatable {
     String? description,
     String? tags,
     String? visibility,
-    List<String>? featuredImages,
+    List<FeaturedMediaModel>? featuredImages,
     AuthorModel? author,
     int? createdAt,
     int? updatedAt,

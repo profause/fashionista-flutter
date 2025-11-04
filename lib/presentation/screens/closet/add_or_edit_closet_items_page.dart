@@ -1,8 +1,17 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloudinary_api/uploader/cloudinary_uploader.dart';
+import 'package:cloudinary_url_gen/cloudinary.dart';
+import 'package:cloudinary_url_gen/config/cloudinary_config.dart';
+import 'package:cloudinary_url_gen/transformation/resize/resize.dart';
+import 'package:cloudinary_url_gen/transformation/transformation.dart';
+import 'package:fashionista/core/service_locator/app_config.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/data/models/closet/bloc/closet_item_bloc.dart';
+import 'package:fashionista/data/models/closet/bloc/closet_item_bloc_event.dart';
 import 'package:fashionista/data/models/closet/closet_item_model.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
@@ -16,11 +25,13 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:dartz/dartz.dart' as dartz;
 import 'package:uuid/uuid.dart';
+import 'package:cloudinary_api/src/request/model/uploader_params.dart';
 
 List<String> hints = [
   "Give this piece a chic tagline (max 50)",
@@ -234,7 +245,7 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
                                   scrollDirection: Axis.horizontal,
                                   padding: const EdgeInsets.all(8),
                                   itemCount: previewImages.length,
-                                  separatorBuilder: (_, __) =>
+                                  separatorBuilder: (_, _) =>
                                       const SizedBox(width: 8),
                                   itemBuilder: (context, index) {
                                     final image = previewImages[index];
@@ -404,33 +415,25 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
       List<int> colors = _selectedColors.map((color) => color.value).toList();
       final bool isFavourite = closetItemModel.isFavourite ?? false;
       // Show progress dialog
-      showDialog(
-        context: context,
-        barrierDismissible: false, // Prevent dismissing
-        builder: (_) => const Center(child: CircularProgressIndicator()),
-      );
+      showLoadingDialog(context);
 
       //if (isEdit) {
-      final uploadResult = await uploadImages(context, closeItemId!);
+      final uploadResult = await uploadImagesToCloudinary(
+        context,
+        closeItemId!,
+      );
 
       uploadResult.fold(
         (ifLeft) {
           // _buttonLoadingStateCubit.setLoading(false);
           if (mounted) {
-            Navigator.of(context).pop();
+            dismissLoadingDialog(context);
           }
           debugPrint(ifLeft);
-          // ScaffoldMessenger.of(
-          //   context,
-          // ).showSnackBar(SnackBar(content: Text(ifLeft)));
-          //return;
         },
         (ifRight) {
           //_buttonLoadingStateCubit.setLoading(false);
           featuredImages = ifRight;
-          setState(() {
-            //isUploading = false;
-          });
         },
       );
       //}
@@ -456,7 +459,7 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
         (l) {
           // _buttonLoadingStateCubit.setLoading(false);
           if (mounted) {
-            Navigator.of(context).pop();
+            dismissLoadingDialog(context);
           }
           setState(() {
             isUploading = false;
@@ -471,13 +474,18 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
           setState(() {
             isUploading = false;
           });
+
+          context.read<ClosetItemBloc>().add(
+            const LoadClosetItemsCacheFirstThenNetwork(''),
+          );
+
           if (!mounted) return;
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text('✅ Item saved successfully!')));
-          Navigator.pop(context);
+          dismissLoadingDialog(context);
           if (!isEdit) {
-            Navigator.pop(context, true);
+            context.pop();
           }
         },
       );
@@ -666,6 +674,112 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
     }
   }
 
+  Future<dartz.Either<String, List<FeaturedMediaModel>>>
+  uploadImagesToCloudinary(BuildContext context, String closetItemId) async {
+    if (pickedImages.isEmpty) return dartz.Left('image list is empty');
+
+    setState(() => isUploading = true);
+
+    CloudinaryConfig config = CloudinaryConfig.fromUri(
+      appConfig.get('cloudinary_url'),
+    );
+    final closetItemImagesFolder = appConfig.get(
+      'cloudinary_closet_item_images_folder',
+    );
+    final baseFolder = appConfig.get('cloudinary_base_folder');
+
+    final cloudinary = Cloudinary.fromConfiguration(config);
+
+    final uploadTasks = <Future<FeaturedMediaModel>>[];
+    final aspects = <double?>[];
+
+    // Step 1: Collect aspect ratios + prepare upload tasks
+    for (int i = 0; i < pickedImages.length; i++) {
+      final image = pickedImages[i];
+
+      final bytes = await File(image).readAsBytes();
+      final base64Image = base64Encode(bytes);
+
+      // get aspect ratio
+      final aspect = 1 / 1; //await getImageAspectRatio(image);
+      aspects.add(aspect);
+
+      final fileName = "${closetItemId}_$i.jpg";
+      final publicId = "${closetItemId}_$i";
+
+      final transformation = Transformation()
+          .resize(Resize.auto().width(360).aspectRatio(aspect))
+          .addTransformation('q_60');
+      // Define upload task returning a non-null String
+      final uploadTask = (() async {
+        final uploadResult = await cloudinary.uploader().upload(
+          'data:image/jpeg;base64,$base64Image',
+          params: UploadParams(
+            filename: fileName,
+            publicId: publicId,
+            useFilename: true,
+            folder: '$baseFolder/$closetItemImagesFolder',
+            uploadPreset: 'ml_default',
+            type: 'image/jpeg',
+            transformation: transformation,
+          ),
+        );
+
+        if (uploadResult == null) {
+          debugPrint("Upload failed — no response from Cloudinary");
+          throw Exception("Upload failed — no response from Cloudinary");
+        }
+        if (uploadResult.error != null) {
+          debugPrint("Upload failed: ${uploadResult.error!.message}");
+          throw Exception(uploadResult.error!.message);
+        }
+
+        final url = uploadResult.data?.secureUrl;
+        if (url == null) {
+          debugPrint("Upload failed — no URL returned");
+          throw Exception("Upload failed — no URL returned");
+        }
+
+        String thumbnailUrl =
+            (cloudinary.image('$baseFolder/$closetItemImagesFolder/$fileName')
+                  ..transformation(
+                    Transformation().addTransformation('q_auto:low')
+                      ..resize(Resize.auto().width(240).aspectRatio(aspect)),
+                  ))
+                .toString();
+        final featuredMedia = FeaturedMediaModel().copyWith(
+          url: url,
+          type: "image",
+          aspectRatio: aspect,
+          thumbnailUrl: thumbnailUrl,
+        );
+        return featuredMedia; // ✅ Non-null String
+      })();
+
+      uploadTasks.add(uploadTask);
+    }
+    try {
+      // Wait for all uploads to finish
+      final featuredMedia = await Future.wait(uploadTasks); // List<String>
+      final mergedList = featuredMedia;
+
+      setState(() {
+        isUploading = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("✅ Images uploaded successfully!")),
+        );
+      }
+
+      return dartz.Right(mergedList);
+    } catch (e) {
+      setState(() => isUploading = false);
+      return dartz.Left(e.toString());
+    }
+  }
+
   void _showColorPickerDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -709,6 +823,20 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
         );
       },
     );
+  }
+
+  void showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // prevent accidental dismiss
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  void dismissLoadingDialog(BuildContext context) {
+    if (Navigator.canPop(context)) {
+      Navigator.of(context, rootNavigator: true).pop();
+    }
   }
 
   // ValueChanged<Color> callback

@@ -5,7 +5,6 @@ import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/services/hive/hive_client_service.dart';
 import 'package:fashionista/data/services/hive/hive_closet_item_service.dart';
 import 'package:fashionista/data/services/hive/hive_design_collection_service.dart';
-import 'package:fashionista/data/services/hive/hive_designer_reviews_service.dart';
 import 'package:fashionista/data/services/hive/hive_designers_service.dart';
 import 'package:fashionista/data/services/hive/hive_outfit_service.dart';
 import 'package:fashionista/data/services/hive/hive_trend_comment_service.dart';
@@ -205,7 +204,6 @@ class UserProfilePage extends StatelessWidget {
       await sl<HiveOutfitService>().clearCache();
       await sl<HiveWorkOrderService>().clearCache();
       await sl<HiveWorkOrderStatusProgressService>().clearCache();
-      await sl<HiveDesignerReviewsService>().clearCache();
       await DefaultCacheManager().emptyCache();
       PaintingBinding.instance.imageCache.clear(); // Clears memory cache
       PaintingBinding.instance.imageCache

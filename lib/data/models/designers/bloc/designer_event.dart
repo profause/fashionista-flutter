@@ -10,10 +10,11 @@ abstract class DesignerBlocEvent extends Equatable {
 
 class LoadDesigner extends DesignerBlocEvent {
   final String uid;
-  const LoadDesigner(this.uid);
+  final bool isFromCache;
+  const LoadDesigner(this.uid, {this.isFromCache = false});
 
   @override
-  List<Object?> get props => [uid];
+  List<Object?> get props => [uid, isFromCache];
 }
 
 class LoadDesigners extends DesignerBlocEvent {

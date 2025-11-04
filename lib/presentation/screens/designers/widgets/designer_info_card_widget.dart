@@ -111,7 +111,7 @@ class _DesignerInfoCardWidgetState extends State<DesignerInfoCardWidget> {
                                       )
                                     : DefaultProfileAvatar(
                                         name: null,
-                                        size: 100,
+                                        size: 60,
                                         uid: widget.designerInfo.uid,
                                       ),
                               ),

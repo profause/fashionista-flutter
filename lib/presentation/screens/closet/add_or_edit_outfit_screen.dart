@@ -1,5 +1,12 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:cloudinary_api/uploader/cloudinary_uploader.dart';
+import 'package:cloudinary_url_gen/cloudinary.dart';
+import 'package:cloudinary_url_gen/config/cloudinary_config.dart';
+import 'package:cloudinary_url_gen/transformation/resize/resize.dart';
+import 'package:cloudinary_url_gen/transformation/transformation.dart';
+import 'package:fashionista/core/service_locator/app_config.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_outfit_bloc.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_outfit_bloc_event.dart';
@@ -18,6 +25,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:uuid/uuid.dart';
+import 'package:cloudinary_api/src/request/model/uploader_params.dart';
 
 final occasions = [
   {
@@ -167,10 +175,18 @@ class _AddOrEditOutfitScreenState extends State<AddOrEditOutfitScreen> {
 
                 const SizedBox(height: 12),
                 Container(
-                  padding: const EdgeInsets.only(left: 12, right: 12, top: 0, bottom: 12),
+                  padding: const EdgeInsets.only(
+                    left: 12,
+                    right: 12,
+                    top: 0,
+                    bottom: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: colorScheme.onPrimary,
-                    borderRadius: BorderRadius.only(topLeft: Radius.circular(8), topRight: Radius.circular(8)),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(8),
+                      topRight: Radius.circular(8),
+                    ),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.04),
@@ -199,7 +215,10 @@ class _AddOrEditOutfitScreenState extends State<AddOrEditOutfitScreen> {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: colorScheme.onPrimary,
-                    borderRadius: BorderRadius.only(bottomLeft: Radius.circular(8), bottomRight: Radius.circular(8)),
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(8),
+                      bottomRight: Radius.circular(8),
+                    ),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.04),
@@ -250,16 +269,12 @@ class _AddOrEditOutfitScreenState extends State<AddOrEditOutfitScreen> {
           : DateTime.now().millisecondsSinceEpoch;
 
       // Show progress dialog
-      showDialog(
-        context: context,
-        barrierDismissible: false, // Prevent dismissing
-        builder: (_) => const Center(child: CircularProgressIndicator()),
-      );
+      showLoadingDialog(context);
 
       //here lets upload _thumbnailBytes
       if (!isEdit) {
         if (_thumbnailBytes != null) {
-          String? thumbnailUrl = await uploadThumbnail(
+          String? thumbnailUrl = await uploadThumbnailToCloudinary(
             context,
             _thumbnailBytes!,
             outfitId!,
@@ -290,7 +305,7 @@ class _AddOrEditOutfitScreenState extends State<AddOrEditOutfitScreen> {
         (l) {
           // _buttonLoadingStateCubit.setLoading(false);
           if (mounted) {
-            Navigator.of(context).pop();
+            dismissLoadingDialog(context);
           }
           if (!mounted) return;
           ScaffoldMessenger.of(
@@ -306,10 +321,13 @@ class _AddOrEditOutfitScreenState extends State<AddOrEditOutfitScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('✅ Outfit saved successfully!')),
           );
-          Navigator.pop(context);
-          if (!isEdit) {
-            Navigator.pop(context, true);
+          dismissLoadingDialog(context);
+          if (mounted) {
+            Navigator.pop(context);
           }
+          // if (!isEdit) {
+          //   context.pop();
+          // }
         },
       );
     } on firebase_auth.FirebaseException catch (e) {
@@ -342,6 +360,89 @@ class _AddOrEditOutfitScreenState extends State<AddOrEditOutfitScreen> {
     } catch (e) {
       debugPrint("Thumbnail upload failed: $e");
       return null;
+    }
+  }
+
+  Future<String?> uploadThumbnailToCloudinary(
+    BuildContext context,
+    Uint8List thumbnailBytes,
+    String outfitId,
+  ) async {
+    try {
+      CloudinaryConfig config = CloudinaryConfig.fromUri(
+        appConfig.get('cloudinary_url'),
+      );
+      final outfitThumbnailsFolder = appConfig.get(
+        'cloudinary_outfit_thumbnails_folder',
+      );
+      final baseFolder = appConfig.get('cloudinary_base_folder');
+
+      final cloudinary = Cloudinary.fromConfiguration(config);
+      final tempId = const Uuid().v4();
+      final fileName = "${outfitId}_$tempId.png";
+      final publicId = "${outfitId}_$tempId";
+
+      final base64Image = base64Encode(thumbnailBytes);
+
+      final transformation = Transformation()
+          .resize(Resize.auto().width(360).aspectRatio(1 / 1))
+          .addTransformation('q_60');
+
+      final uploadResult = await cloudinary.uploader().upload(
+        'data:image/jpeg;base64,$base64Image',
+        params: UploadParams(
+          filename: fileName,
+          publicId: publicId,
+          useFilename: true,
+          folder: '$baseFolder/$outfitThumbnailsFolder',
+          uploadPreset: 'ml_default',
+          type: 'image/png',
+          transformation: transformation,
+        ),
+      );
+
+      if (uploadResult == null) {
+        debugPrint("Upload failed — no response from Cloudinary");
+        throw Exception("Upload failed — no response from Cloudinary");
+      }
+      if (uploadResult.error != null) {
+        debugPrint("Upload failed: ${uploadResult.error!.message}");
+        throw Exception(uploadResult.error!.message);
+      }
+
+      final url = uploadResult.data?.secureUrl;
+      if (url == null) {
+        debugPrint("Upload failed — no URL returned");
+        throw Exception("Upload failed — no URL returned");
+      }
+
+      String thumbnailUrl =
+          (cloudinary.image('$baseFolder/$outfitThumbnailsFolder/$fileName')
+                ..transformation(
+                  Transformation().addTransformation('q_auto:good')
+                    ..resize(Resize.auto().width(250).aspectRatio(1 / 1)),
+                ))
+              .toString();
+
+      final downloadUrl = thumbnailUrl;
+      return downloadUrl;
+    } catch (e) {
+      debugPrint("Thumbnail upload failed: $e");
+      return null;
+    }
+  }
+
+  void showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // prevent accidental dismiss
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  void dismissLoadingDialog(BuildContext context) {
+    if (Navigator.canPop(context)) {
+      Navigator.of(context, rootNavigator: true).pop();
     }
   }
 

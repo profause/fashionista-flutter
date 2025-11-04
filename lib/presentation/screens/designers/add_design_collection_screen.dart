@@ -1,12 +1,18 @@
 import 'dart:io';
 
+import 'package:cloudinary_url_gen/cloudinary.dart';
+import 'package:cloudinary_url_gen/config/cloudinary_config.dart';
+import 'package:cloudinary_url_gen/transformation/resize/resize.dart';
+import 'package:cloudinary_url_gen/transformation/transformation.dart';
 import 'package:dartz/dartz.dart' as dartz;
+import 'package:fashionista/core/service_locator/app_config.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
-import 'package:fashionista/core/widgets/animated_primary_button.dart';
+import 'package:fashionista/core/utils/get_image_aspect_ratio.dart';
 import 'package:fashionista/core/widgets/bloc/button_loading_state_cubit.dart';
 import 'package:fashionista/core/widgets/tag_input_field.dart';
 import 'package:fashionista/data/models/author/author_model.dart';
 import 'package:fashionista/data/models/designers/design_collection_model.dart';
+import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/services/firebase/firebase_design_collection_service.dart';
@@ -20,6 +26,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
+import 'package:cloudinary_api/uploader/cloudinary_uploader.dart';
+import 'package:cloudinary_api/src/request/model/uploader_params.dart';
 
 class AddDesignCollectionScreen extends StatefulWidget {
   final DesignCollectionModel? designCollection;
@@ -80,6 +88,18 @@ class _AddDesignCollectionScreenState extends State<AddDesignCollectionScreen> {
         elevation: 0,
         foregroundColor: colorScheme.primary,
         backgroundColor: colorScheme.onPrimary,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12.0),
+            child: CustomIconButtonRounded(
+              onPressed: () async {
+                if (!_formKey.currentState!.validate()) return;
+                await _saveDesignCollection(DesignCollectionModel.empty());
+              },
+              iconData: Icons.check,
+            ),
+          ),
+        ],
       ),
 
       body: SafeArea(
@@ -89,6 +109,53 @@ class _AddDesignCollectionScreenState extends State<AddDesignCollectionScreen> {
             key: _formKey,
             child: Column(
               children: [
+                Card(
+                  color: colorScheme.onPrimary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  elevation: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ProfileInfoTextFieldWidget(
+                          label: 'Title',
+                          controller: _titleController,
+                          hint: 'Enter a title for your collection',
+                          validator: (value) {
+                            if (!RegExp(
+                              r'^([A-Za-z_][A-Za-z0-9_]\w+)?',
+                            ).hasMatch(value ?? "")) {
+                              return 'Please enter a valid name';
+                            }
+                            return null;
+                          },
+                        ),
+                        Divider(
+                          height: 16,
+                          thickness: 1,
+                          color: Colors.grey[300],
+                        ),
+                        ProfileInfoTextFieldWidget(
+                          label: 'Description',
+                          controller: _descriptionController,
+                          hint: 'Enter a your collection',
+                          validator: (value) {
+                            if (!RegExp(
+                              r'^([A-Za-z_][A-Za-z0-9_]\w+)?',
+                            ).hasMatch(value ?? "")) {
+                              return 'Please enter a valid description';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
                 Container(
                   margin: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
@@ -112,7 +179,7 @@ class _AddDesignCollectionScreenState extends State<AddDesignCollectionScreen> {
                             scrollDirection: Axis.horizontal,
                             padding: const EdgeInsets.all(8),
                             itemCount: previewImages.length,
-                            separatorBuilder: (_, __) =>
+                            separatorBuilder: (_, _) =>
                                 const SizedBox(width: 8),
                             itemBuilder: (context, index) {
                               final image = previewImages[index];
@@ -158,74 +225,46 @@ class _AddDesignCollectionScreenState extends State<AddDesignCollectionScreen> {
                             },
                           ),
                         ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Stack(
+                      FilledButton(
+                        onPressed: () {
+                          if (isUploading) return;
+                          pickImages(context);
+                        },
+                        style: FilledButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          elevation: 0,
+                          backgroundColor: Colors.transparent,
+                          foregroundColor:
+                              colorScheme.onSurface, // text/icon color
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              if (isUploading) ...[
-                                CircularProgressIndicator(strokeWidth: 4),
-                              ],
-                              CustomIconButtonRounded(
-                                iconData: Icons.add_photo_alternate,
-                                onPressed: () {
-                                  if (isUploading) return;
-                                  pickImages(context);
-                                },
+                              const Text("Add images"),
+                              const Spacer(),
+                              Stack(
+                                children: [
+                                  if (isUploading) ...[
+                                    CircularProgressIndicator(strokeWidth: 4),
+                                  ],
+                                  CustomIconButtonRounded(
+                                    iconData: Icons.add_photo_alternate,
+                                    onPressed: () {
+                                      if (isUploading) return;
+                                      pickImages(context);
+                                    },
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ],
+                        ),
                       ),
                     ],
-                  ),
-                ),
-
-                const SizedBox(height: 4),
-                Card(
-                  color: colorScheme.onPrimary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  elevation: 0,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ProfileInfoTextFieldWidget(
-                          label: 'Title',
-                          controller: _titleController,
-                          hint: 'Enter a title for your collection',
-                          validator: (value) {
-                            if (!RegExp(
-                              r'^([A-Za-z_][A-Za-z0-9_]\w+)?',
-                            ).hasMatch(value ?? "")) {
-                              return 'Please enter a valid name';
-                            }
-                            return null;
-                          },
-                        ),
-                        Divider(
-                          height: 16,
-                          thickness: 1,
-                          color: Colors.grey[300],
-                        ),
-                        ProfileInfoTextFieldWidget(
-                          label: 'Description',
-                          controller: _descriptionController,
-                          hint: 'Enter a your collection',
-                          validator: (value) {
-                            if (!RegExp(
-                              r'^([A-Za-z_][A-Za-z0-9_]\w+)?',
-                            ).hasMatch(value ?? "")) {
-                              return 'Please enter a valid description';
-                            }
-                            return null;
-                          },
-                        ),
-                      ],
-                    ),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -307,25 +346,6 @@ class _AddDesignCollectionScreenState extends State<AddDesignCollectionScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 4.0, right: 4.0),
-                    child: Hero(
-                      tag: 'add-design-collection-button',
-                      child: AnimatedPrimaryButton(
-                        text: "Save",
-                        onPressed: () async {
-                          if (!_formKey.currentState!.validate()) return;
-
-                          await _saveDesignCollection(
-                            DesignCollectionModel.empty(),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -349,8 +369,9 @@ class _AddDesignCollectionScreenState extends State<AddDesignCollectionScreen> {
       final tags = _tagsController.text.trim();
       final credits = _creditsController.text.trim();
       final designCollectionId = Uuid().v4();
+      List<FeaturedMediaModel> featuredImages = [];
 
-      final uploadResult = await uploadImages(
+      final uploadResult = await uploadImagesToCloudinary(
         context,
         createdBy,
         designCollectionId,
@@ -369,7 +390,7 @@ class _AddDesignCollectionScreenState extends State<AddDesignCollectionScreen> {
           //_buttonLoadingStateCubit.setLoading(false);
           setState(() {
             //isUploading = false;
-            uploadedUrls = ifRight;
+            featuredImages = ifRight;
           });
         },
       );
@@ -390,7 +411,7 @@ class _AddDesignCollectionScreenState extends State<AddDesignCollectionScreen> {
         credits: credits,
         createdAt: DateTime.now().millisecondsSinceEpoch,
         author: author,
-        featuredImages: uploadedUrls,
+        featuredImages: featuredImages,
       );
       //debugPrint(newDesignCollection.toJson().toString());
 
@@ -519,6 +540,111 @@ class _AddDesignCollectionScreenState extends State<AddDesignCollectionScreen> {
       // ScaffoldMessenger.of(
       //   context,
       // ).showSnackBar(SnackBar(content: Text("❌ Upload failed: $e")));
+    }
+  }
+
+  Future<dartz.Either<String, List<FeaturedMediaModel>>>
+  uploadImagesToCloudinary(
+    BuildContext context,
+    String designerId,
+    designCollectionId,
+  ) async {
+    if (pickedImages.isEmpty) return dartz.Left('image list is empty');
+
+    setState(() => isUploading = true);
+    CloudinaryConfig config = CloudinaryConfig.fromUri(
+      appConfig.get('cloudinary_url'),
+    );
+    final designCollectionMediaFolder = appConfig.get(
+      'cloudinary_design_collection_images_folder',
+    );
+    final baseFolder = appConfig.get('cloudinary_base_folder');
+
+    final cloudinary = Cloudinary.fromConfiguration(config);
+    final aspects = <double?>[];
+    final uploadTasks =
+        <Future<FeaturedMediaModel>>[]; // explicitly Future<String>
+
+    for (int i = 0; i < pickedImages.length; i++) {
+      final image = pickedImages[i];
+      final uploadFile = File(image.path);
+      final aspect = await getImageAspectRatio(image);
+      aspects.add(aspect);
+
+      final fileName = "${designCollectionId}_$i.jpg";
+      final publicId = "${designCollectionId}_$i";
+
+      final transformation = Transformation()
+          .resize(Resize.auto().width(480).aspectRatio(aspect))
+          .addTransformation('q_60');
+
+      final uploadTask = (() async {
+        final uploadResult = await cloudinary.uploader().upload(
+          uploadFile,
+          params: UploadParams(
+            filename: fileName,
+            publicId: publicId,
+            useFilename: true,
+            folder: '$baseFolder/$designCollectionMediaFolder',
+            uploadPreset: 'ml_default',
+            type: 'image/jpeg',
+            transformation: transformation,
+          ),
+        );
+
+        if (uploadResult == null) {
+          debugPrint("Upload failed — no response from Cloudinary");
+          throw Exception("Upload failed — no response from Cloudinary");
+        }
+        if (uploadResult.error != null) {
+          debugPrint("Upload failed: ${uploadResult.error!.message}");
+          throw Exception(uploadResult.error!.message);
+        }
+
+        final url = uploadResult.data?.secureUrl;
+        if (url == null) {
+          debugPrint("Upload failed — no URL returned");
+          throw Exception("Upload failed — no URL returned");
+        }
+
+        String thumbnailUrl =
+            (cloudinary.image(
+                  '$baseFolder/$designCollectionMediaFolder/$fileName',
+                )..transformation(
+                  Transformation().addTransformation('q_auto:low')
+                    ..resize(Resize.auto().width(360).aspectRatio(aspect)),
+                ))
+                .toString();
+        final featuredMedia = FeaturedMediaModel().copyWith(
+          url: url,
+          type: "image",
+          aspectRatio: aspect,
+          thumbnailUrl: thumbnailUrl,
+        );
+        return featuredMedia; // ✅ Non-null String
+      })();
+
+      uploadTasks.add(uploadTask);
+    }
+    try {
+      // Wait for all uploads to finish
+      final featuredMedia = await Future.wait(uploadTasks); // List<String>
+      final mergedList = featuredMedia;
+
+      setState(() {
+        isUploading = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("✅ Images uploaded successfully!")),
+        );
+      }
+
+      return dartz.Right(mergedList);
+    } catch (e) {
+      setState(() => isUploading = false);
+      return dartz.Left(e.toString());
     }
   }
 }

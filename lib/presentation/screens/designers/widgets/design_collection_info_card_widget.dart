@@ -59,7 +59,7 @@ class DesignCollectionInfoCardWidget extends StatelessWidget {
                   child: CachedNetworkImage(
                     imageUrl: designCollectionInfo.featuredImages.isEmpty
                         ? ''
-                        : designCollectionInfo.featuredImages.first.trim(),
+                        : designCollectionInfo.featuredImages.first.url!.trim(),
                     fit: BoxFit.cover,
                     placeholder: (context, url) => const Center(
                       child: SizedBox(

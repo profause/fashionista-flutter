@@ -453,7 +453,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
       final publicId = "${trendId}_$i";
 
       final transformation = Transformation()
-          .resize(Resize.auto().width(640).aspectRatio(aspect))
+          .resize(Resize.auto().width(480).aspectRatio(aspect))
           .addTransformation('q_60');
       // Define upload task returning a non-null String
       final uploadTask = (() async {
@@ -489,10 +489,9 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
             (cloudinary.image('$baseFolder/$trendMediaFolder/$fileName')
                   ..transformation(
                     Transformation().addTransformation('q_auto:low')
-                      ..resize(Resize.auto().width(640).aspectRatio(aspect)),
+                      ..resize(Resize.auto().width(360).aspectRatio(aspect)),
                   ))
                 .toString();
-        debugPrint(thumbnailUrl);
         final featuredMedia = FeaturedMediaModel().copyWith(
           url: url,
           type: "image",

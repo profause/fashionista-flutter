@@ -9,6 +9,9 @@ part 'featured_media_model.g.dart';
 @JsonSerializable(explicitToJson: true)
 @HiveType(typeId: hive.HiveType.featuredMediaType)
 class FeaturedMediaModel extends Equatable {
+  @HiveField(FeaturedMediaModelHiveType.uid)
+  final String? uid;
+
   @HiveField(FeaturedMediaModelHiveType.url)
   final String? url;
 
@@ -23,7 +26,13 @@ class FeaturedMediaModel extends Equatable {
   @JsonKey(name: 'thumbnail_url')
   final String? thumbnailUrl;
 
-  const FeaturedMediaModel({this.url, this.type, this.aspectRatio,this.thumbnailUrl,});
+  const FeaturedMediaModel({
+    this.url,
+    this.type,
+    this.aspectRatio,
+    this.thumbnailUrl,
+    this.uid,
+  });
 
   factory FeaturedMediaModel.fromJson(Map<String, dynamic> json) =>
       _$FeaturedMediaModelFromJson(json);
@@ -31,22 +40,29 @@ class FeaturedMediaModel extends Equatable {
   Map<String, dynamic> toJson() => _$FeaturedMediaModelToJson(this);
 
   @override
-  List<Object?> get props => [url, type, aspectRatio, thumbnailUrl];
+  List<Object?> get props => [url, type, aspectRatio, thumbnailUrl, uid];
 
-  factory FeaturedMediaModel.empty() =>
-      const FeaturedMediaModel(url: '', type: '', aspectRatio: 16 / 9, thumbnailUrl: '');
+  factory FeaturedMediaModel.empty() => const FeaturedMediaModel(
+    url: '',
+    type: '',
+    aspectRatio: 16 / 9,
+    thumbnailUrl: '',
+    uid: '',
+  );
 
   FeaturedMediaModel copyWith({
     String? url,
     String? type,
     double? aspectRatio,
-    String? thumbnailUrl
+    String? thumbnailUrl,
+    String? uid,
   }) {
     return FeaturedMediaModel(
       url: url ?? this.url,
       type: type ?? this.type,
       aspectRatio: aspectRatio ?? this.aspectRatio,
-      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl
+      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
+      uid: uid ?? this.uid,
     );
   }
 }

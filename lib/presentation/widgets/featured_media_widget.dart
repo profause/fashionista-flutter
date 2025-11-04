@@ -84,7 +84,7 @@ class _FeaturedMediaWidgetState extends State<FeaturedMediaWidget> {
                   color: colorScheme.onPrimary,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                clipBehavior: Clip.hardEdge,
+                clipBehavior: Clip.antiAlias,
                 child: CachedNetworkImage(
                   imageUrl: imageUrl!,
                   fit: BoxFit.fill,

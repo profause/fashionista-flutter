@@ -31,6 +31,13 @@ class ClosetItemUpdated extends ClosetItemBlocState {
   List<Object?> get props => [closetitem];
 }
 
+class ClosetItemAdded extends ClosetItemBlocState {
+  final ClosetItemModel closetitem;
+  const ClosetItemAdded(this.closetitem);
+  @override
+  List<Object?> get props => [closetitem];
+}
+
 class ClosetItemsLoaded extends ClosetItemBlocState {
   final List<ClosetItemModel> closetItems;
   final bool fromCache;

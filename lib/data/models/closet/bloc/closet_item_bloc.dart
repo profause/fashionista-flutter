@@ -10,6 +10,7 @@ class ClosetItemBloc extends Bloc<ClosetItemBlocEvent, ClosetItemBlocState> {
   ClosetItemBloc() : super(const ClosetItemInitial()) {
     on<LoadClosetItems>(_onLoadClosetItems);
     on<UpdateClosetItem>(_updateClosetItem);
+    on<AddClosetItem>(_addClosetItem);
     on<DeleteClosetItem>(_deleteClosetItem);
     on<LoadClosetItemsCacheFirstThenNetwork>(
       _onLoadClosetItemsCacheFirstThenNetwork,
@@ -66,6 +67,23 @@ class ClosetItemBloc extends Bloc<ClosetItemBlocEvent, ClosetItemBlocState> {
         emit(ClosetItemError("Failed to delete item: $e"));
       }
     }
+  }
+
+  Future<void> _addClosetItem(
+    AddClosetItem event,
+    Emitter<ClosetItemBlocState> emit,
+  ) async {
+    emit(ClosetItemLoading());
+    final result = await sl<FirebaseClosetService>().addClosetItem(event.closetitem);
+    await result.fold(
+      (failure) async {
+        emit(ClosetItemError(failure.toString()));
+      },
+      (client) async {
+        //await sl<HiveClosetItemService>().insertItems([event.closetitem]);
+        emit(ClosetItemAdded(client)); // ✅ safe emit
+      },
+    );
   }
 
   Future<void> _updateClosetItem(

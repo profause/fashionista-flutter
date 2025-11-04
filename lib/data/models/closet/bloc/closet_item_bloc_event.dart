@@ -24,6 +24,14 @@ class UpdateClosetItem extends ClosetItemBlocEvent {
   List<Object?> get props => [closetitem];
 }
 
+class AddClosetItem extends ClosetItemBlocEvent {
+  final ClosetItemModel closetitem;
+  const AddClosetItem(this.closetitem);
+
+  @override
+  List<Object?> get props => [closetitem];
+}
+
 class LoadClosetItems extends ClosetItemBlocEvent {
   final String uid;
   const LoadClosetItems(this.uid);

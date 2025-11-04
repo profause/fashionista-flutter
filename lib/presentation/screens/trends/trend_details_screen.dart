@@ -250,6 +250,14 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                                             MainAxisAlignment.start,
                                         children: [
                                           CustomTrendLikeButtonWidget(
+                                            onPressed: (isLiked) {
+                                              //debugPrint(isLiked.toString());
+                                              final updateTrend = trendInfo
+                                                  .copyWith(isLiked: isLiked);
+                                              context.read<TrendBloc>().add(
+                                                UpdateTrend(updateTrend),
+                                              );
+                                            },
                                             trendId: trendInfo.uid!,
                                             isLikedNotifier: ValueNotifier(
                                               LikeObject(

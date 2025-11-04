@@ -99,6 +99,7 @@ class TrendBloc extends Bloc<TrendBlocEvent, TrendBlocState> {
     Emitter<TrendBlocState> emit,
   ) async {
     emit(TrendLoading());
+    await sl<HiveTrendService>().updateItem(event.trend);
     emit(TrendUpdated(event.trend));
   }
 

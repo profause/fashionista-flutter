@@ -11,10 +11,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class CustomTrendLikeButtonWidget extends StatefulWidget {
   final String trendId;
   final ValueNotifier<LikeObject>? isLikedNotifier;
+  final Function(bool isLiked)? onPressed;
+
   const CustomTrendLikeButtonWidget({
     super.key,
     required this.trendId,
-    this.isLikedNotifier,
+    this.isLikedNotifier, this.onPressed,
   });
 
   @override
@@ -94,15 +96,12 @@ class _CustomTrendLikeButtonWidgetState
                   ),
                 );
                 result.fold((l) {}, (r) {
+                  widget.onPressed?.call(r);
                   widget.isLikedNotifier!.value = LikeObject(
                     count: count,
                     isLiked: r,
                   );
                   if (!mounted) return;
-                  // setState(() {
-                  //   isLiked = r;
-                  //   count = r ? count + 1 : count - 1;
-                  // });
                 });
               },
               icon: AnimatedSwitcher(

@@ -8,13 +8,13 @@ import 'package:fashionista/data/models/closet/bloc/closet_outfit_bloc_state.dar
 import 'package:fashionista/data/models/closet/outfit_model.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
-import 'package:fashionista/presentation/screens/closet/add_or_edit_closet_items_page.dart';
 import 'package:fashionista/presentation/screens/closet/closet_items_page.dart';
 import 'package:fashionista/presentation/screens/closet/outfit_planner_screen.dart';
 import 'package:fashionista/presentation/screens/closet/outfits_page.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class ClosetScreen extends StatefulWidget {
   const ClosetScreen({super.key});
@@ -345,12 +345,7 @@ class _ClosetScreenState extends State<ClosetScreen>
               ),
               onPressed: () {
                 if (_tabController.index == 0) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const AddOrEditClosetItemsPage(),
-                    ),
-                  );
+                    context.push('/closet/add-item');
                 } else if (_tabController.index == 1) {
                   outfitsKey.currentState?.showAddOutfitBottomSheet(
                     context,

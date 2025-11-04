@@ -23,7 +23,7 @@ class DesignCollectionModelAdapter extends TypeAdapter<DesignCollectionModel> {
       description: fields[2] as String?,
       tags: fields[8] as String?,
       visibility: fields[3] as String?,
-      featuredImages: (fields[9] as List).cast<String>(),
+      featuredImages: (fields[9] as List).cast<FeaturedMediaModel>(),
       author: fields[10] as AuthorModel,
       createdAt: fields[4] as int?,
       updatedAt: fields[5] as int?,
@@ -87,7 +87,7 @@ DesignCollectionModel _$DesignCollectionModelFromJson(
       tags: json['tags'] as String?,
       visibility: json['visibility'] as String?,
       featuredImages: (json['featured_images'] as List<dynamic>)
-          .map((e) => e as String)
+          .map((e) => FeaturedMediaModel.fromJson(e as Map<String, dynamic>))
           .toList(),
       author: AuthorModel.fromJson(json['author'] as Map<String, dynamic>),
       createdAt: (json['created_at'] as num?)?.toInt(),
@@ -104,7 +104,8 @@ Map<String, dynamic> _$DesignCollectionModelToJson(
       'description': instance.description,
       'tags': instance.tags,
       'visibility': instance.visibility,
-      'featured_images': instance.featuredImages,
+      'featured_images':
+          instance.featuredImages.map((e) => e.toJson()).toList(),
       'author': instance.author.toJson(),
       'created_at': instance.createdAt,
       'updated_at': instance.updatedAt,

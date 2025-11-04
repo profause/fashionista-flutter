@@ -24,6 +24,16 @@ class DesignerLoaded extends DesignerState {
   List<Object?> get props => [designer];
 }
 
+class DesignerUpdated extends DesignerState {
+  final Designer designer;
+  const DesignerUpdated(this.designer);
+
+  @override
+  List<Object?> get props => [designer];
+}
+
+
+
 class DesignerError extends DesignerState {
   final String message;
   const DesignerError(this.message);

@@ -1,6 +1,9 @@
 import 'package:fashionista/presentation/screens/auth/sign_in_screen.dart';
 import 'package:fashionista/presentation/screens/clients/client_details_screen.dart';
 import 'package:fashionista/presentation/screens/clients/clients_and_projects_screen.dart';
+import 'package:fashionista/presentation/screens/closet/add_or_edit_closet_items_page.dart';
+import 'package:fashionista/presentation/screens/closet/add_or_edit_outfit_plan_screen.dart';
+import 'package:fashionista/presentation/screens/closet/add_or_edit_outfit_screen.dart';
 import 'package:fashionista/presentation/screens/closet/closet_screen.dart';
 import 'package:fashionista/presentation/screens/home/home_screen.dart';
 import 'package:fashionista/presentation/screens/main/main_screen.dart';
@@ -97,7 +100,34 @@ GoRouter appRouter = GoRouter(
         transitionDuration: Duration(milliseconds: 300),
       ),
     ),
+    GoRoute(
+      name: 'AddOrEditClosetItemsPage',
+      path: '/closet/add-item',
+      pageBuilder: (context, state) => const CustomTransitionPage(
+        child: AddOrEditClosetItemsPage(),
+        transitionsBuilder: _fadeTransition,
+        transitionDuration: Duration(milliseconds: 300),
+      ),
+    ),
+    GoRoute(
+      name: 'AddOrEditOutfitScreen',
+      path: '/closet/add-outfit',
+      pageBuilder: (context, state) => const CustomTransitionPage(
+        child: AddOrEditOutfitScreen(),
+        transitionsBuilder: _fadeTransition,
+        transitionDuration: Duration(milliseconds: 300),
+      ),
+    ),
 
+    GoRoute(
+      name: 'AddOrEditOutfitPlanScreen',
+      path: '/closet/outfit-planner',
+      pageBuilder: (context, state) => const CustomTransitionPage(
+        child: AddOrEditOutfitPlanScreen(),
+        transitionsBuilder: _fadeTransition,
+        transitionDuration: Duration(milliseconds: 300),
+      ),
+    ),
     GoRoute(
       path: '/trends/:id',
       name: 'TrendDetailsScreen',
