@@ -18,7 +18,7 @@ class ClientInfoPinnedWidget extends StatelessWidget {
     //final colorScheme = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: () {
-        context.push('/clients/${clientInfo.uid}');
+        context.push('/clients/view/${clientInfo.uid}');
         // Navigate to client details
       },
       child: Column(

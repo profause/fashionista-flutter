@@ -34,7 +34,7 @@ class _ClientInfoCardWidgetState extends State<ClientInfoCardWidget> {
           () {
             //context.read<ClientCubit>().updateClient(widget.clientInfo);
             // Example: Navigate to Client Details Screen
-            context.push('/clients/${widget.clientInfo.uid}');
+            context.push('/clients/view/${widget.clientInfo.uid}');
           },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),

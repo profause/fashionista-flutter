@@ -1,6 +1,4 @@
 import 'package:fashionista/core/service_locator/service_locator.dart';
-import 'package:fashionista/data/models/clients/bloc/client_bloc.dart';
-import 'package:fashionista/data/models/clients/bloc/client_event.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/data/services/hive/hive_client_service.dart';
 import 'package:fashionista/presentation/screens/clients/widgets/client_info_card_widget.dart';
@@ -8,7 +6,6 @@ import 'package:fashionista/presentation/screens/clients/widgets/client_info_pin
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive/hive.dart';
 import 'package:sliver_tools/sliver_tools.dart';
@@ -28,7 +25,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
 
   @override
   void initState() {
-    context.read<ClientBloc>().add(const LoadClientsCacheFirstThenNetwork(''));
+    //context.read<ClientBloc>().add(const LoadClientsCacheFirstThenNetwork(''));
     super.initState();
   }
 
@@ -222,7 +219,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                           key: ValueKey(client.uid),
                           clientInfo: client,
                           onTap: () {
-                            context.push('/clients/${client.uid}');
+                            context.push('/clients/view/${client.uid}');
                           },
                         );
                       } else {

@@ -1,5 +1,8 @@
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
+import 'package:fashionista/data/models/work_order/bloc/work_order_bloc.dart';
+import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_event.dart';
+import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_state.dart';
 import 'package:fashionista/data/models/work_order/work_order_model.dart';
 import 'package:fashionista/presentation/screens/work_order/work_order_timeline_page.dart';
 import 'package:fashionista/presentation/screens/work_order/work_order_details_page.dart';
@@ -7,8 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ProjectDetailsScreen extends StatefulWidget {
-  final WorkOrderModel workOrderInfo;
-  const ProjectDetailsScreen({super.key, required this.workOrderInfo});
+  final String workOrderId;
+  const ProjectDetailsScreen({super.key, required this.workOrderId});
 
   @override
   State<ProjectDetailsScreen> createState() => _ProjectDetailsScreenState();
@@ -19,11 +22,15 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen>
   static const double expandedHeight = 84;
   late final TabController _tabController;
   late UserBloc userBloc;
+  late WorkOrderModel workOrderInfo;
 
   @override
   void initState() {
     _tabController = TabController(length: 2, vsync: this);
     userBloc = context.read<UserBloc>();
+    context.read<WorkOrderBloc>().add(
+      LoadWorkOrder(widget.workOrderId, isFromCache: true),
+    );
     super.initState();
   }
 
@@ -50,7 +57,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen>
                 foregroundColor: colorScheme.primary,
                 elevation: 0,
                 leading: IconButton(
-                  icon: const Icon(Icons.arrow_back),
+                  icon: const Icon(Icons.arrow_back_ios),
                   onPressed: () =>
                       Navigator.of(context).maybePop(), // 👈 back action
                 ),
@@ -139,41 +146,67 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen>
             ),
           ];
         },
-        body: TabBarView(
-          controller: _tabController, // ✅ connect the same controller
-          children: [
-            Builder(
-              builder: (context) {
-                return CustomScrollView(
-                  // Let this scroll work with NestedScrollView
-                  key: PageStorageKey("details"),
-                  slivers: [
-                    SliverOverlapInjector(
-                      handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
-                        context,
-                      ),
+        body: BlocBuilder<WorkOrderBloc, WorkOrderBlocState>(
+          buildWhen: (context, state) {
+            return state is WorkOrderLoaded || state is WorkOrderLoading;
+          },
+          builder: (context, state) {
+            switch (state) {
+              case WorkOrderLoading():
+                return const Center(
+                  child: SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                );
+
+              case WorkOrderError():
+                return Center(child: Text(state.message));
+              case WorkOrderLoaded():
+                workOrderInfo = state.workorder;
+                return TabBarView(
+                  controller: _tabController, // ✅ connect the same controller
+                  children: [
+                    Builder(
+                      builder: (context) {
+                        return CustomScrollView(
+                          // Let this scroll work with NestedScrollView
+                          key: PageStorageKey("details"),
+                          slivers: [
+                            SliverOverlapInjector(
+                              handle:
+                                  NestedScrollView.sliverOverlapAbsorberHandleFor(
+                                    context,
+                                  ),
+                            ),
+                            WorkOrderDetailsPage(workOrderInfo: workOrderInfo),
+                          ],
+                        );
+                      },
                     ),
-                    WorkOrderDetailsPage(workOrderInfo: widget.workOrderInfo),
+                    Builder(
+                      builder: (context) {
+                        return CustomScrollView(
+                          key: PageStorageKey("timeline"),
+                          slivers: [
+                            SliverOverlapInjector(
+                              handle:
+                                  NestedScrollView.sliverOverlapAbsorberHandleFor(
+                                    context,
+                                  ),
+                            ),
+                            WorkOrderTimelinePage(workOrderInfo: workOrderInfo),
+                          ],
+                        );
+                      },
+                    ),
                   ],
                 );
-              },
-            ),
-            Builder(
-              builder: (context) {
-                return CustomScrollView(
-                  key: PageStorageKey("timeline"),
-                  slivers: [
-                    SliverOverlapInjector(
-                      handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
-                        context,
-                      ),
-                    ),
-                    WorkOrderTimelinePage(workOrderInfo: widget.workOrderInfo),
-                  ],
-                );
-              },
-            ),
-          ],
+              default:
+                return SizedBox.shrink();
+            }
+          },
         ),
       ),
     );

@@ -1,4 +1,5 @@
 import 'package:fashionista/presentation/screens/auth/sign_in_screen.dart';
+import 'package:fashionista/presentation/screens/clients/add_client_screen.dart';
 import 'package:fashionista/presentation/screens/clients/client_details_screen.dart';
 import 'package:fashionista/presentation/screens/clients/clients_and_projects_screen.dart';
 import 'package:fashionista/presentation/screens/closet/add_or_edit_closet_items_page.dart';
@@ -18,6 +19,9 @@ import 'package:fashionista/presentation/screens/settings/settings_screen.dart';
 import 'package:fashionista/presentation/screens/splash/splash_screen.dart';
 import 'package:fashionista/presentation/screens/trends/add_trend_screen.dart';
 import 'package:fashionista/presentation/screens/trends/trend_details_screen.dart';
+import 'package:fashionista/presentation/screens/work_order/add_work_order_screen.dart';
+import 'package:fashionista/presentation/screens/work_order/project_details_screen.dart';
+import 'package:fashionista/presentation/screens/work_order/work_order_request_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -136,11 +140,36 @@ GoRouter appRouter = GoRouter(
           TrendDetailsScreen(trendId: state.pathParameters['id']!),
     ),
     GoRoute(
-      path: '/clients/:id',
+      path: '/clients/view/:id',
       name: 'ClientDetailsScreen',
       builder: (context, state) =>
           ClientDetailsScreen(clientId: state.pathParameters['id']!),
     ),
+
+    GoRoute(
+      name: 'AddClientScreen',
+      path: '/clients/add',
+      builder: (context, state) => const AddClientScreen(),
+    ),
+    GoRoute(
+      name: 'AddWorkOrderScreen',
+      path: '/clients/add-work-order',
+      builder: (context, state) => const AddWorkOrderScreen(),
+    ),
+    GoRoute(
+      name: 'WorkOrderRequestScreen',
+      path: '/workorders/request/:id',
+      builder: (context, state) => WorkOrderRequestScreen(
+        workOrderRequestId: state.pathParameters['id']!,
+      ),
+    ),
+    GoRoute(
+      name: 'ProjectDetailsScreen',
+      path: '/workorders/details/:id',
+      builder: (context, state) =>
+          ProjectDetailsScreen(workOrderId: state.pathParameters['id']!),
+    ),
+
     GoRoute(
       name: 'AddTrendScreen',
       path: '/trends-new',
@@ -156,6 +185,7 @@ GoRouter appRouter = GoRouter(
       builder: (context, state) =>
           DesignerDetailsScreen(designerId: state.pathParameters['id']!),
     ),
+
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) =>
           MainScreen(navigationShell: navigationShell),

@@ -235,40 +235,49 @@ class _AddClientScreenState extends State<AddClientScreen> {
         mobileNumber,
       );
 
-      userResult.fold((l) {}, (r) async {
-        if (r.uid != null) {
-          //send notification to user who created the client
-          final authorUser = AuthorModel.empty().copyWith(
-            uid: user.uid,
-            name: user.fullName,
-            avatar: user.profileImage,
-            mobileNumber: user.mobileNumber,
-          );
-
-          final notification = NotificationModel.empty().copyWith(
-            uid: Uuid().v4(),
-            title: 'New Client',
-            description: '${user.fullName} has added you as a client',
-            createdAt: DateTime.now().millisecondsSinceEpoch,
-            type: 'info',
-            refId: uid,
-            refType: "client",
-            from: user.uid,
-            to: r.uid,
-            author: authorUser,
-            status: 'new',
-          );
-
-          await sl<FirebaseNotificationService>().createNotification(
-            notification,
-          );
-
+      userResult.fold(
+        (l) {
+          //AppToast.error(context, 'An error occurred, please try again');
           _buttonLoadingStateCubit.setLoading(false);
           if (mounted) {
-            context.pop();
+              context.pop();
+            }
+        },
+        (r) async {
+          if (r.uid != null) {
+            //send notification to user who created the client
+            final authorUser = AuthorModel.empty().copyWith(
+              uid: user.uid,
+              name: user.fullName,
+              avatar: user.profileImage,
+              mobileNumber: user.mobileNumber,
+            );
+
+            final notification = NotificationModel.empty().copyWith(
+              uid: Uuid().v4(),
+              title: 'New Client',
+              description: '${user.fullName} has added you as a client',
+              createdAt: DateTime.now().millisecondsSinceEpoch,
+              type: 'info',
+              refId: uid,
+              refType: "client",
+              from: user.uid,
+              to: r.uid,
+              author: authorUser,
+              status: 'new',
+            );
+
+            await sl<FirebaseNotificationService>().createNotification(
+              notification,
+            );
+
+            _buttonLoadingStateCubit.setLoading(false);
+            if (mounted) {
+              context.pop();
+            }
           }
-        }
-      });
+        },
+      );
     } on FirebaseException catch (e) {
       _buttonLoadingStateCubit.setLoading(false);
       if (!mounted) return;

@@ -122,7 +122,6 @@ class ClientBloc extends Bloc<ClientBlocEvent, ClientBlocState> {
     // 1️⃣ Try cache first
     String uid = event.uid;
     final cachedItems = await sl<HiveClientService>().getItems(uid);
-
     if (cachedItems.isEmpty) {
       emit(ClientsCounted(0));
       return;

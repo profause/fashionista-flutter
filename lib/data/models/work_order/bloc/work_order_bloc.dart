@@ -161,7 +161,10 @@ class WorkOrderBloc extends Bloc<WorkOrderBlocEvent, WorkOrderBlocState> {
   ) async {
     String uid = event.uid;
     final cachedItems = await sl<HiveWorkOrderService>().getItems(uid);
-
+    if (cachedItems.isEmpty) {
+      emit(WorkOrdersCounted(0));
+      return;
+    }
     emit(WorkOrdersCounted(cachedItems.length));
   }
 

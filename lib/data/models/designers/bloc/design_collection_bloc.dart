@@ -65,6 +65,7 @@ class DesignCollectionBloc
     final cachedItems = await sl<HiveDesignCollectionService>().getItems(
       event.uid,
     );
+
     if (cachedItems.isNotEmpty) {
       emit(DesignCollectionsLoaded(cachedItems, fromCache: true));
     }
@@ -89,26 +90,20 @@ class DesignCollectionBloc
           }
 
           // 3️⃣ Detect if data has changed
-          int? cachedFirstTimestamp = cachedItems.isNotEmpty
-              ? cachedItems.first.createdAt
-              : null;
+          // int? cachedFirstTimestamp = cachedItems.isNotEmpty
+          //     ? cachedItems.first.createdAt
+          //     : null;
           //int freshFirstTimestamp = designCollections.first.createdAt;
 
           final isDataChanged =
               cachedItems.toString() != designCollections.toString();
-
-          if (cachedFirstTimestamp == null || isDataChanged) {
+          if (isDataChanged) {
             emit(DesignCollectionsLoaded(designCollections, fromCache: false));
             // 4️⃣ Update cache and emit fresh data
             await sl<HiveDesignCollectionService>().insertItems(
               event.uid,
               items: designCollections,
             );
-
-            // emit(
-            //   DesignCollectionsNewData(designCollections),
-            // ); // optional "new data" state
-            // 🔑 Do NOT call `on<Event>` here again!
           } else {
             // no change
             emit(DesignCollectionsLoaded(cachedItems, fromCache: true));

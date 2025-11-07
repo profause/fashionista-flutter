@@ -58,6 +58,8 @@ class _WorkOrderDetailsPageState extends State<WorkOrderDetailsPage> {
                                     ),
                                   ),
                                 ),
+                                errorListener: (value) {
+                                },
                                 errorWidget: (context, url, error) =>
                                     const CustomColoredBanner(text: ''),
                               ),

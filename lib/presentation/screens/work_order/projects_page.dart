@@ -1,6 +1,4 @@
 import 'package:fashionista/core/service_locator/service_locator.dart';
-import 'package:fashionista/data/models/work_order/bloc/work_order_bloc.dart';
-import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_event.dart';
 import 'package:fashionista/data/models/work_order/work_order_model.dart';
 import 'package:fashionista/data/services/hive/hive_work_order_service.dart';
 import 'package:fashionista/presentation/screens/work_order/widgets/pinned_work_order_info_card_widget.dart';
@@ -8,7 +6,6 @@ import 'package:fashionista/presentation/screens/work_order/widgets/work_order_i
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
@@ -25,9 +22,9 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
   @override
   void initState() {
-    context.read<WorkOrderBloc>().add(
-      const LoadWorkOrdersCacheFirstThenNetwork(''),
-    );
+    // context.read<WorkOrderBloc>().add(
+    //   const LoadWorkOrdersCacheFirstThenNetwork(''),
+    // );
     super.initState();
   }
 

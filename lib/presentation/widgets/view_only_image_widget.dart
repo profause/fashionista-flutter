@@ -39,6 +39,9 @@ class ViewOnlyImageWidget extends StatelessWidget {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
                   ),
+                  errorListener: (value) {
+                    
+                  },
                   errorWidget: (context, url, error) =>
                       const Icon(Icons.broken_image, size: 40),
                 )

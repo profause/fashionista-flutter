@@ -1,16 +1,16 @@
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/clients/bloc/client_bloc.dart';
+import 'package:fashionista/data/models/clients/bloc/client_event.dart';
 import 'package:fashionista/data/models/clients/bloc/client_state.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_event.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_state.dart';
-import 'package:fashionista/presentation/screens/clients/add_client_screen.dart';
 import 'package:fashionista/presentation/screens/clients/clients_screen.dart';
-import 'package:fashionista/presentation/screens/work_order/add_work_order_screen.dart';
 import 'package:fashionista/presentation/screens/work_order/projects_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class ClientsAndProjectsScreen extends StatefulWidget {
   const ClientsAndProjectsScreen({super.key});
@@ -28,15 +28,34 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
   final GlobalKey<_ClientsAndProjectsScreenState> clientsAndProjectsKey =
       GlobalKey<_ClientsAndProjectsScreenState>();
   late UserBloc userBloc;
+  late GoRouter router;
 
   @override
   void initState() {
     _tabController = TabController(length: 2, vsync: this);
     userBloc = context.read<UserBloc>();
-      context.read<WorkOrderBloc>().add(
-      const WorkOrdersCounter(''),
-    );
+    _runFetchEvents();
     super.initState();
+  }
+
+  void _runFetchEvents() {
+    context.read<WorkOrderBloc>().add(const WorkOrdersCounter(''));
+    context.read<ClientBloc>().add(const ClientsCounter(''));
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    router = GoRouter.of(context);
+    router.routerDelegate.addListener(_onRouteChange);
+  }
+
+  void _onRouteChange() {
+    // Check if we’re currently on this route
+    if (router.routerDelegate.currentConfiguration.uri.toString() ==
+        '/clients') {
+      _runFetchEvents();
+    }
   }
 
   @override
@@ -305,12 +324,13 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
                       child: TextButton.icon(
                         onPressed: () {
                           Navigator.pop(context);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const AddClientScreen(),
-                            ),
-                          );
+                          context.push('/clients/add');
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //     builder: (_) => const AddClientScreen(),
+                          //   ),
+                          // );
                         },
                         icon: const Icon(Icons.person, size: 18),
                         label: const Text("Add new client"),
@@ -334,14 +354,14 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
                       width: double.infinity,
                       child: TextButton.icon(
                         onPressed: () {
-
                           Navigator.pop(context);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const AddWorkOrderScreen(),
-                            ),
-                          );
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //     builder: (_) => const AddWorkOrderScreen(),
+                          //   ),
+                          // );
+                          context.push('/clients/add-work-order');
                         },
                         icon: const Icon(Icons.work_history, size: 18),
                         label: const Text("Start a new work order"),
@@ -393,6 +413,7 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
   @override
   void dispose() {
     _tabController.dispose();
+    router.routerDelegate.removeListener(_onRouteChange);
     super.dispose();
   }
 }

@@ -62,6 +62,8 @@ class _BannerImageWidgetState extends State<BannerImageWidget> {
                     imageUrl: currentUrl,
                     fit: BoxFit.cover,
                     height: widget.height,
+                    errorListener: (value) {
+                    },
                     placeholder: (context, url) => const Center(
                       child: SizedBox(
                         height: 24,

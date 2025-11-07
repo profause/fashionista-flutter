@@ -1,5 +1,4 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_event.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_state.dart';
@@ -10,6 +9,8 @@ import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.d
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class WorkOrderRequestScreen extends StatefulWidget {
   final String workOrderRequestId;
@@ -34,7 +35,7 @@ class _WorkOrderRequestScreenState extends State<WorkOrderRequestScreen> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-
+    final radius = 30.0;
     return Scaffold(
       appBar: AppBar(
         foregroundColor: colorScheme.primary,
@@ -84,33 +85,28 @@ class _WorkOrderRequestScreenState extends State<WorkOrderRequestScreen> {
                             mainAxisAlignment: MainAxisAlignment.start,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Material(
-                                color: Colors.white,
-                                borderOnForeground: true,
-                                borderRadius: BorderRadius.circular(60),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(2.0),
-                                  child: InkWell(
-                                    borderRadius: BorderRadius.circular(32),
-                                    onTap: () {},
-                                    child: workOrderInfo.client!.avatar != ''
-                                        ? CircleAvatar(
-                                            radius: 32,
-                                            backgroundColor: AppTheme.lightGrey,
-                                            backgroundImage:
-                                                CachedNetworkImageProvider(
-                                                  workOrderInfo.client!.avatar!,
-                                                  errorListener: (error) {},
-                                                ),
-                                          )
-                                        : DefaultProfileAvatar(
-                                            name: null,
-                                            size: 32 * 1.8,
-                                            uid: workOrderInfo.client!.uid!,
-                                          ),
+                              CircleAvatar(
+                                radius: radius,
+                                backgroundColor: colorScheme.surface,
+                                child: Container(
+                                  margin: const EdgeInsets.all(2),
+                                  clipBehavior: Clip.antiAlias,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: CachedNetworkImage(
+                                    imageUrl: workOrderInfo.client!.avatar!,
+                                    errorListener: (error) {},
+                                    errorWidget: (context, url, error) =>
+                                        DefaultProfileAvatar(
+                                          name: null,
+                                          size: radius * 2,
+                                          uid: workOrderInfo.client!.uid!,
+                                        ),
                                   ),
                                 ),
                               ),
+
                               Expanded(
                                 child: Padding(
                                   padding: const EdgeInsets.only(left: 12.0),
@@ -172,7 +168,16 @@ class _WorkOrderRequestScreenState extends State<WorkOrderRequestScreen> {
                               ),
 
                               OutlinedButton.icon(
-                                onPressed: () {},
+                                onPressed: () async {
+                                  final Uri dialUri = Uri(
+                                    scheme: 'tel',
+                                    path: workOrderInfo.client!.mobileNumber!,
+                                  );
+                                  await launchUrl(
+                                    dialUri,
+                                    mode: LaunchMode.externalApplication,
+                                  );
+                                },
                                 icon: const Icon(Icons.call_rounded),
                                 label: const Text('Contact client'),
                                 style: OutlinedButton.styleFrom(

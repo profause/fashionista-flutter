@@ -113,7 +113,7 @@ class _AnimatedPrimaryButtonState extends State<AnimatedPrimaryButton>
                             child: CircularProgressIndicator(
                               strokeWidth: 2.5,
                               valueColor: AlwaysStoppedAnimation<Color>(
-                                widget.foregroundColor ?? colorScheme.onPrimary,
+                                widget.foregroundColor ?? Colors.black,
                               ),
                             ),
                           )

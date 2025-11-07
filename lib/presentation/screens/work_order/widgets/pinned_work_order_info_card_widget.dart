@@ -6,12 +6,11 @@ import 'package:fashionista/data/models/work_order/bloc/work_order_bloc.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_event.dart';
 import 'package:fashionista/data/models/work_order/work_order_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_work_order_service.dart';
-import 'package:fashionista/presentation/screens/work_order/project_details_screen.dart';
-import 'package:fashionista/presentation/screens/work_order/work_order_request_screen.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_rounded.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 class PinnedWorkOrderInfoCardWidget extends StatefulWidget {
@@ -78,23 +77,9 @@ class _PinnedWorkOrderInfoCardWidgetState
             borderRadius: BorderRadius.circular(12),
             onTap: () {
               if (widget.workOrderInfo.status == 'REQUEST') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => WorkOrderRequestScreen(
-                      workOrderRequestId: widget.workOrderInfo.uid!,
-                    ),
-                  ),
-                );
+                context.push('/workorders/request/${widget.workOrderInfo.uid}');
               } else {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ProjectDetailsScreen(
-                      workOrderInfo: widget.workOrderInfo,
-                    ),
-                  ),
-                );
+                context.push('/workorders/details/${widget.workOrderInfo.uid}');
               }
             },
             child: Padding(

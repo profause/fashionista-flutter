@@ -144,7 +144,6 @@ class _DesignCollectionDetailsScreenState
                                   ),
                                 ),
                               ),
-                              
                               errorWidget: (context, url, error) {
                                 return const CustomColoredBanner(
                                   text: 'No Image',

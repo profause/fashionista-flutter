@@ -447,6 +447,9 @@ class FirebaseUserServiceImpl implements FirebaseUserService {
           .where('mobile_number', isEqualTo: mobileNumber)
           .limit(1)
           .get();
+      if (querySnapshot.docs.isEmpty) {
+        return Left('No user found');
+      }
       User user = User.fromJson(
         querySnapshot.docs.first.data() as Map<String, dynamic>,
       );

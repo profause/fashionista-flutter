@@ -43,17 +43,6 @@ class _DesignerCollectionPageState extends State<DesignerCollectionPage> {
               return DesignCollectionStaggeredView(
                 designCollections: designCollections,
               );
-            // return ListView.builder(
-            //   padding: const EdgeInsets.all(0),
-            //   physics: const AlwaysScrollableScrollPhysics(),
-            //   itemCount: designCollections.length,
-            //   itemBuilder: (context, index) {
-            //     final designCollection = designCollections[index];
-            //     return DesignCollectionInfoCardWidget(
-            //       designCollectionInfo: designCollection,
-            //     );
-            //   },
-            // );
             case DesignCollectionError(:final message):
               debugPrint(message);
               return Center(child: Text("Error: $message"));

@@ -419,11 +419,7 @@ class _DesignerReviewPageState extends State<DesignerReviewPage> {
   void _onSaveReview(DesignerReviewModel review) async {
     try {
       // Show progress dialog
-      showDialog(
-        context: context,
-        barrierDismissible: false, // Prevent dismissing
-        builder: (_) => const Center(child: CircularProgressIndicator()),
-      );
+      showLoadingDialog(context);
 
       final result = await sl<FirebaseDesignersService>().addDesignerReview(
         review,
@@ -432,7 +428,7 @@ class _DesignerReviewPageState extends State<DesignerReviewPage> {
       result.fold(
         (failure) {
           if (mounted) {
-            Navigator.of(context).pop();
+            dismissLoadingDialog(context);
           }
           if (!mounted) return;
           ScaffoldMessenger.of(
@@ -440,7 +436,7 @@ class _DesignerReviewPageState extends State<DesignerReviewPage> {
           ).showSnackBar(SnackBar(content: Text(failure)));
         },
         (review) {
-          Navigator.pop(context);
+          dismissLoadingDialog(context);     
           Navigator.pop(context);
           context.read<DesignerReviewBloc>().add(
             LoadDesignerReviewCacheFirstThenNetwork(widget.designer.uid),
@@ -452,6 +448,20 @@ class _DesignerReviewPageState extends State<DesignerReviewPage> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(e.message!)));
+    }
+  }
+
+  void showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // prevent accidental dismiss
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  void dismissLoadingDialog(BuildContext context) {
+    if (Navigator.canPop(context)) {
+      Navigator.of(context, rootNavigator: true).pop();
     }
   }
 
