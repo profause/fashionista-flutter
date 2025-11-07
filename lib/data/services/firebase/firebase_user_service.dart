@@ -201,16 +201,18 @@ class FirebaseUserServiceImpl implements FirebaseUserService {
       final link = url;
 
       // Update Firestore profile image URL
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).update(
-        {'profile_image': link},
-      );
 
       try {
-        // Update Firestore profile image URL
-        await FirebaseFirestore.instance
-            .collection('designers')
-            .doc(user.uid)
-            .update({'profile_image': link});
+        await Future.wait([
+          FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+            'profile_image': link,
+          }),
+          // Update Firestore profile image URL
+          FirebaseFirestore.instance
+              .collection('designers')
+              .doc(user.uid)
+              .update({'profile_image': link}),
+        ]);
       } catch (e) {
         debugPrint(e.toString());
       }

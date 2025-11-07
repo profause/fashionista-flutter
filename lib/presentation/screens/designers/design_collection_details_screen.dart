@@ -132,6 +132,9 @@ class _DesignCollectionDetailsScreenState
                             child: CachedNetworkImage(
                               imageUrl: imageUrl!,
                               fit: BoxFit.cover,
+                              errorListener: (value) {
+                                
+                              },
                               placeholder: (context, url) => const Center(
                                 child: SizedBox(
                                   height: 18,
@@ -141,6 +144,7 @@ class _DesignCollectionDetailsScreenState
                                   ),
                                 ),
                               ),
+                              
                               errorWidget: (context, url, error) {
                                 return const CustomColoredBanner(
                                   text: 'No Image',

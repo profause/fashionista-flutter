@@ -5,6 +5,7 @@ import 'package:fashionista/presentation/screens/closet/add_or_edit_closet_items
 import 'package:fashionista/presentation/screens/closet/add_or_edit_outfit_plan_screen.dart';
 import 'package:fashionista/presentation/screens/closet/add_or_edit_outfit_screen.dart';
 import 'package:fashionista/presentation/screens/closet/closet_screen.dart';
+import 'package:fashionista/presentation/screens/designers/designer_details_screen.dart';
 import 'package:fashionista/presentation/screens/home/home_screen.dart';
 import 'package:fashionista/presentation/screens/main/main_screen.dart';
 import 'package:fashionista/presentation/screens/notification/notification_screen.dart';
@@ -148,6 +149,12 @@ GoRouter appRouter = GoRouter(
         transitionsBuilder: _fadeTransition,
         transitionDuration: Duration(milliseconds: 300),
       ),
+    ),
+    GoRoute(
+      path: '/designers/:id',
+      name: 'DesignerDetailsScreen',
+      builder: (context, state) =>
+          DesignerDetailsScreen(designerId: state.pathParameters['id']!),
     ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) =>

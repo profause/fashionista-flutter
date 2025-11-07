@@ -1,13 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/designers/designer_model.dart';
-import 'package:fashionista/presentation/screens/designers/designer_details_screen.dart';
 import 'package:fashionista/presentation/widgets/banner_image_widget.dart';
 import 'package:fashionista/presentation/widgets/custom_favourite_designer_icon_button.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_rounded.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:fashionista/presentation/widgets/rating_input_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class DesignerInfoCardWidget extends StatefulWidget {
   final Designer designerInfo;
@@ -38,15 +38,7 @@ class _DesignerInfoCardWidgetState extends State<DesignerInfoCardWidget> {
         onTap:
             widget.onTap ??
             () {
-              //context.read<ClientCubit>().updateClient(widget.clientInfo);
-              // Example: Navigate to Client Details Screen
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      DesignerDetailsScreen(designer: widget.designerInfo),
-                ),
-              );
+              context.push('/designers/${widget.designerInfo.uid}');
             },
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,

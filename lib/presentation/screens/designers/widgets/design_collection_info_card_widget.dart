@@ -1,26 +1,33 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloudinary_flutter/image/cld_image.dart';
+import 'package:cloudinary_flutter/image/cld_image_widget_configuration.dart';
+import 'package:cloudinary_url_gen/cloudinary.dart';
+import 'package:cloudinary_url_gen/config/cloudinary_config.dart';
+import 'package:cloudinary_url_gen/transformation/resize/resize.dart';
+import 'package:cloudinary_url_gen/transformation/transformation.dart';
+import 'package:fashionista/core/service_locator/app_config.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/designers/design_collection_model.dart';
 import 'package:fashionista/presentation/screens/designers/design_collection_details_screen.dart';
 import 'package:fashionista/presentation/widgets/custom_bookmark_design_collection_icon_button.dart';
-import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:flutter/material.dart';
 
 class DesignCollectionInfoCardWidget extends StatelessWidget {
   final DesignCollectionModel designCollectionInfo;
-  final double aspectRatio; // 👈 new parameter
 
   const DesignCollectionInfoCardWidget({
     super.key,
     required this.designCollectionInfo,
-    this.aspectRatio = 16 / 9, // default ratio
   });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final aspectRatio =
+        designCollectionInfo.featuredImages.first.aspectRatio ??
+        16 / 9; // default ratio
     return Container(
       margin: const EdgeInsets.all(4),
       decoration: BoxDecoration(
@@ -56,11 +63,16 @@ class DesignCollectionInfoCardWidget extends StatelessWidget {
               children: [
                 AspectRatio(
                   aspectRatio: aspectRatio,
-                  child: CachedNetworkImage(
-                    imageUrl: designCollectionInfo.featuredImages.isEmpty
-                        ? ''
-                        : designCollectionInfo.featuredImages.first.url!.trim(),
-                    fit: BoxFit.cover,
+                  child: CldImageWidget(
+                    key: ValueKey(
+                      designCollectionInfo.featuredImages.first.uid,
+                    ),
+                    cloudinary: Cloudinary.fromConfiguration(
+                      CloudinaryConfig.fromUri(appConfig.get('cloudinary_url')),
+                    ),
+                    publicId:
+                        '${designCollectionInfo.featuredImages.first.uid}',
+                    configuration: CldImageWidgetConfiguration(cache: true),
                     placeholder: (context, url) => const Center(
                       child: SizedBox(
                         height: 18,
@@ -68,10 +80,44 @@ class DesignCollectionInfoCardWidget extends StatelessWidget {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       ),
                     ),
-                    errorWidget: (context, url, error) {
-                      return const CustomColoredBanner(text: 'No Image');
-                    },
+                    placeholderFadeInDuration: const Duration(
+                      milliseconds: 150,
+                    ),
+                    errorBuilder: (context, url, error) => Container(
+                      color: Colors.grey[300],
+                      child: const Center(
+                        child: Icon(Icons.broken_image, color: Colors.grey),
+                      ),
+                    ),
+                    transformation:
+                        Transformation().addTransformation('q_auto:low')
+                          ..resize(
+                            Resize.fill().aspectRatio(
+                              designCollectionInfo
+                                  .featuredImages
+                                  .first
+                                  .aspectRatio,
+                            ),
+                          ),
                   ),
+
+                  // CachedNetworkImage(
+                  //   imageUrl: designCollectionInfo.featuredImages.first.thumbnailUrl!.trim(),
+                  //   fit: BoxFit.cover,
+                  //   errorListener: (value) {
+
+                  //   },
+                  //   placeholder: (context, url) => const Center(
+                  //     child: SizedBox(
+                  //       height: 18,
+                  //       width: 18,
+                  //       child: CircularProgressIndicator(strokeWidth: 2),
+                  //     ),
+                  //   ),
+                  //   errorWidget: (context, url, error) {
+                  //     return const CustomColoredBanner(text: 'No Image');
+                  //   },
+                  // ),
                 ),
 
                 // --- Profile Avatar (top-left) ---
@@ -79,31 +125,31 @@ class DesignCollectionInfoCardWidget extends StatelessWidget {
                   top: 8,
                   left: 8,
                   child: Material(
-                      color: Colors.white,
-                      borderOnForeground: true,
-                      borderRadius: BorderRadius.circular(60),
-                      child: Padding(
-                        padding: const EdgeInsets.all(3.0),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(18),
-                          onTap: () {},
-                          child: designCollectionInfo.author.avatar!.isNotEmpty
-                              ? CircleAvatar(
-                                  radius: 18,
-                                  backgroundColor: AppTheme.lightGrey,
-                                  backgroundImage: CachedNetworkImageProvider(
-                                    designCollectionInfo.author.avatar!,
-                                    errorListener: (error) {},
-                                  ),
-                                )
-                              : DefaultProfileAvatar(
-                                  name: null,
-                                  size: 18 * 1.8,
-                                  uid: designCollectionInfo.author.uid!,
+                    color: Colors.white,
+                    borderOnForeground: true,
+                    borderRadius: BorderRadius.circular(60),
+                    child: Padding(
+                      padding: const EdgeInsets.all(3.0),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(18),
+                        onTap: () {},
+                        child: designCollectionInfo.author.avatar!.isNotEmpty
+                            ? CircleAvatar(
+                                radius: 18,
+                                backgroundColor: AppTheme.lightGrey,
+                                backgroundImage: CachedNetworkImageProvider(
+                                  designCollectionInfo.author.avatar!,
+                                  errorListener: (error) {},
                                 ),
-                        ),
+                              )
+                            : DefaultProfileAvatar(
+                                name: null,
+                                size: 18 * 1.8,
+                                uid: designCollectionInfo.author.uid!,
+                              ),
                       ),
                     ),
+                  ),
                 ),
                 Positioned(
                   top: 8,

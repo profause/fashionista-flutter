@@ -497,6 +497,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
           type: "image",
           aspectRatio: aspect,
           thumbnailUrl: thumbnailUrl,
+          uid: '$baseFolder/$trendMediaFolder/$publicId',
         );
         return featuredMedia; // ✅ Non-null String
       })();

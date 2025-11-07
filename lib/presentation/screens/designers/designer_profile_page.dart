@@ -39,8 +39,20 @@ class _DesignerProfilePageState extends State<DesignerProfilePage> {
           case DesignerLoaded(:final designer):
             // ✅ Use ListView so it respects TabBarView constraints
             return ListView(
-              padding: const EdgeInsets.only(bottom: 16,top:4),
+              padding: const EdgeInsets.only(bottom: 16, top: 4),
               children: [
+                FilledButton(
+                  onPressed: () {},
+                  style: FilledButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    elevation: 0,
+                    backgroundColor: Colors.transparent,
+                    foregroundColor: colorScheme.onSurface, // text/icon color
+                  ),
+                  child: const Text("Go to designer page"),
+                ),
                 ProfileInfoCardWidget(
                   items: [
                     ProfileInfoItem(

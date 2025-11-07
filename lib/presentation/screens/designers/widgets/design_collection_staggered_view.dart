@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'design_collection_info_card_widget.dart';
@@ -14,7 +13,6 @@ class DesignCollectionStaggeredView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final random = Random();
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: MasonryGridView.builder(
@@ -31,13 +29,12 @@ class DesignCollectionStaggeredView extends StatelessWidget {
         itemBuilder: (context, index) {
           final designCollection = designCollections[index];
           // 👇 Assign different aspect ratios randomly for variety
-          final aspectRatioOptions = [16 / 9, 4 / 5, 1 / 1, 3 / 2];
-          final aspectRatio =
-              aspectRatioOptions[random.nextInt(aspectRatioOptions.length)];
+          //final aspectRatioOptions = [16 / 9, 4 / 5, 1 / 1, 3 / 2];
+          //final aspectRatio =
+              //aspectRatioOptions[random.nextInt(aspectRatioOptions.length)];
 
           return DesignCollectionInfoCardWidget(
             designCollectionInfo: designCollection,
-            aspectRatio: aspectRatio,
           );
         },
       ),

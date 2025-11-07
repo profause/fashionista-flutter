@@ -460,7 +460,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
             ? DateTime.parse(_dateOfBirthController.text)
             : null,
         accountType: _accountTypeController.text,
-        bannerImage: 'https://picsum.photos/300/200?grayscale',
+        bannerImage: user.bannerImage ?? 'https://picsum.photos/300/200?grayscale',
       );
 
       context.read<UserBloc>().add(UpdateUser(updatedUser));

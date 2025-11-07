@@ -1,5 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
+import 'package:fashionista/data/models/designers/bloc/designer_bloc.dart';
+import 'package:fashionista/data/models/designers/bloc/designer_event.dart';
+import 'package:fashionista/data/models/designers/bloc/designer_state.dart';
 import 'package:fashionista/data/models/designers/designer_model.dart';
 import 'package:fashionista/presentation/screens/designers/designer_collection_page.dart';
 import 'package:fashionista/presentation/screens/designers/designer_details_profile_page.dart';
@@ -9,10 +12,11 @@ import 'package:fashionista/presentation/widgets/custom_favourite_designer_icon_
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class DesignerDetailsScreen extends StatefulWidget {
-  final Designer designer;
-  const DesignerDetailsScreen({super.key, required this.designer});
+  final String designerId;
+  const DesignerDetailsScreen({super.key, required this.designerId});
 
   @override
   State<DesignerDetailsScreen> createState() => _DesignerDetailsScreenState();
@@ -26,6 +30,10 @@ class _DesignerDetailsScreenState extends State<DesignerDetailsScreen> {
     SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.manual,
       overlays: [SystemUiOverlay.top], // keep only status bar
+    );
+
+    context.read<DesignerBloc>().add(
+      LoadDesigner(widget.designerId, isFromCache: true),
     );
   }
 
@@ -44,154 +52,173 @@ class _DesignerDetailsScreenState extends State<DesignerDetailsScreen> {
     const double minAvatarRadius = 32;
     //const double avatarRadius = 40;
     const double expandedHeight = 200;
-
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
-        backgroundColor: colorScheme.surface,
-        body: NestedScrollView(
-          headerSliverBuilder: (context, innerBoxIsScrolled) {
-            return [
-              SliverAppBar(
-                pinned: false,
-                expandedHeight: expandedHeight,
-                backgroundColor: colorScheme.onPrimary,
-                foregroundColor: colorScheme.primary,
-                elevation: 0,
-                //title: Text(user.fullName, style: textTheme.labelLarge!),
-                actions: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 18),
-                    child: Row(
-                      children: [
-                        CustomFavouriteDesignerIconButton(
-                          designerId: widget.designer.uid,
-                          isFavouriteNotifier: ValueNotifier(
-                            widget.designer.isFavourite!,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                      ],
-                    ),
-                  ),
-                ],
-                flexibleSpace: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final double shrinkOffset =
-                        expandedHeight - constraints.maxHeight;
-                    final double shrinkFactor =
-                        (shrinkOffset / (expandedHeight - kToolbarHeight))
-                            .clamp(0.0, 1.0);
-                    double avatarRadius =
-                        maxAvatarRadius -
-                        (maxAvatarRadius - minAvatarRadius) * shrinkFactor;
-                    return FlexibleSpaceBar(
-                      collapseMode: CollapseMode.parallax,
-                      background: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          // Banner image
-                          BannerImageWidget(
-                            uid: widget.designer.uid,
-                            url: ValueNotifier(widget.designer.bannerImage!),
-                            isEditable: false,
-                          ),
-                          Positioned(
-                            top: (expandedHeight / 2) + (avatarRadius / 6),
-                            left: 16,
-                            child: Hero(
-                              tag: widget.designer.uid,
-                              child: buildProfileAvatar(
-                                avatarRadius,
-                                widget.designer,
-                              ),
+    return BlocBuilder<DesignerBloc, DesignerState>(
+      buildWhen: (context, state) {
+        return state is DesignerLoaded || state is DesignerUpdated;
+      },
+      builder: (context, state) {
+        switch (state) {
+          case DesignerLoaded(:final designer):
+          case DesignerUpdated(:final designer):
+            return DefaultTabController(
+              length: 3,
+              child: Scaffold(
+                backgroundColor: colorScheme.surface,
+                body: NestedScrollView(
+                  headerSliverBuilder: (context, innerBoxIsScrolled) {
+                    return [
+                      SliverAppBar(
+                        pinned: false,
+                        expandedHeight: expandedHeight,
+                        foregroundColor: colorScheme.onPrimary,
+                        backgroundColor: colorScheme.onPrimary,
+                        elevation: 0,
+                        //title: Text(user.fullName, style: textTheme.labelLarge!),
+                        actions: [
+                          Padding(
+                            padding: const EdgeInsets.only(right: 18),
+                            child: Row(
+                              children: [
+                                CustomFavouriteDesignerIconButton(
+                                  designerId: widget.designerId,
+                                  isFavouriteNotifier: ValueNotifier(
+                                    designer.isFavourite!,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                              ],
                             ),
                           ),
                         ],
+                        flexibleSpace: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final double shrinkOffset =
+                                expandedHeight - constraints.maxHeight;
+                            final double shrinkFactor =
+                                (shrinkOffset /
+                                        (expandedHeight - kToolbarHeight))
+                                    .clamp(0.0, 1.0);
+                            double avatarRadius =
+                                maxAvatarRadius -
+                                (maxAvatarRadius - minAvatarRadius) *
+                                    shrinkFactor;
+                            return FlexibleSpaceBar(
+                              collapseMode: CollapseMode.parallax,
+                              background: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  // Banner image
+                                  BannerImageWidget(
+                                    uid: designer.uid,
+                                    url: ValueNotifier(designer.bannerImage!),
+                                    isEditable: false,
+                                  ),
+                                  Positioned(
+                                    top:
+                                        (expandedHeight / 2) +
+                                        (avatarRadius / 6),
+                                    left: 16,
+                                    child: Hero(
+                                      tag: designer.uid,
+                                      child: buildProfileAvatar(
+                                        avatarRadius,
+                                        designer,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                        bottom: PreferredSize(
+                          preferredSize: const Size.fromHeight(
+                            0,
+                          ), // set your desired height
+                          child: TabBar(
+                            labelColor: colorScheme.primary,
+                            unselectedLabelColor: AppTheme.darkGrey,
+                            indicatorColor: AppTheme.appIconColor.withValues(
+                              alpha: 1,
+                            ),
+                            dividerColor: AppTheme.lightGrey,
+                            dividerHeight: 0,
+                            indicatorWeight: 2,
+                            tabAlignment: TabAlignment.center,
+                            labelPadding: const EdgeInsets.all(0),
+                            //padding: const EdgeInsets.all(64),
+                            isScrollable: true,
+                            indicator: UnderlineTabIndicator(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                width: 4,
+                                color: AppTheme.appIconColor.withValues(
+                                  alpha: 1,
+                                ),
+                              ),
+                              // insets: EdgeInsets.symmetric(
+                              //   horizontal: 60,
+                              // ), // adjust for fixed width
+                            ),
+                            tabs: [
+                              Container(
+                                margin: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                  horizontal: 8,
+                                ),
+                                // divider color
+                                child: Text(
+                                  "About",
+                                  style: textTheme.bodyMedium!.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                margin: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                  horizontal: 8,
+                                ),
+                                // divider color
+                                child: Text(
+                                  "Highlights & Collections",
+                                  style: textTheme.bodyMedium!.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                margin: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                  horizontal: 8,
+                                ),
+                                // divider color
+                                child: Text(
+                                  "Reviews",
+                                  style: textTheme.bodyMedium!.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    );
+                    ];
                   },
-                ),
-                bottom: PreferredSize(
-                  preferredSize: const Size.fromHeight(
-                    0,
-                  ), // set your desired height
-                  child: TabBar(
-                    labelColor: colorScheme.primary,
-                    unselectedLabelColor: AppTheme.darkGrey,
-                    indicatorColor: AppTheme.appIconColor.withValues(alpha: 1),
-                    dividerColor: AppTheme.lightGrey,
-                    dividerHeight: 0,
-                    indicatorWeight: 2,
-                    tabAlignment: TabAlignment.center,
-                    labelPadding: const EdgeInsets.all(0),
-                    //padding: const EdgeInsets.all(64),
-                    isScrollable: true,
-                    indicator: UnderlineTabIndicator(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(
-                        width: 4,
-                        color: AppTheme.appIconColor.withValues(alpha: 1),
-                      ),
-                      // insets: EdgeInsets.symmetric(
-                      //   horizontal: 60,
-                      // ), // adjust for fixed width
-                    ),
-                    tabs: [
-                      Container(
-                        margin: const EdgeInsets.symmetric(
-                          vertical: 8,
-                          horizontal: 8,
-                        ),
-                        // divider color
-                        child: Text(
-                          "About",
-                          style: textTheme.bodyMedium!.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        margin: const EdgeInsets.symmetric(
-                          vertical: 8,
-                          horizontal: 8,
-                        ),
-                        // divider color
-                        child: Text(
-                          "Highlights & Collections",
-                          style: textTheme.bodyMedium!.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        margin: const EdgeInsets.symmetric(
-                          vertical: 8,
-                          horizontal: 8,
-                        ),
-                        // divider color
-                        child: Text(
-                          "Reviews",
-                          style: textTheme.bodyMedium!.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
+                  body: TabBarView(
+                    children: [
+                      DesignerDetailsProfilePage(designer: designer),
+                      DesignerCollectionPage(designer: designer),
+                      DesignerReviewPage(designer: designer),
                     ],
                   ),
                 ),
               ),
-            ];
-          },
-          body: TabBarView(
-            children: [
-              DesignerDetailsProfilePage(designer: widget.designer),
-              DesignerCollectionPage(designer: widget.designer),
-              DesignerReviewPage(designer: widget.designer,),
-            ],
-          ),
-        ),
-      ),
+            );
+        }
+        return const SizedBox.shrink();
+      },
     );
   }
 

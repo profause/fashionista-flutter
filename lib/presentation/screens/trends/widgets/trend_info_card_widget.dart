@@ -1,4 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloudinary_flutter/image/cld_image.dart';
+import 'package:cloudinary_flutter/image/cld_image_widget_configuration.dart';
+import 'package:cloudinary_url_gen/cloudinary.dart';
+import 'package:cloudinary_url_gen/config/cloudinary_config.dart';
+import 'package:cloudinary_url_gen/transformation/resize/resize.dart';
+import 'package:cloudinary_url_gen/transformation/transformation.dart';
+import 'package:fashionista/core/service_locator/app_config.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
@@ -140,9 +147,13 @@ class TrendInfoCardWidget extends StatelessWidget {
       return VideoPreviewWidget(videoUrl: media.url!, onTap: () {});
     }
 
-    return CachedNetworkImage(
-      imageUrl: media.url!.trim(),
-      fit: BoxFit.cover,
+    return CldImageWidget(
+      key: ValueKey(media.uid),
+      cloudinary: Cloudinary.fromConfiguration(
+        CloudinaryConfig.fromUri(appConfig.get('cloudinary_url')),
+      ),
+      publicId: '${media.uid}',
+      configuration: CldImageWidgetConfiguration(cache: true),
       placeholder: (context, url) => const Center(
         child: SizedBox(
           height: 18,
@@ -150,12 +161,33 @@ class TrendInfoCardWidget extends StatelessWidget {
           child: CircularProgressIndicator(strokeWidth: 2),
         ),
       ),
-      errorWidget: (context, url, error) => Container(
+      placeholderFadeInDuration: const Duration(milliseconds: 150),
+      errorBuilder: (context, url, error) => Container(
         color: Colors.grey[300],
         child: const Center(
           child: Icon(Icons.broken_image, color: Colors.grey),
         ),
       ),
+      transformation: Transformation().addTransformation('q_auto:low')
+        ..resize(Resize.fill().aspectRatio(media.aspectRatio)),
     );
+
+    // CachedNetworkImage(
+    //   imageUrl: media.url!.trim(),
+    //   fit: BoxFit.cover,
+    //   placeholder: (context, url) => const Center(
+    //     child: SizedBox(
+    //       height: 18,
+    //       width: 18,
+    //       child: CircularProgressIndicator(strokeWidth: 2),
+    //     ),
+    //   ),
+    //   errorWidget: (context, url, error) => Container(
+    //     color: Colors.grey[300],
+    //     child: const Center(
+    //       child: Icon(Icons.broken_image, color: Colors.grey),
+    //     ),
+    //   ),
+    // );
   }
 }

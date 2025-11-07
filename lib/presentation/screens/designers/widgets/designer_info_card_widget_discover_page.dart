@@ -3,10 +3,10 @@ import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/designers/designer_model.dart';
 import 'package:fashionista/domain/usecases/designers/add_or_remove_favourite_usecase.dart';
-import 'package:fashionista/presentation/screens/designers/designer_details_screen.dart';
 import 'package:fashionista/presentation/widgets/banner_image_widget.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class DesignerInfoCardWidgetDiscoverPage extends StatefulWidget {
   final Designer designerInfo;
@@ -57,13 +57,7 @@ class _DesignerInfoCardWidgetDiscoverPageState
       width: 160,
       child: InkWell(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  DesignerDetailsScreen(designer: widget.designerInfo),
-            ),
-          );
+          context.push('/designers/${widget.designerInfo.uid}');
         },
         child: Container(
           decoration: BoxDecoration(

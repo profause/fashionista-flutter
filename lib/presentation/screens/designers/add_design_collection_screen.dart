@@ -371,6 +371,7 @@ class _AddDesignCollectionScreenState extends State<AddDesignCollectionScreen> {
       final designCollectionId = Uuid().v4();
       List<FeaturedMediaModel> featuredImages = [];
 
+      showLoadingDialog(context);
       final uploadResult = await uploadImagesToCloudinary(
         context,
         createdBy,
@@ -420,6 +421,7 @@ class _AddDesignCollectionScreenState extends State<AddDesignCollectionScreen> {
 
       result.fold(
         (l) {
+          dismissLoadingDialog(context);
           _buttonLoadingStateCubit.setLoading(false);
           setState(() {
             isUploading = false;
@@ -435,15 +437,18 @@ class _AddDesignCollectionScreenState extends State<AddDesignCollectionScreen> {
             isUploading = false;
           });
           if (!mounted) return;
-          //Navigator.pop(context);
+          
+          dismissLoadingDialog(context);
           Navigator.pop(context, true);
         },
       );
 
       //here initiate featured images upload
     } on firebase_auth.FirebaseException catch (e) {
+      
       _buttonLoadingStateCubit.setLoading(false);
       if (!mounted) return;
+      dismissLoadingDialog(context);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(e.message!)));
@@ -617,6 +622,7 @@ class _AddDesignCollectionScreenState extends State<AddDesignCollectionScreen> {
                 .toString();
         final featuredMedia = FeaturedMediaModel().copyWith(
           url: url,
+          uid: '$baseFolder/$designCollectionMediaFolder/$publicId',
           type: "image",
           aspectRatio: aspect,
           thumbnailUrl: thumbnailUrl,
@@ -645,6 +651,20 @@ class _AddDesignCollectionScreenState extends State<AddDesignCollectionScreen> {
     } catch (e) {
       setState(() => isUploading = false);
       return dartz.Left(e.toString());
+    }
+  }
+
+  void showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // prevent accidental dismiss
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  void dismissLoadingDialog(BuildContext context) {
+    if (Navigator.canPop(context)) {
+      Navigator.of(context, rootNavigator: true).pop();
     }
   }
 }

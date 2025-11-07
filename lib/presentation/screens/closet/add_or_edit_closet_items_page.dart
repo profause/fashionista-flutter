@@ -752,6 +752,7 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
           type: "image",
           aspectRatio: aspect,
           thumbnailUrl: thumbnailUrl,
+          uid: '$baseFolder/$closetItemImagesFolder/$publicId',
         );
         return featuredMedia; // ✅ Non-null String
       })();

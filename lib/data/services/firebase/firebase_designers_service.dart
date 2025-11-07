@@ -273,16 +273,15 @@ class FirebaseDesignersServiceImpl implements FirebaseDesignersService {
       // Get download URL
       final link = url;
 
-      await FirebaseFirestore.instance.collection('users').doc(uid).update({
-        'banner_image': link,
-      });
-
       try {
-        // Update Firestore profile image URL
-        await FirebaseFirestore.instance
-            .collection('designers')
-            .doc(uid)
-            .update({'banner_image': link});
+        await Future.wait([
+          FirebaseFirestore.instance.collection('users').doc(uid).update({
+            'banner_image': link,
+          }),
+          FirebaseFirestore.instance.collection('designers').doc(uid).update({
+            'banner_image': link,
+          }),
+        ]);
       } catch (e) {
         debugPrint(e.toString());
       }

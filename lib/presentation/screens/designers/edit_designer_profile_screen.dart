@@ -14,7 +14,6 @@ import 'package:fashionista/presentation/widgets/custom_icon_rounded.dart';
 import 'package:fashionista/presentation/widgets/social_handle_field_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:image_picker/image_picker.dart';
 
 class EditDesignerProfileScreen extends StatefulWidget {
   final Designer designer;
@@ -497,62 +496,62 @@ class _EditDesignerProfileScreenState extends State<EditDesignerProfileScreen> {
     );
   }
 
-  _chooseImageSource(BuildContext context) {
-    if (mounted) {
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Upload Image'),
-          content: const Text('Choose your image source:'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                _pickImage(ImageSource.camera);
-              },
-              child: const Text('Camera'),
-            ),
-            TextButton(
-              onPressed: () {
-                // _pickImage(ImageSource.gallery);
-                _pickImageMultiple();
-              },
-              child: const Text('Gallery'),
-            ),
-          ],
-        ),
-      );
-    }
-  }
+  // _chooseImageSource(BuildContext context) {
+  //   if (mounted) {
+  //     showDialog(
+  //       context: context,
+  //       builder: (ctx) => AlertDialog(
+  //         title: const Text('Upload Image'),
+  //         content: const Text('Choose your image source:'),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () {
+  //               _pickImage(ImageSource.camera);
+  //             },
+  //             child: const Text('Camera'),
+  //           ),
+  //           TextButton(
+  //             onPressed: () {
+  //               // _pickImage(ImageSource.gallery);
+  //               _pickImageMultiple();
+  //             },
+  //             child: const Text('Gallery'),
+  //           ),
+  //         ],
+  //       ),
+  //     );
+  //   }
+  // }
 
-  XFile? _imageFile;
+  //XFile? _imageFile;
   //CroppedFile? _croppedFile;
-  Future<void> _pickImage(ImageSource source) async {
-    final pickedFile = await ImagePicker().pickImage(source: source);
-    setState(() {
-      if (pickedFile != null) {
-        _imageFile = pickedFile;
-      }
-    });
-    if (mounted) {
-      // Dismiss the dialog manually
-      Navigator.of(context, rootNavigator: true).pop();
-    }
-    //_cropImage();
-  }
+  // Future<void> _pickImage(ImageSource source) async {
+  //   final pickedFile = await ImagePicker().pickImage(source: source);
+  //   setState(() {
+  //     if (pickedFile != null) {
+  //       _imageFile = pickedFile;
+  //     }
+  //   });
+  //   if (mounted) {
+  //     // Dismiss the dialog manually
+  //     Navigator.of(context, rootNavigator: true).pop();
+  //   }
+  //   //_cropImage();
+  // }
 
-  Future<void> _pickImageMultiple() async {
-    // Pick multiple images.
+  // Future<void> _pickImageMultiple() async {
+  //   // Pick multiple images.
 
-    final List<XFile> imageFiles = await ImagePicker().pickMultiImage(
-      limit: 4,
-      requestFullMetadata: true,
-    );
+  //   final List<XFile> imageFiles = await ImagePicker().pickMultiImage(
+  //     limit: 4,
+  //     requestFullMetadata: true,
+  //   );
 
-    setState(() {});
-    if (mounted) {
-      // Dismiss the dialog manually
-      Navigator.of(context, rootNavigator: true).pop();
-    }
-    //_uploadImages(imageFiles);
-  }
+  //   setState(() {});
+  //   if (mounted) {
+  //     // Dismiss the dialog manually
+  //     Navigator.of(context, rootNavigator: true).pop();
+  //   }
+  //   //_uploadImages(imageFiles);
+  // }
 }
