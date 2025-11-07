@@ -3,14 +3,13 @@ import 'package:fashionista/data/models/work_order/bloc/work_order_bloc.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_event.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_state.dart';
 import 'package:fashionista/data/models/work_order/work_order_model.dart';
-import 'package:fashionista/presentation/screens/work_order/add_work_order_screen.dart';
 import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 class WorkOrderRequestScreen extends StatefulWidget {
   final String workOrderRequestId;
@@ -35,7 +34,7 @@ class _WorkOrderRequestScreenState extends State<WorkOrderRequestScreen> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    final radius = 30.0;
+    final radius = 28.0;
     return Scaffold(
       appBar: AppBar(
         foregroundColor: colorScheme.primary,
@@ -229,14 +228,7 @@ class _WorkOrderRequestScreenState extends State<WorkOrderRequestScreen> {
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
                               onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => AddWorkOrderScreen(
-                                      workOrder: workOrderInfo,
-                                    ),
-                                  ),
-                                );
+                                context.push('/workorders/edit/${workOrderInfo.uid}');
                               },
                               child: Text(
                                 "Edit",

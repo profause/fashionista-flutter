@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:cloudinary_api/uploader/cloudinary_uploader.dart';
 import 'package:cloudinary_url_gen/cloudinary.dart';
 import 'package:cloudinary_url_gen/config/cloudinary_config.dart';
 import 'package:cloudinary_url_gen/transformation/resize/resize.dart';
@@ -16,6 +15,7 @@ import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_event.dart';
+import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_state.dart';
 import 'package:fashionista/data/models/work_order/work_order_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_work_order_service.dart';
 import 'package:fashionista/presentation/screens/work_order/work_order_flow_page_1.dart';
@@ -27,22 +27,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
+import 'package:cloudinary_api/uploader/cloudinary_uploader.dart';
 import 'package:cloudinary_api/src/request/model/uploader_params.dart';
 
-class AddWorkOrderScreen extends StatefulWidget {
-  const AddWorkOrderScreen({super.key});
+class EditWorkOrderScreen extends StatefulWidget {
+  final String workOrderId;
+  const EditWorkOrderScreen({super.key, required this.workOrderId});
 
   @override
-  State<AddWorkOrderScreen> createState() => _AddWorkOrderScreenState();
+  State<EditWorkOrderScreen> createState() => _EditWorkOrderScreenState();
 }
 
-class _AddWorkOrderScreenState extends State<AddWorkOrderScreen> {
+class _EditWorkOrderScreenState extends State<EditWorkOrderScreen> {
   final PageController _pageController = PageController();
   late UserBloc _userBloc;
+  late WorkOrderModel workOrder;
 
   @override
   void initState() {
     super.initState();
+    context.read<WorkOrderBloc>().add(
+      LoadWorkOrder(widget.workOrderId, isFromCache: false),
+    );
     _pageController.addListener(() {});
     _userBloc = context.read<UserBloc>();
   }
@@ -50,45 +56,78 @@ class _AddWorkOrderScreenState extends State<AddWorkOrderScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-
-    final pages = [
-      WorkOrderFlowPage1(onNext: () => nextPage()),
-      WorkOrderFlowPage2(onNext: () => nextPage(), onPrev: () => prevPage()),
-      WorkOrderFlowPage3(onNext: () => nextPage(), onPrev: () => prevPage()),
-      WorkOrderFlowPage4(
-        onNext: (workOrder) => onSave(workOrder),
-        onPrev: () => prevPage(),
-      ),
-    ];
     return BlocProvider(
-      create: (_) => WorkOrderBloc(),
+      create: (_) =>
+          WorkOrderBloc()
+            ..add(LoadWorkOrder(widget.workOrderId, isFromCache: false)),
       child: Scaffold(
         appBar: AppBar(
           foregroundColor: colorScheme.primary,
           backgroundColor: colorScheme.onPrimary,
           title: Text(
-            'Start a new Work Order',
+            'Edit Work Order',
             style: Theme.of(context).textTheme.titleMedium,
           ),
           elevation: 0,
         ),
         backgroundColor: colorScheme.surface,
-        body: SafeArea(
-          //tag: "getStartedButton",
-          child: Column(
-            children: [
-              Expanded(
-                child: PageView.builder(
-                  controller: _pageController,
-                  itemCount: pages.length,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemBuilder: (context, index) {
-                    return pages[index];
-                  },
-                ),
-              ),
-            ],
-          ),
+        body: BlocBuilder<WorkOrderBloc, WorkOrderBlocState>(
+          buildWhen: (context, state) {
+            return state is WorkOrderLoaded || state is WorkOrderLoading;
+          },
+          builder: (context, state) {
+            switch (state) {
+              case WorkOrderLoading():
+                return const Center(
+                  child: SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                );
+              case WorkOrderError():
+                return Center(child: Text(state.message));
+              case WorkOrderLoaded():
+                workOrder = state.workorder;
+                final pages = [
+                  WorkOrderFlowPage1(
+                    onNext: () => nextPage(),
+                    workOrder: workOrder,
+                  ),
+                  WorkOrderFlowPage2(
+                    onNext: () => nextPage(),
+                    onPrev: () => prevPage(),
+                  ),
+                  WorkOrderFlowPage3(
+                    onNext: () => nextPage(),
+                    onPrev: () => prevPage(),
+                  ),
+                  WorkOrderFlowPage4(
+                    onNext: (workOrder) => onSave(workOrder),
+                    onPrev: () => prevPage(),
+                  ),
+                ];
+                return SafeArea(
+                  //tag: "getStartedButton",
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: PageView.builder(
+                          controller: _pageController,
+                          itemCount: pages.length,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemBuilder: (context, index) {
+                            return pages[index];
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              default:
+                return const SizedBox.shrink();
+            }
+          },
         ),
       ),
     );
@@ -113,7 +152,7 @@ class _AddWorkOrderScreenState extends State<AddWorkOrderScreen> {
       User user = _userBloc.state;
       String createdBy =
           user.uid ?? firebase_auth.FirebaseAuth.instance.currentUser!.uid;
-      final workOrderId = Uuid().v4();
+      final workOrderId = workorder.uid ?? Uuid().v4();
 
       List<FeaturedMediaModel> featuredImages = [];
       List<XFile> pickedImages = [];
@@ -168,15 +207,15 @@ class _AddWorkOrderScreenState extends State<AddWorkOrderScreen> {
         createdBy: createdBy,
         uid: workOrderId,
         featuredMedia: featuredImages,
-        createdAt: DateTime.now().millisecondsSinceEpoch,
-        updatedAt: DateTime.now().millisecondsSinceEpoch,
+        createdAt: workorder.createdAt ?? DateTime.now().millisecondsSinceEpoch,
+        updatedAt: workorder.updatedAt ?? DateTime.now().millisecondsSinceEpoch,
         status: 'DRAFT',
         workOrderType: workorder.workOrderType ?? '',
         author: author,
       );
 
       // Save via FirebaseWorkOrderService
-      final result = await sl<FirebaseWorkOrderService>().createWorkOrder(
+      final result = await sl<FirebaseWorkOrderService>().updateWorkOrder(
         workorder,
       );
 
@@ -184,7 +223,9 @@ class _AddWorkOrderScreenState extends State<AddWorkOrderScreen> {
         (l) {
           // _buttonLoadingStateCubit.setLoading(false);
           debugPrint(l);
-          dismissLoadingDialog(context);
+          if (mounted) {
+            dismissLoadingDialog(context);
+          }
           if (!mounted) return;
           ScaffoldMessenger.of(
             context,

@@ -20,6 +20,7 @@ import 'package:fashionista/presentation/screens/splash/splash_screen.dart';
 import 'package:fashionista/presentation/screens/trends/add_trend_screen.dart';
 import 'package:fashionista/presentation/screens/trends/trend_details_screen.dart';
 import 'package:fashionista/presentation/screens/work_order/add_work_order_screen.dart';
+import 'package:fashionista/presentation/screens/work_order/edit_work_order_screen.dart';
 import 'package:fashionista/presentation/screens/work_order/project_details_screen.dart';
 import 'package:fashionista/presentation/screens/work_order/work_order_request_screen.dart';
 import 'package:flutter/material.dart';
@@ -162,6 +163,12 @@ GoRouter appRouter = GoRouter(
       builder: (context, state) => WorkOrderRequestScreen(
         workOrderRequestId: state.pathParameters['id']!,
       ),
+    ),
+    GoRoute(
+      name: 'EditWorkOrderScreen',
+      path: '/workorders/edit/:id',
+      builder: (context, state) =>
+          EditWorkOrderScreen(workOrderId: state.pathParameters['id']!),
     ),
     GoRoute(
       name: 'ProjectDetailsScreen',
