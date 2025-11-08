@@ -361,7 +361,7 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
                           //     builder: (_) => const AddWorkOrderScreen(),
                           //   ),
                           // );
-                          context.push('/clients/add-work-order');
+                          context.push('/clients/add');
                         },
                         icon: const Icon(Icons.work_history, size: 18),
                         label: const Text("Start a new work order"),

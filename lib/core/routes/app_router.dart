@@ -154,7 +154,7 @@ GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       name: 'AddWorkOrderScreen',
-      path: '/clients/add-work-order',
+      path: '/workorders/add',
       builder: (context, state) => const AddWorkOrderScreen(),
     ),
     GoRoute(
