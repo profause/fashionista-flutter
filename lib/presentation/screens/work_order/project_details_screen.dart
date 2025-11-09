@@ -231,7 +231,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen>
                                   ),
                             ),
                             WorkOrderTimelinePage(
-                              workOrderId: workOrderInfo.uid!,
+                              workOrderInfo: workOrderInfo,
                             ),
                           ],
                         );

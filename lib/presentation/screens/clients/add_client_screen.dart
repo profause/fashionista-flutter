@@ -13,12 +13,13 @@ import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/services/firebase/firebase_notification_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_user_service.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/custom_chip_form_field_widget.dart';
-import 'package:fashionista/presentation/screens/profile/widgets/profile_info_text_field_widget.dart';
+import 'package:fashionista/presentation/widgets/custom_text_input_field_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:uuid/uuid.dart';
 
 class AddClientScreen extends StatefulWidget {
@@ -75,30 +76,32 @@ class _AddClientScreenState extends State<AddClientScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(12),
           child: Form(
             key: _formKey,
             child: Column(
               children: [
-                Card(
-                  color: colorScheme.onPrimary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                Container(
+                  decoration: BoxDecoration(
+                    color: colorScheme.onPrimary,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
                   ),
-                  elevation: 0,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ProfileInfoTextFieldWidget(
-                          label: 'Full Name',
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: CustomTextInputFieldWidget(
+                          autofocus: true,
                           controller: _fullNameController,
-                          hint: 'Enter your full name',
+                          hint: 'Full Name',
                           validator: (value) {
-                            // if (value == null || value.isEmpty) {
-                            //   return 'Please enter your full name';
-                            // }
                             if (!RegExp(
                               r'^([A-Za-z_][A-Za-z0-9_]\w+)?',
                             ).hasMatch(value!)) {
@@ -107,38 +110,60 @@ class _AddClientScreenState extends State<AddClientScreen> {
                             return null;
                           },
                         ),
-                        Divider(
-                          height: 16,
-                          thickness: 1,
-                          color: Colors.grey[300],
-                        ),
-                        ProfileInfoTextFieldWidget(
-                          label: 'Mobile Number',
-                          controller: _mobileNumberController,
-                          hint: 'Enter your mobile number',
+                      ),
+                      const Divider(height: .1, thickness: .1),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: IntlPhoneField(
+                          //controller: _mobileNumberController,
                           validator: (value) {
-                            // if (value == null || value.isEmpty) {
-                            //   return 'Please enter your mobile number';
-                            // }
                             if (!RegExp(
                               r'^((\+?\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$)?',
-                            ).hasMatch(value!)) {
+                            ).hasMatch(value!.completeNumber)) {
                               return 'Please enter a valid mobile number';
                             }
                             return null;
                           },
+                          keyboardType: TextInputType.phone,
+                          obscureText: false,
+                          decoration: InputDecoration(
+                            hintText: 'Mobile Number',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            hintStyle: textTheme.titleSmall,
+                            filled: true,
+                            fillColor: Colors.transparent,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 12,
+                            ),
+                          ),
+                          initialCountryCode: 'GH',
+                          disableLengthCheck: true,
+                          onChanged: (phone) {
+                            _mobileNumberController.text =
+                                (phone.completeNumber);
+                          },
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 8),
-                Card(
-                  color: colorScheme.onPrimary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                const SizedBox(height: 12),
+                Container(
+                  decoration: BoxDecoration(
+                    color: colorScheme.onPrimary,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
                   ),
-                  elevation: 0,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -240,8 +265,8 @@ class _AddClientScreenState extends State<AddClientScreen> {
           //AppToast.error(context, 'An error occurred, please try again');
           _buttonLoadingStateCubit.setLoading(false);
           if (mounted) {
-              context.pop();
-            }
+            context.pop();
+          }
         },
         (r) async {
           if (r.uid != null) {

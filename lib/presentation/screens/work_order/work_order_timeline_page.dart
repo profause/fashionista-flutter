@@ -7,14 +7,19 @@ import 'package:cloudinary_url_gen/transformation/transformation.dart';
 import 'package:fashionista/core/service_locator/app_config.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/utils/get_image_aspect_ratio.dart';
+import 'package:fashionista/data/models/author/author_model.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
+import 'package:fashionista/data/models/notification/notification_model.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_status_progress_bloc.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_status_progress_bloc_event.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_status_progress_bloc_state.dart';
+import 'package:fashionista/data/models/work_order/work_order_model.dart';
 import 'package:fashionista/data/models/work_order/work_order_status_progress_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_closet_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_notification_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_user_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_work_order_service.dart';
 import 'package:fashionista/presentation/screens/work_order/widgets/work_order_status_info_card_widget.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
@@ -34,8 +39,8 @@ import 'package:cloudinary_api/uploader/cloudinary_uploader.dart';
 import 'package:cloudinary_api/src/request/model/uploader_params.dart';
 
 class WorkOrderTimelinePage extends StatefulWidget {
-  final String workOrderId; // 👈 workOrderInfo
-  const WorkOrderTimelinePage({super.key, required this.workOrderId});
+  final WorkOrderModel workOrderInfo; // 👈 workOrderInfo
+  const WorkOrderTimelinePage({super.key, required this.workOrderInfo});
 
   @override
   State<WorkOrderTimelinePage> createState() => _WorkOrderTimelinePageState();
@@ -49,7 +54,7 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
   void initState() {
     _userBloc = context.read<UserBloc>();
     context.read<WorkOrderStatusProgressBloc>().add(
-      LoadStatusProgress(widget.workOrderId),
+      LoadStatusProgress(widget.workOrderInfo.uid!),
     );
     super.initState();
   }
@@ -66,7 +71,7 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.only(left: 16, top: 4, right: 16),
+                padding: const EdgeInsets.only(left: 16, top: 8, right: 16),
                 child: Text(
                   textAlign: TextAlign.start,
                   'Stay on top of deadlines, updates, and progress — all in one place.',
@@ -243,7 +248,7 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
         featuredMedia: featuredImages,
         createdAt: DateTime.now().millisecondsSinceEpoch,
         updatedAt: DateTime.now().millisecondsSinceEpoch,
-        workOrderId: widget.workOrderId,
+        workOrderId: widget.workOrderInfo.uid,
       );
 
       // Save via FirebaseWorkOrderService
@@ -260,16 +265,57 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
             context,
           ).showSnackBar(SnackBar(content: Text(l)));
         },
-        (r) {
+        (r) async {
           if (!mounted) return;
           context.read<WorkOrderStatusProgressBloc>().add(
-            LoadStatusProgress(widget.workOrderId),
+            LoadStatusProgress(widget.workOrderInfo.uid!),
           );
-          dismissLoadingDialog(context);
-          Navigator.pop(context);
-          // ScaffoldMessenger.of(context).showSnackBar(
-          //   SnackBar(content: Text('Work Order created successfully!')),
-          // );
+
+          if (statusProgress.notifyClient == true) {
+            final userResult = await sl<FirebaseUserService>()
+                .findUserByMobileNumber(
+                  widget.workOrderInfo.client!.mobileNumber!,
+                );
+
+            userResult.fold(
+              (l) {
+                if (mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+              (r) async {
+                //send notification to user who created the client
+                final authorUser = AuthorModel.empty().copyWith(
+                  uid: user.uid,
+                  name: user.fullName,
+                  avatar: user.profileImage,
+                  mobileNumber: user.mobileNumber,
+                );
+
+                final notification = NotificationModel.empty().copyWith(
+                  uid: Uuid().v4(),
+                  title: 'Work Order Update',
+                  description: '${statusProgress.description}',
+                  createdAt: DateTime.now().millisecondsSinceEpoch,
+                  type: 'work_order_status_progress',
+                  refId: widget.workOrderInfo.uid,
+                  refType: "work_order_status_progress",
+                  from: user.uid,
+                  to: r.uid,
+                  author: authorUser,
+                  status: 'new',
+                );
+
+                await sl<FirebaseNotificationService>().createNotification(
+                  notification,
+                );
+              },
+            );
+          }
+          if (mounted) {
+            dismissLoadingDialog(context);
+            Navigator.pop(context);
+          }
         },
       );
     } on firebase_auth.FirebaseException catch (e) {
@@ -708,11 +754,6 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
       // Wait for all uploads to finish
       final featuredMedia = await Future.wait(uploadTasks); // List<String>
       final mergedList = featuredMedia;
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("✅ Images uploaded successfully!")),
-        );
-      }
 
       return dartz.Right(mergedList);
     } catch (e) {

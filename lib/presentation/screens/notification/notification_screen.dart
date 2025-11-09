@@ -6,6 +6,7 @@ import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/services/hive/hive_notification_service.dart';
 import 'package:fashionista/presentation/screens/notification/widgets/notification_info_widget.dart';
 import 'package:fashionista/presentation/screens/notification/widgets/notification_work_order_request_widget.dart';
+import 'package:fashionista/presentation/screens/notification/widgets/notification_work_order_status_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
@@ -63,6 +64,25 @@ class _NotificationScreenState extends State<NotificationScreen> {
               switch (notification.type) {
                 case "workOrderRequest":
                   return NotificationWorkOrderRequestWidget(
+                    key: ValueKey(index),
+                    notification: notification,
+                    onDelete: () {
+                      context.read<NotificationBloc>().add(
+                        DeleteNotification(notification.uid!),
+                      );
+                    },
+                    onTap: () {
+                      if (notification.status != 'new') return;
+                      final updateNotification = notification.copyWith(
+                        status: 'read',
+                      );
+                      context.read<NotificationBloc>().add(
+                        UpdateNotification(updateNotification),
+                      );
+                    },
+                  );
+                case "work_order_status_progress":
+                  return NotificationWorkOrderStatusWidget(
                     key: ValueKey(index),
                     notification: notification,
                     onDelete: () {

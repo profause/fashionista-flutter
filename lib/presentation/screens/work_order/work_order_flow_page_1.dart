@@ -24,7 +24,7 @@ class WorkOrderFlowPage1 extends StatefulWidget {
 class _WorkOrderFlowPage1State extends State<WorkOrderFlowPage1> {
   late TextEditingController _titleTextFieldController;
   late TextEditingController _descriptionTextFieldController;
-  late WorkOrderModel current;
+  late WorkOrderModel current = WorkOrderModel.empty();
   @override
   void initState() {
     if (widget.workOrder != null) {

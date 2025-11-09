@@ -8,12 +8,12 @@ import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_status_progress_bloc.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_status_progress_bloc_event.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_status_progress_bloc_state.dart';
-import 'package:fashionista/data/models/work_order/work_order_model.dart';
 import 'package:fashionista/data/models/work_order/work_order_status_progress_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_work_order_service.dart';
 import 'package:fashionista/presentation/screens/work_order/widgets/work_order_status_info_card_widget.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/custom_text_input_field_widget.dart';
+import 'package:fashionista/presentation/widgets/fullscreen_gallery_widget.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -24,8 +24,8 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:dartz/dartz.dart' as dartz;
 
 class WorkOrderTimelineScreen extends StatefulWidget {
-  final WorkOrderModel workOrderInfo; // 👈 workOrderInfo
-  const WorkOrderTimelineScreen({super.key, required this.workOrderInfo});
+  final String workOrderId; // 👈 workOrderInfo
+  const WorkOrderTimelineScreen({super.key, required this.workOrderId});
 
   @override
   State<WorkOrderTimelineScreen> createState() =>
@@ -40,7 +40,7 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
   void initState() {
     _userBloc = context.read<UserBloc>();
     context.read<WorkOrderStatusProgressBloc>().add(
-      LoadStatusProgress(widget.workOrderInfo.uid!),
+      LoadStatusProgress(widget.workOrderId),
     );
     super.initState();
   }
@@ -89,9 +89,7 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
                           ),
                         ),
                       );
-                    case WorkOrderProgressLoaded(
-                      :final workOrderProgress,
-                    ):
+                    case WorkOrderProgressLoaded(:final workOrderProgress):
                       return ListView.separated(
                         shrinkWrap: true, // 👈 fixes unbounded height
                         physics:
@@ -102,7 +100,19 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
                           final statusProgress = workOrderProgress[index];
                           return WorkOrderStatusInfoCardWidget(
                             workOrderStatusInfo: statusProgress,
-                            onTap: () {},
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => FullscreenGalleryWidget(
+                                    images: statusProgress.featuredMedia!
+                                        .map((e) => e.url!)
+                                        .toList(),
+                                    initialIndex: 0,
+                                  ),
+                                ),
+                              );
+                            },
                             isFirst: index == 0,
                             isLast: index == workOrderProgress.length - 1,
                           );
@@ -112,7 +122,6 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
                         itemCount: workOrderProgress.length,
                       );
                     case WorkOrderProgressError(:final message):
-                      debugPrint(message);
                       return Center(child: Text("Error: $message"));
                     default:
                       return Center(
@@ -128,27 +137,6 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
                 },
               ),
             ],
-          ),
-        ),
-      ),
-      floatingActionButton: SizedBox(
-        height: 40, // default is 48
-        child: FloatingActionButton.extended(
-          backgroundColor: colorScheme.primary,
-          foregroundColor: colorScheme.onPrimary,
-          onPressed: () {
-            _showFilterBottomsheet(
-              context,
-              (statusProgress) => _onSaveProgress(statusProgress),
-            );
-          },
-          label: Text(
-            "Update timeline",
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal),
-          ),
-          extendedPadding: const EdgeInsets.symmetric(horizontal: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
           ),
         ),
       ),
@@ -209,7 +197,7 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
         featuredMedia: featuredImages,
         createdAt: DateTime.now().millisecondsSinceEpoch,
         updatedAt: DateTime.now().millisecondsSinceEpoch,
-        workOrderId: widget.workOrderInfo.uid,
+        workOrderId: widget.workOrderId,
       );
 
       // Save via FirebaseWorkOrderService
@@ -229,9 +217,7 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
         (r) {
           if (!mounted) return;
           context.read<WorkOrderStatusProgressBloc>().add(
-            LoadStatusProgress(
-              widget.workOrderInfo.uid!,
-            ),
+            LoadStatusProgress(widget.workOrderId),
           );
           Navigator.pop(context);
           Navigator.pop(context);

@@ -121,14 +121,16 @@ class WorkOrderStatusInfoCardWidget extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          CustomIconButtonRounded(
-                            backgroundColor: colorScheme.onSurface.withValues(
-                              alpha: 0.1,
+                          if (onDelete != null) ...[
+                            CustomIconButtonRounded(
+                              backgroundColor: colorScheme.onSurface.withValues(
+                                alpha: 0.1,
+                              ),
+                              onPressed: () => onDelete?.call(),
+                              iconData: Icons.delete,
+                              size: 16,
                             ),
-                            onPressed: () => onDelete?.call(),
-                            iconData: Icons.delete,
-                            size: 18,
-                          ),
+                          ],
                         ],
                       ),
 

@@ -23,6 +23,7 @@ import 'package:fashionista/presentation/screens/work_order/add_work_order_scree
 import 'package:fashionista/presentation/screens/work_order/edit_work_order_screen.dart';
 import 'package:fashionista/presentation/screens/work_order/project_details_screen.dart';
 import 'package:fashionista/presentation/screens/work_order/work_order_request_screen.dart';
+import 'package:fashionista/presentation/screens/work_order/work_order_timeline_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -170,6 +171,13 @@ GoRouter appRouter = GoRouter(
       builder: (context, state) =>
           EditWorkOrderScreen(workOrderId: state.pathParameters['id']!),
     ),
+    GoRoute(
+      name: 'WorkOrderTimelineScreen',
+      path: '/workorders/timeline/:id',
+      builder: (context, state) =>
+          WorkOrderTimelineScreen(workOrderId: state.pathParameters['id']!),
+    ),
+
     GoRoute(
       name: 'ProjectDetailsScreen',
       path: '/workorders/details/:id',

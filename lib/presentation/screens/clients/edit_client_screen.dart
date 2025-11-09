@@ -5,7 +5,7 @@ import 'package:fashionista/data/models/clients/bloc/client_bloc.dart';
 import 'package:fashionista/data/models/clients/bloc/client_event.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/custom_chip_form_field_widget.dart';
-import 'package:fashionista/presentation/screens/profile/widgets/profile_info_text_field_widget.dart';
+import 'package:fashionista/presentation/widgets/custom_text_input_field_widget.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -63,44 +63,48 @@ class _EditClientScreenState extends State<EditClientScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(12),
           child: Form(
             key: _formKey,
             child: Column(
               children: [
-                Card(
-                  color: colorScheme.onPrimary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                Container(
+                  decoration: BoxDecoration(
+                    color: colorScheme.onPrimary,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
                   ),
-                  elevation: 0,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ProfileInfoTextFieldWidget(
-                          label: 'Full Name',
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: CustomTextInputFieldWidget(
+                          autofocus: true,
                           controller: _fullNameController,
-                          hint: 'Enter your full name',
+                          hint: 'Full Name',
                           validator: (value) {
                             if (!RegExp(
                               r'^([A-Za-z_][A-Za-z0-9_]\w+)?',
-                            ).hasMatch(value ?? "")) {
+                            ).hasMatch(value!)) {
                               return 'Please enter a valid name';
                             }
                             return null;
                           },
                         ),
-                        Divider(
-                          height: 16,
-                          thickness: 1,
-                          color: Colors.grey[300],
-                        ),
-                        ProfileInfoTextFieldWidget(
-                          label: 'Mobile Number',
+                      ),
+                      const Divider(height: .1, thickness: .1),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: CustomTextInputFieldWidget(
+                          autofocus: false,
                           controller: _mobileNumberController,
-                          hint: 'Enter your mobile number',
+                          hint: 'Mobile Number',
                           validator: (value) {
                             if (!RegExp(
                               r'^((\+?\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$)?',
@@ -110,26 +114,37 @@ class _EditClientScreenState extends State<EditClientScreen> {
                             return null;
                           },
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 8),
-                Card(
-                  color: colorScheme.onPrimary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                const SizedBox(height: 12),
+                Container(
+                  decoration: BoxDecoration(
+                    color: colorScheme.onPrimary,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
                   ),
-                  elevation: 0,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
-                    child: CustomChipFormFieldWidget(
-                      initialValue: client.gender,
-                      label: 'Gender',
-                      items: ['Male', 'Female'],
-                      onChanged: (gender) {
-                        _genderController.text = gender;
-                      },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomChipFormFieldWidget(
+                          initialValue: 'Male',
+                          label: 'Gender',
+                          items: ['Male', 'Female'],
+                          onChanged: (gender) {
+                            _genderController.text = gender;
+                          },
+                        ),
+                      ],
                     ),
                   ),
                 ),
