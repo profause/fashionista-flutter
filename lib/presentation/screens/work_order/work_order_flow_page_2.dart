@@ -69,7 +69,9 @@ class _WorkOrderFlowPage2State extends State<WorkOrderFlowPage2> {
               // ✅ pre-fill values when coming back
               if (state is WorkOrderPatched) current = state.workorder;
               _selectedClientNotifier.value = current.client;
-              _clientListValueNotifier.value = [current.client!];
+              if (current.client != null) {
+                _clientListValueNotifier.value = [current.client!];
+              }
 
               _clientSearchTextFieldController.text =
                   current.client?.name ?? "";
@@ -86,9 +88,9 @@ class _WorkOrderFlowPage2State extends State<WorkOrderFlowPage2> {
                 children: [
                   Text(
                     'Who is this work order for?. And when do you think it will be done?.',
-                    style: Theme.of(context).textTheme.labelLarge,
+                    style: Theme.of(context).textTheme.headlineMedium,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 48),
                   // Client Search & List
                   Container(
                     decoration: BoxDecoration(
@@ -157,10 +159,9 @@ class _WorkOrderFlowPage2State extends State<WorkOrderFlowPage2> {
                                     itemBuilder: (context, index) {
                                       final client = filteredClients[index];
                                       final isSelected =
-                                          selectedClient!.mobileNumber ==
+                                          selectedClient?.mobileNumber ==
                                           client.mobileNumber;
-                                      //debugPrint("selectedClient: ${selectedClient.uid}");
-                                      //debugPrint("isSelected: ${client.uid}");
+
                                       return Container(
                                         key: ValueKey(client.uid),
                                         color: isSelected
@@ -218,7 +219,7 @@ class _WorkOrderFlowPage2State extends State<WorkOrderFlowPage2> {
                           padding: const EdgeInsets.all(8.0),
                           child: DatePickerFormField(
                             label: 'Start date',
-                            initialDate: DateTime.now(),
+                            initialDate: current.startDate ?? DateTime.now(),
                             firstDate: DateTime.now(),
                             lastDate: DateTime(9000),
                             controller: _startDateTextFieldController,
@@ -241,9 +242,9 @@ class _WorkOrderFlowPage2State extends State<WorkOrderFlowPage2> {
                           padding: const EdgeInsets.all(8.0),
                           child: DatePickerFormField(
                             label: 'Due date',
-                            initialDate: DateTime.now().add(
-                              const Duration(days: 7),
-                            ),
+                            initialDate:
+                                current.dueDate ??
+                                DateTime.now().add(const Duration(days: 7)),
                             firstDate: DateTime.now().add(
                               const Duration(days: 7),
                             ),

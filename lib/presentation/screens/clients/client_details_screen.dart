@@ -12,6 +12,7 @@ import 'package:fashionista/presentation/widgets/custom_pinned_client_icon_butto
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class ClientDetailsScreen extends StatefulWidget {
   final String clientId; // uid client;
@@ -108,13 +109,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
 
                                     if (canDelete == true) {
                                       if (mounted) {
-                                        showDialog(
-                                          context: context,
-                                          barrierDismissible: false,
-                                          builder: (_) => const Center(
-                                            child: CircularProgressIndicator(),
-                                          ),
-                                        );
+                                        showLoadingDialog(context);
                                       }
                                       await _deleteClient(client);
                                     }
@@ -265,7 +260,21 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
   Future<void> _deleteClient(Client client) async {
     context.read<ClientBloc>().add(DeleteClient(client.uid));
     if (!mounted) return;
-    Navigator.of(context, rootNavigator: true).pop();
-    Navigator.pop(context, true); // notify ClientsScreen
+    dismissLoadingDialog(context);
+    context.pop();
+  }
+
+    void showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // prevent accidental dismiss
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  void dismissLoadingDialog(BuildContext context) {
+    if (Navigator.canPop(context)) {
+      Navigator.of(context, rootNavigator: true).pop();
+    }
   }
 }

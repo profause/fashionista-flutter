@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:fashionista/core/service_locator/app_toast.dart';
 import 'package:fashionista/core/widgets/tag_input_field.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc.dart';
@@ -26,159 +27,161 @@ class _WorkOrderFlowPage3State extends State<WorkOrderFlowPage3> {
   late TextEditingController _tagsController;
   late WorkOrderModel current;
   final ImagePicker picker = ImagePicker();
+
   List<XFile> pickedImages = [];
-  List<double> uploadProgress = [];
-  List<String> uploadedUrls = [];
-  List<String> previewImages = [];
+  late ValueNotifier<Set<String>> previewImages;
   bool isUploading = false;
 
   @override
   void initState() {
+    super.initState();
     current = WorkOrderModel.empty();
     _tagsController = TextEditingController();
-    super.initState();
+    previewImages = ValueNotifier<Set<String>>({});
   }
 
   @override
   void dispose() {
     _tagsController.dispose();
-    previewImages.clear();
-    pickedImages.clear();
-    uploadedUrls.clear();
+    previewImages.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       backgroundColor: colorScheme.surface,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: BlocBuilder<WorkOrderBloc, WorkOrderBlocState>(
-          buildWhen: (context, state) {
-            return state is WorkOrderPatched;
-          },
+          buildWhen: (_, state) => state is WorkOrderPatched,
           builder: (context, state) {
-            // ✅ pre-fill values when coming back
+            // ✅ Pre-fill values when coming back
             if (state is WorkOrderPatched) current = state.workorder;
-            if (current.featuredMedia!.isNotEmpty) {
-              for (var i = 0; i < current.featuredMedia!.length; i++) {
-                previewImages.add((current.featuredMedia![i].url!));
-              }
+
+            // Load existing images only once
+            if (current.featuredMedia != null &&
+                current.featuredMedia!.isNotEmpty &&
+                previewImages.value.isEmpty) {
+              previewImages.value = {
+                ...current.featuredMedia!.map((m) => m.url!)
+              };
             }
+
             return Column(
-              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Photos Gallery',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                Text(
-                  'Upload photos of the work order',
-                  style: Theme.of(context).textTheme.labelMedium,
-                ),
+                Text('Photo Gallery',
+                    style: Theme.of(context).textTheme.titleLarge),
+                Text('Upload photos of the work order',
+                    style: Theme.of(context).textTheme.labelLarge),
                 const SizedBox(height: 16),
-                if (previewImages.isNotEmpty)
-                  SizedBox(
-                    height: 220,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.all(8),
-                      itemCount: previewImages.length,
-                      separatorBuilder: (_, _) => const SizedBox(width: 8),
-                      itemBuilder: (context, index) {
-                        final image = previewImages[index];
-                        return Stack(
-                          children: [
-                            AspectRatio(
-                              aspectRatio: 3 / 4,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: image.startsWith('http')
-                                    ? CachedNetworkImage(
-                                        imageUrl: image,
-                                        fit: BoxFit.cover,
-                                        placeholder: (context, url) =>
-                                            const Center(
-                                              child: SizedBox(
-                                                height: 24,
-                                                width: 24,
-                                                child:
-                                                    CircularProgressIndicator(
-                                                      strokeWidth: 2,
-                                                    ),
+
+                /// 👇 REACTIVE IMAGE LIST
+                ValueListenableBuilder<Set<String>>(
+                  valueListenable: previewImages,
+                  builder: (context, images, _) {
+                    if (images.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    final list = images.toList();
+                    return SizedBox(
+                      height: 220,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.all(8),
+                        itemCount: list.length,
+                        separatorBuilder: (_, _) =>
+                            const SizedBox(width: 8),
+                        itemBuilder: (context, index) {
+                          final image = list[index];
+                          return Stack(
+                            children: [
+                              AspectRatio(
+                                aspectRatio: 3 / 4,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: image.startsWith('http')
+                                      ? CachedNetworkImage(
+                                          imageUrl: image,
+                                          fit: BoxFit.cover,
+                                          placeholder: (context, url) =>
+                                              const Center(
+                                                child: SizedBox(
+                                                  height: 24,
+                                                  width: 24,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                    strokeWidth: 2,
+                                                  ),
+                                                ),
                                               ),
-                                            ),
-                                        errorWidget: (context, url, error) =>
-                                            const Icon(
-                                              Icons.error,
-                                              color: Colors.red,
-                                            ),
-                                      )
-                                    : Image.file(
-                                        File(image),
-                                        //width: 180,
-                                        //height: 180,
-                                        fit: BoxFit.cover,
-                                      ),
+                                          errorWidget:
+                                              (context, url, error) =>
+                                                  const Icon(Icons.broken_image),
+                                        )
+                                      : Image.file(
+                                          File(image),
+                                          fit: BoxFit.cover,
+                                        ),
+                                ),
                               ),
-                            ),
-                            Positioned(
-                              top: 4,
-                              right: 4,
-                              child: GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    previewImages.removeAt(index);
-                                  });
-                                },
-                                child: Container(
-                                  decoration: const BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.black54,
-                                  ),
-                                  padding: const EdgeInsets.all(2),
-                                  child: const Icon(
-                                    Icons.close,
-                                    color: Colors.white,
-                                    size: 16,
+                              Positioned(
+                                top: 4,
+                                right: 4,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    previewImages.value = {
+                                      ...images..remove(image),
+                                    };
+                                  },
+                                  child: Container(
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.black54,
+                                    ),
+                                    padding: const EdgeInsets.all(2),
+                                    child: const Icon(
+                                      Icons.close,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
+                            ],
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
                 const SizedBox(height: 16),
+
                 Row(
                   children: [
                     CustomIconButtonRounded(
                       onPressed: () {
                         if (isUploading) return;
-                        pickImages(context);
+                        pickImages();
                       },
                       iconData: Icons.image_outlined,
                     ),
                     const SizedBox(width: 16),
                     CustomIconButtonRounded(
-                      onPressed: () {
-                        _pickImage(ImageSource.camera);
-                      },
+                      onPressed: () => _pickImage(ImageSource.camera),
                       iconData: Icons.camera_alt_outlined,
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
+
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     CustomIconRounded(icon: Icons.tag, size: 20),
                     const SizedBox(width: 8),
-
-                    //Text("Featured Tags"),
                     Expanded(
                       child: TagInputField(
                         label:
@@ -195,15 +198,17 @@ class _WorkOrderFlowPage3State extends State<WorkOrderFlowPage3> {
                     ),
                   ],
                 ),
-                // Navigation buttons
+
+                const SizedBox(height: 16),
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     OutlinedButton(
                       onPressed: widget.onPrev,
-                      child: Row(
+                      child: const Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
+                        children: [
                           Icon(Icons.arrow_back),
                           SizedBox(width: 8),
                           Text('Previous'),
@@ -213,32 +218,29 @@ class _WorkOrderFlowPage3State extends State<WorkOrderFlowPage3> {
                     const Spacer(),
                     OutlinedButton(
                       onPressed: () {
-                        if (previewImages.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Please upload at least one image'),
-                            ),
-                          );
+                        if (previewImages.value.isEmpty) {
+                            AppToast.info(context, 'Please upload at least one image');
                           return;
                         }
-                        final featuredMedia = previewImages.map((e) {
-                          return FeaturedMediaModel.empty().copyWith(
-                            url: e,
-                            type: 'image',
-                          );
-                        }).toList();
+
+                        final featuredMedia = previewImages.value
+                            .map((e) => FeaturedMediaModel.empty()
+                                .copyWith(url: e, type: 'image'))
+                            .toList();
+
                         final workOrder = current.copyWith(
                           tags: _tagsController.text.trim(),
                           featuredMedia: featuredMedia,
                         );
-                        context.read<WorkOrderBloc>().add(
-                          PatchWorkOrder(workOrder),
-                        );
-                        widget.onNext!();
+
+                        context
+                            .read<WorkOrderBloc>()
+                            .add(PatchWorkOrder(workOrder));
+                        widget.onNext?.call();
                       },
-                      child: Row(
+                      child: const Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
+                        children: [
                           Text('Next'),
                           SizedBox(width: 8),
                           Icon(Icons.arrow_forward),
@@ -255,7 +257,7 @@ class _WorkOrderFlowPage3State extends State<WorkOrderFlowPage3> {
     );
   }
 
-  Future<void> pickImages(BuildContext context) async {
+  Future<void> pickImages() async {
     final images = await picker.pickMultiImage(
       imageQuality: 70,
       limit: 4,
@@ -263,34 +265,19 @@ class _WorkOrderFlowPage3State extends State<WorkOrderFlowPage3> {
     );
     if (images.isEmpty) return;
 
-    setState(() {
-      pickedImages = images;
-      for (var i = 0; i < images.length; i++) {
-        previewImages.add(images[i].path);
-      }
-      //images.forEach((i)=>previewImages.add(i));
-      uploadProgress = List.filled(images.length, 0.0);
-      uploadedUrls.clear();
-    });
+    pickedImages = images;
+    final newPaths = images.map((img) => img.path).toSet();
 
-    if (context.mounted) {
-      //uploadImages(context);
-      //setPreviewImages();
-    }
+    // 👇 Reactive update
+    previewImages.value = {...previewImages.value, ...newPaths};
   }
 
   Future<void> _pickImage(ImageSource source) async {
     final pickedFile = await ImagePicker().pickImage(source: source);
-    setState(() {
-      if (pickedFile != null) {
-        previewImages.add(pickedFile.path);
-        pickedImages.add(pickedFile);
-      }
-    });
-    if (mounted) {
-      // Dismiss the dialog manually
-      //Navigator.of(context, rootNavigator: true).pop();
-    }
-    //_cropImage();
+    if (pickedFile == null) return;
+
+    pickedImages.add(pickedFile);
+    previewImages.value = {...previewImages.value, pickedFile.path};
   }
 }
+

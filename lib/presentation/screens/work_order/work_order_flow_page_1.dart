@@ -42,127 +42,123 @@ class _WorkOrderFlowPage1State extends State<WorkOrderFlowPage1> {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      body: Center(
-        child: SingleChildScrollView(
-          // ensures it's still scrollable on small screens
-          padding: const EdgeInsets.all(16),
-          child: BlocBuilder<WorkOrderBloc, WorkOrderBlocState>(
-            buildWhen: (context, state) {
-              return state is WorkOrderPatched;
-            },
-            builder: (context, state) {
-              if (state is WorkOrderPatched) {
-                current = state.workorder;
-                _titleTextFieldController.text = current.title;
-                _descriptionTextFieldController.text =
-                    current.description ?? "";
-              }
-              return Column(
-                mainAxisAlignment:
-                    MainAxisAlignment.start, // centers vertically
-                children: [
-                  Text(
-                    "Start by providing a title and description for your work order.",
-                    style: Theme.of(context).textTheme.titleMedium,
-                    textAlign: TextAlign.start,
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: colorScheme.onPrimary,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-
-                    child: Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: CustomTextInputFieldWidget(
-                            autofocus: true,
-                            controller: _titleTextFieldController,
-                            hint: 'Title...',
-                            validator: (value) {
-                              if ((value ?? "").isEmpty) {
-                                return 'Enter title to get started...';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                        const Divider(height: .1, thickness: .1),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: CustomTextInputFieldWidget(
-                            autofocus: false,
-                            controller: _descriptionTextFieldController,
-                            hint: 'Describe style inspiration...',
-                            minLines: 2,
-                            maxLength: 150,
-                            validator: (value) {
-                              if ((value ?? "").isEmpty) {
-                                return 'Enter description to get proceed...';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Align(
-                    alignment: Alignment.bottomRight,
-                    child: OutlinedButton(
-                      onPressed: () {
-                        if (_titleTextFieldController.text.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Enter title to get started...'),
-                            ),
-                          );
-                          return;
-                        }
-
-                        if (_descriptionTextFieldController.text.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Enter description to proceed...'),
-                            ),
-                          );
-                          return;
-                        }
-
-                        final workOrder = current.copyWith(
-                          title: _titleTextFieldController.text.trim(),
-                          description: _descriptionTextFieldController.text
-                              .trim(),
-                        );
-                        context.read<WorkOrderBloc>().add(
-                          PatchWorkOrder(workOrder),
-                        );
-                        widget.onNext!();
-                      },
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Text('Next'),
-                          SizedBox(width: 8),
-                          Icon(Icons.arrow_forward),
-                        ],
+      body: SingleChildScrollView(
+        // ensures it's still scrollable on small screens
+        padding: const EdgeInsets.all(16),
+        child: BlocBuilder<WorkOrderBloc, WorkOrderBlocState>(
+          buildWhen: (context, state) {
+            return state is WorkOrderPatched;
+          },
+          builder: (context, state) {
+            if (state is WorkOrderPatched) {
+              current = state.workorder;
+              _titleTextFieldController.text = current.title;
+              _descriptionTextFieldController.text = current.description ?? "";
+            }
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.start, // centers vertically
+              children: [
+                Text(
+                  "Start by providing a title and description for your work order.",
+                  style: Theme.of(context).textTheme.headlineMedium,
+                  textAlign: TextAlign.start,
+                ),
+                const SizedBox(height: 128),
+                Container(
+                  decoration: BoxDecoration(
+                    color: colorScheme.onPrimary,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
                       ),
+                    ],
+                  ),
+
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: CustomTextInputFieldWidget(
+                          autofocus: true,
+                          controller: _titleTextFieldController,
+                          hint: 'Title...',
+                          validator: (value) {
+                            if ((value ?? "").isEmpty) {
+                              return 'Enter title to get started...';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const Divider(height: .1, thickness: .1),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: CustomTextInputFieldWidget(
+                          autofocus: false,
+                          controller: _descriptionTextFieldController,
+                          hint: 'Describe style inspiration...',
+                          minLines: 2,
+                          maxLength: 150,
+                          validator: (value) {
+                            if ((value ?? "").isEmpty) {
+                              return 'Enter description to get proceed...';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      if (_titleTextFieldController.text.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Enter title to get started...'),
+                          ),
+                        );
+                        return;
+                      }
+
+                      if (_descriptionTextFieldController.text.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Enter description to proceed...'),
+                          ),
+                        );
+                        return;
+                      }
+
+                      final workOrder = current.copyWith(
+                        title: _titleTextFieldController.text.trim(),
+                        description: _descriptionTextFieldController.text
+                            .trim(),
+                      );
+                      context.read<WorkOrderBloc>().add(
+                        PatchWorkOrder(workOrder),
+                      );
+                      widget.onNext!();
+                    },
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Text('Next'),
+                        SizedBox(width: 8),
+                        Icon(Icons.arrow_forward),
+                      ],
                     ),
                   ),
-                ],
-              );
-            },
-          ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

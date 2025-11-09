@@ -157,7 +157,6 @@ class _AddWorkOrderScreenState extends State<AddWorkOrderScreen> {
       );
 
       final author =
-          workorder.author ??
           AuthorModel.empty().copyWith(
             uid: createdBy,
             name: user.fullName,
@@ -304,11 +303,11 @@ class _AddWorkOrderScreenState extends State<AddWorkOrderScreen> {
       // Wait for all uploads to finish
       final featuredMedia = await Future.wait(uploadTasks); // List<String>
       final mergedList = featuredMedia;
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("✅ Images uploaded successfully!")),
-        );
-      }
+      // if (mounted) {
+      //   ScaffoldMessenger.of(context).showSnackBar(
+      //     const SnackBar(content: Text("✅ Images uploaded successfully!")),
+      //   );
+      // }
 
       return dartz.Right(mergedList);
     } catch (e) {

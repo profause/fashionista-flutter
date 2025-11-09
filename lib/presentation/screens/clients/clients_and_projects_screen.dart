@@ -355,13 +355,7 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
                       child: TextButton.icon(
                         onPressed: () {
                           Navigator.pop(context);
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //     builder: (_) => const AddWorkOrderScreen(),
-                          //   ),
-                          // );
-                          context.push('/clients/add');
+                          context.push('/workorders/add');
                         },
                         icon: const Icon(Icons.work_history, size: 18),
                         label: const Text("Start a new work order"),

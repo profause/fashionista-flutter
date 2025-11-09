@@ -1,5 +1,10 @@
 import 'dart:io';
 
+import 'package:cloudinary_url_gen/cloudinary.dart';
+import 'package:cloudinary_url_gen/config/cloudinary_config.dart';
+import 'package:cloudinary_url_gen/transformation/resize/resize.dart';
+import 'package:cloudinary_url_gen/transformation/transformation.dart';
+import 'package:fashionista/core/service_locator/app_config.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/utils/get_image_aspect_ratio.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
@@ -8,7 +13,6 @@ import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_status_progress_bloc.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_status_progress_bloc_event.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_status_progress_bloc_state.dart';
-import 'package:fashionista/data/models/work_order/work_order_model.dart';
 import 'package:fashionista/data/models/work_order/work_order_status_progress_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_closet_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_work_order_service.dart';
@@ -26,10 +30,12 @@ import 'package:sliver_tools/sliver_tools.dart';
 import 'package:uuid/uuid.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:dartz/dartz.dart' as dartz;
+import 'package:cloudinary_api/uploader/cloudinary_uploader.dart';
+import 'package:cloudinary_api/src/request/model/uploader_params.dart';
 
 class WorkOrderTimelinePage extends StatefulWidget {
-  final WorkOrderModel workOrderInfo; // 👈 workOrderInfo
-  const WorkOrderTimelinePage({super.key, required this.workOrderInfo});
+  final String workOrderId; // 👈 workOrderInfo
+  const WorkOrderTimelinePage({super.key, required this.workOrderId});
 
   @override
   State<WorkOrderTimelinePage> createState() => _WorkOrderTimelinePageState();
@@ -43,7 +49,7 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
   void initState() {
     _userBloc = context.read<UserBloc>();
     context.read<WorkOrderStatusProgressBloc>().add(
-      LoadStatusProgress(widget.workOrderInfo.uid!),
+      LoadStatusProgress(widget.workOrderId),
     );
     super.initState();
   }
@@ -108,9 +114,7 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
                           ),
                         ),
                       );
-                    case WorkOrderProgressLoaded(
-                      :final workOrderProgress,
-                    ):
+                    case WorkOrderProgressLoaded(:final workOrderProgress):
                       return ListView.separated(
                         shrinkWrap: true, // 👈 fixes unbounded height
                         physics:
@@ -210,13 +214,9 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
         }
       }
       // Show progress dialog
-      showDialog(
-        context: context,
-        barrierDismissible: false, // Prevent dismissing
-        builder: (_) => const Center(child: CircularProgressIndicator()),
-      );
+      showLoadingDialog(context);
 
-      final uploadResult = await uploadImages(
+      final uploadResult = await uploadImagesToCloudinary(
         context,
         statusProgressId,
         pickedImages,
@@ -225,9 +225,7 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
       uploadResult.fold(
         (ifLeft) {
           // _buttonLoadingStateCubit.setLoading(false);
-          if (mounted) {
-            Navigator.of(context).pop();
-          }
+          dismissLoadingDialog(context);
           debugPrint(ifLeft);
           ScaffoldMessenger.of(
             context,
@@ -235,11 +233,7 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
           return;
         },
         (ifRight) {
-          //_buttonLoadingStateCubit.setLoading(false);
           featuredImages = ifRight;
-          setState(() {
-            //isUploading = false;
-          });
         },
       );
 
@@ -249,7 +243,7 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
         featuredMedia: featuredImages,
         createdAt: DateTime.now().millisecondsSinceEpoch,
         updatedAt: DateTime.now().millisecondsSinceEpoch,
-        workOrderId: widget.workOrderInfo.uid,
+        workOrderId: widget.workOrderId,
       );
 
       // Save via FirebaseWorkOrderService
@@ -269,11 +263,9 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
         (r) {
           if (!mounted) return;
           context.read<WorkOrderStatusProgressBloc>().add(
-            LoadStatusProgress(
-              widget.workOrderInfo.uid!,
-            ),
+            LoadStatusProgress(widget.workOrderId),
           );
-          Navigator.pop(context);
+          dismissLoadingDialog(context);
           Navigator.pop(context);
           // ScaffoldMessenger.of(context).showSnackBar(
           //   SnackBar(content: Text('Work Order created successfully!')),
@@ -626,53 +618,102 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
     );
   }
 
-  Future<dartz.Either<String, List<FeaturedMediaModel>>> uploadImages(
+  Future<dartz.Either<String, List<FeaturedMediaModel>>>
+  uploadImagesToCloudinary(
     BuildContext context,
     String workOrderId,
     List pickedImages,
   ) async {
     if (pickedImages.isEmpty) return dartz.Left('image list is empty');
 
-    final storage = FirebaseStorage.instance;
-    final uploadTasks = <Future<String>>[];
+    CloudinaryConfig config = CloudinaryConfig.fromUri(
+      appConfig.get('cloudinary_url'),
+    );
+    final workOrderMediaFolder = appConfig.get(
+      'cloudinary_work_order_images_folder',
+    );
+    final baseFolder = appConfig.get('cloudinary_base_folder');
+
+    final cloudinary = Cloudinary.fromConfiguration(config);
+
+    final uploadTasks = <Future<FeaturedMediaModel>>[];
+
     final aspects = <double?>[];
 
-    // Step 1: Collect aspect ratios + prepare upload tasks
     for (int i = 0; i < pickedImages.length; i++) {
       final image = pickedImages[i];
+      final uploadFile = File(image.path);
 
-      // get aspect ratio
+      // Get aspect ratio
       final aspect = await getImageAspectRatio(image);
       aspects.add(aspect);
 
-      // prepare upload
-      uploadTasks.add(() async {
-        final fileName = "${workOrderId}_$i.jpg";
-        final ref = storage.ref().child("work_order_images/$fileName");
+      final fileName = "${workOrderId}_$i.jpg";
+      final publicId = "${workOrderId}_$i";
 
-        final uploadTask = ref.putFile(File(image.path));
-        await uploadTask;
-        return await ref.getDownloadURL();
-      }());
+      final transformation = Transformation()
+          .resize(Resize.auto().width(480).aspectRatio(aspect))
+          .addTransformation('q_60');
+      // Define upload task returning a non-null String
+      final uploadTask = (() async {
+        final uploadResult = await cloudinary.uploader().upload(
+          uploadFile,
+          params: UploadParams(
+            filename: fileName,
+            publicId: publicId,
+            useFilename: true,
+            folder: '$baseFolder/$workOrderMediaFolder',
+            uploadPreset: 'ml_default',
+            type: 'image/jpeg',
+            transformation: transformation,
+          ),
+        );
+
+        if (uploadResult == null) {
+          debugPrint("Upload failed — no response from Cloudinary");
+          throw Exception("Upload failed — no response from Cloudinary");
+        }
+        if (uploadResult.error != null) {
+          debugPrint("Upload failed: ${uploadResult.error!.message}");
+          throw Exception(uploadResult.error!.message);
+        }
+
+        final url = uploadResult.data?.secureUrl;
+        if (url == null) {
+          debugPrint("Upload failed — no URL returned");
+          throw Exception("Upload failed — no URL returned");
+        }
+
+        String thumbnailUrl =
+            (cloudinary.image('$baseFolder/$workOrderMediaFolder/$fileName')
+                  ..transformation(
+                    Transformation().addTransformation('q_auto:low')
+                      ..resize(Resize.auto().width(360).aspectRatio(aspect)),
+                  ))
+                .toString();
+        final featuredMedia = FeaturedMediaModel().copyWith(
+          url: url,
+          type: "image",
+          aspectRatio: aspect,
+          thumbnailUrl: thumbnailUrl,
+          uid: '$baseFolder/$workOrderMediaFolder/$publicId',
+        );
+        return featuredMedia; // ✅ Non-null String
+      })();
+
+      uploadTasks.add(uploadTask);
     }
 
     try {
-      // Step 2: Upload all + get URLs
-      final urls = await Future.wait(uploadTasks);
+      // Wait for all uploads to finish
+      final featuredMedia = await Future.wait(uploadTasks); // List<String>
+      final mergedList = featuredMedia;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("✅ Images uploaded successfully!")),
+        );
+      }
 
-      // Step 3: Merge into FeaturedMediaModel list
-      final mergedList = List.generate(
-        urls.length,
-        (i) => FeaturedMediaModel(
-          url: urls[i],
-          type: "image", // could be "video" if needed
-          aspectRatio: aspects[i],
-        ),
-      );
-
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //   const SnackBar(content: Text("✅ Images uploaded successfully!")),
-      // );
       return dartz.Right(mergedList);
     } catch (e) {
       return dartz.Left(e.toString());
@@ -755,6 +796,20 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(e.message!)));
+    }
+  }
+
+  void showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // prevent accidental dismiss
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  void dismissLoadingDialog(BuildContext context) {
+    if (Navigator.canPop(context)) {
+      Navigator.of(context, rootNavigator: true).pop();
     }
   }
 }

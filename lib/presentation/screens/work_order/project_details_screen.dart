@@ -6,8 +6,10 @@ import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_state.da
 import 'package:fashionista/data/models/work_order/work_order_model.dart';
 import 'package:fashionista/presentation/screens/work_order/work_order_timeline_page.dart';
 import 'package:fashionista/presentation/screens/work_order/work_order_details_page.dart';
+import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class ProjectDetailsScreen extends StatefulWidget {
   final String workOrderId;
@@ -49,45 +51,76 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen>
             SliverOverlapAbsorber(
               handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
               sliver: SliverAppBar(
+                title: Text(
+                  "Work Order",
+                  style: textTheme.titleMedium!.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                automaticallyImplyLeading: true,
                 pinned: true,
-                floating: true,
                 toolbarHeight: kToolbarHeight, // 👈 allow space for back button
                 expandedHeight: expandedHeight,
                 backgroundColor: colorScheme.onPrimary,
                 foregroundColor: colorScheme.primary,
                 elevation: 0,
-                leading: IconButton(
-                  icon: const Icon(Icons.arrow_back_ios),
-                  onPressed: () =>
-                      Navigator.of(context).maybePop(), // 👈 back action
-                ),
-                flexibleSpace: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final percent =
-                        ((constraints.maxHeight - kToolbarHeight) /
-                                (expandedHeight - kToolbarHeight))
-                            .clamp(0.0, 1.0); // scroll progress 0..1
-                    return FlexibleSpaceBar(
-                      collapseMode: CollapseMode.parallax,
-                      background: SafeArea(
-                        child: Column(
-                          children: [
-                            Opacity(
-                              opacity:
-                                  percent, // ✅ fade name out as it collapses
-                              child: Text(
-                                "Work Order",
-                                style: textTheme.titleMedium!.copyWith(
-                                  fontWeight: FontWeight.bold,
+                actions: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 18),
+                    child: Row(
+                      children: [
+                        CustomIconButtonRounded(
+                          size: 16,
+                          iconData: Icons.delete,
+                          onPressed: () async {
+                            final canDelete = await showDialog<bool>(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                title: const Text('Delete Project'),
+                                content: const Text(
+                                  'Are you sure you want to delete this project?',
                                 ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(ctx).pop(false),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(ctx).pop(true),
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: Colors.red,
+                                    ),
+                                    child: const Text('Delete'),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ],
+                            );
+
+                            if (canDelete == true) {
+                              if (mounted) {
+                                showLoadingDialog(context);
+                              }
+                              await _deleteWorkOrder(widget.workOrderId);
+                            }
+                          },
                         ),
-                      ),
-                    );
-                  },
-                ),
+                        const SizedBox(width: 8),
+                        CustomIconButtonRounded(
+                          size: 16,
+                          iconData: Icons.edit,
+                          onPressed: () {
+                            context.push(
+                              '/workorders/edit/${widget.workOrderId}',
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
                 bottom: TabBar(
                   controller: _tabController,
                   labelColor: colorScheme.primary,
@@ -148,7 +181,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen>
         },
         body: BlocBuilder<WorkOrderBloc, WorkOrderBlocState>(
           buildWhen: (context, state) {
-            return state is WorkOrderLoaded || state is WorkOrderLoading;
+            return state is WorkOrderLoaded || state is WorkOrderLoading || state is WorkOrderUpdated;
           },
           builder: (context, state) {
             switch (state) {
@@ -163,8 +196,9 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen>
 
               case WorkOrderError():
                 return Center(child: Text(state.message));
-              case WorkOrderLoaded():
-                workOrderInfo = state.workorder;
+              case WorkOrderLoaded(:final workorder):
+              case WorkOrderUpdated(:final workorder):
+                workOrderInfo = workorder;
                 return TabBarView(
                   controller: _tabController, // ✅ connect the same controller
                   children: [
@@ -196,7 +230,9 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen>
                                     context,
                                   ),
                             ),
-                            WorkOrderTimelinePage(workOrderInfo: workOrderInfo),
+                            WorkOrderTimelinePage(
+                              workOrderId: workOrderInfo.uid!,
+                            ),
                           ],
                         );
                       },
@@ -212,9 +248,30 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen>
     );
   }
 
+  Future<void> _deleteWorkOrder(String uid) async {
+    context.read<WorkOrderBloc>().add(DeleteWorkOrder(uid));
+    if (!mounted) return;
+    dismissLoadingDialog(context);
+    context.pop(); // notify ClientsScreen
+  }
+
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  void showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // prevent accidental dismiss
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  void dismissLoadingDialog(BuildContext context) {
+    if (Navigator.canPop(context)) {
+      Navigator.of(context, rootNavigator: true).pop();
+    }
   }
 }

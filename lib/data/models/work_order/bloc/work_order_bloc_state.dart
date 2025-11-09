@@ -27,6 +27,7 @@ class WorkOrderLoaded extends WorkOrderBlocState {
 class WorkOrderUpdated extends WorkOrderBlocState {
   final WorkOrderModel workorder;
   const WorkOrderUpdated(this.workorder);
+  
   @override
   List<Object?> get props => [workorder];
 }

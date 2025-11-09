@@ -27,6 +27,7 @@ class CustomMobilenumberFormFieldWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -48,7 +49,7 @@ class CustomMobilenumberFormFieldWidget extends StatelessWidget {
             labelText: 'Mobile Number',
             hintText: 'Enter mobile number',
             filled: true,
-            fillColor: AppTheme.lightGrey.withValues(alpha: 0.6),
+            fillColor: colorScheme.surface,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
