@@ -100,6 +100,7 @@ class NotificationWorkOrderStatusWidget extends StatelessWidget {
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
                           onPressed: () {
+                            onTap?.call();
                             context.push('/workorders/timeline/${notification.refId}');
                           },
                           child: Text(

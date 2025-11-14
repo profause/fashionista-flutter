@@ -37,7 +37,7 @@ class TrendInfoCardWidget extends StatelessWidget {
         featuredMedia != null && featuredMedia.type?.toLowerCase() == 'video';
 
     return Container(
-      margin: const EdgeInsets.all(4),
+      margin: const EdgeInsets.all(2),
       decoration: BoxDecoration(
         color: colorScheme.onPrimary,
         borderRadius: BorderRadius.circular(8),

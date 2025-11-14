@@ -1,4 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 class LocalNotificationService {
@@ -15,6 +16,8 @@ class LocalNotificationService {
     const settings = InitializationSettings(android: android, iOS: iOS);
 
     await _notifications.initialize(settings);
+    await Permission.camera.request();
+
   }
 
   static Future<void> scheduleNotification({

@@ -14,7 +14,7 @@ class TrendsStaggeredView extends StatelessWidget {
     final random = Random();
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 6),
         child: MasonryGridView.builder(
           padding: const EdgeInsets.only(top: 8),
           shrinkWrap: true,

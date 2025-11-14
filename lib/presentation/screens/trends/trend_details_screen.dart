@@ -35,6 +35,7 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dartz/dartz.dart' as dartz;
+import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
 class TrendDetailsScreen extends StatefulWidget {
@@ -1026,11 +1027,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
         avatar: _userBloc.state.profileImage,
         mobileNumber: _userBloc.state.mobileNumber,
       );
-      showDialog(
-        context: context,
-        barrierDismissible: false, // Prevent dismissing
-        builder: (_) => const Center(child: CircularProgressIndicator()),
-      );
+      showLoadingDialog(context);
 
       int dateTime = DateTime.now().millisecondsSinceEpoch;
 
@@ -1089,15 +1086,29 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
       _selectedDesignersNotifier.value = [];
       // close dialog
       if (!mounted) return;
-      Navigator.pop(context);
-
+      dismissLoadingDialog(context);
       // show success message
       AppToast.normal(context, "Work order request shared successfully");
 
       if (!mounted) return;
       Navigator.pop(context);
+      context.pop();
     } on firebase_auth.FirebaseException catch (e) {
       debugPrint(e.message);
+    }
+  }
+
+  void showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // prevent accidental dismiss
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  void dismissLoadingDialog(BuildContext context) {
+    if (Navigator.canPop(context)) {
+      Navigator.of(context, rootNavigator: true).pop();
     }
   }
 }

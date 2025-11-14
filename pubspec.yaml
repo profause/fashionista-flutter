@@ -87,6 +87,7 @@ dependencies:
   cloudinary_url_gen: ^1.8.0
   cloudinary_api: ^1.1.1
   url_launcher: ^6.3.2
+  permission_handler: ^12.0.1
   
 
 dev_dependencies:

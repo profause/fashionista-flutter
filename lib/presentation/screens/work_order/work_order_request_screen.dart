@@ -1,8 +1,16 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
+import 'package:fashionista/data/models/author/author_model.dart';
+import 'package:fashionista/data/models/notification/notification_model.dart';
+import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
+import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_event.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_state.dart';
 import 'package:fashionista/data/models/work_order/work_order_model.dart';
+import 'package:fashionista/data/services/firebase/firebase_notification_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_user_service.dart';
 import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +18,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:uuid/uuid.dart';
 
 class WorkOrderRequestScreen extends StatefulWidget {
   final String workOrderRequestId;
@@ -21,9 +30,10 @@ class WorkOrderRequestScreen extends StatefulWidget {
 
 class _WorkOrderRequestScreenState extends State<WorkOrderRequestScreen> {
   late WorkOrderModel workOrderInfo;
-
+  late UserBloc _userBloc;
   @override
   void initState() {
+    _userBloc = context.read<UserBloc>();
     context.read<WorkOrderBloc>().add(
       LoadWorkOrder(widget.workOrderRequestId, isFromCache: false),
     );
@@ -48,7 +58,9 @@ class _WorkOrderRequestScreenState extends State<WorkOrderRequestScreen> {
       backgroundColor: colorScheme.surface,
       body: BlocBuilder<WorkOrderBloc, WorkOrderBlocState>(
         buildWhen: (context, state) {
-          return state is WorkOrderLoaded || state is WorkOrderLoading;
+          return state is WorkOrderLoaded ||
+              state is WorkOrderLoading ||
+              state is WorkOrderUpdated;
         },
         builder: (context, state) {
           switch (state) {
@@ -63,8 +75,11 @@ class _WorkOrderRequestScreenState extends State<WorkOrderRequestScreen> {
 
             case WorkOrderError():
               return Center(child: Text(state.message));
-            case WorkOrderLoaded():
-              workOrderInfo = state.workorder;
+            case WorkOrderLoaded(:final workorder):
+            case WorkOrderUpdated(:final workorder):
+              workOrderInfo = workorder;
+              final isRequest = workorder.workOrderType == 'REQUEST';
+              final isCancelled = workorder.status == 'CANCELLED';
               return SingleChildScrollView(
                 padding: EdgeInsets.zero,
                 child: Column(
@@ -213,11 +228,48 @@ class _WorkOrderRequestScreenState extends State<WorkOrderRequestScreen> {
                           children: [
                             TextButton(
                               style: TextButton.styleFrom(
+                                backgroundColor: Colors.green.withValues(
+                                  alpha: 0.2,
+                                ),
+                                disabledBackgroundColor: colorScheme.surface,
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
-                              onPressed: () {},
+                              onPressed: !isRequest
+                                  ? null
+                                  : () async {
+                                      final canAccept = await showDialog<bool>(
+                                        context: context,
+                                        builder: (ctx) => AlertDialog(
+                                          title: const Text(
+                                            'Accept Work Order',
+                                          ),
+                                          content: const Text(
+                                            'Are you sure you want to accept this work order?',
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.of(ctx).pop(false),
+                                              child: const Text('Cancel'),
+                                            ),
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.of(ctx).pop(true),
+                                              style: TextButton.styleFrom(
+                                                foregroundColor: Colors.green,
+                                              ),
+                                              child: const Text('Accept'),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+
+                                      if (canAccept == true) {
+                                        await _acceptWorkOrder(workorder);
+                                      }
+                                    },
                               child: Text(
-                                "Accept",
+                                !isRequest ? 'Accepted' : 'Accept',
                                 style: textTheme.bodySmall!.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -225,11 +277,19 @@ class _WorkOrderRequestScreenState extends State<WorkOrderRequestScreen> {
                             ),
                             TextButton(
                               style: TextButton.styleFrom(
+                                backgroundColor: Colors.blueAccent.withValues(
+                                  alpha: 0.2,
+                                ),
+                                disabledBackgroundColor: colorScheme.surface,
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
-                              onPressed: () {
-                                context.push('/workorders/edit/${workOrderInfo.uid}');
-                              },
+                              onPressed: isCancelled
+                                  ? null
+                                  : () {
+                                      context.push(
+                                        '/workorders/edit/${workOrderInfo.uid}',
+                                      );
+                                    },
                               child: Text(
                                 "Edit",
                                 style: textTheme.bodySmall!.copyWith(
@@ -240,9 +300,43 @@ class _WorkOrderRequestScreenState extends State<WorkOrderRequestScreen> {
                             //const Spacer(),
                             TextButton(
                               style: TextButton.styleFrom(
+                                backgroundColor: AppTheme.appIconColor
+                                    .withValues(alpha: 0.2),
+                                disabledBackgroundColor: colorScheme.surface,
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
-                              onPressed: () {},
+                              onPressed: isCancelled
+                                  ? null
+                                  : () async {
+                                      final canCancel = await showDialog<bool>(
+                                        context: context,
+                                        builder: (ctx) => AlertDialog(
+                                          title: const Text('Cancel Request'),
+                                          content: const Text(
+                                            'Are you sure you want to cancel this request?',
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.of(ctx).pop(false),
+                                              child: const Text('No'),
+                                            ),
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.of(ctx).pop(true),
+                                              style: TextButton.styleFrom(
+                                                foregroundColor: Colors.red,
+                                              ),
+                                              child: const Text('Cancel'),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+
+                                      if (canCancel == true) {
+                                        await _cancelWorkOrder(workorder);
+                                      }
+                                    },
                               child: Text(
                                 "Cancel",
                                 style: textTheme.bodySmall!.copyWith(
@@ -484,5 +578,90 @@ class _WorkOrderRequestScreenState extends State<WorkOrderRequestScreen> {
         },
       ),
     );
+  }
+
+  Future<void> _acceptWorkOrder(WorkOrderModel workOrderInfo) async {
+    if (mounted) {
+      showLoadingDialog(context);
+    }
+    final updated = workOrderInfo.copyWith(
+      updatedAt: DateTime.now().millisecondsSinceEpoch,
+      workOrderType: 'DRAFT',
+      status: 'DRAFT',
+    );
+    context.read<WorkOrderBloc>().add(UpdateWorkOrder(updated));
+    User user = _userBloc.state;
+    final userResult = await sl<FirebaseUserService>().findUserByMobileNumber(
+      workOrderInfo.client!.mobileNumber!,
+    );
+
+    userResult.fold(
+      (l) {
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      (r) async {
+        //send notification to user who created the client
+        final authorUser = AuthorModel.empty().copyWith(
+          uid: user.uid,
+          name: user.fullName,
+          avatar: user.profileImage,
+          mobileNumber: user.mobileNumber,
+        );
+
+        final notification = NotificationModel.empty().copyWith(
+          uid: Uuid().v4(),
+          title: 'Work Order Update',
+          description: '${user.fullName} has accepted your work order - ${workOrderInfo.description}',
+          createdAt: DateTime.now().millisecondsSinceEpoch,
+          type: 'work_order_status_progress',
+          refId: workOrderInfo.uid,
+          refType: "work_order_status_progress",
+          from: user.uid,
+          to: r.uid,
+          author: authorUser,
+          status: 'new',
+        );
+
+        await sl<FirebaseNotificationService>().createNotification(
+          notification,
+        );
+      },
+    );
+
+    if (!mounted) return;
+    dismissLoadingDialog(context);
+    //context.pop(); // notify ClientsScreen
+  }
+
+  Future<void> _cancelWorkOrder(WorkOrderModel workOrderInfo) async {
+    if (mounted) {
+      showLoadingDialog(context);
+    }
+    final updated = workOrderInfo.copyWith(
+      updatedAt: DateTime.now().millisecondsSinceEpoch,
+      workOrderType: 'REQUEST',
+      status: 'CANCELLED',
+    );
+    context.read<WorkOrderBloc>().add(UpdateWorkOrder(updated));
+
+    if (!mounted) return;
+    dismissLoadingDialog(context);
+    //context.pop(); // notify ClientsScreen
+  }
+
+  void showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // prevent accidental dismiss
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  void dismissLoadingDialog(BuildContext context) {
+    if (Navigator.canPop(context)) {
+      Navigator.of(context, rootNavigator: true).pop();
+    }
   }
 }

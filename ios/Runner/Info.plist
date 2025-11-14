@@ -98,5 +98,11 @@
 	<string>sms</string>
 	<string>tel</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>We need to access your camera to take pictures.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need to access your photos to pick images.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>We need microphone access for videos.</string>
 </dict>
 </plist>

@@ -318,20 +318,21 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
     }
   }
 
-  Future<void> _pickImage(ImageSource source) async {
+Future<void> _pickImage(ImageSource source) async {
+  try {
     final pickedFile = await ImagePicker().pickImage(source: source);
-    setState(() {
-      if (pickedFile != null) {
+    if (pickedFile != null) {
+      setState(() {
         previewImages.add(pickedFile);
         pickedImages.add(pickedFile);
-      }
-    });
-    if (mounted) {
-      // Dismiss the dialog manually
-      //Navigator.of(context, rootNavigator: true).pop();
+      });
     }
-    //_cropImage();
+  } catch (e, st) {
+    debugPrint('Error picking image: $e');
+    debugPrintStack(stackTrace: st);
   }
+}
+
 
   Future<void> _saveTrend() async {
     try {
