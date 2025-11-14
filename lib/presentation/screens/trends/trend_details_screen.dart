@@ -31,6 +31,7 @@ import 'package:fashionista/presentation/widgets/custom_text_input_field_widget.
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:fashionista/presentation/widgets/featured_media_widget.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
+import 'package:fashionista/presentation/widgets/rating_input_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -222,60 +223,33 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                             ],
                             const SizedBox(height: 12),
                             Padding(
-                              padding: const EdgeInsets.all(4.0),
+                              padding: const EdgeInsets.all(0.0),
                               child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  Row(
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          Icon(
-                                            Icons.comment_outlined,
-                                            color: colorScheme.primary,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            trendInfo.numberOfComments
-                                                .toString(),
-                                            style: textTheme.bodyMedium,
-                                          ),
-                                        ],
+                                  CustomTrendLikeButtonWidget(
+                                    onPressed: (isLiked) {
+                                      //debugPrint(isLiked.toString());
+                                      final updateTrend = trendInfo.copyWith(
+                                        isLiked: isLiked,
+                                      );
+                                      context.read<TrendBloc>().add(
+                                        UpdateTrend(updateTrend),
+                                      );
+                                    },
+                                    trendId: trendInfo.uid!,
+                                    isLikedNotifier: ValueNotifier(
+                                      LikeObject(
+                                        count: trendInfo.numberOfLikes == null
+                                            ? 0
+                                            : trendInfo.numberOfLikes!,
+                                        isLiked: trendInfo.isLiked!,
                                       ),
-                                      const SizedBox(width: 12),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          CustomTrendLikeButtonWidget(
-                                            onPressed: (isLiked) {
-                                              //debugPrint(isLiked.toString());
-                                              final updateTrend = trendInfo
-                                                  .copyWith(isLiked: isLiked);
-                                              context.read<TrendBloc>().add(
-                                                UpdateTrend(updateTrend),
-                                              );
-                                            },
-                                            trendId: trendInfo.uid!,
-                                            isLikedNotifier: ValueNotifier(
-                                              LikeObject(
-                                                count:
-                                                    trendInfo.numberOfLikes ==
-                                                        null
-                                                    ? 0
-                                                    : trendInfo.numberOfLikes!,
-                                                isLiked: trendInfo.isLiked!,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
+                                    ),
                                   ),
-                                  const Spacer(),
+
+                                  const SizedBox(width: 12),
                                   CustomIconButtonRounded(
                                     onPressed: () {
                                       //show bottomsheet
@@ -703,7 +677,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
           builder: (context, setModalState) {
             return DraggableScrollableSheet(
               expand: false,
-              initialChildSize: 0.7,
+              initialChildSize: 0.9,
               minChildSize: 0.5,
               maxChildSize: 0.9,
               builder: (context, scrollController) {
@@ -900,12 +874,27 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                                                         )
                                                       : null,
                                                 ),
-                                                title: Text(
-                                                  item.name,
-                                                  style: textTheme.bodyMedium,
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
+                                                title: Row(
+                                                  children: [
+                                                    Text(
+                                                      item.name,
+                                                      style:
+                                                          textTheme.bodyMedium,
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    RatingInputWidget(
+                                                      initialRating:
+                                                          item.averageRating ??
+                                                          0,
+                                                      color:
+                                                          colorScheme.primary,
+                                                      size: 16,
+                                                      readOnly: true,
+                                                    ),
+                                                  ],
                                                 ),
                                                 subtitle: Text(
                                                   item.businessName,

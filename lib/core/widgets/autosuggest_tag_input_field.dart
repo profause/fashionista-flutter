@@ -205,7 +205,7 @@ class _AutosuggestTagInputFieldState extends State<AutosuggestTagInputField> {
               child: Material(
                 elevation: 2,
                 borderRadius: BorderRadius.circular(12),
-                color: colorScheme.surface,
+                color: colorScheme.onPrimary,
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width - 32,
                   child: ListView.builder(

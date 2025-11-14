@@ -112,14 +112,17 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12.0),
-            child: CustomIconButtonRounded(
-              onPressed: () async {
-                if (_formKey.currentState!.validate()) {
-                  await _saveTrend();
-                  //Navigator.of(context).pop();
-                }
-              },
-              iconData: Icons.check,
+            child: Hero(
+              tag: 'add-post',
+              child: CustomIconButtonRounded(
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    await _saveTrend();
+                    //Navigator.of(context).pop();
+                  }
+                },
+                iconData: Icons.check,
+              ),
             ),
           ),
         ],
@@ -133,9 +136,13 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    ProfileAvatar(radius: 24),
+                    Padding(
+                      padding: const EdgeInsets.only(top:14.0),
+                      child: ProfileAvatar(radius: 24),
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: CustomTextInputFieldWidget(
@@ -243,11 +250,11 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
                           },
                           iconData: Icons.image_outlined,
                         ),
-                        const SizedBox(width: 16),
-                        CustomIconButtonRounded(
-                          onPressed: () {},
-                          iconData: Icons.video_camera_back,
-                        ),
+                        //const SizedBox(width: 16),
+                        // CustomIconButtonRounded(
+                        //   onPressed: () {},
+                        //   iconData: Icons.video_camera_back,
+                        // ),
                         const SizedBox(width: 16),
                         CustomIconButtonRounded(
                           onPressed: () {

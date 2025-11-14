@@ -107,64 +107,87 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                       'Fashionista',
                                       style: textTheme.titleMedium!.copyWith(
                                         fontWeight: FontWeight.bold,
+                                        fontSize: 22,
                                         color: colorScheme.primary,
                                       ),
                                     ),
                                     const Spacer(),
-
-                                    StreamBuilder<QuerySnapshot>(
-                                      stream: FirebaseFirestore.instance
-                                          .collection('notifications')
-                                          .where(
-                                            'to',
-                                            isEqualTo: userBloc.state.uid,
-                                          ) // optional if user-based
-                                          .where('status', isEqualTo: 'new')
-                                          .limit(1)
-                                          .snapshots(), // 🔥 live updates
-                                      builder: (context, snapshot) {
-                                        final hasNew =
-                                            snapshot.hasData &&
-                                            snapshot.data!.docs.isNotEmpty;
-
-                                        return GestureDetector(
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        GestureDetector(
                                           onTap: () {
-                                            context.push('/notifications');
+                                            context.push('/trends-new');
                                           },
-                                          child: Stack(
-                                            children: [
-                                              Padding(
-                                                padding: const EdgeInsets.all(
-                                                  8.0,
-                                                ),
-                                                child: Icon(
-                                                  size: 24,
-                                                  Icons.notifications,
-                                                  color: AppTheme.appIconColor,
-                                                ),
-                                              ),
-                                              if (hasNew) // ✅ only show dot when there are new notifications
-                                                Positioned(
-                                                  top: 8,
-                                                  right: 10,
-                                                  child: Container(
-                                                    width: 8,
-                                                    height: 8,
-                                                    decoration: BoxDecoration(
-                                                      color: Theme.of(context)
-                                                          .colorScheme
-                                                          .onSurface
-                                                          .withValues(
-                                                            alpha: 0.9,
-                                                          ),
-                                                      shape: BoxShape.circle,
+                                          child: Hero(
+                                            tag: 'add-post',
+                                            child: Icon(
+                                              size: 22,
+                                              Icons.add_a_photo_rounded,
+                                              color: colorScheme.primary,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        StreamBuilder<QuerySnapshot>(
+                                          stream: FirebaseFirestore.instance
+                                              .collection('notifications')
+                                              .where(
+                                                'to',
+                                                isEqualTo: userBloc.state.uid,
+                                              ) // optional if user-based
+                                              .where('status', isEqualTo: 'new')
+                                              .limit(1)
+                                              .snapshots(), // 🔥 live updates
+                                          builder: (context, snapshot) {
+                                            final hasNew =
+                                                snapshot.hasData &&
+                                                snapshot.data!.docs.isNotEmpty;
+
+                                            return GestureDetector(
+                                              onTap: () {
+                                                context.push('/notifications');
+                                              },
+                                              child: Stack(
+                                                children: [
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                          8.0,
+                                                        ),
+                                                    child: Icon(
+                                                      size: 24,
+                                                      Icons.notifications,
+                                                      color:
+                                                          AppTheme.appIconColor,
                                                     ),
                                                   ),
-                                                ),
-                                            ],
-                                          ),
-                                        );
-                                      },
+                                                  if (hasNew) // ✅ only show dot when there are new notifications
+                                                    Positioned(
+                                                      top: 8,
+                                                      right: 10,
+                                                      child: Container(
+                                                        width: 8,
+                                                        height: 8,
+                                                        decoration: BoxDecoration(
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .colorScheme
+                                                                  .onSurface
+                                                                  .withValues(
+                                                                    alpha: 0.9,
+                                                                  ),
+                                                          shape:
+                                                              BoxShape.circle,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                ],
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
