@@ -454,4 +454,5 @@ class _AddOrEditOutfitScreenState extends State<AddOrEditOutfitScreen> {
     previewImages.clear();
     super.dispose();
   }
+  
 }

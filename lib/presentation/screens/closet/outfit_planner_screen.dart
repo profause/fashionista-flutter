@@ -690,8 +690,9 @@ class _OutfitPlannerScreenState extends State<OutfitPlannerScreen> {
                                       child: const Text('Cancel'),
                                     ),
                                     TextButton(
-                                      onPressed: () =>
-                                          Navigator.of(ctx).pop(true),
+                                      onPressed: () {
+                                        Navigator.of(ctx).pop(true);
+                                      },
                                       style: TextButton.styleFrom(
                                         foregroundColor: Colors.red,
                                       ),
@@ -739,11 +740,7 @@ class _OutfitPlannerScreenState extends State<OutfitPlannerScreen> {
   Future<void> _deleteOutfitPlan(OutfitPlanModel outfitPlan) async {
     try {
       // create a dynamic list of futures
-      showDialog(
-        context: context,
-        barrierDismissible: false, // Prevent dismissing
-        builder: (_) => const Center(child: CircularProgressIndicator()),
-      );
+      showLoadingDialog(context);
       final List<Future<dartz.Either>> futures = [];
       futures.add(
         sl<FirebaseClosetService>().deleteClosetItemImage(
@@ -772,15 +769,29 @@ class _OutfitPlannerScreenState extends State<OutfitPlannerScreen> {
       }
 
       if (!mounted) return;
-      Navigator.pop(context);
+      dismissLoadingDialog(context);
+      Navigator.of(context).pop(false);
       _updateDateFieldAndReload();
       //context.read<ClosetItemBloc>().add(DeleteClosetItem(closetItem));
-      Navigator.pop(context, true);
     } on FirebaseException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(e.message!)));
+    }
+  }
+
+  void showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // prevent accidental dismiss
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  void dismissLoadingDialog(BuildContext context) {
+    if (Navigator.canPop(context)) {
+      Navigator.of(context, rootNavigator: true).pop();
     }
   }
 }

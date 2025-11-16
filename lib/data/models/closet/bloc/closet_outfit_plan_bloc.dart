@@ -134,76 +134,117 @@ class ClosetOutfitPlannerBloc
   }
 
   List<DateTime> expandOccurrences(
-    OutfitPlanModel plan,
-    DateTime rangeStart,
-    DateTime rangeEnd,
-  ) {
-    final List<DateTime> occurrences = [];
+  OutfitPlanModel plan,
+  DateTime rangeStart,
+  DateTime rangeEnd,
+) {
+  final List<DateTime> occurrences = [];
 
-    // Define cutoff (recurrence end or rangeEnd)
-    final until = plan.recurrenceEndDate! > 0
-        ? DateTime.fromMillisecondsSinceEpoch(
-                plan.recurrenceEndDate!,
-              ).isBefore(rangeEnd)
-              ? DateTime.fromMillisecondsSinceEpoch(plan.recurrenceEndDate!)
-              : rangeEnd
-        : rangeEnd;
+  // --- Base date (start of the recurrence) ---
+  if (plan.date <= 0) return occurrences;
 
-    DateTime current = DateTime.fromMillisecondsSinceEpoch(plan.date);
+  DateTime startDate =
+      DateTime.fromMillisecondsSinceEpoch(plan.date).toLocal();
 
-    switch (plan.recurrence) {
-      case 'none':
-        if (current.isAfter(rangeStart) && current.isBefore(rangeEnd)) {
-          occurrences.add(current);
-        }
-        break;
+  // --- Recurrence end validation ---
+  final bool hasValidEnd = plan.recurrenceEndDate != null &&
+      plan.recurrenceEndDate! > 0;
 
-      case 'daily':
-        final startDate = DateTime.fromMillisecondsSinceEpoch(plan.date);
-        final endDate = DateTime.fromMillisecondsSinceEpoch(
-          plan.recurrenceEndDate!,
-        );
-        final List<DateTime> dailyDatesUntil = List.generate(
-          endDate.difference(startDate).inDays + 1, // inclusive
-          (i) => startDate.add(Duration(days: i)),
-        );
+  DateTime effectiveEnd = hasValidEnd
+      ? DateTime.fromMillisecondsSinceEpoch(plan.recurrenceEndDate!).toLocal()
+      : rangeEnd;
 
-        occurrences.addAll(dailyDatesUntil);
-        break;
-
-      case 'weekly':
-        // Repeat each week, but only for selected daysOfWeek
-        final days = plan.daysOfWeek ?? [];
-        while (current.isBefore(until)) {
-          if (!current.isBefore(rangeStart) && days.contains(current.weekday)) {
-            occurrences.add(current);
-          }
-
-          current = current.add(const Duration(days: 1));
-        }
-        break;
-
-      case 'monthly':
-        while (current.isBefore(until)) {
-          if (!current.isBefore(rangeStart)) {
-            occurrences.add(current);
-          }
-          current = DateTime(current.year, current.month + 1, current.day);
-        }
-        break;
-
-      case 'yearly':
-        while (current.isBefore(until)) {
-          if (!current.isBefore(rangeStart)) {
-            occurrences.add(current);
-          }
-          current = DateTime(current.year + 1, current.month, current.day);
-        }
-        break;
-    }
-
+  // Prevent negative or backwards ranges
+  if (effectiveEnd.isBefore(startDate)) {
+    debugPrint("⚠ Invalid recurrence (end < start) for plan ${plan.uid}");
     return occurrences;
   }
+
+  // Prevent runaway loops (safety guard)
+  final DateTime hardStop = DateTime.now().add(const Duration(days: 3650));
+  if (effectiveEnd.isAfter(hardStop)) effectiveEnd = hardStop;
+
+  // --- Handle recurrence cases ---
+  switch (plan.recurrence) {
+    case 'none':
+      if (!startDate.isBefore(rangeStart) &&
+          !startDate.isAfter(rangeEnd)) {
+        occurrences.add(startDate);
+      }
+      break;
+
+    case 'daily':
+      {
+        final totalDays =
+            effectiveEnd.difference(startDate).inDays + 1;
+
+        if (totalDays <= 0) break;
+
+        for (int i = 0; i < totalDays; i++) {
+          final date = startDate.add(Duration(days: i));
+          if (date.isBefore(rangeStart) || date.isAfter(rangeEnd)) continue;
+          occurrences.add(date);
+        }
+      }
+      break;
+
+    case 'weekly':
+      {
+        final days = plan.daysOfWeek ?? [];
+
+        if (days.isEmpty) {
+          debugPrint("⚠ weekly plan has empty daysOfWeek: ${plan.uid}");
+          break;
+        }
+
+        DateTime cursor = startDate;
+
+        while (!cursor.isAfter(effectiveEnd)) {
+          if (!cursor.isBefore(rangeStart) &&
+              !cursor.isAfter(rangeEnd) &&
+              days.contains(cursor.weekday)) {
+            occurrences.add(cursor);
+          }
+          cursor = cursor.add(const Duration(days: 1));
+        }
+      }
+      break;
+
+    case 'monthly':
+      {
+        DateTime cursor = startDate;
+
+        while (!cursor.isAfter(effectiveEnd)) {
+          if (!cursor.isBefore(rangeStart) &&
+              !cursor.isAfter(rangeEnd)) {
+            occurrences.add(cursor);
+          }
+
+          // Month increment safe (handles overflow)
+          cursor = DateTime(cursor.year, cursor.month + 1, cursor.day);
+        }
+      }
+      break;
+
+    case 'yearly':
+      {
+        DateTime cursor = startDate;
+
+        while (!cursor.isAfter(effectiveEnd)) {
+          if (!cursor.isBefore(rangeStart) &&
+              !cursor.isAfter(rangeEnd)) {
+            occurrences.add(cursor);
+          }
+
+          cursor = DateTime(cursor.year + 1, cursor.month, cursor.day);
+        }
+      }
+      break;
+  }
+
+  return occurrences;
+}
+
 
   Future<Map<DateTime, List<OutfitPlanModel>>> getPlansForCalendar(
     String userId,

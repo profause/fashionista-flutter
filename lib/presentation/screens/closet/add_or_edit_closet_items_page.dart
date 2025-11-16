@@ -861,4 +861,5 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
     _imageFile = null;
     super.dispose();
   }
+  
 }

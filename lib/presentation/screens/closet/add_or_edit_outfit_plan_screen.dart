@@ -510,11 +510,7 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
       }
 
       // Show progress dialog
-      showDialog(
-        context: context,
-        barrierDismissible: false, // Prevent dismissing
-        builder: (_) => const Center(child: CircularProgressIndicator()),
-      );
+showLoadingDialog(context);
 
       outfitPlan = outfitPlan.copyWith(
         uid: outfitPlanId,
@@ -539,9 +535,7 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
       result.fold(
         (l) {
           // _buttonLoadingStateCubit.setLoading(false);
-          if (mounted) {
-            Navigator.of(context).pop();
-          }
+          dismissLoadingDialog(context);
           if (!mounted) return;
           ScaffoldMessenger.of(
             context,
@@ -566,7 +560,7 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('✅ Outfit plan saved successfully!')),
           );
-          Navigator.pop(context);
+          dismissLoadingDialog(context);
           if (!isEdit) {
             Navigator.pop(context, true);
           }
@@ -599,5 +593,19 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
       scheduledDate: dateTime,
       // remind 1 hour before
     );
+  }
+
+    void showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // prevent accidental dismiss
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  void dismissLoadingDialog(BuildContext context) {
+    if (Navigator.canPop(context)) {
+      Navigator.of(context, rootNavigator: true).pop();
+    }
   }
 }
