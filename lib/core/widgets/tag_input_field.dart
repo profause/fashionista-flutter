@@ -114,11 +114,14 @@ class _TagInputFieldState extends State<TagInputField> {
         ),
         if (widget.label != null) ...[
           const SizedBox(height: 8),
-          Text(
-            widget.label ?? '',
-            style: textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: colorScheme.primary,
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: Text(
+              widget.label ?? '',
+              style: textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.primary,
+              ),
             ),
           ),
         ],

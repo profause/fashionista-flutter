@@ -36,7 +36,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    //final textTheme = Theme.of(context).textTheme;
 
     return BlocBuilder<ClientBloc, ClientBlocState>(
       buildWhen: (context, state) {
@@ -64,10 +64,6 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                         backgroundColor: colorScheme.onPrimary,
                         foregroundColor: colorScheme.primary,
                         elevation: 0,
-                        title: Text(
-                          client.fullName,
-                          style: textTheme.titleLarge!,
-                        ),
                         actions: [
                           Padding(
                             padding: const EdgeInsets.only(right: 18),
@@ -76,10 +72,10 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                                 CustomPinnedClientIconButton(
                                   client: client,
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 12),
                                 // DELETE
                                 CustomIconButtonRounded(
-                                  size: 20,
+                                  size: 18,
                                   iconData: Icons.delete,
                                   onPressed: () async {
                                     final canDelete = await showDialog<bool>(
@@ -115,10 +111,10 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                                     }
                                   },
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 12),
                                 // EDIT
                                 CustomIconButtonRounded(
-                                  size: 20,
+                                  size: 18,
                                   iconData: Icons.edit,
                                   onPressed: () async {
                                     await Navigator.push(
@@ -221,7 +217,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                               ),
                               child: Icon(
                                 Icons.straighten_rounded,
-                                size: 22,
+                                size: 24,
                                 color: colorScheme.onSurface,
                               ),
                             ),

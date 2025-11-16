@@ -42,11 +42,14 @@ class _CustomChipFormFieldState extends State<CustomChipFormFieldWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          widget.label ?? '',
-          style: textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: colorScheme.primary,
+        Padding(
+          padding: const EdgeInsets.only(left: 6.0),
+          child: Text(
+            widget.label ?? '',
+            style: textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: colorScheme.primary,
+            ),
           ),
         ),
         InputDecorator(
@@ -65,10 +68,14 @@ class _CustomChipFormFieldState extends State<CustomChipFormFieldWidget> {
             children: widget.items.map((value) {
               final bool isSelected = selectedValue == value;
               return ChoiceChip(
-                label: Text(value,
-                    style: textTheme.bodyLarge?.copyWith(
-                  color: isSelected ? colorScheme.onPrimary : colorScheme.primary,
-                )),
+                label: Text(
+                  value,
+                  style: textTheme.bodyLarge?.copyWith(
+                    color: isSelected
+                        ? colorScheme.onPrimary
+                        : colorScheme.primary,
+                  ),
+                ),
                 selected: isSelected,
                 onSelected: (_) => selectValue(value),
                 selectedColor: Theme.of(context).colorScheme.primary,

@@ -225,7 +225,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                             Padding(
                               padding: const EdgeInsets.all(0.0),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.end,
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   CustomTrendLikeButtonWidget(

@@ -39,11 +39,14 @@ class CustomTextInputFieldWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (label != null)
-          Text(
-            label ?? '',
-            style: textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: colorScheme.primary,
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: Text(
+              label ?? '',
+              style: textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.primary,
+              ),
             ),
           ),
         ConstrainedBox(

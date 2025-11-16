@@ -8,7 +8,7 @@ import 'package:fashionista/data/models/clients/client_measurement_model.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/custom_chip_form_field_widget.dart';
-import 'package:fashionista/presentation/screens/profile/widgets/profile_info_text_field_widget.dart';
+import 'package:fashionista/presentation/widgets/custom_text_input_field_widget.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -86,30 +86,32 @@ class _AddClientMeasurementScreenState
         elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(12),
         child: Form(
           key: _formKey,
           child: Column(
             children: [
-              Card(
-                color: colorScheme.onPrimary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+              Container(
+                decoration: BoxDecoration(
+                  color: colorScheme.onPrimary,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
                 ),
-                elevation: 0,
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ProfileInfoTextFieldWidget(
-                        label: 'Body Part',
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: CustomTextInputFieldWidget(
+                        autofocus: true,
                         controller: _bodyPartController,
-                        hint: 'Enter the body part being measured',
+                        hint: 'Body Part',
                         validator: (value) {
-                          // if (value == null || value.isEmpty) {
-                          //   return 'Please enter your full name';
-                          // }
                           if (!RegExp(
                             r'^([A-Za-z_][A-Za-z0-9_]\w+)?',
                           ).hasMatch(value!)) {
@@ -118,19 +120,17 @@ class _AddClientMeasurementScreenState
                           return null;
                         },
                       ),
-                      Divider(
-                        height: 16,
-                        thickness: 1,
-                        color: Colors.grey[300],
-                      ),
-                      ProfileInfoTextFieldWidget(
-                        label: 'Measured Value',
+                    ),
+                    const Divider(height: .1, thickness: .1),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: CustomTextInputFieldWidget(
                         controller: _measuredValueController,
+                        label: 'Measured Value',
                         hint: 'Enter measured value',
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
                         ),
-
                         validator: (value) {
                           // if (value == null || value.isEmpty) {
                           //   return 'Please enter your mobile number';
@@ -143,11 +143,28 @@ class _AddClientMeasurementScreenState
                           return null;
                         },
                       ),
-                      Divider(
-                        height: 16,
-                        thickness: 1,
-                        color: Colors.grey[300],
-                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                decoration: BoxDecoration(
+                  color: colorScheme.onPrimary,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       CustomChipFormFieldWidget(
                         initialValue: _measuringUnitController.text,
                         label: 'Measuring Unit',
@@ -160,19 +177,27 @@ class _AddClientMeasurementScreenState
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
-              Card(
-                color: colorScheme.onPrimary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+
+              const SizedBox(height: 12),
+              Container(
+                decoration: BoxDecoration(
+                  color: colorScheme.onPrimary,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
                 ),
-                elevation: 0,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ProfileInfoTextFieldWidget(
+
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: CustomTextInputFieldWidget(
                         label: 'Note',
                         controller: _noteController,
                         hint: 'Enter a short note',
@@ -188,14 +213,11 @@ class _AddClientMeasurementScreenState
                           return null;
                         },
                       ),
-                      Divider(
-                        height: 16,
-                        thickness: 1,
-                        color: Colors.grey[300],
-                      ),
-
-                      const SizedBox(height: 16),
-                      TagInputField(
+                    ),
+                    const Divider(height: .1, thickness: .1),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TagInputField(
                         label: 'Garment type or tags',
                         hint:
                             'Type and press Enter, Space or Comma to add a tag',
@@ -207,22 +229,8 @@ class _AddClientMeasurementScreenState
                         valueOut: (value) =>
                             _tagsController.text = value.join('|'),
                       ),
-
-                      // ProfileInfoTextFieldWidget(
-                      //   label: 'Garment type or tags',
-                      //   controller: _tagsController,
-                      //   hint: 'add garment type or tags',
-                      //   validator: (value) {
-                      //     if (!RegExp(
-                      //       r'^([A-Za-z_][A-Za-z0-9_]\w+)?',
-                      //     ).hasMatch(value!)) {
-                      //       return 'add garment type or tags';
-                      //     }
-                      //     return null;
-                      //   },
-                      // ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ],
