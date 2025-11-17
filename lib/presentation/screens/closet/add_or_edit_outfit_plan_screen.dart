@@ -510,7 +510,7 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
       }
 
       // Show progress dialog
-showLoadingDialog(context);
+      showLoadingDialog(context);
 
       outfitPlan = outfitPlan.copyWith(
         uid: outfitPlanId,
@@ -595,7 +595,7 @@ showLoadingDialog(context);
     );
   }
 
-    void showLoadingDialog(BuildContext context) {
+  void showLoadingDialog(BuildContext context) {
     showDialog(
       context: context,
       barrierDismissible: false, // prevent accidental dismiss

@@ -2,6 +2,10 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloudinary_api/uploader/cloudinary_uploader.dart';
+import 'package:cloudinary_url_gen/cloudinary.dart';
+import 'package:cloudinary_url_gen/config/cloudinary_config.dart';
+import 'package:fashionista/core/service_locator/app_config.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_outfit_plan_bloc.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_outfit_plan_bloc_event.dart';
@@ -22,6 +26,7 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:intl/intl.dart';
 import 'package:dartz/dartz.dart' as dartz;
 import 'package:sliver_tools/sliver_tools.dart';
+import 'package:cloudinary_api/src/request/model/uploader_params.dart';
 
 class OutfitPlannerScreen extends StatefulWidget {
   const OutfitPlannerScreen({super.key});
@@ -741,7 +746,16 @@ class _OutfitPlannerScreenState extends State<OutfitPlannerScreen> {
     try {
       // create a dynamic list of futures
       showLoadingDialog(context);
+      
+      // CloudinaryConfig config = CloudinaryConfig.fromUri(
+      //   appConfig.get('cloudinary_url'),
+      // );
+      // final cloudinary = Cloudinary.fromConfiguration(config);
+      // DestroyParams destroyParams = DestroyParams(publicId: '');
+      // await cloudinary.uploader().destroy(destroyParams);
+      
       final List<Future<dartz.Either>> futures = [];
+
       futures.add(
         sl<FirebaseClosetService>().deleteClosetItemImage(
           outfitPlan.thumbnailUrl!,
