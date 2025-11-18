@@ -32,6 +32,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -50,6 +51,8 @@ Future<void> main() async {
 
   await initialiseDependencies();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  await MobileAds.instance.initialize();
 
   //Ensure Hive is ready before app starts
   await HiveService().init();

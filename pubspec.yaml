@@ -88,6 +88,7 @@ dependencies:
   cloudinary_api: ^1.1.1
   url_launcher: ^6.3.2
   permission_handler: ^12.0.1
+  google_mobile_ads: 
   
 
 dev_dependencies:

@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:fashionista/core/service_locator/app_config.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
@@ -11,6 +14,7 @@ import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.d
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class MainScreen extends StatefulWidget {
   final StatefulNavigationShell navigationShell;
@@ -24,6 +28,11 @@ class _MainScreenState extends State<MainScreen> {
   final PageController _pageController = PageController();
   final ValueNotifier<int> _selectedIndex = ValueNotifier(0);
   late UserBloc _userBloc;
+  BannerAd? _bannerAd;
+
+  String bannerAdUnitId = Platform.isIOS
+      ? appConfig.get('ad_unit_id_ios')
+      : appConfig.get('ad_unit_id_android');
   //int _selectedIndex = 0;
 
   final List<Widget> _designerPageList = [
@@ -42,15 +51,33 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   void initState() {
-    _pageController.addListener(() {});
     super.initState();
     _userBloc = context.read<UserBloc>();
+    BannerAd(
+      adUnitId: 'ca-app-pub-3940256099942544/2934735716',
+      size: AdSize.banner,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          setState(() {
+            _bannerAd = ad as BannerAd;
+          });
+        },
+        onAdFailedToLoad: (ad, error) {
+          debugPrint('Banner ad failed to load: $error');
+          ad.dispose();
+        },
+      ),
+    ).load();
+
+    //_bannerAd!.load();
   }
 
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
+    _bannerAd?.dispose();
   }
 
   void _onItemTapped(int index) {
@@ -65,14 +92,33 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       //extendBody: true,
       backgroundColor: colorScheme.surface,
-      body: ValueListenableBuilder<int>(
-        valueListenable: _selectedIndex,
-        builder: (_, currentIndex, _) {
-          return _userBloc.state.accountType == 'Designer'
-              ? _designerPageList[currentIndex]
-              : _regularUserPageList[currentIndex];
-        },
+      body: Column(
+        children: [
+          // EXPANDED PAGE CONTENT
+          Expanded(
+            child: ValueListenableBuilder<int>(
+              valueListenable: _selectedIndex,
+              builder: (_, currentIndex, _) {
+                return _userBloc.state.accountType == 'Designer'
+                    ? _designerPageList[currentIndex]
+                    : _regularUserPageList[currentIndex];
+              },
+            ),
+          ),
+
+          // BANNER AD ABOVE BOTTOM NAV
+          if (_bannerAd != null) ...[
+            const SizedBox(height: 8),
+            Container(
+              width: _bannerAd!.size.width.toDouble(),
+              height: _bannerAd!.size.height.toDouble(),
+              color: Colors.transparent,
+              child: AdWidget(ad: _bannerAd!),
+            ),
+          ],
+        ],
       ),
+
       bottomNavigationBar: BottomNavigationBar(
         showSelectedLabels: true,
         showUnselectedLabels: true,
