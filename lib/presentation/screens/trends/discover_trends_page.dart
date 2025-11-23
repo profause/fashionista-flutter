@@ -10,7 +10,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive/hive.dart';
-import 'package:sliver_tools/sliver_tools.dart';
 
 class DiscoverTrendsPage extends StatefulWidget {
   const DiscoverTrendsPage({super.key});

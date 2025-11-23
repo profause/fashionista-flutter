@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/presentation/screens/trends/discover_trends_page.dart';
+import 'package:fashionista/presentation/screens/trends/for_you_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -187,7 +188,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         // -------------------------------
         body: TabBarView(
           controller: _tabController,
-          children: [DiscoverTrendsPage(), Placeholder()],
+          children: [DiscoverTrendsPage(), ForYouPage()],
         ),
       ),
     );
@@ -201,11 +202,11 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
 
   /// Minimum height (when collapsed)
   @override
-  double get minExtent => _tabBar.preferredSize.height;
+  double get minExtent => _tabBar.preferredSize.height+6;
 
   /// Maximum height (when expanded)
   @override
-  double get maxExtent => _tabBar.preferredSize.height;
+  double get maxExtent => _tabBar.preferredSize.height+6;
 
   @override
   Widget build(

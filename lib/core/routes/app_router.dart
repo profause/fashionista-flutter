@@ -7,6 +7,7 @@ import 'package:fashionista/presentation/screens/closet/add_or_edit_outfit_plan_
 import 'package:fashionista/presentation/screens/closet/add_or_edit_outfit_screen.dart';
 import 'package:fashionista/presentation/screens/closet/closet_screen.dart';
 import 'package:fashionista/presentation/screens/designers/designer_details_screen.dart';
+import 'package:fashionista/presentation/screens/designers/designers_screen.dart';
 import 'package:fashionista/presentation/screens/home/home_screen.dart';
 import 'package:fashionista/presentation/screens/main/main_screen.dart';
 import 'package:fashionista/presentation/screens/notification/notification_screen.dart';
@@ -88,6 +89,11 @@ GoRouter appRouter = GoRouter(
       name: 'NotificationScreen',
       path: '/notifications',
       builder: (context, state) => const NotificationScreen(),
+    ),
+    GoRoute(
+      name: 'DesignersScreen',
+      path: '/designers',
+      builder: (context, state) => const DesignersScreen(),
     ),
     GoRoute(
       name: 'EditProfileScreen',
