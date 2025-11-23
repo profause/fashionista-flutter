@@ -30,7 +30,7 @@ final ThemeData fashionistaLightTheme = ThemeData(
     onInverseSurface: Color(0xFFFFFFFF),
     inversePrimary: Color(0xFFFFFFFF),
   ),
-  scaffoldBackgroundColor: const Color(0xFFFAFAFA),
+  scaffoldBackgroundColor: const Color(0xFFF7F7F7),
   brightness: Brightness.light,
   appBarTheme: const AppBarTheme(
     backgroundColor: Color(0xFF1C1C1C),

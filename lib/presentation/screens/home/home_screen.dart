@@ -1,16 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
-import 'package:fashionista/presentation/screens/trends/discover_trends_screen.dart';
-import 'package:fashionista/presentation/screens/trends/trends_screen.dart';
+import 'package:fashionista/presentation/screens/trends/discover_trends_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 class HomeScreen extends StatefulWidget {
-  final VoidCallback? navigationCallback;
   final String? route;
-  const HomeScreen({super.key, this.navigationCallback, this.route});
+  const HomeScreen({super.key, this.route});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -20,7 +18,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   TabController? _tabController;
   ScrollController? _scrollController;
   late UserBloc userBloc;
-  static const double expandedHeight = 84;
 
   @override
   void initState() {
@@ -40,17 +37,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
     _scrollController = ScrollController();
     userBloc = context.read<UserBloc>();
-
-    // Auto-collapse the SliverAppBar after the widget is built
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController!.hasClients) {
-        // _scrollController!.animateTo(
-        //   120.0, // The expandedHeight of the collapsible SliverAppBar
-        //   duration: const Duration(milliseconds: 300),
-        //   curve: Curves.easeInOut,
-        // );
-      }
-    });
   }
 
   @override
@@ -65,279 +51,190 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    //UserBloc userBloc = context.read<UserBloc>();
-    //final user = userBloc.state;
-
     return Scaffold(
       body: NestedScrollView(
-        //controller: _scrollController,
-        physics: const ClampingScrollPhysics(),
-        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
-          return <Widget>[
-            SliverOverlapAbsorber(
-              handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
-              sliver: SliverAppBar(
-                pinned: true,
-                floating: true,
-                toolbarHeight: 0,
-                expandedHeight: expandedHeight,
-                backgroundColor: colorScheme.onPrimary,
-                foregroundColor: colorScheme.primary,
-                elevation: 0,
-                flexibleSpace: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final percent =
-                        ((constraints.maxHeight - kToolbarHeight) /
-                                (expandedHeight - kToolbarHeight))
-                            .clamp(0.0, 1.0); // scroll progress 0..1
-                    return FlexibleSpaceBar(
-                      collapseMode: CollapseMode.parallax,
-                      background: SafeArea(
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 16, right: 12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Opacity(
-                                opacity:
-                                    percent, // ✅ fade name out as it collapses
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      'Fashionista',
-                                      style: textTheme.titleMedium!.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 22,
-                                        color: colorScheme.primary,
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        GestureDetector(
-                                          onTap: () {
-                                            context.push('/trends-new');
-                                          },
-                                          child: Hero(
-                                            tag: 'add-post',
-                                            child: Icon(
-                                              size: 22,
-                                              Icons.add_a_photo_rounded,
-                                              color: colorScheme.primary,
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        StreamBuilder<QuerySnapshot>(
-                                          stream: FirebaseFirestore.instance
-                                              .collection('notifications')
-                                              .where(
-                                                'to',
-                                                isEqualTo: userBloc.state.uid,
-                                              ) // optional if user-based
-                                              .where('status', isEqualTo: 'new')
-                                              .limit(1)
-                                              .snapshots(), // 🔥 live updates
-                                          builder: (context, snapshot) {
-                                            final hasNew =
-                                                snapshot.hasData &&
-                                                snapshot.data!.docs.isNotEmpty;
-
-                                            return GestureDetector(
-                                              onTap: () {
-                                                context.push('/notifications');
-                                              },
-                                              child: Stack(
-                                                children: [
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                          8.0,
-                                                        ),
-                                                    child: Icon(
-                                                      size: 24,
-                                                      Icons.notifications,
-                                                      color:
-                                                          AppTheme.appIconColor,
-                                                    ),
-                                                  ),
-                                                  if (hasNew) // ✅ only show dot when there are new notifications
-                                                    Positioned(
-                                                      top: 8,
-                                                      right: 10,
-                                                      child: Container(
-                                                        width: 8,
-                                                        height: 8,
-                                                        decoration: BoxDecoration(
-                                                          color:
-                                                              Theme.of(context)
-                                                                  .colorScheme
-                                                                  .onSurface
-                                                                  .withValues(
-                                                                    alpha: 0.9,
-                                                                  ),
-                                                          shape:
-                                                              BoxShape.circle,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                ],
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                bottom: TabBar(
-                  labelColor: colorScheme.primary,
-                  unselectedLabelColor: AppTheme.darkGrey,
-                  indicatorColor: AppTheme.appIconColor.withValues(alpha: 1),
-                  dividerHeight: 0.0,
-                  indicatorWeight: 2,
-                  tabAlignment: TabAlignment.center,
-                  labelPadding: const EdgeInsets.all(0),
-                  indicator: UnderlineTabIndicator(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(
-                      width: 4,
-                      color: AppTheme.appIconColor.withValues(alpha: 1),
-                    ),
-                  ),
-                  dividerColor: colorScheme.primary.withValues(alpha: 0.2),
-                  controller: _tabController,
-                  tabs: <Widget>[
-                    // Container(
-                    //   margin: const EdgeInsets.symmetric(
-                    //     vertical: 8,
-                    //     horizontal: 8,
-                    //   ),
-                    //   child: Text(
-                    //     "For You",
-                    //     style: textTheme.bodyMedium!.copyWith(
-                    //       fontWeight: FontWeight.bold,
-                    //       color: colorScheme.primary,
-                    //     ),
-                    //   ),
-                    // ),
-                    Container(
-                      margin: const EdgeInsets.symmetric(
-                        vertical: 8,
-                        horizontal: 8,
-                      ),
-                      child: Text(
-                        "Trends",
-                        style: textTheme.bodyMedium!.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.primary,
-                        ),
-                      ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.symmetric(
-                        vertical: 8,
-                        horizontal: 8,
-                      ),
-                      child: Text(
-                        "Discover",
-                        style: textTheme.bodyMedium!.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.primary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+        floatHeaderSlivers: true,
+        headerSliverBuilder: (_, _) => [
+          // -------------------------------
+          // 1. Twitter/X-style fixed app bar
+          // -------------------------------
+          SliverAppBar(
+            backgroundColor: colorScheme.onPrimary,
+            foregroundColor: colorScheme.primary,
+            pinned: false, // ← stays fixed ALWAYS
+            floating: true,
+            snap: false,
+            title: Text(
+              "Fashionista",
+              style: textTheme.titleMedium!.copyWith(
+                fontWeight: FontWeight.bold,
+                fontSize: 22,
+                color: colorScheme.primary,
               ),
             ),
+            actions: [
+              Hero(
+                tag: 'add-post',
+                child: IconButton(
+                  icon: Icon(
+                    Icons.add_a_photo_rounded,
+                    color: colorScheme.primary,
+                  ),
+                  onPressed: () {
+                    context.push('/trends-new');
+                  },
+                ),
+              ),
+              StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('notifications')
+                    .where(
+                      'to',
+                      isEqualTo: userBloc.state.uid,
+                    ) // optional if user-based
+                    .where('status', isEqualTo: 'new')
+                    .limit(1)
+                    .snapshots(), // 🔥 live updates
+                builder: (context, snapshot) {
+                  final hasNew =
+                      snapshot.hasData && snapshot.data!.docs.isNotEmpty;
 
-            // Separate pinned SliverAppBar for tabs
-          ];
-        },
+                  return IconButton(
+                    icon: Stack(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Icon(
+                            Icons.notifications,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                        if (hasNew) // ✅ only show dot when there are new notifications
+                          Positioned(
+                            top: 8,
+                            right: 10,
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: AppTheme.appIconColor,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+
+                    onPressed: () {
+                      context.push('/notifications');
+                    },
+                  );
+                },
+              ),
+            ],
+          ),
+
+          // -------------------------------
+          // 2. Twitter/X-style pinned TabBar
+          // -------------------------------
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _TabBarDelegate(
+              TabBar(
+                controller: _tabController,
+                indicatorColor: colorScheme.primary,
+                labelColor: colorScheme.primary,
+                unselectedLabelColor: AppTheme.darkGrey,
+                dividerHeight: 0.5,
+                indicatorWeight: 2,
+                dividerColor: colorScheme.primary.withValues(alpha: 0.2),
+                indicator: UnderlineTabIndicator(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(
+                    width: 4,
+                    color: AppTheme.appIconColor.withValues(alpha: 1),
+                  ),
+                ),
+                tabs: [
+                  Tab(
+                    child: Text(
+                      "Discover",
+                      style: textTheme.bodyMedium!.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                    //text: "Discover"
+                  ),
+                  Tab(
+                    //text: "Following",
+                    child: Text(
+                      "For You",
+                      style: textTheme.bodyMedium!.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+
+        // -------------------------------
+        // 3. Scrollable content only
+        // -------------------------------
         body: TabBarView(
           controller: _tabController,
-          children: <Widget>[
-            // user.accountType == 'Designer'
-            //     ? DesignerHomePage(
-            //         navigationCallback: widget.navigationCallback?.call,
-            //       )
-            //     : UserHomePage(),
-            //TrendsScreen(),
-            //DiscoverTrendsScreen(),
-            Builder(
-              builder: (context) {
-                return CustomScrollView(
-                  // Let this scroll work with NestedScrollView
-                  key: PageStorageKey("trends"),
-                  slivers: [
-                    SliverOverlapInjector(
-                      handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
-                        context,
-                      ),
-                    ),
-                    TrendsScreen(),
-                  ],
-                );
-              },
-            ),
-            Builder(
-              builder: (context) {
-                return CustomScrollView(
-                  // Let this scroll work with NestedScrollView
-                  key: PageStorageKey("discover"),
-                  slivers: [
-                    SliverOverlapInjector(
-                      handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
-                        context,
-                      ),
-                    ),
-                    DiscoverTrendsScreen(),
-                  ],
-                );
-              },
-            ),
-          ],
+          children: [DiscoverTrendsPage(), Placeholder()],
         ),
       ),
-      // floatingActionButton: Hero(
-      //   tag: 'add-trend-button',
-      //   child: Material(
-      //     color: Theme.of(context).colorScheme.primary.withValues(alpha: 1),
-      //     elevation: 6,
-      //     shape: const CircleBorder(),
-      //     child: InkWell(
-      //       onTap: () async {
-      //         final result = await Navigator.push(
-      //           context,
-      //           MaterialPageRoute(builder: (_) => const AddTrendScreen()),
-      //         );
-
-      //         // if AddClientScreen popped with "true", reload
-      //         if (result == true && mounted) {
-      //           context.read<TrendBloc>().add(
-      //             const LoadTrendsCacheFirstThenNetwork(''),
-      //           );
-      //         }
-      //       },
-      //       customBorder: const CircleBorder(),
-      //       child: SizedBox(
-      //         width: 56,
-      //         height: 56,
-      //         child: Icon(Icons.add, color: colorScheme.onPrimary),
-      //       ),
-      //     ),
-      //   ),
-      // ),
     );
   }
+}
+
+// --- Helper for the pinned TabBar ---
+class _TabBarDelegate extends SliverPersistentHeaderDelegate {
+  final TabBar _tabBar;
+  _TabBarDelegate(this._tabBar);
+
+  /// Minimum height (when collapsed)
+  @override
+  double get minExtent => _tabBar.preferredSize.height;
+
+  /// Maximum height (when expanded)
+  @override
+  double get maxExtent => _tabBar.preferredSize.height;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    final totalScrollRange = maxExtent - minExtent;
+
+    // progress goes from 0 (expanded) → 1 (collapsed)
+    final progress = shrinkOffset / totalScrollRange;
+
+    // Smooth padding animation: more padding when collapsed
+    //final dynamicPadding = 24 - (24 * (1 - progress)); // 24 → 12
+
+    // Smooth opacity animation
+    final opacity = (1.0 - progress).clamp(0.0, 1.0);
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 100),
+      curve: Curves.fastOutSlowIn,
+      //padding: EdgeInsets.only(bottom: 12),
+      alignment: Alignment.center,
+      color: Theme.of(context).colorScheme.onPrimary,
+      child: Opacity(opacity: opacity, child: _tabBar),
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
+      true;
 }

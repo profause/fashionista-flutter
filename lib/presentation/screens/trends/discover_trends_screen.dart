@@ -382,9 +382,10 @@ class _DiscoverTrendsScreenState extends State<DiscoverTrendsScreen> {
   }
 
   void _loadFashionTrends() {
-    context.read<TrendBloc>().add(
-      const LoadTrendsCacheForDiscoverPage('discover'),
-    );
+    context.read<TrendBloc>().add(const LoadTrendsCacheFirst(limit: 10));
+    // context.read<TrendBloc>().add(
+    //   const LoadTrendsCacheForDiscoverPage('discover'),
+    // );
   }
 
   void _loadGetStartedStats() {

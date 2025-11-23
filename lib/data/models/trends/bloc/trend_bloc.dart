@@ -18,6 +18,7 @@ class TrendBloc extends Bloc<TrendBlocEvent, TrendBlocState> {
     on<UpdateTrend>(_updateTrend);
     on<DeleteTrend>(_deleteTrend);
     on<LoadTrendsCacheFirstThenNetwork>(_onLoadTrendsCacheFirstThenNetwork);
+    on<LoadTrendsCacheFirst>(_loadCacheFirst);
     on<LoadTrendsCacheForDiscoverPage>(_onLoadTrendsCacheForDiscoverPage);
 
     on<ClearTrend>((event, emit) => emit(const TrendInitial()));
@@ -121,7 +122,7 @@ class TrendBloc extends Bloc<TrendBlocEvent, TrendBlocState> {
         emit(TrendsLoaded(cachedItems, fromCache: true));
       }
       // 2️⃣ Fetch from network
-      final result = await sl<FirebaseTrendsService>().fetchTrends();
+      final result = await sl<FirebaseTrendsService>().fetchTrends(10);
 
       result.fold(
         (failure) async {
@@ -130,19 +131,19 @@ class TrendBloc extends Bloc<TrendBlocEvent, TrendBlocState> {
           }
           // else → keep showing cached quietly
         },
-        (clients) async {
+        (trends) async {
           try {
-            if (clients.isEmpty) {
+            if (trends.isEmpty) {
               if (cachedItems.isEmpty) {
                 emit(const TrendsEmpty());
               }
               return;
             }
 
-            if (cachedItems.toString() != clients.toString()) {
-              emit(TrendsLoaded(clients, fromCache: false));
+            if (cachedItems.toString() != trends.toString()) {
+              emit(TrendsLoaded(trends, fromCache: false));
               // 4️⃣ Update cache and emit fresh data
-              await sl<HiveTrendService>().insertItems(clients);
+              await sl<HiveTrendService>().insertItems(trends);
             } else {
               // no change
               emit(TrendsLoaded(cachedItems, fromCache: true));
@@ -157,6 +158,55 @@ class TrendBloc extends Bloc<TrendBlocEvent, TrendBlocState> {
       if (emit.isDone) return; // <- safeguard
       emit(TrendError(e.toString()));
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  //  CACHE FIRST → NETWORK REFRESH (Shared by all pages)
+  // ---------------------------------------------------------------------------
+
+  Future<void> _loadCacheFirst(LoadTrendsCacheFirst event, Emitter emit) async {
+    emit(const TrendLoading());
+
+    final cached = await sl<HiveTrendService>().getItems("");
+
+    // Show cached immediately if available
+    if (cached.isNotEmpty) {
+      emit(TrendsLoaded(cached, fromCache: true));
+    }
+
+    // 2️⃣ Fetch from network
+    final result = await sl<FirebaseTrendsService>().fetchTrends(event.limit!);
+
+    await result.fold(
+      // ERROR → only show if nothing in cache
+      (failure) async {
+        if (cached.isEmpty) emit(TrendError(failure.toString()));
+      },
+
+      // SUCCESS
+      (networkTrends) async {
+        if (networkTrends.isEmpty) {
+          if (cached.isEmpty) emit(const TrendsEmpty());
+          return;
+        }
+
+        // Detect changes (compare IDs only)
+        final changed = !_sameIds(cached, networkTrends);
+
+        if (changed) {
+          emit(TrendsLoaded(networkTrends, fromCache: false));
+          await sl<HiveTrendService>().insertItems(networkTrends);
+        } else {
+          emit(TrendsLoaded(cached, fromCache: true));
+        }
+      },
+    );
+  }
+
+  bool _sameIds(List a, List b) {
+    final aIds = a.map((e) => e.uid).toSet();
+    final bIds = b.map((e) => e.uid).toSet();
+    return aIds.containsAll(bIds) && bIds.containsAll(aIds);
   }
 
   Future<void> _onLoadTrendsCacheForDiscoverPage(

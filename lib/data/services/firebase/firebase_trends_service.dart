@@ -8,7 +8,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 
 abstract class FirebaseTrendsService {
   Future<Either> findTrendsCreatedBy(String createdBy);
-  Future<Either<String, List<TrendFeedModel>>> fetchTrends();
+  Future<Either<String, List<TrendFeedModel>>> fetchTrends(int limit);
   Future<Either<String, List<TrendFeedModel>>> fetchTrendsWithFilter(int limit);
   Future<Either> addTrendToFirestore(TrendFeedModel trend);
   Future<Either> updateTrendToFirestore(TrendFeedModel trend);
@@ -76,7 +76,7 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
   }
 
   @override
-  Future<Either<String, List<TrendFeedModel>>> fetchTrends() async {
+  Future<Either<String, List<TrendFeedModel>>> fetchTrends(int limit) async {
     try {
       final firestore = FirebaseFirestore.instance;
       final querySnapshot = await firestore

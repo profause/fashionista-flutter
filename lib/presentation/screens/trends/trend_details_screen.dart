@@ -433,11 +433,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
   Future<void> _deleteTrend(TrendFeedModel trend) async {
     try {
       // create a dynamic list of futures
-      showDialog(
-        context: context,
-        barrierDismissible: false, // Prevent dismissing
-        builder: (_) => const Center(child: CircularProgressIndicator()),
-      );
+      showLoadingDialog(context);
       final List<Future<dartz.Either>> futures = trend.featuredMedia
           .map((e) => sl<FirebaseTrendsService>().deleteTrendImage(e.url!))
           .toList();
@@ -463,19 +459,28 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
       }
 
       if (!mounted) return;
-      Navigator.pop(context);
-      // context.read<ClosetItemBloc>().add(
-      //   LoadClosetItemsCacheFirstThenNetwork(''),
-      // );
-
       context.read<TrendBloc>().add(DeleteTrend(trend.uid!));
-
-      Navigator.pop(context, true);
+      dismissLoadingDialog(context);
+      Navigator.pop(context);
     } on firebase_auth.FirebaseException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(e.message!)));
+    }
+  }
+
+  void showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // prevent accidental dismiss
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  void dismissLoadingDialog(BuildContext context) {
+    if (Navigator.canPop(context)) {
+      Navigator.of(context, rootNavigator: true).pop();
     }
   }
 
@@ -1084,20 +1089,6 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
       context.pop();
     } on firebase_auth.FirebaseException catch (e) {
       debugPrint(e.message);
-    }
-  }
-
-  void showLoadingDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: false, // prevent accidental dismiss
-      builder: (_) => const Center(child: CircularProgressIndicator()),
-    );
-  }
-
-  void dismissLoadingDialog(BuildContext context) {
-    if (Navigator.canPop(context)) {
-      Navigator.of(context, rootNavigator: true).pop();
     }
   }
 }

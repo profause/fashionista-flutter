@@ -56,6 +56,15 @@ class LoadTrendsCacheFirstThenNetwork extends TrendBlocEvent {
   List<Object?> get props => [uid];
 }
 
+class LoadTrendsCacheFirst extends TrendBlocEvent {
+  final int? limit;
+  const LoadTrendsCacheFirst({this.limit});
+
+  @override
+  List<Object?> get props => [limit];
+}
+
+
 class LoadTrendsCacheForDiscoverPage extends TrendBlocEvent {
   final String uid;
   const LoadTrendsCacheForDiscoverPage(this.uid);

@@ -30,7 +30,7 @@ class TrendRepositoryImpl extends TrendRepository {
 
   @override
   Future<Either<String, List<TrendFeedModel>>> fetchTrends() {
-    return sl<FirebaseTrendsService>().fetchTrends();
+    return sl<FirebaseTrendsService>().fetchTrends(10);
   }
 
   @override
