@@ -202,11 +202,11 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
 
   /// Minimum height (when collapsed)
   @override
-  double get minExtent => _tabBar.preferredSize.height+6;
+  double get minExtent => _tabBar.preferredSize.height;
 
   /// Maximum height (when expanded)
   @override
-  double get maxExtent => _tabBar.preferredSize.height+6;
+  double get maxExtent => _tabBar.preferredSize.height;
 
   @override
   Widget build(

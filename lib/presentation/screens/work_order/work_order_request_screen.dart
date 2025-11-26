@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/author/author_model.dart';
+import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/data/models/notification/notification_model.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
@@ -9,6 +10,7 @@ import 'package:fashionista/data/models/work_order/bloc/work_order_bloc.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_event.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_state.dart';
 import 'package:fashionista/data/models/work_order/work_order_model.dart';
+import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_notification_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_user_service.dart';
 import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
@@ -31,6 +33,8 @@ class WorkOrderRequestScreen extends StatefulWidget {
 class _WorkOrderRequestScreenState extends State<WorkOrderRequestScreen> {
   late WorkOrderModel workOrderInfo;
   late UserBloc _userBloc;
+  late ValueNotifier<bool> isMyClient = ValueNotifier(false);
+  late bool isCheckingMyClient = false;
   @override
   void initState() {
     _userBloc = context.read<UserBloc>();
@@ -80,6 +84,7 @@ class _WorkOrderRequestScreenState extends State<WorkOrderRequestScreen> {
               workOrderInfo = workorder;
               final isRequest = workorder.workOrderType == 'REQUEST';
               final isCancelled = workorder.status == 'CANCELLED';
+              checkIfMyClient(workOrderInfo.client!.mobileNumber!);
               return SingleChildScrollView(
                 padding: EdgeInsets.zero,
                 child: Column(
@@ -155,33 +160,69 @@ class _WorkOrderRequestScreenState extends State<WorkOrderRequestScreen> {
                               ),
                             ],
                           ),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              OutlinedButton.icon(
-                                onPressed: () {},
-                                icon: const Icon(Icons.person_rounded),
-                                label: const Text('Add as client'),
-                                style: OutlinedButton.styleFrom(
-                                  side: BorderSide.none,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                              ),
+                          ValueListenableBuilder<bool>(
+                            valueListenable: isMyClient,
+                            builder: (context, isMyClient, _) {
+                              if (!isMyClient) {
+                                return Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    OutlinedButton.icon(
+                                      onPressed: () {
+                                        //_addAsClient(workOrderInfo.client);
+                                      },
+                                      icon: const Icon(Icons.person_rounded),
+                                      label: const Text('Add as client'),
+                                      style: OutlinedButton.styleFrom(
+                                        side: BorderSide.none,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
 
-                              // 🔹 Vertical divider between buttons
-                              Container(
-                                height: 24, // control height
-                                width: 1,
-                                color: Colors.grey.withValues(alpha: 0.4),
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                ),
-                              ),
+                                    // 🔹 Vertical divider between buttons
+                                    Container(
+                                      height: 24, // control height
+                                      width: 1,
+                                      color: Colors.grey.withValues(alpha: 0.4),
+                                      margin: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                      ),
+                                    ),
 
-                              OutlinedButton.icon(
+                                    OutlinedButton.icon(
+                                      onPressed: () async {
+                                        final Uri dialUri = Uri(
+                                          scheme: 'tel',
+                                          path: workOrderInfo
+                                              .client!
+                                              .mobileNumber!,
+                                        );
+                                        await launchUrl(
+                                          dialUri,
+                                          mode: LaunchMode.externalApplication,
+                                        );
+                                      },
+                                      icon: const Icon(Icons.call_rounded),
+                                      label: const Text('Contact client'),
+                                      style: OutlinedButton.styleFrom(
+                                        side: BorderSide.none,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }
+                              return OutlinedButton.icon(
                                 onPressed: () async {
                                   final Uri dialUri = Uri(
                                     scheme: 'tel',
@@ -200,8 +241,8 @@ class _WorkOrderRequestScreenState extends State<WorkOrderRequestScreen> {
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
-                              ),
-                            ],
+                              );
+                            },
                           ),
                         ],
                       ),
@@ -613,7 +654,8 @@ class _WorkOrderRequestScreenState extends State<WorkOrderRequestScreen> {
         final notification = NotificationModel.empty().copyWith(
           uid: Uuid().v4(),
           title: 'Work Order Update',
-          description: '${user.fullName} has accepted your work order - ${workOrderInfo.description}',
+          description:
+              '${user.fullName} has accepted your work order - ${workOrderInfo.description}',
           createdAt: DateTime.now().millisecondsSinceEpoch,
           type: 'work_order_status_progress',
           refId: workOrderInfo.uid,
@@ -633,6 +675,33 @@ class _WorkOrderRequestScreenState extends State<WorkOrderRequestScreen> {
     if (!mounted) return;
     dismissLoadingDialog(context);
     //context.pop(); // notify ClientsScreen
+  }
+
+  Future<void> addAsClient(Client client) async {
+    if (mounted) {
+      showLoadingDialog(context);
+    }
+
+    User user = _userBloc.state;
+    String createdBy = user.uid!;
+  }
+
+  Future<void> checkIfMyClient(String mobileNumber) async {
+    isCheckingMyClient = true;
+debugPrint('checking if my client');
+    final isMyClientResult = await sl<FirebaseClientsService>().isMyClient(
+      mobileNumber,
+    );
+
+    isMyClientResult.fold(
+      (l) {
+        isMyClient.value = false;
+      },
+      (r) {
+        isMyClient.value = r;
+      },
+    );
+    isCheckingMyClient = false;
   }
 
   Future<void> _cancelWorkOrder(WorkOrderModel workOrderInfo) async {

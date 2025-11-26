@@ -7,7 +7,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 abstract class FirebaseClientsService {
   Future<Either> fetchClientsFromFirestore(String uid);
   Future<Either<String, List<Client>>> findClientsFromFirestore(String uid);
-  Future<Either> findClientByMobileNumber(String uid);
+  Future<Either> findClientByMobileNumber(String mobileNumber);
+   Future<Either<String, bool>> isMyClient(String mobileNumber);
   Future<Either> findClientById(String uid);
   Future<Either> addClientToFirestore(Client client);
   Future<Either> updateClientToFirestore(Client client);
@@ -140,6 +141,29 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
       return Left(e.message ?? 'An unknown Firebase error occurred');
     } catch (e) {
       return Left(e.toString());
+    }
+  }
+
+  @override
+  Future<Either<String, bool>> isMyClient(String mobileNumber) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      QuerySnapshot querySnapshot = await firestore
+          .collection('clients')
+          .where('mobile_number', isEqualTo: mobileNumber)
+          .where(
+            'created_by',
+            isEqualTo: FirebaseAuth.instance.currentUser!.uid,
+          )
+          .limit(1)
+          .get();
+      if (querySnapshot.docs.isEmpty) {
+        return Left('No user found');
+      }
+      bool isMyClient = querySnapshot.docs.first.data() != null;
+      return Right(isMyClient);
+    } on FirebaseException catch (e) {
+      return Left(e.message!);
     }
   }
 
