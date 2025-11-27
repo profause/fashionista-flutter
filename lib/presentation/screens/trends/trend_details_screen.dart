@@ -109,7 +109,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
           case TrendUpdated(:final trend):
             trendInfo = trend;
             return Scaffold(
-              resizeToAvoidBottomInset: false,
+              resizeToAvoidBottomInset: true,
               backgroundColor: colorScheme.surface,
               appBar: AppBar(
                 foregroundColor: colorScheme.primary,
@@ -215,7 +215,38 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                               style: textTheme.bodyLarge,
                               textAlign: TextAlign.start,
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              children: trendInfo.tags!.isEmpty
+                                  ? [const SizedBox(height: 1)]
+                                  : trendInfo.tags!
+                                        .split(',')
+                                        .where((tag) => tag.trim().isNotEmpty)
+                                        .map(
+                                          (tag) => Chip(
+                                            elevation: 0,
+                                            backgroundColor: Colors.transparent,
+                                            label: Text('#$tag'),
+                                            visualDensity:
+                                                VisualDensity.compact,
+                                            materialTapTargetSize:
+                                                MaterialTapTargetSize
+                                                    .shrinkWrap,
+                                            shape: RoundedRectangleBorder(
+                                              side: BorderSide(
+                                                color: colorScheme.surface,
+                                                width: 1,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                          ),
+                                        )
+                                        .toList(),
+                            ),
+                            const SizedBox(height: 12),
                             if (trendInfo.featuredMedia.isNotEmpty) ...[
                               FeaturedMediaWidget(
                                 featuredMedia: trendInfo.featuredMedia,
@@ -689,314 +720,342 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                 return GestureDetector(
                   // Tap outside text field to dismiss keyboard
                   onTap: () => FocusScope.of(context).unfocus(),
-                  child: SingleChildScrollView(
-                    controller: scrollController,
-                    padding: const EdgeInsets.only(top: 16, bottom: 16),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Top handle
-                        Center(
-                          child: Container(
-                            height: 4,
-                            width: 40,
-                            margin: const EdgeInsets.only(bottom: 16),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[400],
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-
-                        Center(
-                          child: Text(
-                            "Share this trend with your favorite designers",
-                            style: Theme.of(context).textTheme.bodyMedium!
-                                .copyWith(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 12, right: 12),
-                          child: TextField(
-                            controller: designerSearchTextFieldController,
-                            decoration: InputDecoration(
-                              hintText: "Search designer's name",
-                              hintStyle: textTheme.bodyMedium!.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                              prefixIcon: Icon(
-                                Icons.search,
-                                color: colorScheme.primary,
-                              ),
-                              filled: true,
-                              fillColor: colorScheme.surfaceContainerHighest,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 0,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(
+                        context,
+                      ).viewInsets.bottom, // 👈 FIX
+                    ),
+                    child: SingleChildScrollView(
+                      controller: scrollController,
+                      padding: const EdgeInsets.only(top: 16, bottom: 16),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Top handle
+                          Center(
+                            child: Container(
+                              height: 4,
+                              width: 40,
+                              margin: const EdgeInsets.only(bottom: 16),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[400],
+                                borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            onChanged: (value) {
-                              setModalState(() => searchText = value);
-                            },
                           ),
-                        ),
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.only(
-                            left: 12,
-                            right: 12,
-                            top: 0,
-                            bottom: 8,
+
+                          Center(
+                            child: Text(
+                              "Share this trend with your favorite designers",
+                              style: Theme.of(context).textTheme.bodyMedium!
+                                  .copyWith(fontWeight: FontWeight.bold),
+                            ),
                           ),
-                          child: ValueListenableBuilder<List<Designer>>(
-                            valueListenable: designersNotifier,
-                            builder: (context, designers, _) {
-                              if (loadingFashionDesigners) {
-                                return const Center(
-                                  child: SizedBox(
-                                    height: 24,
-                                    width: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  ),
-                                );
-                              }
-
-                              if (designers.isEmpty) {
-                                return Text(
-                                  "No designers found",
-                                  style: textTheme.bodyMedium,
-                                );
-                              }
-                              const itemHeight = 64.0;
-                              final filteredDesigners = searchText.isEmpty
-                                  ? designers
-                                  : designers.where((designer) {
-                                      final name = designer.name.toLowerCase();
-                                      final mobileNumber = designer.mobileNumber
-                                          .toLowerCase();
-                                      final businessName = designer.businessName
-                                          .toLowerCase();
-                                      return name.contains(
-                                            searchText.toLowerCase(),
-                                          ) ||
-                                          mobileNumber.contains(
-                                            searchText.toLowerCase(),
-                                          ) ||
-                                          businessName.contains(
-                                            searchText.toLowerCase(),
-                                          );
-                                    }).toList();
-
-                              return ValueListenableBuilder<List<Designer>>(
-                                valueListenable: _selectedDesignersNotifier,
-                                builder: (context, selectedDesigners, _) {
-                                  return SizedBox(
-                                    height:
-                                        (filteredDesigners.length * itemHeight)
-                                            .clamp(0, 300),
-                                    child: Container(
-                                      clipBehavior: Clip.antiAlias,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(12),
+                          const SizedBox(height: 12),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 12, right: 12),
+                            child: TextField(
+                              controller: designerSearchTextFieldController,
+                              decoration: InputDecoration(
+                                hintText: "Search designer's name",
+                                hintStyle: textTheme.bodyMedium!.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                                prefixIcon: Icon(
+                                  Icons.search,
+                                  color: colorScheme.primary,
+                                ),
+                                filled: true,
+                                fillColor: colorScheme.surfaceContainerHighest,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 0,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                              onChanged: (value) {
+                                setModalState(() => searchText = value);
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.only(
+                              left: 12,
+                              right: 12,
+                              top: 0,
+                              bottom: 8,
+                            ),
+                            child: ValueListenableBuilder<List<Designer>>(
+                              valueListenable: designersNotifier,
+                              builder: (context, designers, _) {
+                                if (loadingFashionDesigners) {
+                                  return const Center(
+                                    child: SizedBox(
+                                      height: 24,
+                                      width: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
                                       ),
-                                      child: ListView.separated(
-                                        padding: EdgeInsets.zero,
-                                        itemCount: filteredDesigners.length,
-                                        separatorBuilder: (_, _) =>
-                                            const SizedBox(height: 0.5),
-                                        itemBuilder: (context, index) {
-                                          final item = filteredDesigners[index];
-                                          final isSelected = selectedDesigners
-                                              .any((d) => d.uid == item.uid);
-                                          return InkWell(
-                                            onTap: () {
-                                              final current =
-                                                  List<Designer>.from(
-                                                    selectedDesigners,
+                                    ),
+                                  );
+                                }
+
+                                if (designers.isEmpty) {
+                                  return Text(
+                                    "No designers found",
+                                    style: textTheme.bodyMedium,
+                                  );
+                                }
+                                const itemHeight = 64.0;
+                                final filteredDesigners = searchText.isEmpty
+                                    ? designers
+                                    : designers.where((designer) {
+                                        final name = designer.name
+                                            .toLowerCase();
+                                        final mobileNumber = designer
+                                            .mobileNumber
+                                            .toLowerCase();
+                                        final businessName = designer
+                                            .businessName
+                                            .toLowerCase();
+                                        return name.contains(
+                                              searchText.toLowerCase(),
+                                            ) ||
+                                            mobileNumber.contains(
+                                              searchText.toLowerCase(),
+                                            ) ||
+                                            businessName.contains(
+                                              searchText.toLowerCase(),
+                                            );
+                                      }).toList();
+
+                                return ValueListenableBuilder<List<Designer>>(
+                                  valueListenable: _selectedDesignersNotifier,
+                                  builder: (context, selectedDesigners, _) {
+                                    return SizedBox(
+                                      height:
+                                          (filteredDesigners.length *
+                                                  itemHeight)
+                                              .clamp(0, 300),
+                                      child: Container(
+                                        clipBehavior: Clip.antiAlias,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        child: ListView.separated(
+                                          padding: EdgeInsets.zero,
+                                          //physics: const NeverScrollableScrollPhysics(),
+                                          itemCount: filteredDesigners.length,
+                                          separatorBuilder: (_, _) =>
+                                              const SizedBox(height: 0.5),
+                                          itemBuilder: (context, index) {
+                                            final item =
+                                                filteredDesigners[index];
+                                            final isSelected = selectedDesigners
+                                                .any((d) => d.uid == item.uid);
+                                            return InkWell(
+                                              onTap: () {
+                                                final current =
+                                                    List<Designer>.from(
+                                                      selectedDesigners,
+                                                    );
+                                                if (isSelected) {
+                                                  current.removeWhere(
+                                                    (d) => d.uid == item.uid,
                                                   );
-                                              if (isSelected) {
-                                                current.removeWhere(
-                                                  (d) => d.uid == item.uid,
-                                                );
-                                              } else {
-                                                current.add(item);
-                                              }
-                                              _selectedDesignersNotifier.value =
-                                                  current;
-                                            },
-                                            child: Container(
-                                              padding: EdgeInsets.only(
-                                                left: 4,
-                                                right: 4,
-                                              ),
-                                              color: isSelected
-                                                  ? colorScheme.primary
-                                                        .withValues(alpha: 0.05)
-                                                  : Colors.transparent,
-                                              child: ListTile(
-                                                dense: true,
-                                                contentPadding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 4,
-                                                      vertical: 0,
-                                                    ),
-                                                horizontalTitleGap: 6,
-                                                minLeadingWidth: 24,
-                                                leading: CircleAvatar(
-                                                  radius: 18,
-                                                  backgroundColor:
-                                                      AppTheme.lightGrey,
-                                                  backgroundImage:
-                                                      item
-                                                              .profileImage
-                                                              ?.isNotEmpty ==
-                                                          true
-                                                      ? CachedNetworkImageProvider(
-                                                          item.profileImage!,
-                                                          errorListener:
-                                                              (error) {},
-                                                        )
-                                                      : null,
-                                                  child:
-                                                      item
-                                                              .profileImage
-                                                              ?.isEmpty ==
-                                                          true
-                                                      ? DefaultProfileAvatar(
-                                                          name: null,
-                                                          size: 18 * 1.6,
-                                                          uid: trendInfo
-                                                              .author
-                                                              .uid!,
-                                                        )
-                                                      : null,
+                                                } else {
+                                                  current.add(item);
+                                                }
+                                                _selectedDesignersNotifier
+                                                        .value =
+                                                    current;
+                                              },
+                                              child: Container(
+                                                padding: EdgeInsets.only(
+                                                  left: 4,
+                                                  right: 4,
                                                 ),
-                                                title: Row(
-                                                  children: [
-                                                    Text(
-                                                      item.name,
-                                                      style:
-                                                          textTheme.bodyMedium,
-                                                      maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                    const SizedBox(width: 8),
-                                                    RatingInputWidget(
-                                                      initialRating:
-                                                          item.averageRating ??
-                                                          0,
-                                                      color:
-                                                          colorScheme.primary,
-                                                      size: 16,
-                                                      readOnly: true,
-                                                    ),
-                                                  ],
-                                                ),
-                                                subtitle: Text(
-                                                  item.businessName,
-                                                  style: textTheme.bodySmall,
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                                trailing: isSelected
-                                                    ? Icon(
-                                                        Icons.check_circle,
-                                                        size: 18,
+                                                color: isSelected
+                                                    ? colorScheme.primary
+                                                          .withValues(
+                                                            alpha: 0.05,
+                                                          )
+                                                    : Colors.transparent,
+                                                child: ListTile(
+                                                  dense: true,
+                                                  contentPadding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 4,
+                                                        vertical: 0,
+                                                      ),
+                                                  horizontalTitleGap: 6,
+                                                  minLeadingWidth: 24,
+                                                  leading: CircleAvatar(
+                                                    radius: 18,
+                                                    backgroundColor:
+                                                        AppTheme.lightGrey,
+                                                    backgroundImage:
+                                                        item
+                                                                .profileImage
+                                                                ?.isNotEmpty ==
+                                                            true
+                                                        ? CachedNetworkImageProvider(
+                                                            item.profileImage!,
+                                                            errorListener:
+                                                                (error) {},
+                                                          )
+                                                        : null,
+                                                    child:
+                                                        item
+                                                                .profileImage
+                                                                ?.isEmpty ==
+                                                            true
+                                                        ? DefaultProfileAvatar(
+                                                            name: null,
+                                                            size: 18 * 1.6,
+                                                            uid: trendInfo
+                                                                .author
+                                                                .uid!,
+                                                          )
+                                                        : null,
+                                                  ),
+                                                  title: Row(
+                                                    children: [
+                                                      Text(
+                                                        item.name,
+                                                        style: textTheme
+                                                            .bodyMedium,
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                      ),
+                                                      const SizedBox(width: 8),
+                                                      RatingInputWidget(
+                                                        initialRating:
+                                                            item.averageRating ??
+                                                            0,
                                                         color:
                                                             colorScheme.primary,
-                                                      )
-                                                    : null,
+                                                        size: 16,
+                                                        readOnly: true,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  subtitle: Text(
+                                                    item.businessName,
+                                                    style: textTheme.bodySmall,
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                  trailing: isSelected
+                                                      ? Icon(
+                                                          Icons.check_circle,
+                                                          size: 18,
+                                                          color: colorScheme
+                                                              .primary,
+                                                        )
+                                                      : null,
+                                                ),
                                               ),
-                                            ),
-                                          );
-                                        },
+                                            );
+                                          },
+                                        ),
                                       ),
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Divider(height: 0.5, color: colorScheme.surface),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 10.0, right: 10),
-                          child: CustomTextInputFieldWidget(
-                            onChanged: (_) {
-                              setModalState(() {});
-                            },
-                            autofocus: true,
-                            //focusNode: focusNode,
-                            controller: commentTextFieldController,
-                            hint: 'Add your comment...',
-                            minLines: 2,
-                            maxLength: 150,
-                            validator: (value) {
-                              if ((value ?? "").isEmpty) {
-                                return 'Enter comment to proceed...';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-
-                        const SizedBox(height: 12),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 12.0, right: 12),
-                          child: SizedBox(
-                            height: 48,
-                            width: double.infinity,
-                            child: FilledButton(
-                              onPressed: () {
-                                if (commentTextFieldController.text
-                                    .trim()
-                                    .isEmpty) {
-                                  AppToast.info(
-                                    context,
-                                    "Enter comment to proceed",
-                                  );
-                                  return;
-                                }
-
-                                if (_selectedDesignersNotifier.value.isEmpty) {
-                                  AppToast.info(
-                                    context,
-                                    "Select a designer to proceed",
-                                  );
-                                  return;
-                                }
-                                workOrderRequest = workOrderRequest.copyWith(
-                                  description: commentTextFieldController.text,
-                                );
-                                _shareWorkOrderRequest(
-                                  context,
-                                  workOrderRequest,
+                                    );
+                                  },
                                 );
                               },
-                              style: FilledButton.styleFrom(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                elevation: 0,
-                                backgroundColor: colorScheme.surface,
-                                foregroundColor: colorScheme.onSurface,
-                              ),
-                              child: const Text('Share'),
                             ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 12),
+                          Divider(height: 0.5, color: colorScheme.surface),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              left: 10.0,
+                              right: 10,
+                            ),
+                            child: CustomTextInputFieldWidget(
+                              //fix hiding behind keyboard
+                              onChanged: (_) {
+                                setModalState(() {});
+                              },
+                              autofocus: true,
+                              //focusNode: focusNode,
+                              controller: commentTextFieldController,
+                              hint: 'Add your comment...',
+                              minLines: 2,
+                              maxLength: 150,
+                              validator: (value) {
+                                if ((value ?? "").isEmpty) {
+                                  return 'Enter comment to proceed...';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+
+                          const SizedBox(height: 12),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              left: 12.0,
+                              right: 12,
+                            ),
+                            child: SizedBox(
+                              height: 48,
+                              width: double.infinity,
+                              child: FilledButton(
+                                onPressed: () {
+                                  if (commentTextFieldController.text
+                                      .trim()
+                                      .isEmpty) {
+                                    AppToast.info(
+                                      context,
+                                      "Enter comment to proceed",
+                                    );
+                                    return;
+                                  }
+
+                                  if (_selectedDesignersNotifier
+                                      .value
+                                      .isEmpty) {
+                                    AppToast.info(
+                                      context,
+                                      "Select a designer to proceed",
+                                    );
+                                    return;
+                                  }
+                                  workOrderRequest = workOrderRequest.copyWith(
+                                    description:
+                                        commentTextFieldController.text,
+                                  );
+                                  _shareWorkOrderRequest(
+                                    context,
+                                    workOrderRequest,
+                                  );
+                                },
+                                style: FilledButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  elevation: 0,
+                                  backgroundColor: colorScheme.surface,
+                                  foregroundColor: colorScheme.onSurface,
+                                ),
+                                child: const Text('Share'),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );

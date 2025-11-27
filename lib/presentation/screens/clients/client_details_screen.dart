@@ -56,6 +56,8 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
               child: Scaffold(
                 backgroundColor: colorScheme.surface,
                 body: NestedScrollView(
+                  physics: const ClampingScrollPhysics(),
+                  floatHeaderSlivers: true,
                   headerSliverBuilder: (context, innerBoxIsScrolled) {
                     return [
                       SliverAppBar(
@@ -69,9 +71,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                             padding: const EdgeInsets.only(right: 18),
                             child: Row(
                               children: [
-                                CustomPinnedClientIconButton(
-                                  client: client,
-                                ),
+                                CustomPinnedClientIconButton(client: client),
                                 const SizedBox(width: 12),
                                 // DELETE
                                 CustomIconButtonRounded(
@@ -260,7 +260,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
     context.pop();
   }
 
-    void showLoadingDialog(BuildContext context) {
+  void showLoadingDialog(BuildContext context) {
     showDialog(
       context: context,
       barrierDismissible: false, // prevent accidental dismiss

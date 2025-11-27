@@ -21,9 +21,9 @@ class ClientMeasurementScreen extends StatefulWidget {
 }
 
 class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
-  //bool _isSearching = false;
+  bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
-
+  String _searchText = "";
   @override
   void dispose() {
     _searchController.dispose();
@@ -32,15 +32,14 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
 
   @override
   void initState() {
-     //context.read<ClientBloc>().add(UpdateClient(widget.client));
+    //context.read<ClientBloc>().add(UpdateClient(widget.client));
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    //final textTheme = Theme.of(context).textTheme;
-    //String _searchText = "";
+    final textTheme = Theme.of(context).textTheme;
     return BlocBuilder<ClientBloc, ClientBlocState>(
       buildWhen: (context, state) {
         return state is ClientLoaded || state is ClientUpdated;
@@ -54,71 +53,101 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
             break;
           case ClientLoaded(:final client):
           case ClientUpdated(:final client):
+            final filteredMeasurements = _searchText.isEmpty
+                ? client.measurements
+                : client.measurements.where((m) {
+                    final bodyPart = m.bodyPart.toLowerCase();
+                    return bodyPart.contains(_searchText.toLowerCase());
+                  }).toList();
             return Scaffold(
               backgroundColor: colorScheme.surface,
               body: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Card(
-                  //   color: colorScheme.onPrimary,
-                  //   shape: RoundedRectangleBorder(
-                  //     borderRadius: BorderRadius.circular(0),
-                  //   ),
-                  //   elevation: 0,
-                  //   margin: const EdgeInsets.symmetric(vertical: 2),
-                  //   child: Padding(
-                  //     padding: const EdgeInsets.all(8),
-                  //     child: Row(
-                  //       crossAxisAlignment: CrossAxisAlignment.start,
-                  //       children: [
-                  //         Expanded(
-                  //           child: TextField(
-                  //             key: const ValueKey("searchField"),
-                  //             controller: _searchController,
-                  //             autofocus: true,
-                  //             decoration: InputDecoration(
-                  //               hintText: 'Search measurements...',
-                  //               border: InputBorder.none,
-                  //               hintStyle: textTheme.labelMedium,
-                  //             ),
-                  //             style: textTheme.bodyLarge,
-                  //             onChanged: (value) {
-                  //               setState(() {
-                  //                 _isSearching = value.isNotEmpty;
-                  //                 _searchText = value;
-                  //               });
-                  //             },
-                  //           ),
-                  //         ),
-                  //         const SizedBox(width: 12),
-                  //         Padding(
-                  //           padding: const EdgeInsets.only(right: 12),
-                  //           child: CustomIconButtonRounded(
-                  //             iconData: _isSearching
-                  //                 ? Icons.close
-                  //                 : Icons.search,
-                  //             onPressed: () {
-                  //               setState(() {
-                  //                 _isSearching = !_isSearching;
-                  //                 if (!_isSearching) {
-                  //                   _searchController.clear();
-                  //                 }
-                  //               });
-                  //             },
-                  //           ),
-                  //         ),
-                  //       ],
-                  //     ),
-                  //   ),
-                  // ),
+                  Card(
+                    color: colorScheme.onPrimary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(0),
+                    ),
+                    elevation: 0,
+                    margin: const EdgeInsets.symmetric(vertical: 2),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              key: const ValueKey("searchField"),
+                              controller: _searchController,
+                              autofocus: true,
+                              decoration: InputDecoration(
+                                hintText: 'Search measurements...',
+                                border: InputBorder.none,
+                                hintStyle: textTheme.labelMedium,
+                                suffixIcon: IconButton(
+                                  icon: _isSearching
+                                      ? const Icon(Icons.clear)
+                                      : const Icon(Icons.search),
+                                  onPressed: () {
+                                    if (_isSearching) {
+                                      // Clear search
+                                      _searchController.clear();
+                                      setState(() {
+                                        _isSearching = false;
+                                        _searchText = '';
+                                      });
+                                    } else {
+                                      // Optional: trigger search or focus
+                                      // FocusScope.of(context).requestFocus(FocusNode());
+                                    }
+                                  },
+                                ),
+                                contentPadding: const EdgeInsets.only(
+                                  left: 12,
+                                  top: 12,
+                                ),
+                              ),
+                              style: textTheme.bodyLarge,
+                              onChanged: (value) {
+                                setState(() {
+                                  _isSearching = value.isNotEmpty;
+                                  _searchText = value;
+                                });
+                              },
+                            ),
+                          ),
+                          // const SizedBox(width: 12),
+                          // Padding(
+                          //   padding: const EdgeInsets.only(right: 12),
+                          //   child: CustomIconButtonRounded(
+                          //     iconData: _isSearching
+                          //         ? Icons.close
+                          //         : Icons.search,
+                          //     onPressed: () {
+                          //       setState(() {
+                          //         _isSearching = !_isSearching;
+                          //         if (!_isSearching) {
+                          //           _searchController.clear();
+                          //         }
+                          //       });
+                          //     },
+                          //   ),
+                          // ),
+                        ],
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 0),
-                  
+
                   Expanded(
                     child: ListView.builder(
+                      shrinkWrap: true,
+                      //physics: const NeverScrollableScrollPhysics(),
                       padding: const EdgeInsets.all(12),
-                      itemCount: client.measurements.length,
+                      itemCount: filteredMeasurements.length,
                       itemBuilder: (context, index) {
-                        final measurement = client.measurements[index];
+                        final measurement = filteredMeasurements[index];
                         return MeasurementInfoCardWidget(
                           client: widget.client,
                           measurement: measurement,
