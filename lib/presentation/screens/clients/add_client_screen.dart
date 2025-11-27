@@ -23,7 +23,8 @@ import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:uuid/uuid.dart';
 
 class AddClientScreen extends StatefulWidget {
-  const AddClientScreen({super.key});
+  final String? clientMobileNumber;
+  const AddClientScreen({super.key, this.clientMobileNumber});
 
   @override
   State<AddClientScreen> createState() => _AddClientScreenState();
@@ -37,18 +38,34 @@ class _AddClientScreenState extends State<AddClientScreen> {
   late TextEditingController _genderController;
   late ButtonLoadingStateCubit _buttonLoadingStateCubit;
   late UserBloc userBloc;
+
   @override
   void initState() {
-    //if (mounted) {
-    //_authProviderCubit = context.read<AuthProviderCubit>();
-    _buttonLoadingStateCubit = context.read<ButtonLoadingStateCubit>();
-    _fullNameController = TextEditingController();
-    _genderController = TextEditingController();
-    _genderController.text = 'Male';
-    _mobileNumberController = TextEditingController();
-    //}
-    userBloc = context.read<UserBloc>();
     super.initState();
+
+    _fullNameController = TextEditingController();
+    _genderController = TextEditingController(text: "Male");
+    _mobileNumberController = TextEditingController();
+  }
+
+  bool _initialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (!_initialized) {
+      _buttonLoadingStateCubit = context.read<ButtonLoadingStateCubit>();
+      userBloc = context.read<UserBloc>();
+
+      if (widget.clientMobileNumber != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          findUserByMobileNumber(widget.clientMobileNumber!);
+        });
+      }
+
+      _initialized = true;
+    }
   }
 
   @override
@@ -115,7 +132,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                       Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: IntlPhoneField(
-                          //controller: _mobileNumberController,
+                          initialValue: widget.clientMobileNumber, 
                           validator: (value) {
                             if (!RegExp(
                               r'^((\+?\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$)?',
@@ -216,6 +233,26 @@ class _AddClientScreenState extends State<AddClientScreen> {
     );
   }
 
+  Future<void> findUserByMobileNumber(String mobileNumber) async {
+    showLoadingDialog(context);
+    final result = await sl<FirebaseUserService>().findUserByMobileNumber(
+      mobileNumber,
+    );
+    result.fold(
+      (l) {
+        dismissLoadingDialog(context);
+      },
+      (r) {
+        dismissLoadingDialog(context);
+        setState(() {
+          _fullNameController.text = r.fullName;
+          _mobileNumberController.text = r.mobileNumber;
+          _genderController.text = r.gender;
+        });
+      },
+    );
+  }
+
   Future<void> _saveClient(Client client) async {
     try {
       User user = userBloc.state;
@@ -309,6 +346,20 @@ class _AddClientScreenState extends State<AddClientScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(e.message!)));
+    }
+  }
+
+  void showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // prevent accidental dismiss
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  void dismissLoadingDialog(BuildContext context) {
+    if (Navigator.canPop(context)) {
+      Navigator.of(context, rootNavigator: true).pop();
     }
   }
 }

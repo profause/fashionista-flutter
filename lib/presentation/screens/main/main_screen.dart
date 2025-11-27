@@ -54,7 +54,7 @@ class _MainScreenState extends State<MainScreen> {
     super.initState();
     _userBloc = context.read<UserBloc>();
     BannerAd(
-      adUnitId: bannerAdUnitId,
+      adUnitId: 'ca-app-pub-3940256099942544/2934735716',
       size: AdSize.banner,
       request: const AdRequest(),
       listener: BannerAdListener(

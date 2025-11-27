@@ -154,10 +154,15 @@ GoRouter appRouter = GoRouter(
           ClientDetailsScreen(clientId: state.pathParameters['id']!),
     ),
 
-    GoRoute(
+GoRoute(
       name: 'AddClientScreen',
       path: '/clients/add',
-      builder: (context, state) => const AddClientScreen(),
+      builder: (context, state) => AddClientScreen(),
+    ),
+    GoRoute(
+      name: 'AddClientScreenWithMobileNumber',
+      path: '/clients/add/:id',
+      builder: (context, state) => AddClientScreen(clientMobileNumber: state.pathParameters['id']!),
     ),
     GoRoute(
       name: 'AddWorkOrderScreen',

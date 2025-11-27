@@ -2,7 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/author/author_model.dart';
-import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/data/models/notification/notification_model.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
@@ -171,7 +170,9 @@ class _WorkOrderRequestScreenState extends State<WorkOrderRequestScreen> {
                                   children: [
                                     OutlinedButton.icon(
                                       onPressed: () {
-                                        //_addAsClient(workOrderInfo.client);
+                                        context.push(
+                                          '/clients/add/${workOrderInfo.client!.mobileNumber!}',
+                                        );
                                       },
                                       icon: const Icon(Icons.person_rounded),
                                       label: const Text('Add as client'),
@@ -677,18 +678,8 @@ class _WorkOrderRequestScreenState extends State<WorkOrderRequestScreen> {
     //context.pop(); // notify ClientsScreen
   }
 
-  Future<void> addAsClient(Client client) async {
-    if (mounted) {
-      showLoadingDialog(context);
-    }
-
-    User user = _userBloc.state;
-    String createdBy = user.uid!;
-  }
-
   Future<void> checkIfMyClient(String mobileNumber) async {
     isCheckingMyClient = true;
-debugPrint('checking if my client');
     final isMyClientResult = await sl<FirebaseClientsService>().isMyClient(
       mobileNumber,
     );
@@ -732,5 +723,12 @@ debugPrint('checking if my client');
     if (Navigator.canPop(context)) {
       Navigator.of(context, rootNavigator: true).pop();
     }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _userBloc.close();
+    isMyClient.dispose();
   }
 }
