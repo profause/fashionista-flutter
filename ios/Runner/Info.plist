@@ -105,6 +105,11 @@
 	<key>NSMicrophoneUsageDescription</key>
 	<string>We need microphone access for videos.</string>
 	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-6626497099249085~2253313186</string> <!-- Test App ID -->
+	<string>ca-app-pub-6626497099249085~2253313186</string>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.profause.fashionista.ios.background.refresh</string>
+		<string>com.profause.fashionista.ios.background.processing</string>
+	</array>
 </dict>
 </plist>
