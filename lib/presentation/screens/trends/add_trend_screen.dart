@@ -52,6 +52,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _descriptionController;
   late TextEditingController _tagsController;
+  late ValueNotifier<String> imageQuality = ValueNotifier('SD');
   final List<String> selectedInterests = [];
 
   int _currentLength = 0;
@@ -140,7 +141,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.only(top:14.0),
+                      padding: const EdgeInsets.only(top: 14.0),
                       child: ProfileAvatar(radius: 24),
                     ),
                     const SizedBox(width: 8),
@@ -262,6 +263,24 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
                           },
                           iconData: Icons.camera_alt_outlined,
                         ),
+                        const SizedBox(width: 16),
+                        ValueListenableBuilder(
+                          valueListenable: imageQuality,
+                          builder: (context, quality, _) {
+                            return CustomIconButtonRounded(
+                              onPressed: () {
+                                if (imageQuality.value == 'SD') {
+                                  imageQuality.value = 'HD';
+                                } else {
+                                  imageQuality.value = 'SD';
+                                }
+                              },
+                              iconData: imageQuality.value == 'SD'
+                                  ? Icons.sd_outlined
+                                  : Icons.hd_outlined,
+                            );
+                          },
+                        ),
                       ],
                     ),
                     Row(
@@ -325,21 +344,20 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
     }
   }
 
-Future<void> _pickImage(ImageSource source) async {
-  try {
-    final pickedFile = await ImagePicker().pickImage(source: source);
-    if (pickedFile != null) {
-      setState(() {
-        previewImages.add(pickedFile);
-        pickedImages.add(pickedFile);
-      });
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final pickedFile = await ImagePicker().pickImage(source: source);
+      if (pickedFile != null) {
+        setState(() {
+          previewImages.add(pickedFile);
+          pickedImages.add(pickedFile);
+        });
+      }
+    } catch (e, st) {
+      debugPrint('Error picking image: $e');
+      debugPrintStack(stackTrace: st);
     }
-  } catch (e, st) {
-    debugPrint('Error picking image: $e');
-    debugPrintStack(stackTrace: st);
   }
-}
-
 
   Future<void> _saveTrend() async {
     try {
@@ -462,7 +480,7 @@ Future<void> _pickImage(ImageSource source) async {
 
       final transformation = Transformation()
           .resize(Resize.auto().width(480).aspectRatio(aspect))
-          .addTransformation('q_60');
+          .addTransformation(imageQuality.value == 'SD' ? 'q_60' : 'q_90');
       // Define upload task returning a non-null String
       final uploadTask = (() async {
         final uploadResult = await cloudinary.uploader().upload(
