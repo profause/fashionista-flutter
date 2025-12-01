@@ -168,7 +168,7 @@ class TrendInfoCardWidget extends StatelessWidget {
           child: Icon(Icons.broken_image, color: Colors.grey),
         ),
       ),
-      transformation: Transformation().addTransformation('q_auto:low')
+      transformation: Transformation().addTransformation('q_auto:eco')
         ..resize(Resize.fill().aspectRatio(media.aspectRatio)),
     );
 

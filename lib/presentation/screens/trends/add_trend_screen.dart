@@ -514,7 +514,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
         String thumbnailUrl =
             (cloudinary.image('$baseFolder/$trendMediaFolder/$fileName')
                   ..transformation(
-                    Transformation().addTransformation('q_auto:low')
+                    Transformation().addTransformation('q_auto:eco')
                       ..resize(Resize.auto().width(360).aspectRatio(aspect)),
                   ))
                 .toString();

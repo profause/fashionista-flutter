@@ -185,6 +185,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
+    String imageQuality = settings.imageQuality ?? 'SD'; // <-- MOVED HERE
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -193,7 +195,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
-        String imageQuality = settings.imageQuality ?? 'SD';
         return StatefulBuilder(
           builder: (context, setModalState) {
             return DraggableScrollableSheet(
@@ -210,7 +211,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        /// Handle bar
                         Center(
                           child: Container(
                             height: 4,
@@ -232,7 +232,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           margin: const EdgeInsets.only(top: 8),
                           padding: const EdgeInsets.all(0),
                           decoration: BoxDecoration(
-                            color: colorScheme.surface.withValues(alpha: 1),
+                            color: colorScheme.surface,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Column(
@@ -254,14 +254,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     value: "SD",
                                     groupValue: imageQuality,
                                     onChanged: (val) {
-                                      // update parent too
                                       setModalState(() => imageQuality = val!);
-                                      
-                                      final updatedSettings = settings.copyWith(
-                                        imageQuality: 'SD',
-                                      );
+
                                       context.read<SettingsBloc>().add(
-                                        UpdateSettings(updatedSettings),
+                                        UpdateSettings(
+                                          settings.copyWith(imageQuality: "SD"),
+                                        ),
                                       );
                                     },
                                   ),
@@ -286,12 +284,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     groupValue: imageQuality,
                                     onChanged: (val) {
                                       setModalState(() => imageQuality = val!);
-                                      
-                                      final updatedSettings = settings.copyWith(
-                                        imageQuality: 'HD',
-                                      );
+
                                       context.read<SettingsBloc>().add(
-                                        UpdateSettings(updatedSettings),
+                                        UpdateSettings(
+                                          settings.copyWith(imageQuality: "HD"),
+                                        ),
                                       );
                                     },
                                   ),
