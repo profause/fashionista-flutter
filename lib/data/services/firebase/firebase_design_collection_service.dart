@@ -1,8 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloudinary_url_gen/cloudinary.dart';
+import 'package:cloudinary_url_gen/config/cloudinary_config.dart';
 import 'package:dartz/dartz.dart';
+import 'package:fashionista/core/service_locator/app_config.dart';
 import 'package:fashionista/data/models/designers/design_collection_model.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloudinary_api/uploader/cloudinary_uploader.dart';
+import 'package:cloudinary_api/src/request/model/uploader_params.dart';
 
 abstract class FirebaseDesignCollectionService {
   Future<Either> fetchDesignCollections();
@@ -68,8 +72,8 @@ class FirebaseDesignCollectionServiceImpl
 
       // Delete the document with the given uid
       await firestore.collection('design_collections').doc(uid).delete();
-      return const Right(
-        'successfully deleted design collection',
+      return Right(
+        'successfully deleted design collection $uid',
       ); // success without data
     } on FirebaseException catch (e) {
       return Left(e.message ?? 'Unknown Firestore error');
@@ -377,8 +381,12 @@ class FirebaseDesignCollectionServiceImpl
   Future<Either> deleteDesignCollectionImage(String imageUrl) async {
     try {
       // Delete from storage
-      final ref = FirebaseStorage.instance.refFromURL(imageUrl);
-      await ref.delete();
+      CloudinaryConfig config = CloudinaryConfig.fromUri(
+        appConfig.get('cloudinary_url'),
+      );
+      final cloudinary = Cloudinary.fromConfiguration(config);
+      DestroyParams destroyParams = DestroyParams(publicId: imageUrl);
+      await cloudinary.uploader().destroy(destroyParams);
       return Right('Image deleted');
     } catch (e) {
       return Left(e.toString());

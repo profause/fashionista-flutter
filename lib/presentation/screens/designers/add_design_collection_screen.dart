@@ -581,7 +581,7 @@ class _AddDesignCollectionScreenState extends State<AddDesignCollectionScreen> {
 
       final transformation = Transformation()
           .resize(Resize.auto().width(480).aspectRatio(aspect))
-          .addTransformation('q_60');
+          .addTransformation('q_auto:best');
 
       final uploadTask = (() async {
         final uploadResult = await cloudinary.uploader().upload(

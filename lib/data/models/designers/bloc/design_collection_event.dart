@@ -41,6 +41,14 @@ class UpdateDesignCollection extends DesignCollectionBlocEvent {
   List<Object?> get props => [designCollection];
 }
 
+class DeleteDesignCollection extends DesignCollectionBlocEvent {
+  final DesignCollectionModel designCollection;
+  const DeleteDesignCollection(this.designCollection);
+
+  @override
+  List<Object?> get props => [designCollection];
+}
+
 class ClearDesignCollection extends DesignCollectionBlocEvent {
   const ClearDesignCollection();
 }

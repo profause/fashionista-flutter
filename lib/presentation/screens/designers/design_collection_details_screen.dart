@@ -1,11 +1,17 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloudinary_flutter/image/cld_image.dart';
+import 'package:cloudinary_flutter/image/cld_image_widget_configuration.dart';
+import 'package:cloudinary_url_gen/cloudinary.dart';
+import 'package:cloudinary_url_gen/config/cloudinary_config.dart';
+import 'package:cloudinary_url_gen/transformation/resize/resize.dart';
+import 'package:cloudinary_url_gen/transformation/transformation.dart';
 import 'package:dartz/dartz.dart' as dartz;
+import 'package:fashionista/core/service_locator/app_config.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/designers/bloc/design_collection_bloc.dart';
 import 'package:fashionista/data/models/designers/bloc/design_collection_event.dart';
 import 'package:fashionista/data/models/designers/design_collection_model.dart';
+import 'package:fashionista/data/models/settings/bloc/settings_bloc.dart';
 import 'package:fashionista/data/services/firebase/firebase_design_collection_service.dart';
-import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -30,12 +36,14 @@ class _DesignCollectionDetailsScreenState
   late int _currentIndex;
   bool showDetails = true;
   final userId = FirebaseAuth.instance.currentUser!.uid;
+  late SettingsBloc _settingsBloc;
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
     _controller = PageController(initialPage: widget.initialIndex);
+    _settingsBloc = context.read<SettingsBloc>();
   }
 
   @override
@@ -82,15 +90,6 @@ class _DesignCollectionDetailsScreenState
                 );
 
                 if (canDelete == true) {
-                  if (mounted) {
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false, // Prevent dismissing
-                      builder: (_) =>
-                          const Center(child: CircularProgressIndicator()),
-                    );
-                  }
-
                   _deleteDesignCollection(widget.designCollection);
                 }
               },
@@ -119,8 +118,10 @@ class _DesignCollectionDetailsScreenState
                       setState(() => _currentIndex = index);
                     },
                     itemBuilder: (context, index) {
-                      final imageUrl =
-                          widget.designCollection.featuredImages[index].thumbnailUrl;
+                      final imageUrl = widget
+                          .designCollection
+                          .featuredImages[index]
+                          .thumbnailUrl;
                       return Center(
                         child: Hero(
                           tag: widget.designCollection.featuredImages.first,
@@ -129,12 +130,18 @@ class _DesignCollectionDetailsScreenState
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: CachedNetworkImage(
-                              imageUrl: imageUrl!,
-                              fit: BoxFit.cover,
-                              errorListener: (value) {
-                                
-                              },
+                            child: CldImageWidget(
+                              key: ValueKey(imageUrl),
+                              cloudinary: Cloudinary.fromConfiguration(
+                                CloudinaryConfig.fromUri(
+                                  appConfig.get('cloudinary_url'),
+                                ),
+                              ),
+                              publicId:
+                                  '${widget.designCollection.featuredImages[index].uid}',
+                              configuration: CldImageWidgetConfiguration(
+                                cache: true,
+                              ),
                               placeholder: (context, url) => const Center(
                                 child: SizedBox(
                                   height: 18,
@@ -144,12 +151,55 @@ class _DesignCollectionDetailsScreenState
                                   ),
                                 ),
                               ),
-                              errorWidget: (context, url, error) {
-                                return const CustomColoredBanner(
-                                  text: 'No Image',
-                                );
-                              },
+                              fit: BoxFit.fill,
+                              placeholderFadeInDuration: const Duration(
+                                milliseconds: 150,
+                              ),
+                              errorBuilder: (context, url, error) => Container(
+                                color: Colors.grey[300],
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.broken_image,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+                              transformation:
+                                  Transformation().addTransformation(
+                                    _settingsBloc.state.imageQuality == 'HD'
+                                        ? 'q_100' //'q_auto:best'
+                                        : 'q_auto:good',
+                                  )..resize(
+                                    Resize.fill().aspectRatio(
+                                      widget
+                                          .designCollection
+                                          .featuredImages[index]
+                                          .aspectRatio,
+                                    ),
+                                  ),
                             ),
+
+                            // CachedNetworkImage(
+                            //   imageUrl: imageUrl!,
+                            //   fit: BoxFit.cover,
+                            //   errorListener: (value) {
+
+                            //   },
+                            //   placeholder: (context, url) => const Center(
+                            //     child: SizedBox(
+                            //       height: 18,
+                            //       width: 18,
+                            //       child: CircularProgressIndicator(
+                            //         strokeWidth: 2,
+                            //       ),
+                            //     ),
+                            //   ),
+                            //   errorWidget: (context, url, error) {
+                            //     return const CustomColoredBanner(
+                            //       text: 'No Image',
+                            //     );
+                            //   },
+                            // ),
                           ),
                         ),
                       );
@@ -230,10 +280,11 @@ class _DesignCollectionDetailsScreenState
   ) async {
     try {
       // create a dynamic list of futures
+      showLoadingDialog(context);
       final List<Future<dartz.Either>> futures = designCollection.featuredImages
           .map(
             (e) => sl<FirebaseDesignCollectionService>()
-                .deleteDesignCollectionImage(e.url!),
+                .deleteDesignCollectionImage(e.uid!),
           )
           .toList();
 
@@ -262,16 +313,31 @@ class _DesignCollectionDetailsScreenState
       }
 
       if (!mounted) return;
-      Navigator.pop(context);
+      dismissLoadingDialog(context);
       context.read<DesignCollectionBloc>().add(
-        LoadDesignCollectionsCacheFirstThenNetwork(designCollection.createdBy),
+        DeleteDesignCollection(designCollection),
       );
       Navigator.pop(context, true);
     } on FirebaseException catch (e) {
       if (!mounted) return;
+      dismissLoadingDialog(context);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(e.message!)));
+    }
+  }
+
+  void showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // prevent accidental dismiss
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  void dismissLoadingDialog(BuildContext context) {
+    if (Navigator.canPop(context)) {
+      Navigator.of(context, rootNavigator: true).pop();
     }
   }
 }

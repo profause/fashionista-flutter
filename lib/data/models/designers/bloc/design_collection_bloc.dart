@@ -22,6 +22,7 @@ class DesignCollectionBloc
     on<ClearDesignCollection>(
       (event, emit) => emit(const DesignCollectionInitial()),
     );
+    on<DeleteDesignCollection>(_deleteDesignCollection);
   }
   Future<void> _onLoadDesignCollection(
     LoadDesignCollection event,
@@ -54,6 +55,41 @@ class DesignCollectionBloc
         emit(DesignCollectionsLoaded(designCollections));
       }
     });
+  }
+
+  Future<void> _deleteDesignCollection(
+    DeleteDesignCollection event,
+    Emitter<DesignCollectionState> emit,
+  ) async {
+    final cachedItems = await sl<HiveDesignCollectionService>().getItems(
+      event.designCollection.createdBy,
+    );
+    // ✅ find index by matching uid
+    final index = cachedItems.indexWhere(
+      (item) => item.uid == event.designCollection.uid,
+    );
+
+    if (index != -1) {
+      cachedItems.removeAt(index);
+
+      try {
+        // ✅ persist updated list back to Hive
+        await sl<HiveDesignCollectionService>().insertItems(
+          '',
+          items: cachedItems,
+        );
+
+        if (cachedItems.isEmpty) {
+          emit(const DesignCollectionsEmpty());
+          return;
+        }
+
+        emit(DesignCollectionsLoaded(cachedItems, fromCache: true));
+      } catch (e) {
+        // ❌ Rollback if persistence failed (optional)
+        emit(DesignCollectionError("Failed to delete item: $e"));
+      }
+    }
   }
 
   Future<void> _onLoadDesignCollectionsCacheFirstThenNetwork(

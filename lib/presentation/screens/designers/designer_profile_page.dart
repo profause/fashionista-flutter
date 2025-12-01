@@ -9,6 +9,7 @@ import 'package:fashionista/presentation/widgets/custom_icon_rounded.dart';
 import 'package:fashionista/presentation/widgets/rating_input_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 class DesignerProfilePage extends StatefulWidget {
@@ -42,7 +43,9 @@ class _DesignerProfilePageState extends State<DesignerProfilePage> {
               padding: const EdgeInsets.only(bottom: 16, top: 4),
               children: [
                 FilledButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    context.push('/designers/${designer.uid}');
+                  },
                   style: FilledButton.styleFrom(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(4),

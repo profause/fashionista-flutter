@@ -99,29 +99,31 @@ class _DesignerReviewPageState extends State<DesignerReviewPage> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                FilledButton(
-                  onPressed: () {
-                    DesignerReviewModel designerReviewModel =
-                        DesignerReviewModel.empty();
-                    //show review bottomsheet
-                    _showReviewBottomsheet(
-                      context,
-                      (review) => _onSaveReview(review),
-                      designerReviewModel,
-                    );
-                  },
-                  style: FilledButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                if (userId != widget.designer.uid) ...[
+                  const SizedBox(height: 12),
+                  FilledButton(
+                    onPressed: () {
+                      DesignerReviewModel designerReviewModel =
+                          DesignerReviewModel.empty();
+                      //show review bottomsheet
+                      _showReviewBottomsheet(
+                        context,
+                        (review) => _onSaveReview(review),
+                        designerReviewModel,
+                      );
+                    },
+                    style: FilledButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                      backgroundColor:
+                          colorScheme.surface, // solid grey background
+                      foregroundColor: colorScheme.onSurface, // text/icon color
                     ),
-                    elevation: 0,
-                    backgroundColor:
-                        colorScheme.surface, // solid grey background
-                    foregroundColor: colorScheme.onSurface, // text/icon color
+                    child: Text('Write a Review'),
                   ),
-                  child: Text('Write a Review'),
-                ),
+                ],
               ],
             ),
           ),
@@ -436,7 +438,7 @@ class _DesignerReviewPageState extends State<DesignerReviewPage> {
           ).showSnackBar(SnackBar(content: Text(failure)));
         },
         (review) {
-          dismissLoadingDialog(context);     
+          dismissLoadingDialog(context);
           Navigator.pop(context);
           context.read<DesignerReviewBloc>().add(
             LoadDesignerReviewCacheFirstThenNetwork(widget.designer.uid),
