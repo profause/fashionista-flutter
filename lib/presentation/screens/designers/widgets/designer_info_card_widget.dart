@@ -152,7 +152,8 @@ class _DesignerInfoCardWidgetState extends State<DesignerInfoCardWidget> {
                         Container(
                           alignment: Alignment.centerLeft,
                           child: RatingInputWidget(
-                            initialRating: widget.designerInfo.averageRating ?? 0.0,
+                            initialRating:
+                                widget.designerInfo.averageRating ?? 0.0,
                             color: colorScheme.primary,
                             size: 24,
                             readOnly: true,
@@ -163,21 +164,25 @@ class _DesignerInfoCardWidgetState extends State<DesignerInfoCardWidget> {
                           alignment: Alignment.centerLeft,
                           child: Wrap(
                             spacing: 8,
-                            runSpacing: 8,
-                            children: List.generate(
-                              widget.designerInfo.tags.split('|').length,
-                              (index) => Chip(
-                                label: Text(
-                                  widget.designerInfo.tags.split('|')[index],
-                                ),
-                                padding:
-                                    EdgeInsets.zero, // remove extra padding
-                                visualDensity:
-                                    VisualDensity.compact, // tighter look
-                                materialTapTargetSize:
-                                    MaterialTapTargetSize.shrinkWrap,
-                              ),
-                            ),
+                            runSpacing: 8, // 👈 reduced padding
+                            children: widget.designerInfo.tags.isEmpty
+                                ? [SizedBox(height: 1)]
+                                : widget.designerInfo.tags
+                                      .split('|')
+                                      .where(
+                                        (tag) => tag.trim().isNotEmpty,
+                                      ) // ✅ only keep non-empty tags
+                                      .map(
+                                        (tag) => Chip(
+                                          label: Text(tag),
+                                          padding: EdgeInsets
+                                              .zero, // remove extra padding
+                                          visualDensity: VisualDensity.compact,
+                                          materialTapTargetSize:
+                                              MaterialTapTargetSize.shrinkWrap,
+                                        ),
+                                      )
+                                      .toList(),
                           ),
                         ),
                       ],

@@ -83,7 +83,7 @@ class ClientMeasurement extends Equatable {
   factory ClientMeasurement.empty() {
     return const ClientMeasurement(
       bodyPart: '',
-      measuredValue: 0,
+      measuredValue:double.nan,
       measuringUnit: '',
       updatedDate: null,
       previousValues: [],

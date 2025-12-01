@@ -66,6 +66,7 @@ class _SplashScreenState extends State<SplashScreen>
         String nextScreen;
 
         if (!_onboardingCubit.hasCompletedOnboarding) {
+        //if(true){
           nextScreen = '/onboarding';
         } else if (!_authProviderCubit.authState.isAuthenticated) {
           nextScreen = '/sign-in';

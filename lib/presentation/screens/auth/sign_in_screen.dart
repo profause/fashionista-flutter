@@ -144,7 +144,7 @@ class _SignInScreenState extends State<SignInScreen> {
     try {
       _buttonLoadingStateCubit.setLoading(true);
       var result = await sl<SignInUsecase>().call(number);
-      _authProviderCubit.setAuthState('Guest user', number, '', true);
+      _authProviderCubit.setAuthState('', number, '', true);
       result.fold(
         (ifLeft) {
           _buttonLoadingStateCubit.setLoading(false);
@@ -188,15 +188,15 @@ class _SignInScreenState extends State<SignInScreen> {
           if (!mounted) return;
           _buttonLoadingStateCubit.setLoading(false);
           _authProviderCubit.setAuthState(
-            ifRight?.displayName ?? 'Guest user',
+            ifRight?.displayName ?? '',
             ifRight?.phoneNumber ?? _authProviderCubit.authState.mobileNumber,
             ifRight?.uid ?? '',
             true,
           );
 
           var loggedInUser = _userBloc.state.copyWith(
-            fullName: ifRight?.displayName ?? 'Guest user',
-            userName: ifRight?.displayName ?? 'Guest user',
+            fullName: ifRight?.displayName ?? '',
+            userName: ifRight?.displayName ?? '',
             mobileNumber:
                 ifRight?.phoneNumber ??
                 _authProviderCubit.authState.mobileNumber,
@@ -206,7 +206,7 @@ class _SignInScreenState extends State<SignInScreen> {
           _userBloc.add(UpdateUser(loggedInUser));
           final user = _userBloc.state;
           final isFullNameEmpty = user.fullName.isEmpty;
-          final isUserNameEmpty = user.userName == 'Guest user';
+          final isUserNameEmpty = user.userName == '';
           final isAccountTypeEmpty = user.accountType.isEmpty;
           final isGenderEmpty = user.gender.isEmpty;
 

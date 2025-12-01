@@ -77,12 +77,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               Hero(
                 tag: 'add-post',
                 child: IconButton(
-                  icon: Icon(
-                    Icons.add_a_photo_rounded,
-                    color: colorScheme.primary,
-                  ),
+                  icon: Icon(Icons.settings, color: colorScheme.primary),
                   onPressed: () {
-                    context.push('/trends-new');
+                    context.push('/settings');
                   },
                 ),
               ),
@@ -104,7 +101,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     icon: Stack(
                       children: [
                         Padding(
-                          padding: const EdgeInsets.all(8.0),
+                          padding: const EdgeInsets.only(right: 12.0),
                           child: Icon(
                             Icons.notifications,
                             color: colorScheme.primary,
@@ -112,8 +109,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ),
                         if (hasNew) // ✅ only show dot when there are new notifications
                           Positioned(
-                            top: 8,
-                            right: 10,
+                            top: 0,
+                            right: 12,
                             child: Container(
                               width: 8,
                               height: 8,

@@ -49,40 +49,24 @@ GoRouter appRouter = GoRouter(
     GoRoute(
       name: 'OnboardingScreen',
       path: '/onboarding',
-      pageBuilder: (context, state) => const CustomTransitionPage(
-        child: OnboardingScreen(),
-        transitionsBuilder: _fadeTransition,
-        transitionDuration: Duration(milliseconds: 300),
-      ),
+      builder: (context, state) => const OnboardingScreen(),
     ),
     GoRoute(
       name: 'SignInScreen',
       path: '/sign-in',
-      pageBuilder: (context, state) => const CustomTransitionPage(
-        child: SignInScreen(),
-        transitionsBuilder: _fadeTransition,
-        transitionDuration: Duration(milliseconds: 300),
-      ),
+      builder: (context, state) => const SignInScreen(),
     ),
     GoRoute(
       name: 'CreateProfileScreen',
       path: '/create-profile',
-      pageBuilder: (context, state) => const CustomTransitionPage(
-        child: CreateProfileScreen(),
-        transitionsBuilder: _fadeTransition,
-        transitionDuration: Duration(milliseconds: 300),
-      ),
+      builder: (context, state) => const CreateProfileScreen(),
     ),
     GoRoute(
       name: 'UserInterestScreen',
       path: '/user-interests',
-      pageBuilder: (context, state) {
+      builder: (context, state) {
         final fromWhere = state.uri.queryParameters['fromwhere'];
-        return CustomTransitionPage(
-          child: UserInterestScreen(fromWhere: fromWhere),
-          transitionsBuilder: _fadeTransition,
-          transitionDuration: Duration(milliseconds: 300),
-        );
+        return UserInterestScreen(fromWhere: fromWhere);
       },
     ),
     GoRoute(
@@ -98,48 +82,29 @@ GoRouter appRouter = GoRouter(
     GoRoute(
       name: 'EditProfileScreen',
       path: '/edit-profile',
-      pageBuilder: (context, state) => const CustomTransitionPage(
-        child: EditProfileScreen(),
-        transitionsBuilder: _fadeTransition,
-        transitionDuration: Duration(milliseconds: 300),
-      ),
+      builder: (context, state) => const EditProfileScreen(),
     ),
+
     GoRoute(
       name: 'SettingsScreen',
       path: '/settings',
-      pageBuilder: (context, state) => const CustomTransitionPage(
-        child: SettingsScreen(),
-        transitionsBuilder: _fadeTransition,
-        transitionDuration: Duration(milliseconds: 300),
-      ),
+      builder: (context, state) => const SettingsScreen(),
     ),
     GoRoute(
       name: 'AddOrEditClosetItemsPage',
       path: '/closet/add-item',
-      pageBuilder: (context, state) => const CustomTransitionPage(
-        child: AddOrEditClosetItemsPage(),
-        transitionsBuilder: _fadeTransition,
-        transitionDuration: Duration(milliseconds: 300),
-      ),
+      builder: (context, state) => const AddOrEditClosetItemsPage(),
     ),
     GoRoute(
       name: 'AddOrEditOutfitScreen',
       path: '/closet/add-outfit',
-      pageBuilder: (context, state) => const CustomTransitionPage(
-        child: AddOrEditOutfitScreen(),
-        transitionsBuilder: _fadeTransition,
-        transitionDuration: Duration(milliseconds: 300),
-      ),
+      builder: (context, state) => const AddOrEditOutfitScreen(),
     ),
 
     GoRoute(
       name: 'AddOrEditOutfitPlanScreen',
       path: '/closet/outfit-planner',
-      pageBuilder: (context, state) => const CustomTransitionPage(
-        child: AddOrEditOutfitPlanScreen(),
-        transitionsBuilder: _fadeTransition,
-        transitionDuration: Duration(milliseconds: 300),
-      ),
+      builder: (context, state) => const AddOrEditOutfitPlanScreen(),
     ),
     GoRoute(
       path: '/trends/:id',
@@ -154,7 +119,7 @@ GoRouter appRouter = GoRouter(
           ClientDetailsScreen(clientId: state.pathParameters['id']!),
     ),
 
-GoRoute(
+    GoRoute(
       name: 'AddClientScreen',
       path: '/clients/add',
       builder: (context, state) => AddClientScreen(),
@@ -162,7 +127,8 @@ GoRoute(
     GoRoute(
       name: 'AddClientScreenWithMobileNumber',
       path: '/clients/add/:id',
-      builder: (context, state) => AddClientScreen(clientMobileNumber: state.pathParameters['id']!),
+      builder: (context, state) =>
+          AddClientScreen(clientMobileNumber: state.pathParameters['id']!),
     ),
     GoRoute(
       name: 'AddWorkOrderScreen',

@@ -85,18 +85,23 @@ class _FeaturedMediaWidgetState extends State<FeaturedMediaWidget> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 clipBehavior: Clip.antiAlias,
-                child: CachedNetworkImage(
-                  imageUrl: imageUrl!,
-                  fit: BoxFit.fill,
-                  placeholder: (context, url) => const Center(
-                    child: SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                child: InteractiveViewer(
+                  boundaryMargin: EdgeInsets.all(20),
+                  minScale: 1.0,
+                  maxScale: 4.0,
+                  child: CachedNetworkImage(
+                    imageUrl: imageUrl!,
+                    fit: BoxFit.fill,
+                    placeholder: (context, url) => const Center(
+                      child: SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
                     ),
+                    errorWidget: (context, url, error) =>
+                        const Center(child: Text('No Image')),
                   ),
-                  errorWidget: (context, url, error) =>
-                      const Center(child: Text('No Image')),
                 ),
               );
             },

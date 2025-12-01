@@ -120,7 +120,9 @@ class _AnimatedPrimaryButtonState extends State<AnimatedPrimaryButton>
                         : Text(
                             widget.text,
                             key: const ValueKey("text"),
-                            style: const TextStyle(fontSize: 18),
+                            style: const TextStyle(fontSize: 18,
+                            color: Colors.white
+                            ),
                           ),
                   ),
                 ),

@@ -71,7 +71,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: AppTheme.appIconColor,
+      backgroundColor: AppTheme.white,
       body: SafeArea(
         child: Column(
           children: [

@@ -47,8 +47,10 @@ class _AddClientMeasurementScreenState
     _tagsController = TextEditingController();
 
     _bodyPartController.text = widget.clientMeasurement.bodyPart;
-    _measuredValueController.text = widget.clientMeasurement.measuredValue
-        .toString();
+    widget.clientMeasurement.measuredValue > 0
+        ? _measuredValueController.text = widget.clientMeasurement.measuredValue
+              .toString()
+        : _measuredValueController.text = '';
     _noteController.text = widget.clientMeasurement.notes == null
         ? ''
         : widget.clientMeasurement.notes!;
@@ -127,7 +129,7 @@ class _AddClientMeasurementScreenState
                       child: CustomTextInputFieldWidget(
                         controller: _measuredValueController,
                         label: 'Measured Value',
-                        hint: 'Enter measured value',
+                        hint: '0.0',
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
                         ),

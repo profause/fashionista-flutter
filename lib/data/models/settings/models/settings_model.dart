@@ -10,11 +10,18 @@ class Settings extends Equatable {
 
   final bool? autoPlayVideos;
 
-  const Settings({this.displayMode, this.autoPlayVideos});
+  @JsonKey(name: 'image_quality')
+  final String? imageQuality;
+
+  const Settings({this.displayMode, this.autoPlayVideos, this.imageQuality});
 
   /// Empty constructor for initial state
   factory Settings.empty() {
-    return const Settings(displayMode: 1, autoPlayVideos: false);
+    return const Settings(
+      displayMode: 1,
+      autoPlayVideos: false,
+      imageQuality: 'SD',
+    );
   }
 
   /// JSON serialization
@@ -23,13 +30,18 @@ class Settings extends Equatable {
   Map<String, dynamic> toJson() => _$SettingsToJson(this);
 
   /// CopyWith method
-  Settings copyWith({int? displayMode, bool? autoPlayVideos}) {
+  Settings copyWith({
+    int? displayMode,
+    bool? autoPlayVideos,
+    String? imageQuality,
+  }) {
     return Settings(
       displayMode: displayMode ?? this.displayMode,
       autoPlayVideos: autoPlayVideos ?? this.autoPlayVideos,
+      imageQuality: imageQuality ?? this.imageQuality,
     );
   }
 
   @override
-  List<Object?> get props => [displayMode, autoPlayVideos];
+  List<Object?> get props => [displayMode, autoPlayVideos, imageQuality];
 }
