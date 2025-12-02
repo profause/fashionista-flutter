@@ -248,20 +248,25 @@ class _DesignCollectionDetailsScreenState
                       alignment: Alignment.centerLeft,
                       child: Wrap(
                         spacing: 8,
-                        runSpacing: 8,
-                        children: List.generate(
-                          widget.designCollection.tags!.split('|').length,
-                          (index) => Chip(
-                            label: Text(
-                              widget.designCollection.tags!.split('|')[index],
-                            ),
-                            padding: EdgeInsets.zero, // remove extra padding
-                            visualDensity:
-                                VisualDensity.compact, // tighter look
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                          ),
-                        ),
+                        runSpacing: 8, // 👈 reduced padding
+                        children: widget.designCollection.tags!.isEmpty
+                            ? [SizedBox(height: 1)]
+                            : widget.designCollection.tags!
+                                  .split('|')
+                                  .where(
+                                    (tag) => tag.trim().isNotEmpty,
+                                  ) // ✅ only keep non-empty tags
+                                  .map(
+                                    (tag) => Chip(
+                                      label: Text(tag),
+                                      padding: EdgeInsets
+                                          .zero, // remove extra padding
+                                      visualDensity: VisualDensity.compact,
+                                      materialTapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                  )
+                                  .toList(),
                       ),
                     ),
                   ],
@@ -281,7 +286,8 @@ class _DesignCollectionDetailsScreenState
     try {
       // create a dynamic list of futures
       showLoadingDialog(context);
-      final List<Future<dartz.Either>> futures = designCollection.featuredImages
+      final futures = designCollection.featuredImages
+          .where((e) => e.uid != null) // filter null UID
           .map(
             (e) => sl<FirebaseDesignCollectionService>()
                 .deleteDesignCollectionImage(e.uid!),
@@ -316,6 +322,10 @@ class _DesignCollectionDetailsScreenState
       dismissLoadingDialog(context);
       context.read<DesignCollectionBloc>().add(
         DeleteDesignCollection(designCollection),
+      );
+
+      context.read<DesignCollectionBloc>().add(
+        LoadDesignCollectionsCacheFirstThenNetwork(designCollection.createdBy),
       );
       Navigator.pop(context, true);
     } on FirebaseException catch (e) {

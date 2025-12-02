@@ -2,7 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:fashionista/data/models/designers/design_collection_model.dart';
 
 abstract class DesignCollectionRepository {
-  Future<Either> findDesignCollections(String createdBy);
+  Future<Either<String, List<DesignCollectionModel>>> findDesignCollections(String createdBy);
   Future<Either> fetchDesignCollections();
   Future<Either> addDesignCollectionToFirestore(
     DesignCollectionModel designCollection,

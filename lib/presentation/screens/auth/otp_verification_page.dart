@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:fashionista/core/assets/app_vectors.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 import 'package:fashionista/core/widgets/animated_primary_button.dart';
@@ -108,6 +107,8 @@ class _OtpVerificationPageState extends State<OtpVerificationPage>
                       setState(() => _otpCode = value ?? '');
                       if (value != null && value.length == _otpLength) {
                         widget.onVerified(value);
+                        /// 🔽 Close keyboard
+                        FocusScope.of(context).unfocus();
                       }
                     },
                     onCodeSubmitted: (value) => widget.onVerified(value),
@@ -168,6 +169,8 @@ class _OtpVerificationPageState extends State<OtpVerificationPage>
                   AnimatedPrimaryButton(
                     text: "Verify",
                     onPressed: () async {
+                      /// 🔽 Close keyboard
+                      FocusScope.of(context).unfocus();
                       if (_otpCode.length < _otpLength) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(

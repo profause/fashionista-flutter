@@ -10,7 +10,7 @@ import 'package:cloudinary_api/src/request/model/uploader_params.dart';
 
 abstract class FirebaseDesignCollectionService {
   Future<Either> fetchDesignCollections();
-  Future<Either> findDesignCollections(String createdBy);
+   Future<Either<String, List<DesignCollectionModel>>> findDesignCollections(String createdBy);
   Future<Either> addDesignCollectionToFirestore(
     DesignCollectionModel designCollection,
   );
@@ -121,7 +121,7 @@ class FirebaseDesignCollectionServiceImpl
   }
 
   @override
-  Future<Either> findDesignCollections(String createdBy) async {
+   Future<Either<String, List<DesignCollectionModel>>> findDesignCollections(String createdBy) async {
     try {
       final firestore = FirebaseFirestore.instance;
       final querySnapshot = await firestore

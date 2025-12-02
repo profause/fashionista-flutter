@@ -7,6 +7,7 @@ import 'package:fashionista/core/widgets/bloc/previous_screen_state_cubit.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/domain/usecases/auth/signin_usecase.dart';
 import 'package:fashionista/domain/usecases/auth/verify_otp_usecase.dart';
+import 'package:fashionista/domain/usecases/profile/fetch_user_profile_usecase.dart';
 import 'package:fashionista/presentation/screens/auth/mobile_number_auth_page.dart';
 import 'package:fashionista/presentation/screens/auth/otp_verification_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -186,7 +187,6 @@ class _SignInScreenState extends State<SignInScreen> {
         },
         (ifRight) {
           if (!mounted) return;
-          _buttonLoadingStateCubit.setLoading(false);
           _authProviderCubit.setAuthState(
             ifRight?.displayName ?? '',
             ifRight?.phoneNumber ?? _authProviderCubit.authState.mobileNumber,
@@ -204,21 +204,10 @@ class _SignInScreenState extends State<SignInScreen> {
             joinedDate: ifRight.metadata.creationTime,
           );
           _userBloc.add(UpdateUser(loggedInUser));
-          final user = _userBloc.state;
-          final isFullNameEmpty = user.fullName.isEmpty;
-          final isUserNameEmpty = user.userName == '';
-          final isAccountTypeEmpty = user.accountType.isEmpty;
-          final isGenderEmpty = user.gender.isEmpty;
-
-          if (isFullNameEmpty ||
-              isUserNameEmpty ||
-              isAccountTypeEmpty ||
-              isGenderEmpty) {
-            context.push('/create-profile');
-          } else {
-            context.go('/create-profile');
-            //context.go('/home');
-          }
+          _userBloc.stream.first.then((updatedUser) async {
+            await _getUserDetails();
+            // use updatedUser
+          });
         },
       );
     } on FirebaseAuthException catch (e) {
@@ -229,6 +218,56 @@ class _SignInScreenState extends State<SignInScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(e.toString())));
+    }
+  }
+
+  Future<void> _getUserDetails() async {
+    try {
+      final userBloc = context.read<UserBloc>();
+      final uid = FirebaseAuth.instance.currentUser!.uid;
+
+      final result = await sl<FetchUserProfileUsecase>().call(uid);
+      result.fold(
+        (ifLeft) {
+          _buttonLoadingStateCubit.setLoading(false);
+
+          if (mounted) {
+            // Dismiss the dialog manually
+            debugPrint(ifLeft);
+            //dismissLoadingDialog(context);
+          }
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(ifLeft)));
+        },
+        (ifRight) {
+          _buttonLoadingStateCubit.setLoading(false);
+          if (ifRight.uid!.isNotEmpty) {
+            //userBloc.clear();
+            userBloc.add(UpdateUser(ifRight));
+
+            final isFullNameEmpty = ifRight.fullName.isEmpty;
+            final isUserNameEmpty = ifRight.userName.isEmpty;
+            final isAccountTypeEmpty = ifRight.accountType.isEmpty;
+            final isGenderEmpty = ifRight.gender.isEmpty;
+
+            if (isFullNameEmpty ||
+                isUserNameEmpty ||
+                isAccountTypeEmpty ||
+                isGenderEmpty) {
+              context.go('/create-profile');
+            } else {
+              //context.go('/create-profile');
+              context.go('/home');
+            }
+          } else {
+            context.go('/create-profile');
+          }
+        },
+      );
+    } catch (e) {
+      debugPrint(e.toString());
+      _buttonLoadingStateCubit.setLoading(false);
     }
   }
 

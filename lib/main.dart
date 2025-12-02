@@ -65,7 +65,7 @@ Future<void> main() async {
   final appLinks = AppLinks();
 
   final sub = appLinks.uriLinkStream.listen((uri) {
-    debugPrint('Deep link: $uri');
+    //debugPrint('Deep link: $uri');
   });
 
   runApp(const MyApp());

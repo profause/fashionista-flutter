@@ -313,9 +313,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               ),
                               DatePickerFormField(
                                 label: 'Date of Birth',
-                                initialDate: user.dateOfBirth ?? DateTime.now(),
+                                initialDate: user.dateOfBirth ?? DateTime.now().subtract(const Duration(days: 365 * 14)),
                                 firstDate: DateTime(1900),
-                                lastDate: DateTime.now(),
+                                lastDate: DateTime.now().subtract(const Duration(days: 365 * 14)),
                                 controller: _dateOfBirthController,
                                 validator: (value) =>
                                     value == null || value.isEmpty

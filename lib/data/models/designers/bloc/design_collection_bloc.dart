@@ -4,6 +4,7 @@ import 'package:fashionista/data/models/designers/bloc/design_collection_state.d
 import 'package:fashionista/data/services/hive/hive_design_collection_service.dart';
 import 'package:fashionista/domain/usecases/design_collection/find_design_collection_by_id_usecase.dart';
 import 'package:fashionista/domain/usecases/design_collection/find_design_collections_usecase.dart';
+import 'package:flutter/material.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 class DesignCollectionBloc
@@ -131,8 +132,8 @@ class DesignCollectionBloc
           //     : null;
           //int freshFirstTimestamp = designCollections.first.createdAt;
 
-          final isDataChanged =
-              cachedItems.toString() != designCollections.toString();
+          final isDataChanged = cachedItems.length != designCollections.length;
+
           if (isDataChanged) {
             emit(DesignCollectionsLoaded(designCollections, fromCache: false));
             // 4️⃣ Update cache and emit fresh data

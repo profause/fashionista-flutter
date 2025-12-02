@@ -18,7 +18,7 @@ import 'package:cloudinary_api/uploader/cloudinary_uploader.dart';
 import 'package:cloudinary_api/src/request/model/uploader_params.dart';
 
 abstract class FirebaseUserService {
-  Future<Either> fetchUserDetailsFromFirestore(String uid);
+  Future<Either<String, User>> fetchUserDetailsFromFirestore(String uid);
   Future<Either<String, User>> findUserByMobileNumber(String mobileNumber);
   Future<Either> updateUserDetails(User user);
   Future<Either> updateUserDisplayName(String name);
@@ -34,15 +34,18 @@ abstract class FirebaseUserService {
 
 class FirebaseUserServiceImpl implements FirebaseUserService {
   @override
-  Future<Either> fetchUserDetailsFromFirestore(String uid) async {
+  Future<Either<String, User>> fetchUserDetailsFromFirestore(String uid) async {
     try {
       final firestore = FirebaseFirestore.instance;
       DocumentReference docRef = firestore.collection('users').doc(uid);
       DocumentSnapshot doc = await docRef.get();
+      if(doc.data() == null){
+        return Right(User.empty());
+      }
       User user = User.fromJson(doc.data() as Map<String, dynamic>);
       return Right(user);
     } on FirebaseException catch (e) {
-      return Left(e.message);
+      return Left(e.toString());
     }
   }
 

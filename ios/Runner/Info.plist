@@ -46,7 +46,9 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<string>2</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.lifestyle</string>
 	<key>FirebaseAppDelegateProxyEnabled</key>
 	<true/>
 	<key>FlutterDeepLinkingEnabled</key>
@@ -95,8 +97,8 @@
 	</array>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
-	<string>sms</string>
-	<string>tel</string>
+		<string>sms</string>
+		<string>tel</string>
 	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>We need to access your camera to take pictures.</string>

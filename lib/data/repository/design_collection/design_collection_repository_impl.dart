@@ -43,7 +43,7 @@ class DesignCollectionRepositoryImpl extends DesignCollectionRepository {
   }
 
   @override
-  Future<Either> findDesignCollections(String createdBy) {
+   Future<Either<String, List<DesignCollectionModel>>> findDesignCollections(String createdBy) {
     return sl<FirebaseDesignCollectionService>().findDesignCollections(
       createdBy,
     );

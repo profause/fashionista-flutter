@@ -74,6 +74,8 @@ class _MobileNumberAuthPageState extends State<MobileNumberAuthPage> {
                     child: AnimatedPrimaryButton(
                       text: "Continue",
                       onPressed: () async {
+                        /// 🔽 Close keyboard
+                        FocusScope.of(context).unfocus();
                         if (!_formKey.currentState!.validate()) return;
 
                         if (_phoneNumber == null || _phoneNumber!.isEmpty) {

@@ -224,6 +224,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             ProfileInfoTextFieldWidget(
+                              enabled: false,
                               label: 'Mobile Number',
                               controller: _mobileNumberController,
                               hint: 'Enter your mobile number',
@@ -312,9 +313,9 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                             ),
                             DatePickerFormField(
                               label: 'Date of Birth',
-                              initialDate: user.dateOfBirth ?? DateTime.now(),
+                              initialDate: user.dateOfBirth ?? DateTime.now().subtract(const Duration(days: 365 * 14)),
                               firstDate: DateTime(1900),
-                              lastDate: DateTime.now(),
+                              lastDate: DateTime.now().subtract(const Duration(days: 365 * 14)),
                               controller: _dateOfBirthController,
                               validator: (value) =>
                                   value == null || value.isEmpty
@@ -386,11 +387,8 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
           ).showSnackBar(SnackBar(content: Text(ifLeft)));
         },
         (ifRight) {
-          userBloc.clear();
-          userBloc.add(UpdateUser(ifRight));
-          if (mounted) {
-            // Dismiss the dialog manually
-            //dismissLoadingDialog(context);
+          if (ifRight.uid!.isNotEmpty) {
+            userBloc.add(UpdateUser(ifRight));
           }
         },
       );
@@ -460,7 +458,8 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
             ? DateTime.parse(_dateOfBirthController.text)
             : null,
         accountType: _accountTypeController.text,
-        bannerImage: user.bannerImage ?? 'https://picsum.photos/300/200?grayscale',
+        bannerImage:
+            user.bannerImage ?? 'https://picsum.photos/300/200?grayscale',
       );
 
       context.read<UserBloc>().add(UpdateUser(updatedUser));
