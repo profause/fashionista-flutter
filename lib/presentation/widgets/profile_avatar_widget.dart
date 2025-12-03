@@ -40,8 +40,8 @@ class ProfileAvatar extends StatelessWidget {
                 ),
               )
             : DefaultProfileAvatar(
-                name: user.fullName,
-                size: radius,
+                name: null,
+               size: radius * 2,
                 uid: user.uid!,
               );
 

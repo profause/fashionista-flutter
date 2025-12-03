@@ -21,6 +21,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return BlocBuilder<SettingsBloc, Settings>(
       builder: (context, settings) {
         ThemeMode themeMode = ThemeMode.values[settings.displayMode as int];
+        String imageQuality = settings.imageQuality ?? 'SD';
         return Scaffold(
           backgroundColor: colorScheme.surface,
           appBar: AppBar(
@@ -157,12 +158,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                       ),
                       subtitle: Text(
-                        settings.imageQuality == 'SD'
+                        imageQuality == 'SD'
                             ? 'Standard-Optimized for speed and good detail'
                             : 'High-Optimized for quality and sharpness',
                       ),
                       trailing: CustomIconRounded(
-                        icon: settings.imageQuality == 'SD'
+                        icon: imageQuality == 'SD'
                             ? Icons.sd_outlined
                             : Icons.hd_outlined,
                       ),

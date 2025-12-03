@@ -13,6 +13,7 @@ import 'package:fashionista/data/models/author/author_model.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
+import 'package:fashionista/data/models/settings/bloc/settings_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc_event.dart';
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
@@ -54,6 +55,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
   late TextEditingController _tagsController;
   late ValueNotifier<String> imageQuality = ValueNotifier('SD');
   final List<String> selectedInterests = [];
+  late SettingsBloc _settingsBloc;
 
   int _currentLength = 0;
   final int _maxLength = 100; // keep in sync with input field
@@ -68,6 +70,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
   void initState() {
     super.initState();
     _loadUserInterests();
+    _settingsBloc = context.read<SettingsBloc>();
     _descriptionController = TextEditingController();
     _tagsController = TextEditingController();
     _descriptionController.addListener(() {
@@ -75,6 +78,8 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
         _currentLength = _descriptionController.text.length;
       });
     });
+
+    imageQuality.value = _settingsBloc.state.imageQuality ?? 'SD';
   }
 
   @override
@@ -83,6 +88,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
     _tagsController.dispose();
     previewImages.clear();
     pickedImages.clear();
+    uploadProgress.clear();
     super.dispose();
   }
 
