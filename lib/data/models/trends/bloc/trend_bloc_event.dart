@@ -65,9 +65,9 @@ class LoadTrendsCacheFirst extends TrendBlocEvent {
 }
 
 
-class LoadTrendsCacheForDiscoverPage extends TrendBlocEvent {
+class LoadTrendsCacheForYouPage extends TrendBlocEvent {
   final String uid;
-  const LoadTrendsCacheForDiscoverPage(this.uid);
+  const LoadTrendsCacheForYouPage(this.uid);
 
   @override
   List<Object?> get props => [uid];

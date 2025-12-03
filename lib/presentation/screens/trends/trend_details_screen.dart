@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/service_locator/app_toast.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
+import 'package:fashionista/core/widgets/bloc/getstarted_stats_cubit.dart';
 import 'package:fashionista/data/models/author/author_model.dart';
 import 'package:fashionista/data/models/comment/comment_model.dart';
 import 'package:fashionista/data/models/designers/designer_model.dart';
@@ -268,6 +269,19 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                                       context.read<TrendBloc>().add(
                                         UpdateTrend(updateTrend),
                                       );
+
+                                      //here
+                                      final cubit = context
+                                          .read<GetstartedStatsCubit>();
+                                      final currentLikes =
+                                          cubit.state['likes'] ?? 0;
+                                      final newLike = isLiked
+                                          ? currentLikes + 1
+                                          : (currentLikes > 0
+                                                ? currentLikes - 1
+                                                : 0);
+
+                                      cubit.updateLikes(newLike);
                                     },
                                     trendId: trendInfo.uid!,
                                     isLikedNotifier: ValueNotifier(

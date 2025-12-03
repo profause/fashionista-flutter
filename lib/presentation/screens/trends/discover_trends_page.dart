@@ -62,11 +62,11 @@ class _DiscoverTrendsPageState extends State<DiscoverTrendsPage> with TickerProv
                           ..sort((a, b) => b.createdAt!.compareTo(a.createdAt!));
       
                         if (trends.isEmpty) {
-                          if (state is TrendLoading) {
-                            return const SliverToBoxAdapter(
-                              child: Center(child: CircularProgressIndicator()),
-                            );
-                          }
+                          // if (state is TrendLoading) {
+                          //   return const SliverToBoxAdapter(
+                          //     child: Center(child: CircularProgressIndicator()),
+                          //   );
+                          // }
                           return const SliverToBoxAdapter(
                             child: Center(child: Text("No trends found")),
                           );

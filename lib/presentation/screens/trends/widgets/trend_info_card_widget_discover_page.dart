@@ -240,7 +240,7 @@ class _TrendInfoCardWidgetDiscoverPageState
                                 children: [
                                   ValueListenableBuilder<bool>(
                                     valueListenable: isLikedNotifier,
-                                    builder: (_, isLiked, __) {
+                                    builder: (_, isLiked, _) {
                                       return CustomIconButtonRounded(
                                         backgroundColor: Colors.transparent,
                                         onPressed: () async {
@@ -274,7 +274,7 @@ class _TrendInfoCardWidgetDiscoverPageState
                                               isLiked: r,
                                             );
                                             context.read<TrendBloc>().add(
-                                              UpdateCachedTrend(t),
+                                              UpdateTrend(t),
                                             );
                                             if (!mounted) return;
                                             setState(() {

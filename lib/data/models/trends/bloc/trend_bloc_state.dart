@@ -46,6 +46,15 @@ class TrendsLoaded extends TrendBlocState {
   List<Object?> get props => [trends];
 }
 
+class TrendsCreatedByLoaded extends TrendBlocState {
+  final List<TrendFeedModel> trends;
+  final bool fromCache;
+  const TrendsCreatedByLoaded(this.trends, {this.fromCache = false});
+
+  @override
+  List<Object?> get props => [trends];
+}
+
 class TrendsEmpty extends TrendBlocState {
   const TrendsEmpty();
 }

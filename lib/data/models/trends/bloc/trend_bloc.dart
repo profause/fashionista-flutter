@@ -19,7 +19,7 @@ class TrendBloc extends Bloc<TrendBlocEvent, TrendBlocState> {
     on<DeleteTrend>(_deleteTrend);
     on<LoadTrendsCacheFirstThenNetwork>(_onLoadTrendsCacheFirstThenNetwork);
     on<LoadTrendsCacheFirst>(_loadCacheFirst);
-    on<LoadTrendsCacheForDiscoverPage>(_onLoadTrendsCacheForDiscoverPage);
+    on<LoadTrendsCacheForYouPage>(_onLoadTrendsCacheForYouPage);
 
     on<ClearTrend>((event, emit) => emit(const TrendInitial()));
   }
@@ -209,50 +209,22 @@ class TrendBloc extends Bloc<TrendBlocEvent, TrendBlocState> {
     return aIds.containsAll(bIds) && bIds.containsAll(aIds);
   }
 
-  Future<void> _onLoadTrendsCacheForDiscoverPage(
-    LoadTrendsCacheForDiscoverPage event,
+  Future<void> _onLoadTrendsCacheForYouPage(
+    LoadTrendsCacheForYouPage event,
     Emitter<TrendBlocState> emit,
   ) async {
     emit(const TrendLoading());
     // 1️⃣ Try cache first
-    final cachedItems = await sl<HiveTrendService>().getItems(event.uid);
-
-    if (cachedItems.isNotEmpty) {
-      emit(TrendsLoaded(cachedItems, fromCache: true));
-    }
-
-    // 2️⃣ Fetch from network
-    final result = await sl<FirebaseTrendsService>().fetchTrendsWithFilter(10);
-
-    result.fold(
-      (failure) async {
-        if (cachedItems.isEmpty) {
-          emit(TrendError(failure.toString()));
-        }
-        // else → keep showing cached quietly
-      },
-      (trends) async {
-        try {
-          if (trends.isEmpty) {
-            if (cachedItems.isEmpty) {
-              emit(const TrendsEmpty());
-            }
-            return;
-          }
-
-          if (cachedItems.toString() != trends.toString()) {
-            emit(TrendsLoaded(trends, fromCache: false));
-            // 4️⃣ Update cache and emit fresh data
-            await sl<HiveTrendService>().insertItems(trends);
-          } else {
-            // no change
-            emit(TrendsLoaded(cachedItems, fromCache: true));
-          }
-        } catch (e) {
-          if (emit.isDone) return; // <- safeguard
-          emit(TrendError(e.toString()));
-        }
-      },
+    final cachedItems = await sl<HiveTrendService>().getItemsBelongsTo(
+      event.uid,
     );
+
+    if (cachedItems.isEmpty) {
+      emit(const TrendsEmpty());
+      return;
+    }
+    //if (cachedItems.isNotEmpty) {
+    emit(TrendsCreatedByLoaded(cachedItems, fromCache: true));
+    //}
   }
 }

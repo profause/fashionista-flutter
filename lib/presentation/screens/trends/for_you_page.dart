@@ -5,6 +5,7 @@ import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/widgets/bloc/getstarted_stats_cubit.dart';
 import 'package:fashionista/data/models/designers/designer_model.dart';
+import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc_event.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc_state.dart';
@@ -14,6 +15,7 @@ import 'package:fashionista/presentation/screens/trends/widgets/designer_shimmer
 import 'package:fashionista/presentation/screens/trends/widgets/interest_shimmer_widget.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/trend_info_card_widget_discover_page.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -34,9 +36,12 @@ class _ForYouPageState extends State<ForYouPage> {
       ValueNotifier<List<Designer>>([]);
   bool loadingFashionDesigners = true;
   late GetstartedStatsCubit _getstartedStatsCubit;
+  //late UserBloc _userBloc;
 
   final ValueNotifier<int> getStartedLikesNotifier = ValueNotifier<int>(0);
-
+  final ValueNotifier<int> getStartedFollowingsNotifier = ValueNotifier<int>(0);
+  final ValueNotifier<int> getStartedInterestsNotifier = ValueNotifier<int>(0);
+  late UserBloc _userBloc;
   late int getStartedLikes = 0;
   late int getStartedFollowings = 0;
   late int getStartedInterests = 0;
@@ -45,6 +50,7 @@ class _ForYouPageState extends State<ForYouPage> {
 
   @override
   void initState() {
+    _userBloc = context.read<UserBloc>();
     _loadGetStartedStats();
     _loadFashionInterests();
     _loadFashionDesigners();
@@ -143,6 +149,42 @@ class _ForYouPageState extends State<ForYouPage> {
                     ),
                     subtitle: Text(
                       'Follow designers to view their work',
+                      style: textTheme.bodyMedium,
+                    ),
+                  ),
+
+                  ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    leading: SizedBox(
+                      width: 18,
+                      height: 18,
+                      child:
+                          BlocSelector<
+                            GetstartedStatsCubit,
+                            Map<String, int>,
+                            int
+                          >(
+                            selector: (state) => state['interests'] ?? 0,
+                            builder: (context, interest) {
+                              return CircularProgressIndicator(
+                                value: (interest / 5),
+                                strokeWidth: 3,
+                                backgroundColor: AppTheme.appIconColor
+                                    .withValues(alpha: .1),
+                                valueColor: AlwaysStoppedAnimation(
+                                  AppTheme.appIconColor.withValues(alpha: 1),
+                                ),
+                              );
+                            },
+                          ),
+                    ),
+                    title: Text(
+                      'Show your interests',
+                      style: textTheme.labelLarge,
+                    ),
+                    subtitle: Text(
+                      'Exploring fashion identity',
                       style: textTheme.bodyMedium,
                     ),
                   ),
@@ -320,6 +362,9 @@ class _ForYouPageState extends State<ForYouPage> {
                 ),
                 const SizedBox(height: 4),
                 BlocBuilder<TrendBloc, TrendBlocState>(
+                  buildWhen: (context, state) {
+                    return state is TrendsCreatedByLoaded;
+                  },
                   builder: (context, state) {
                     switch (state) {
                       case TrendLoading():
@@ -330,19 +375,30 @@ class _ForYouPageState extends State<ForYouPage> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           ),
                         );
-                      case TrendsLoaded(:final trends):
+                      case TrendsCreatedByLoaded(:final trends):
+                        final filtered =
+                            trends; //.where((item) => item.createdBy == _userBloc.state.uid).toList();
                         return ListView.separated(
                           padding: const EdgeInsets.all(0),
                           physics: const NeverScrollableScrollPhysics(),
                           shrinkWrap: true,
-                          itemCount: trends.length,
-                          separatorBuilder: (_, _) =>
-                              const SizedBox(height: 2),
+                          itemCount: filtered.length,
+                          separatorBuilder: (_, _) => const SizedBox(height: 2),
                           itemBuilder: (context, index) {
-                            final item = trends[index];
+                            final item = filtered[index];
                             return TrendInfoCardWidgetDiscoverPage(
                               trendInfo: item,
-                              onLikeTap: (bool isLiked) {},
+                              onLikeTap: (bool isLiked) {
+                                //here
+                                final cubit = context
+                                    .read<GetstartedStatsCubit>();
+                                final currentLikes = cubit.state['likes'] ?? 0;
+                                final newLike = isLiked
+                                    ? currentLikes + 1
+                                    : (currentLikes > 0 ? currentLikes - 1 : 0);
+
+                                cubit.updateLikes(newLike);
+                              },
                             );
                           },
                         );
@@ -379,14 +435,23 @@ class _ForYouPageState extends State<ForYouPage> {
     _loadInterestsDebounce = Timer(
       const Duration(milliseconds: 1500),
       () async {
+        final userInterests = _userBloc.state.interests;
+        final userInterestCount = userInterests!.length;
+        //here
+        final cubit = context.read<GetstartedStatsCubit>();
+        cubit.updateInterests(userInterestCount);
+
         final querySnapshot = await FirebaseFirestore.instance
             .collection('fashion_interests')
             .orderBy('category')
+            .limit(5)
             .get();
 
-        final interests = querySnapshot.docs
-            .map((item) => item.data()['name'] as String)
-            .toList();
+        final interests = userInterestCount > 4
+            ? userInterests
+            : querySnapshot.docs
+                  .map((item) => item.data()['name'] as String)
+                  .toList();
 
         selectedInterestsNotifier.value = interests;
         loadingFashionInterests = false;
@@ -414,10 +479,8 @@ class _ForYouPageState extends State<ForYouPage> {
   }
 
   void _loadFashionTrends() {
-    context.read<TrendBloc>().add(const LoadTrendsCacheFirst(limit: 10));
-    // context.read<TrendBloc>().add(
-    //   const LoadTrendsCacheForDiscoverPage('discover'),
-    // );
+    String uid = FirebaseAuth.instance.currentUser!.uid;
+    context.read<TrendBloc>().add(LoadTrendsCacheForYouPage(uid));
   }
 
   void _loadGetStartedStats() {
@@ -427,6 +490,9 @@ class _ForYouPageState extends State<ForYouPage> {
     final interests = _getstartedStatsCubit.state['interests'] ?? 0;
 
     getStartedLikesNotifier.value = likes;
+    getStartedFollowingsNotifier.value = followings;
+    getStartedInterestsNotifier.value = interests;
+
     setState(() {
       getStartedLikes = likes;
       getStartedFollowings = followings;

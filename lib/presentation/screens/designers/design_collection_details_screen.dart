@@ -4,7 +4,6 @@ import 'package:cloudinary_url_gen/cloudinary.dart';
 import 'package:cloudinary_url_gen/config/cloudinary_config.dart';
 import 'package:cloudinary_url_gen/transformation/resize/resize.dart';
 import 'package:cloudinary_url_gen/transformation/transformation.dart';
-import 'package:dartz/dartz.dart' as dartz;
 import 'package:fashionista/core/service_locator/app_config.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/designers/bloc/design_collection_bloc.dart';

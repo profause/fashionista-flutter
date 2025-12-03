@@ -17,6 +17,17 @@ class HiveTrendService {
     return [];
   }
 
+  Future<List<TrendFeedModel>> getItemsBelongsTo(String key) async {
+    try {
+      final data = hive.trendsBox.values;
+      final filtered = data.where((item) => item.createdBy == key).toList();
+      return filtered;
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+    return [];
+  }
+
   Future<void> insertItems(List<TrendFeedModel> items) async {
     try {
       final allI = items.map((e) {

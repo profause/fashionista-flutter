@@ -88,7 +88,6 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
     _tagsController.dispose();
     previewImages.clear();
     pickedImages.clear();
-    uploadProgress.clear();
     super.dispose();
   }
 

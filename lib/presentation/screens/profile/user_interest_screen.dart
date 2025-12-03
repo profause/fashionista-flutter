@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/widgets/bloc/getstarted_stats_cubit.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/domain/usecases/profile/update_user_profile_usecase.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -159,20 +160,17 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
       return;
     }
 
-    // await FirebaseFirestore.instance.collection('users').doc(user.uid).set(
-    //   {
-    //     'interests': selectedInterests.toList(),
-    //     //'updated_at': FieldValue.serverTimestamp(),
-    //   },
-    //   SetOptions(merge: true), // keep other user data
-    // );
-
     final currentUser = context.read<UserBloc>().state;
     final selected = Set<String>.from(selectedInterestsNotifier.value);
 
     final updatedUser = currentUser.copyWith(interests: selected.toList());
 
     context.read<UserBloc>().add(UpdateUser(updatedUser));
+
+    final userInterestCount = selected.length;
+    //here
+    final cubit = context.read<GetstartedStatsCubit>();
+    cubit.updateInterests(userInterestCount);
 
     //sync with firestore
     final updateUserResult = await sl<UpdateUserProfileUsecase>().call(
