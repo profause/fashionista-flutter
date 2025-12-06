@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
@@ -14,6 +15,7 @@ import 'package:fashionista/presentation/screens/designers/widgets/designer_info
 import 'package:fashionista/presentation/screens/trends/widgets/designer_shimmer_widget.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/interest_shimmer_widget.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/trend_info_card_widget_discover_page.dart';
+import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -34,6 +36,10 @@ class _ForYouPageState extends State<ForYouPage> {
 
   final ValueNotifier<List<Designer>> designersNotifier =
       ValueNotifier<List<Designer>>([]);
+
+  final ValueNotifier<List<Designer>> myDesignersNotifier =
+      ValueNotifier<List<Designer>>([]);
+
   bool loadingFashionDesigners = true;
   late GetstartedStatsCubit _getstartedStatsCubit;
   //late UserBloc _userBloc;
@@ -197,7 +203,97 @@ class _ForYouPageState extends State<ForYouPage> {
               padding: const EdgeInsets.all(16),
               //color: colorScheme.onPrimary,
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: colorScheme.onPrimary,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Text(
+                            'My Measurements',
+                            style: textTheme.labelLarge,
+                          ),
+                        ),
+                        const Divider(height: .1, thickness: .1),
+                        Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('My Designers', style: textTheme.bodyMedium),
+                              //here
+                              ValueListenableBuilder<List<Designer>>(
+                                  valueListenable: myDesignersNotifier,
+                                  builder: (context, designers, _) {
+                                    // if (loadingFashionDesigners) {
+                                    //   return SizedBox(
+                                    //     height: 240,
+                                    //     child: ListView.separated(
+                                    //       //padding: const EdgeInsets.all(16),
+                                    //       scrollDirection: Axis.horizontal,
+                                    //       itemCount:
+                                    //           6, // number of shimmer placeholders
+                                    //       separatorBuilder: (_, _) =>
+                                    //           const SizedBox(width: 8),
+                                    //       itemBuilder: (_, _) {
+                                    //         // variable chip widths
+                                    //         return DesignerShimmerWidget();
+                                    //       },
+                                    //     ),
+                                    //   );
+                                    // }
+
+                                    if (designers.isEmpty) {
+                                      return Text(
+                                        "No designers found",
+                                        style: textTheme.bodyMedium,
+                                      );
+                                    }
+
+                                    return SizedBox(
+                                      height: 60,
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: SizedBox(
+                                          width:
+                                              designers.length * 24.0 +
+                                              24, // dynamic width
+                                          child: Stack(
+                                            children: [
+                                              for (
+                                                int i = 0;
+                                                i < designers.length;
+                                                i++
+                                              )
+                                                Positioned(
+                                                  left: i * 24.0,
+                                                  child: buildDesignerAvatar(
+                                                    designers[i],
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -467,6 +563,7 @@ class _ForYouPageState extends State<ForYouPage> {
 
       await result.fold((failure) async {}, (designers) {
         designersNotifier.value = designers;
+        myDesignersNotifier.value = designers;
         final following = designers
             .where((d) => d.isFavourite!)
             .toList()
@@ -498,5 +595,24 @@ class _ForYouPageState extends State<ForYouPage> {
       getStartedFollowings = followings;
       getStartedInterests = interests;
     });
+  }
+
+  Widget buildDesignerAvatar(Designer item) {
+    return CircleAvatar(
+      radius: 24,
+      backgroundColor: Colors.white,
+      child: Container(
+        margin: const EdgeInsets.all(2),
+        clipBehavior: Clip.antiAlias,
+        decoration: const BoxDecoration(shape: BoxShape.circle),
+        child: CachedNetworkImage(
+          imageUrl: item.profileImage!,
+          placeholder: (_, __) =>
+              DefaultProfileAvatar(name: null, size: 48, uid: item.uid),
+          errorWidget: (_, __, ___) =>
+              DefaultProfileAvatar(name: null, size: 48, uid: item.uid),
+        ),
+      ),
+    );
   }
 }
