@@ -733,7 +733,7 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
         String thumbnailUrl =
             (cloudinary.image('$baseFolder/$workOrderMediaFolder/$fileName')
                   ..transformation(
-                    Transformation().addTransformation('q_auto:low')
+                    Transformation().addTransformation('q_auto:eco')
                       ..resize(Resize.auto().width(360).aspectRatio(aspect)),
                   ))
                 .toString();

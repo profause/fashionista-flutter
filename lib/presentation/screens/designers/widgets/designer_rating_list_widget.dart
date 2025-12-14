@@ -13,7 +13,7 @@ class DesignerRatingListWidget extends StatelessWidget {
       ..sort((a, b) => int.parse(b.key).compareTo(int.parse(a.key))); // 5→1 order
 
     final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
+    //final colorScheme = Theme.of(context).colorScheme;
 
     return Column(
       mainAxisSize: MainAxisSize.min,

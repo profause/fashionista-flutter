@@ -171,7 +171,7 @@ class FirebaseUserServiceImpl implements FirebaseUserService {
       final transformation = Transformation()
           .resize(Resize.auto().width(360).height(360).aspectRatio(1 / 1))
           //.addTransformation('q_60')
-          .addTransformation('q_auto:eco');
+          .addTransformation('q_auto:good');
 
       final uploadResult = await cloudinary.uploader().upload(
         'data:image/jpeg;base64,$base64Image',
@@ -258,7 +258,7 @@ class FirebaseUserServiceImpl implements FirebaseUserService {
       final transformation = Transformation()
           .resize(Resize.auto().height(240).aspectRatio(16 / 9))
           //.addTransformation('q_60')
-          .addTransformation('q_auto:eco');
+          .addTransformation('q_auto:good');
 
       final uploadResult = await cloudinary.uploader().upload(
         'data:image/jpeg;base64,$base64Image',

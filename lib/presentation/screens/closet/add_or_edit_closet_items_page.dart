@@ -743,7 +743,7 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
         String thumbnailUrl =
             (cloudinary.image('$baseFolder/$closetItemImagesFolder/$fileName')
                   ..transformation(
-                    Transformation().addTransformation('q_auto:low')
+                    Transformation().addTransformation('q_auto:eco')
                       ..resize(Resize.auto().width(240).aspectRatio(aspect)),
                   ))
                 .toString();

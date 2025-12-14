@@ -616,7 +616,7 @@ class _AddDesignCollectionScreenState extends State<AddDesignCollectionScreen> {
             (cloudinary.image(
                   '$baseFolder/$designCollectionMediaFolder/$fileName',
                 )..transformation(
-                  Transformation().addTransformation('q_auto:low')
+                  Transformation().addTransformation('q_auto:eco')
                     ..resize(Resize.auto().width(360).aspectRatio(aspect)),
                 ))
                 .toString();

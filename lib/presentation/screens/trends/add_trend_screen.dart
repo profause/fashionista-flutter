@@ -485,7 +485,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
 
       final transformation = Transformation()
           .resize(Resize.auto().width(480).aspectRatio(aspect))
-          .addTransformation(imageQuality.value == 'SD' ? 'q_60' : 'q_90');
+          .addTransformation(imageQuality.value == 'SD' ? 'q_60' : 'q_100');
       // Define upload task returning a non-null String
       final uploadTask = (() async {
         final uploadResult = await cloudinary.uploader().upload(
@@ -519,7 +519,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
         String thumbnailUrl =
             (cloudinary.image('$baseFolder/$trendMediaFolder/$fileName')
                   ..transformation(
-                    Transformation().addTransformation('q_auto:eco')
+                    Transformation().addTransformation('q_auto:good')
                       ..resize(Resize.auto().width(360).aspectRatio(aspect)),
                   ))
                 .toString();

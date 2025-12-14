@@ -90,7 +90,7 @@ class DesignCollectionInfoCardWidget extends StatelessWidget {
                       ),
                     ),
                     transformation:
-                        Transformation().addTransformation('q_auto:low')
+                        Transformation().addTransformation('q_auto:eco')
                           ..resize(
                             Resize.fill().aspectRatio(
                               designCollectionInfo

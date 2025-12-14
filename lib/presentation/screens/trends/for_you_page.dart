@@ -13,6 +13,7 @@ import 'package:fashionista/data/models/trends/bloc/trend_bloc_state.dart';
 import 'package:fashionista/data/services/firebase/firebase_designers_service.dart';
 import 'package:fashionista/presentation/screens/designers/widgets/designer_info_card_widget_discover_page.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/designer_shimmer_widget.dart';
+import 'package:fashionista/presentation/screens/trends/widgets/designer_stack_avatar_widget.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/interest_shimmer_widget.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/trend_info_card_widget_discover_page.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
@@ -232,61 +233,73 @@ class _ForYouPageState extends State<ForYouPage> {
                               Text('My Designers', style: textTheme.bodyMedium),
                               //here
                               ValueListenableBuilder<List<Designer>>(
-                                  valueListenable: myDesignersNotifier,
-                                  builder: (context, designers, _) {
-                                    // if (loadingFashionDesigners) {
-                                    //   return SizedBox(
-                                    //     height: 240,
-                                    //     child: ListView.separated(
-                                    //       //padding: const EdgeInsets.all(16),
-                                    //       scrollDirection: Axis.horizontal,
-                                    //       itemCount:
-                                    //           6, // number of shimmer placeholders
-                                    //       separatorBuilder: (_, _) =>
-                                    //           const SizedBox(width: 8),
-                                    //       itemBuilder: (_, _) {
-                                    //         // variable chip widths
-                                    //         return DesignerShimmerWidget();
-                                    //       },
-                                    //     ),
-                                    //   );
-                                    // }
+                                valueListenable: myDesignersNotifier,
+                                builder: (context, designers, _) {
+                                  // if (loadingFashionDesigners) {
+                                  //   return SizedBox(
+                                  //     height: 240,
+                                  //     child: SingleChildScrollView(
+                                  //       //padding: const EdgeInsets.all(16),
+                                  //       scrollDirection: Axis.horizontal,
+                                  //       child: SizedBox(
+                                  //         width: designers.length * 24.0 + 24,
+                                  //         child: Stack(
+                                  //           children: [
+                                  //             for (
+                                  //               int i = 0;
+                                  //               i < 6;
+                                  //               i++
+                                  //             )
+                                  //               Positioned(
+                                  //                 left: i * 24.0,
+                                  //                 child:
+                                  //                     DesignerStackAvatarWidget(),
+                                  //               ),
+                                  //           ],
+                                  //         ),
+                                  //       ),
+                                  //       // variable chip widths
+                                  //       //return DesignerStackAvatarWidget();
+                                  //     ),
+                                  //   );
+                                  // }
 
-                                    if (designers.isEmpty) {
-                                      return Text(
-                                        "No designers found",
-                                        style: textTheme.bodyMedium,
-                                      );
-                                    }
+                                  if (designers.isEmpty &&
+                                      !loadingFashionDesigners) {
+                                    return Text(
+                                      "No designers found",
+                                      style: textTheme.bodyMedium,
+                                    );
+                                  }
 
-                                    return SizedBox(
-                                      height: 60,
-                                      child: SingleChildScrollView(
-                                        scrollDirection: Axis.horizontal,
-                                        child: SizedBox(
-                                          width:
-                                              designers.length * 24.0 +
-                                              24, // dynamic width
-                                          child: Stack(
-                                            children: [
-                                              for (
-                                                int i = 0;
-                                                i < designers.length;
-                                                i++
-                                              )
-                                                Positioned(
-                                                  left: i * 24.0,
-                                                  child: buildDesignerAvatar(
-                                                    designers[i],
-                                                  ),
+                                  return SizedBox(
+                                    height: 60,
+                                    child: SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: SizedBox(
+                                        width:
+                                            designers.length * 24.0 +
+                                            24, // dynamic width
+                                        child: Stack(
+                                          children: [
+                                            for (
+                                              int i = 0;
+                                              i < designers.length;
+                                              i++
+                                            )
+                                              Positioned(
+                                                left: i * 24.0,
+                                                child: buildDesignerAvatar(
+                                                  designers[i],
                                                 ),
-                                            ],
-                                          ),
+                                              ),
+                                          ],
                                         ),
                                       ),
-                                    );
-                                  },
-                                ),
+                                    ),
+                                  );
+                                },
+                              ),
                             ],
                           ),
                         ),
@@ -559,7 +572,7 @@ class _ForYouPageState extends State<ForYouPage> {
     _debounce?.cancel(); // cancel previous timer
     _debounce = Timer(const Duration(milliseconds: 1500), () async {
       final result = await sl<FirebaseDesignersService>()
-          .findDesignersWithFilter(4, 'created_date');
+          .findDesignersWithFilter(6, 'created_date');
 
       await result.fold((failure) async {}, (designers) {
         designersNotifier.value = designers;
@@ -607,9 +620,9 @@ class _ForYouPageState extends State<ForYouPage> {
         decoration: const BoxDecoration(shape: BoxShape.circle),
         child: CachedNetworkImage(
           imageUrl: item.profileImage!,
-          placeholder: (_, __) =>
+          placeholder: (_, _) =>
               DefaultProfileAvatar(name: null, size: 48, uid: item.uid),
-          errorWidget: (_, __, ___) =>
+          errorWidget: (_, _, _) =>
               DefaultProfileAvatar(name: null, size: 48, uid: item.uid),
         ),
       ),
