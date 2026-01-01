@@ -7,8 +7,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 abstract class FirebaseClientsService {
   Future<Either> fetchClientsFromFirestore(String uid);
   Future<Either<String, List<Client>>> findClientsFromFirestore(String uid);
-  Future<Either> findClientByMobileNumber(String mobileNumber);
-   Future<Either<String, bool>> isMyClient(String mobileNumber);
+  Future<Either<String, List<Client>>> findClientByMobileNumber(
+    String mobileNumber,
+  );
+  Future<Either<String, bool>> isMyClient(String mobileNumber);
   Future<Either> findClientById(String uid);
   Future<Either> addClientToFirestore(Client client);
   Future<Either> updateClientToFirestore(Client client);
@@ -125,7 +127,9 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
   }
 
   @override
-  Future<Either> findClientByMobileNumber(String mobileNumber) async {
+  Future<Either<String, List<Client>>> findClientByMobileNumber(
+    String mobileNumber,
+  ) async {
     try {
       final firestore = FirebaseFirestore.instance;
       final querySnapshot = await firestore

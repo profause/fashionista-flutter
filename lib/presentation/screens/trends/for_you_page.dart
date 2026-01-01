@@ -10,6 +10,7 @@ import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc_event.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc_state.dart';
+import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_designers_service.dart';
 import 'package:fashionista/presentation/screens/designers/widgets/designer_info_card_widget_discover_page.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/designer_shimmer_widget.dart';
@@ -68,6 +69,11 @@ class _ForYouPageState extends State<ForYouPage> {
   @override
   void dispose() {
     selectedInterestsNotifier.dispose();
+    getStartedLikesNotifier.dispose();
+    getStartedFollowingsNotifier.dispose();
+    getStartedInterestsNotifier.dispose();
+    designersNotifier.dispose();
+    myDesignersNotifier.dispose();
     super.dispose();
   }
 
@@ -574,6 +580,9 @@ class _ForYouPageState extends State<ForYouPage> {
       final result = await sl<FirebaseDesignersService>()
           .findDesignersWithFilter(6, 'created_date');
 
+      final clientsResult = await sl<FirebaseClientsService>()
+          .findClientByMobileNumber(_userBloc.state.mobileNumber);
+
       await result.fold((failure) async {}, (designers) {
         designersNotifier.value = designers;
         myDesignersNotifier.value = designers;
@@ -584,6 +593,11 @@ class _ForYouPageState extends State<ForYouPage> {
         final cubit = context.read<GetstartedStatsCubit>();
         cubit.updateFollowings(following);
         loadingFashionDesigners = false;
+      });
+
+      await clientsResult.fold((failure) async {}, (clients) {
+        final createdBy = clients.map((d) => d.createdBy).toList();
+        
       });
     });
   }
