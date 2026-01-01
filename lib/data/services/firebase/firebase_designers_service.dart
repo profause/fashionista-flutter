@@ -31,7 +31,7 @@ abstract class FirebaseDesignersService {
   Future<Either> addDesignerToFirestore(Designer designer);
   Future<Either> updateDesignerToFirestore(Designer designer);
   Future<Either> deleteDesignerById(String uid);
-  Future<Either> findDesignerById(String uid);
+  Future<Either<String, Designer>> findDesignerById(String uid);
   Future<Either> uploadBannerImage(String uid, CroppedFile croppedFile);
   Future<Either> uploadBannerImageToCloudinary(
     String uid,
@@ -173,7 +173,7 @@ class FirebaseDesignersServiceImpl implements FirebaseDesignersService {
   }
 
   @override
-  Future<Either> findDesignerById(String uid) async {
+  Future<Either<String, Designer>> findDesignerById(String uid) async {
     try {
       final firestore = FirebaseFirestore.instance;
       DocumentReference docRef = firestore.collection('designers').doc(uid);
@@ -199,7 +199,7 @@ class FirebaseDesignersServiceImpl implements FirebaseDesignersService {
 
       return Right(designer);
     } on FirebaseException catch (e) {
-      return Left(e.message);
+      return Left(e.message.toString());
     }
   }
 

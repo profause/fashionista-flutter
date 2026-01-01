@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
-import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/designers/designer_model.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
@@ -29,7 +28,6 @@ class _MyDesignersScreenState extends State<MyDesignersScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     _userBloc = context.read<UserBloc>();
     _loadFashionDesigners();
     super.initState();
@@ -119,22 +117,44 @@ class _MyDesignersScreenState extends State<MyDesignersScreen> {
   }
 
   Future<void> _loadFashionDesigners() async {
-    _debounce?.cancel(); // cancel previous timer
-    _debounce = Timer(const Duration(milliseconds: 1500), () async {
-      final result = await sl<FirebaseDesignersService>()
-          .findDesignersWithFilter(6, 'created_date');
+    _debounce?.cancel();
 
-      final clientsResult = await sl<FirebaseClientsService>()
+    _debounce = Timer(const Duration(milliseconds: 500), () async {
+      loadingFashionDesigners = true;
+
+      final result = await sl<FirebaseClientsService>()
           .findClientByMobileNumber(_userBloc.state.mobileNumber);
 
-      await result.fold((failure) async {}, (designers) {
-        myDesignersNotifier.value = designers;
-        loadingFashionDesigners = false;
-      });
+      await result.fold(
+        (failure) async {
+          debugPrint("Client fetch failed: $failure");
+          loadingFashionDesigners = false;
+        },
+        (clients) async {
+          if (clients.isEmpty) {
+            myDesignersNotifier.value = [];
+            loadingFashionDesigners = false;
+            return;
+          }
 
-      await clientsResult.fold((failure) async {}, (clients) {
-        final createdBy = clients.map((d) => d.createdBy).toList();
-      });
+          // Remove duplicate designer IDs
+          final designerIds = clients.map((c) => c.createdBy).toSet().toList();
+
+          final designerResults = await Future.wait(
+            designerIds.map(
+              (id) => sl<FirebaseDesignersService>().findDesignerById(id),
+            ),
+          );
+
+          final designers = designerResults
+              .where((r) => r.isRight())
+              .map((r) => r.getOrElse(() => throw UnimplementedError()))
+              .toList();
+
+          myDesignersNotifier.value = designers;
+          loadingFashionDesigners = false;
+        },
+      );
     });
   }
 

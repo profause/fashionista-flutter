@@ -33,7 +33,7 @@ class _DesignerDetailsScreenState extends State<DesignerDetailsScreen> {
     );
 
     context.read<DesignerBloc>().add(
-      LoadDesigner(widget.designerId, isFromCache: true),
+      LoadDesigner(widget.designerId, isFromCache: false),
     );
   }
 

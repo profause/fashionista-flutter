@@ -54,6 +54,13 @@ class _UserProfileMessurementCardState
             if (designers.isEmpty && !loadingFashionDesigners) {
               return Text("No designers found", style: textTheme.bodyMedium);
             }
+            if (designers.isEmpty && loadingFashionDesigners) {
+              return SizedBox(
+                height: 18,
+                width: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              );
+            }
             return SizedBox(
               height: 60,
               child: SingleChildScrollView(
@@ -87,22 +94,44 @@ class _UserProfileMessurementCardState
   }
 
   Future<void> _loadFashionDesigners() async {
-    _debounce?.cancel(); // cancel previous timer
-    _debounce = Timer(const Duration(milliseconds: 1500), () async {
-      final result = await sl<FirebaseDesignersService>()
-          .findDesignersWithFilter(6, 'created_date');
+    _debounce?.cancel();
 
-      final clientsResult = await sl<FirebaseClientsService>()
+    _debounce = Timer(const Duration(milliseconds: 500), () async {
+      loadingFashionDesigners = true;
+
+      final result = await sl<FirebaseClientsService>()
           .findClientByMobileNumber(_userBloc.state.mobileNumber);
 
-      await result.fold((failure) async {}, (designers) {
-        myDesignersNotifier.value = designers;
-        loadingFashionDesigners = false;
-      });
+      await result.fold(
+        (failure) async {
+          debugPrint("Client fetch failed: $failure");
+          loadingFashionDesigners = false;
+        },
+        (clients) async {
+          if (clients.isEmpty) {
+            myDesignersNotifier.value = [];
+            loadingFashionDesigners = false;
+            return;
+          }
 
-      await clientsResult.fold((failure) async {}, (clients) {
-        final createdBy = clients.map((d) => d.createdBy).toList();
-      });
+          // Remove duplicate designer IDs
+          final designerIds = clients.map((c) => c.createdBy).toSet().toList();
+
+          final designerResults = await Future.wait(
+            designerIds.map(
+              (id) => sl<FirebaseDesignersService>().findDesignerById(id),
+            ),
+          );
+
+          final designers = designerResults
+              .where((r) => r.isRight())
+              .map((r) => r.getOrElse(() => throw UnimplementedError()))
+              .toList();
+
+          myDesignersNotifier.value = designers;
+          loadingFashionDesigners = false;
+        },
+      );
     });
   }
 
@@ -116,6 +145,7 @@ class _UserProfileMessurementCardState
         decoration: const BoxDecoration(shape: BoxShape.circle),
         child: CachedNetworkImage(
           imageUrl: item.profileImage!,
+          errorListener: (value) {},
           placeholder: (_, _) =>
               DefaultProfileAvatar(name: null, size: 48, uid: item.uid),
           errorWidget: (_, _, _) =>

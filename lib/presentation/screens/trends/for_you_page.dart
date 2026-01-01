@@ -241,34 +241,16 @@ class _ForYouPageState extends State<ForYouPage> {
                               ValueListenableBuilder<List<Designer>>(
                                 valueListenable: myDesignersNotifier,
                                 builder: (context, designers, _) {
-                                  // if (loadingFashionDesigners) {
-                                  //   return SizedBox(
-                                  //     height: 240,
-                                  //     child: SingleChildScrollView(
-                                  //       //padding: const EdgeInsets.all(16),
-                                  //       scrollDirection: Axis.horizontal,
-                                  //       child: SizedBox(
-                                  //         width: designers.length * 24.0 + 24,
-                                  //         child: Stack(
-                                  //           children: [
-                                  //             for (
-                                  //               int i = 0;
-                                  //               i < 6;
-                                  //               i++
-                                  //             )
-                                  //               Positioned(
-                                  //                 left: i * 24.0,
-                                  //                 child:
-                                  //                     DesignerStackAvatarWidget(),
-                                  //               ),
-                                  //           ],
-                                  //         ),
-                                  //       ),
-                                  //       // variable chip widths
-                                  //       //return DesignerStackAvatarWidget();
-                                  //     ),
-                                  //   );
-                                  // }
+                                  if (designers.isEmpty &&
+                                      loadingFashionDesigners) {
+                                    return const SizedBox(
+                                      height: 18,
+                                      width: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    );
+                                  }
 
                                   if (designers.isEmpty &&
                                       !loadingFashionDesigners) {
@@ -580,12 +562,8 @@ class _ForYouPageState extends State<ForYouPage> {
       final result = await sl<FirebaseDesignersService>()
           .findDesignersWithFilter(6, 'created_date');
 
-      final clientsResult = await sl<FirebaseClientsService>()
-          .findClientByMobileNumber(_userBloc.state.mobileNumber);
-
       await result.fold((failure) async {}, (designers) {
         designersNotifier.value = designers;
-        myDesignersNotifier.value = designers;
         final following = designers
             .where((d) => d.isFavourite!)
             .toList()
@@ -595,10 +573,39 @@ class _ForYouPageState extends State<ForYouPage> {
         loadingFashionDesigners = false;
       });
 
-      await clientsResult.fold((failure) async {}, (clients) {
-        final createdBy = clients.map((d) => d.createdBy).toList();
-        
-      });
+      final resultC = await sl<FirebaseClientsService>()
+          .findClientByMobileNumber(_userBloc.state.mobileNumber);
+
+      await resultC.fold(
+        (failure) async {
+          debugPrint("Client fetch failed: $failure");
+          loadingFashionDesigners = false;
+        },
+        (clients) async {
+          if (clients.isEmpty) {
+            myDesignersNotifier.value = [];
+            loadingFashionDesigners = false;
+            return;
+          }
+
+          // Remove duplicate designer IDs
+          final designerIds = clients.map((c) => c.createdBy).toSet().toList();
+
+          final designerResults = await Future.wait(
+            designerIds.map(
+              (id) => sl<FirebaseDesignersService>().findDesignerById(id),
+            ),
+          );
+
+          final designers = designerResults
+              .where((r) => r.isRight())
+              .map((r) => r.getOrElse(() => throw UnimplementedError()))
+              .toList();
+
+          myDesignersNotifier.value = designers;
+          loadingFashionDesigners = false;
+        },
+      );
     });
   }
 
@@ -634,6 +641,7 @@ class _ForYouPageState extends State<ForYouPage> {
         decoration: const BoxDecoration(shape: BoxShape.circle),
         child: CachedNetworkImage(
           imageUrl: item.profileImage!,
+          errorListener: (value) {},
           placeholder: (_, _) =>
               DefaultProfileAvatar(name: null, size: 48, uid: item.uid),
           errorWidget: (_, _, _) =>
