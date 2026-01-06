@@ -6,4 +6,5 @@ class ClientMeasurementModelHiveType {
   static const int notes = 4;
   static const int previousValues = 5;
   static const int tags = 6;
+  static const int uid = 7;
 }

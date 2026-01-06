@@ -3,6 +3,7 @@ import 'package:fashionista/core/models/hive/client_measurement_model_hive_type.
 import 'package:json_annotation/json_annotation.dart';
 import 'package:fashionista/core/models/hive/hive_type.dart' as hive;
 import 'package:hive/hive.dart';
+import 'package:uuid/uuid.dart';
 
 part 'client_measurement_model.g.dart';
 
@@ -36,7 +37,11 @@ class ClientMeasurement extends Equatable {
   @JsonKey(name: 'tags')
   final String? tags;
 
+  @HiveField(ClientMeasurementModelHiveType.uid)
+  final String uid;
+
   const ClientMeasurement({
+    required this.uid,
     required this.bodyPart,
     required this.measuredValue,
     required this.measuringUnit,
@@ -60,6 +65,7 @@ class ClientMeasurement extends Equatable {
   //static Timestamp _toTimestamp(DateTime date) => Timestamp.fromDate(date);
 
   ClientMeasurement copyWith({
+    String? uid,
     String? bodyPart,
     double? measuredValue,
     String? measuringUnit,
@@ -69,6 +75,7 @@ class ClientMeasurement extends Equatable {
     String? tags,
   }) {
     return ClientMeasurement(
+      uid: uid ?? this.uid,
       bodyPart: bodyPart ?? this.bodyPart,
       measuredValue: measuredValue ?? this.measuredValue,
       measuringUnit: measuringUnit ?? this.measuringUnit,
@@ -81,7 +88,9 @@ class ClientMeasurement extends Equatable {
 
   /// Empty constructor for initial state
   factory ClientMeasurement.empty() {
-    return const ClientMeasurement(
+    final uid = Uuid().v4();
+    return ClientMeasurement(
+      uid:  uid,
       bodyPart: '',
       measuredValue: 0,
       measuringUnit: '',
@@ -93,6 +102,7 @@ class ClientMeasurement extends Equatable {
 
   @override
   List<Object?> get props => [
+    uid,
     bodyPart,
     measuredValue,
     measuringUnit,
@@ -103,7 +113,7 @@ class ClientMeasurement extends Equatable {
   ];
 
   static const Set<String> maleMeasurementTemplate = {
-    "Bust",
+    "Chest",
     "Across Back",
     "Sleeve Length",
     "Arm hole",

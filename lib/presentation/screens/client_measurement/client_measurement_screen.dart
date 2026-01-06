@@ -254,15 +254,6 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
                           ),
                         ),
                       );
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //     builder: (context) => AddClientMeasurementScreen(
-                      //       clientMeasurement: ClientMeasurement.empty(),
-                      //       clientUid: client.uid,
-                      //     ),
-                      //   ),
-                      // );
                     },
                     customBorder: const CircleBorder(),
                     child: SizedBox(

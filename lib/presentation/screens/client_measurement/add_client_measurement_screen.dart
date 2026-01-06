@@ -12,6 +12,7 @@ import 'package:fashionista/presentation/widgets/custom_text_input_field_widget.
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uuid/uuid.dart';
 
 class AddClientMeasurementScreen extends StatefulWidget {
   final ClientMeasurement clientMeasurement;
@@ -235,68 +236,68 @@ class _AddClientMeasurementScreenState
                   ],
                 ),
               ),
+
+              Container(
+                margin: const EdgeInsets.only(top: 16),
+                child: AnimatedPrimaryButton(
+                  text: "Save",
+                  onPressed: () async {
+                    final isValid = _bodyPartController.text.isNotEmpty;
+                    if (!isValid) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("All fields are required."),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                      return; // Stop here if invalid
+                    }
+
+                    final updatedMeasurement = widget.clientMeasurement
+                        .copyWith(
+                          uid: widget.clientMeasurement.uid,
+                          bodyPart: _bodyPartController.text.trim(),
+                          measuredValue: double.parse(
+                            _measuredValueController.text.trim(),
+                          ),
+                          notes: _noteController.text.trim(),
+                          measuringUnit: _measuringUnitController.text.trim(),
+                          updatedDate: DateTime.now(),
+                          tags: _tagsController.text.trim(),
+                        );
+                    final List<ClientMeasurement> measurements = List.from(
+                      widget.client.measurements,
+                    );
+
+                    // check if bodyPart already exists
+                    final index = measurements.indexWhere(
+                      (m) =>
+                          m.bodyPart.toLowerCase() ==
+                          updatedMeasurement.bodyPart.toLowerCase(),
+                    );
+
+                    if (index != -1) {
+                      // update existing
+                      measurements[index] = updatedMeasurement;
+                    } else {
+                      // add new
+                      measurements.add(updatedMeasurement);
+                    }
+                    // now create updated client with new list
+                    final updatedClient = widget.client.copyWith(
+                      measurements: measurements,
+                    );
+
+                    context.read<ClientBloc>().add(UpdateClient(updatedClient));
+                    _saveClientMeasurement(updatedClient);
+                  },
+                ),
+              ),
             ],
           ),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: Hero(
-        tag: 'add-measurement-button',
-        child: Container(
-          margin: const EdgeInsets.all(16),
-          child: AnimatedPrimaryButton(
-            text: "Save",
-            onPressed: () async {
-              final isValid = _bodyPartController.text.isNotEmpty;
-              if (!isValid) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("All fields are required."),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-                return; // Stop here if invalid
-              }
-
-              final updatedMeasurement = widget.clientMeasurement.copyWith(
-                bodyPart: _bodyPartController.text.trim(),
-                measuredValue: double.parse(
-                  _measuredValueController.text.trim(),
-                ),
-                notes: _noteController.text.trim(),
-                measuringUnit: _measuringUnitController.text.trim(),
-                updatedDate: DateTime.now(),
-                tags: _tagsController.text.trim(),
-              );
-              final List<ClientMeasurement> measurements = List.from(
-                widget.client.measurements,
-              );
-
-              // check if bodyPart already exists
-              final index = measurements.indexWhere(
-                (m) =>
-                    m.bodyPart.toLowerCase() ==
-                    updatedMeasurement.bodyPart.toLowerCase(),
-              );
-
-              if (index != -1) {
-                // update existing
-                measurements[index] = updatedMeasurement;
-              } else {
-                // add new
-                measurements.add(updatedMeasurement);
-              }
-              // now create updated client with new list
-              final updatedClient = widget.client.copyWith(
-                measurements: measurements,
-              );
-
-              context.read<ClientBloc>().add(UpdateClient(updatedClient));
-              _saveClientMeasurement(updatedClient);
-            },
-          ),
-        ),
-      ),
     );
   }
 

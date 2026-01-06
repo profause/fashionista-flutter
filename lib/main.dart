@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:app_links/app_links.dart';
 import 'package:fashionista/app_starter.dart';
 import 'package:fashionista/core/auth/auth_provider_cubit.dart';
 import 'package:fashionista/core/config/app_remote_config.dart';
@@ -62,11 +61,11 @@ Future<void> main() async {
 
   await AppRemoteConfig.instance.initialize();
 
-  final appLinks = AppLinks();
+  //final appLinks = AppLinks();
 
-  final sub = appLinks.uriLinkStream.listen((uri) {
+  //final sub = appLinks.uriLinkStream.listen((uri) {
     //debugPrint('Deep link: $uri');
-  });
+  //});
 
   runApp(const MyApp());
 }

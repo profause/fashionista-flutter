@@ -14,7 +14,6 @@ import 'package:fashionista/data/services/firebase/firebase_clients_service.dart
 import 'package:fashionista/data/services/firebase/firebase_designers_service.dart';
 import 'package:fashionista/presentation/screens/designers/widgets/designer_info_card_widget_discover_page.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/designer_shimmer_widget.dart';
-import 'package:fashionista/presentation/screens/trends/widgets/designer_stack_avatar_widget.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/interest_shimmer_widget.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/trend_info_card_widget_discover_page.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';

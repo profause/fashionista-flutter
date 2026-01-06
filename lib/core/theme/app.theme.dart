@@ -132,6 +132,7 @@ class AppTheme {
   static Color darkGrey = const Color(0xFF6E6E6E);
   static Color charcoal = const Color(0xFF1C1C1C);
   static Color appIconColor = const Color(0xFFF55B02);
+  static Color appIconColorTint = const Color(0xFFf77b34);
 
   static TextStyle titleStyle = const TextStyle(
     fontSize: 20,

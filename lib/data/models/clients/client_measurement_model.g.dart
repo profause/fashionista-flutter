@@ -17,6 +17,7 @@ class ClientMeasurementAdapter extends TypeAdapter<ClientMeasurement> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return ClientMeasurement(
+      uid: fields[7] as String,
       bodyPart: fields[0] as String,
       measuredValue: fields[1] as double,
       measuringUnit: fields[2] as String,
@@ -30,7 +31,7 @@ class ClientMeasurementAdapter extends TypeAdapter<ClientMeasurement> {
   @override
   void write(BinaryWriter writer, ClientMeasurement obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.bodyPart)
       ..writeByte(1)
@@ -44,7 +45,9 @@ class ClientMeasurementAdapter extends TypeAdapter<ClientMeasurement> {
       ..writeByte(5)
       ..write(obj.previousValues)
       ..writeByte(6)
-      ..write(obj.tags);
+      ..write(obj.tags)
+      ..writeByte(7)
+      ..write(obj.uid);
   }
 
   @override
@@ -64,6 +67,7 @@ class ClientMeasurementAdapter extends TypeAdapter<ClientMeasurement> {
 
 ClientMeasurement _$ClientMeasurementFromJson(Map<String, dynamic> json) =>
     ClientMeasurement(
+      uid: json['uid'] as String,
       bodyPart: json['body_part'] as String,
       measuredValue: (json['measured_value'] as num).toDouble(),
       measuringUnit: json['measuring_unit'] as String,
@@ -86,4 +90,5 @@ Map<String, dynamic> _$ClientMeasurementToJson(ClientMeasurement instance) =>
       'notes': instance.notes,
       'previous_values': instance.previousValues,
       'tags': instance.tags,
+      'uid': instance.uid,
     };
