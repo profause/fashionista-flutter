@@ -51,7 +51,7 @@ Future<void> main() async {
   await initialiseDependencies();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  await MobileAds.instance.initialize();
+  await MobileAds.instance.initialize();  
 
   //Ensure Hive is ready before app starts
   await HiveService().init();
