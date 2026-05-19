@@ -30,6 +30,34 @@
             }
           ]
         }
+      },
+      "admob_app_id": "ca-app-pub-6626497099249085~4127015094"
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:562716328951:android:61a5152105ec09636d24f2",
+        "android_client_info": {
+          "package_name": "com.profause.fashionista.android"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBb42_ZjaqZ6WcUnTRNZ868wh5oYRBSUaA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "562716328951-u5d1u507hjcf4k28f30lo5au638dt7cf.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.profause.fashionista.ios"
+              }
+            }
+          ]
+        }
       }
     }
   ],
