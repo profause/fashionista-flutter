@@ -1,4 +1,3 @@
-import 'dart:math';
 
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc.dart';
@@ -6,10 +5,8 @@ import 'package:fashionista/data/models/trends/bloc/trend_bloc_state.dart';
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
 import 'package:fashionista/data/services/hive/hive_trend_service.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/trends_staggered_view.dart';
-import 'package:fashionista/presentation/widgets/profile_avatar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hive/hive.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
@@ -27,8 +24,8 @@ class TrendsSliver extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final random = Random();
+    //final colorScheme = Theme.of(context).colorScheme;
+    //final random = Random();
 
     return MultiSliver(
       children: [

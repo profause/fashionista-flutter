@@ -63,10 +63,11 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
   bool isUploading = false;
 
   late UserBloc userBloc;
-  late List<Color> _selectedColors = [];
+  late final List<Color> _selectedColors = [];
   late bool isEdit = false;
 
   @override
+
   void initState() {
     super.initState();
     isEdit = widget.closetItemModel != null;
