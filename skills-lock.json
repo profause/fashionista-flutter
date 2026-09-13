@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "firebase-firestore": {
+      "source": "firebase/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/firebase-firestore/SKILL.md",
+      "computedHash": "f00c7c9eceafeec9c9ade9de7afefeed08fa63925a5b1ac0091057cab0249a4d"
+    },
+    "flutter-apply-architecture-best-practices": {
+      "source": "flutter/agent-plugins",
+      "sourceType": "github",
+      "skillPath": "skills/flutter-apply-architecture-best-practices/SKILL.md",
+      "computedHash": "2b1b63214d6b153c50aacd4bbcb76ce91dece449de9e06f477f8aad3163d667f"
+    }
+  }
+}
