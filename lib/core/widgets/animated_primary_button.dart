@@ -10,6 +10,7 @@ class AnimatedPrimaryButton extends StatefulWidget {
   final Color? foregroundColor;
   final double? width;
   final double? elevation;
+  final IconData? trailingIcon;
 
   const AnimatedPrimaryButton({
     super.key,
@@ -19,6 +20,7 @@ class AnimatedPrimaryButton extends StatefulWidget {
     this.foregroundColor,
     this.width = double.infinity,
     this.elevation = 2,
+    this.trailingIcon,
   });
 
   @override
@@ -62,16 +64,12 @@ class _AnimatedPrimaryButtonState extends State<AnimatedPrimaryButton>
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     return BlocBuilder<ButtonLoadingStateCubit, bool>(
       builder: (context, isLoading) {
         _isLoading = isLoading;
         return GestureDetector(
           onTapDown: (_) => setState(() => _isPressed = true),
-          onTapUp: (_) {
-            setState(() => _isPressed = true);
-            //_handlePress();
-          },
+          onTapUp: (_) => setState(() => _isPressed = false),
           onTapCancel: () => setState(() => _isPressed = false),
           child: SizedBox(
             width: widget.width,
@@ -83,47 +81,77 @@ class _AnimatedPrimaryButtonState extends State<AnimatedPrimaryButton>
                 opacity: _isPressed ? 0.85 : 1.0,
                 duration: const Duration(milliseconds: 120),
                 curve: Curves.easeOut,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        widget.backgroundColor ?? AppTheme.appIconColor,
-                    foregroundColor:
-                        widget.foregroundColor ?? colorScheme.primary,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32,
-                      vertical: 14,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: (!_isLoading && !_isPressed)
+                        ? const [
+                            BoxShadow(
+                              color: Color(0x33FF5A00),
+                              blurRadius: 12,
+                              offset: Offset(0, 4),
+                            ),
+                          ]
+                        : null,
                   ),
-                  onPressed: _handlePress,
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 250),
-                    switchInCurve: Curves.easeOut,
-                    switchOutCurve: Curves.easeIn,
-                    transitionBuilder: (child, animation) =>
-                        FadeTransition(opacity: animation, child: child),
-                    child: _isLoading
-                        ? SizedBox(
-                            key: const ValueKey("spinner"),
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.5,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                widget.foregroundColor ?? colorScheme.primary,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          widget.backgroundColor ?? AppTheme.appIconColor,
+                      foregroundColor: widget.foregroundColor ?? Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 16,
+                      ),
+                      minimumSize: const Size(0, 54),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      elevation: 0,
+                    ),
+                    onPressed: _handlePress,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      switchInCurve: Curves.easeOut,
+                      switchOutCurve: Curves.easeIn,
+                      transitionBuilder: (child, animation) =>
+                          FadeTransition(opacity: animation, child: child),
+                      child: _isLoading
+                          ? SizedBox(
+                              key: const ValueKey("spinner"),
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  widget.foregroundColor ?? Colors.white,
+                                ),
                               ),
+                            )
+                          : Row(
+                              key: const ValueKey("text"),
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  widget.text,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                if (widget.trailingIcon != null) ...[
+                                  const SizedBox(width: 8),
+                                  Icon(
+                                    widget.trailingIcon,
+                                    size: 20,
+                                    color: Colors.white,
+                                  ),
+                                ],
+                              ],
                             ),
-                          )
-                        : Text(
-                            widget.text,
-                            key: const ValueKey("text"),
-                            style: const TextStyle(fontSize: 18,
-                            color: Colors.white
-                            ),
-                          ),
+                    ),
                   ),
                 ),
               ),

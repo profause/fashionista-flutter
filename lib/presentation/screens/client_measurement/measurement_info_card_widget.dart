@@ -21,134 +21,103 @@ class MeasurementInfoCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: colorScheme.onPrimary,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  measurement.bodyPart,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: context.onCanvasText,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Text(
+                      measurement.measuringUnit == 'inches'
+                          ? '${inchesToCm(measurement.measuredValue).toStringAsFixed(2)} cm'
+                          : '${measurement.measuredValue.toStringAsFixed(2)} cm',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: context.onCanvasText,
+                      ),
+                    ),
+                    Container(
+                      width: 1,
+                      height: 12,
+                      margin: const EdgeInsets.symmetric(horizontal: 8),
+                      color: context.hairline,
+                    ),
+                    Text(
+                      measurement.measuringUnit == 'cm'
+                          ? '${cmToInches(measurement.measuredValue).toStringAsFixed(2)} inches'
+                          : '${measurement.measuredValue.toStringAsFixed(2)} inches',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: context.mutedText,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Row(
+            children: [
+              Icon(Icons.calendar_month, size: 14, color: context.mutedText),
+              const SizedBox(width: 6),
+              Text(
+                DateFormat('yyyy-MM-dd').format(
+                  measurement.updatedDate == null
+                      ? DateTime.now()
+                      : measurement.updatedDate!,
+                ),
+                style: TextStyle(fontSize: 11.5, color: context.mutedText),
+              ),
+            ],
+          ),
+          const SizedBox(width: 12),
+          CustomContextMenuWidget(
+            items: const [
+              ContextMenuItem(
+                value: 'edit',
+                label: 'Edit',
+                icon: Icons.edit,
+              ),
+              ContextMenuItem(
+                value: 'delete',
+                label: 'Delete',
+                icon: Icons.delete,
+                isDestructive: true,
+              ),
+            ],
+            onSelected: (value) {
+              if (value == 'edit') {
+                onEdit();
+              } else if (value == 'share') {
+                //print("Share clicked");
+              } else if (value == 'delete') {
+                onDelete();
+              }
+            },
+            child: Icon(
+              Icons.more_vert,
+              size: 18,
+              color: context.mutedText,
+            ),
           ),
         ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      //const SizedBox(width: 18),
-                      Text(
-                        measurement.bodyPart, // e.g. "Chest"
-                        style: textTheme.titleMedium!,
-                      ),
-                      const Spacer(),
-                      CustomContextMenuWidget(
-                        items: const [
-                          ContextMenuItem(
-                            value: 'edit',
-                            label: 'Edit',
-                            icon: Icons.edit,
-                          ),
-                          // ContextMenuItem(
-                          //   value: 'share',
-                          //   label: 'Share',
-                          //   icon: Icons.share,
-                          // ),
-                          ContextMenuItem(
-                            value: 'delete',
-                            label: 'Delete',
-                            icon: Icons.delete,
-                            isDestructive: true,
-                          ),
-                        ],
-                        onSelected: (value) {
-                          if (value == 'edit') {
-                            onEdit();
-                          } else if (value == 'share') {
-                            //print("Share clicked");
-                          } else if (value == 'delete') {
-                            onDelete();
-                          }
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(0),
-                          child: const Icon(Icons.more_horiz),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 6),
-                    child: Row(
-                      children: [
-                        //const SizedBox(width: 18),
-                        Text(
-                          measurement.measuringUnit == 'inches'
-                              ? "${inchesToCm(measurement.measuredValue).toStringAsFixed(2)} cm"
-                              : "${(measurement.measuredValue).toStringAsFixed(2)} cm",
-                          style: textTheme.labelLarge,
-                        ),
-                        Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 16),
-                          height: 16,
-                          width: 1,
-                          color: AppTheme.lightGrey, // divider color
-                        ),
-                        Text(
-                          measurement.measuringUnit == 'cm'
-                              ? "${cmToInches(measurement.measuredValue).toStringAsFixed(2)} inches"
-                              : "${(measurement.measuredValue).toStringAsFixed(2)} inches", // e.g. "42 in"
-                          style: textTheme.labelLarge,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 6),
-                    child: Row(
-                      children: [
-                        Icon(Icons.calendar_month),
-                        const SizedBox(width: 8),
-                        Text(
-                          DateFormat('yyyy-MM-dd').format(
-                            measurement.updatedDate == null
-                                ? DateTime.now()
-                                : measurement.updatedDate!,
-                          ),
-                          style: textTheme.labelMedium!,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      const Icon(Icons.note_alt_outlined),
-                      const SizedBox(width: 8),
-                      Container(
-                        margin: const EdgeInsets.symmetric(vertical: 4),
-                        // divider color
-                        child: Text(
-                          measurement.notes ?? '',
-                          style: textTheme.bodyMedium,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

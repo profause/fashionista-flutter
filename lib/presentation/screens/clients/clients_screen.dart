@@ -1,11 +1,11 @@
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/clients/bloc/client_bloc.dart';
 import 'package:fashionista/data/models/clients/bloc/client_event.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/data/services/hive/hive_client_service.dart';
 import 'package:fashionista/presentation/screens/clients/widgets/client_info_card_widget.dart';
 import 'package:fashionista/presentation/screens/clients/widgets/client_info_pinned_widget.dart';
-import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -40,65 +40,106 @@ class _ClientsScreenState extends State<ClientsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
     return MultiSliver(
       // 👈 helper from 'sliver_tools' package, or just return a Column of slivers
       children: [
         SliverAppBar(
-          backgroundColor: colorScheme.surface,
+          backgroundColor: context.canvasBackground,
           pinned: true, // keeps the searchbar visible when collapsed
           floating: true, // allows it to appear/disappear as you scroll
           snap: true, // snaps into view when scrolling up
           stretch: true,
-          expandedHeight: 18,
-          toolbarHeight: 5,
+          expandedHeight: 72,
+          toolbarHeight: 0,
           flexibleSpace: FlexibleSpaceBar(
             background: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: Row(
                 children: [
                   Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        hintText: "Search clients...",
-                        hintStyle: textTheme.bodyMedium!.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                    child: SizedBox(
+                      height: 44,
+                      child: TextField(
+                        controller: _searchController,
+                        cursorColor: context.accent,
+                        style: const TextStyle(fontSize: 15),
+                        decoration: InputDecoration(
+                          hintText: "Search clients...",
+                          hintStyle: TextStyle(
+                            fontSize: 15,
+                            color: context.mutedText,
+                          ),
+                          prefixIcon: Icon(
+                            Icons.search,
+                            color: context.mutedText,
+                            size: 20,
+                          ),
+                          prefixIconConstraints: const BoxConstraints(
+                            minWidth: 44,
+                            minHeight: 44,
+                          ),
+                          filled: true,
+                          fillColor: context.cardSurface,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 0,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: context.hairline),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: context.hairline),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: context.accent,
+                              width: 1.5,
+                            ),
+                          ),
                         ),
-                        prefixIcon: Icon(
-                          Icons.search,
-                          color: colorScheme.primary,
-                        ),
-                        filled: true,
-                        fillColor: colorScheme.surfaceContainerHighest,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 0,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
+                        onChanged: (value) {
+                          setState(() => _searchText = value);
+                        },
                       ),
-                      onChanged: (value) {
-                        setState(() => _searchText = value);
-                      },
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  CustomIconButtonRounded(
-                    backgroundColor: colorScheme.surfaceContainerHighest,
-                    onPressed: () {
-                      _showFilterBottomsheet(
-                        context,
-                        showAs!,
-                        selectedFilter,
-                        (filter) => setState(() => selectedFilter = filter),
-                      );
-                    },
-                    iconData: Icons.filter_list_outlined,
+                  const SizedBox(width: 12),
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: context.cardSurface,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: context.hairline),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x0D000000),
+                          blurRadius: 2,
+                          offset: Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: IconButton(
+                      onPressed: () {
+                        _showFilterBottomsheet(
+                          context,
+                          showAs!,
+                          selectedFilter,
+                          (filter) =>
+                              setState(() => selectedFilter = filter),
+                        );
+                      },
+                      icon: Icon(
+                        Icons.filter_list,
+                        color: context.onCanvasText,
+                        size: 20,
+                      ),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
                   ),
                 ],
               ),
@@ -148,11 +189,12 @@ class _ClientsScreenState extends State<ClientsScreen> {
                 if (pinnedClients.isNotEmpty) ...[
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.only(left: 16, bottom: 8),
-                      child: Text(
-                        "Pinned Clients",
-                        style: textTheme.labelLarge,
+                      padding: const EdgeInsets.only(
+                        left: 16,
+                        top: 12,
+                        bottom: 10,
                       ),
+                      child: _SectionHeader(text: "Pinned Clients"),
                     ),
                   ),
                   SliverToBoxAdapter(
@@ -167,7 +209,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                         slivers: [
                           SliverPadding(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
+                              horizontal: 16,
                             ), // ✅ add spacing at edges
                             sliver: SliverList(
                               delegate: SliverChildBuilderDelegate((
@@ -193,14 +235,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                     ),
                   ),
 
-                  const SliverToBoxAdapter(
-                    child: Divider(
-                      height: .1,
-                      thickness: .1,
-                      indent: 16,
-                      endIndent: 16,
-                    ),
-                  ),
+                  const SizedBox(height: 12),
                 ],
 
                 if (unpinnedClients.isNotEmpty) ...[
@@ -208,31 +243,30 @@ class _ClientsScreenState extends State<ClientsScreen> {
                     child: Padding(
                       padding: const EdgeInsets.only(
                         left: 16,
-                        bottom: 8,
-                        top: 8,
+                        top: 12,
+                        bottom: 10,
                       ),
-                      child: Text("All Clients", style: textTheme.labelLarge),
+                      child: _SectionHeader(text: "All Clients"),
                     ),
                   ),
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                      if (index.isEven) {
-                        final client = unpinnedClients[index ~/ 2];
-                        return ClientInfoCardWidget(
-                          key: ValueKey(client.uid),
-                          clientInfo: client,
-                          onTap: () {
-                            context.push('/clients/view/${client.uid}');
-                          },
-                        );
-                      } else {
-                        return const Divider(
-                          height: .1,
-                          thickness: .1,
-                          indent: 80,
-                        );
-                      }
-                    }, childCount: unpinnedClients.length * 2 - 1),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        if (index.isEven) {
+                          final client = unpinnedClients[index ~/ 2];
+                          return ClientInfoCardWidget(
+                            key: ValueKey(client.uid),
+                            clientInfo: client,
+                            onTap: () {
+                              context.push('/clients/view/${client.uid}');
+                            },
+                          );
+                        } else {
+                          return const SizedBox(height: 12);
+                        }
+                      }, childCount: unpinnedClients.length * 2 - 1),
+                    ),
                   ),
                 ],
               ],
@@ -249,219 +283,237 @@ class _ClientsScreenState extends State<ClientsScreen> {
     String selectedFilter,
     Function(String) onFilterSelected,
   ) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: colorScheme.onPrimary,
+      backgroundColor: context.cardSurface,
+      barrierColor: const Color(0x66000000),
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (context) {
         String tempShowAs = showAs; // copy parent value
         String tempFilter = selectedFilter;
         return StatefulBuilder(
           builder: (context, setModalState) {
-            return DraggableScrollableSheet(
-              expand: false,
-              initialChildSize: 0.5,
-              minChildSize: 0.5,
-              maxChildSize: 0.5,
-              builder: (context, scrollController) {
-                return SingleChildScrollView(
-                  controller: scrollController,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+            return SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 6,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color:
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? const Color(0xFF3A3938)
+                                  : const Color(0xFFD1D5DB),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                    ),
+                    const _FilterSheetLabel("Show as"),
+                    const SizedBox(height: 10),
+                    _FilterOptionCard(
                       children: [
-                        /// Handle bar
-                        Center(
-                          child: Container(
-                            height: 4,
-                            width: 40,
-                            margin: const EdgeInsets.only(bottom: 16),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[400],
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
+                        _FilterRadioRow(
+                          label: "List",
+                          value: "list",
+                          groupValue: tempShowAs,
+                          onChanged: (val) {
+                            setModalState(() => tempShowAs = val);
+                            setState(() => showAs = val);
+                          },
                         ),
-                        Text(
-                          "Show as",
-                          style: textTheme.bodyMedium!.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        Container(
-                          margin: const EdgeInsets.only(top: 8),
-                          padding: const EdgeInsets.all(0),
-                          decoration: BoxDecoration(
-                            color: colorScheme.surface.withValues(alpha: 1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            children: [
-                              Row(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 12),
-                                    child: Text(
-                                      "List",
-                                      style: textTheme.titleSmall!.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  Radio<String>(
-                                    value: "list",
-                                    groupValue: tempShowAs,
-                                    onChanged: (val) {
-                                      setModalState(() => tempShowAs = val!);
-                                      setState(() => showAs = val!);
-                                      // update parent too
-                                    },
-                                  ),
-                                ],
-                              ),
-                              const Divider(height: .1, thickness: .1),
-                              Row(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 12),
-                                    child: Text(
-                                      "Grid",
-                                      style: textTheme.titleSmall!.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  Radio<String>(
-                                    value: "grid",
-                                    groupValue: tempShowAs,
-                                    onChanged: (val) {
-                                      setModalState(() => tempShowAs = val!);
-                                      setState(() => showAs = val!);
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          "Filter by",
-                          style: textTheme.bodyMedium!.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        Container(
-                          margin: const EdgeInsets.only(top: 8),
-                          padding: const EdgeInsets.all(0),
-                          decoration: BoxDecoration(
-                            color: colorScheme.surface.withValues(alpha: 1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            children: [
-                              Row(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 12),
-                                    child: Text(
-                                      "All",
-                                      style: textTheme.titleSmall!.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  Radio<String>(
-                                    value: "All",
-                                    groupValue: tempFilter,
-                                    onChanged: (val) {
-                                      setModalState(() => tempFilter = val!);
-                                      setState(() => selectedFilter = val!);
-                                      onFilterSelected(val!);
-                                      // update parent too
-                                    },
-                                  ),
-                                ],
-                              ),
-                              const Divider(height: .1, thickness: .1),
-                              Row(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 12),
-                                    child: Text(
-                                      "Newest",
-                                      style: textTheme.titleSmall!.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  Radio<String>(
-                                    value: "Newest",
-                                    groupValue: tempFilter,
-                                    onChanged: (val) {
-                                      setModalState(() => tempFilter = val!);
-                                      setState(() => selectedFilter = val!);
-                                      onFilterSelected(val!);
-                                      // update parent too
-                                    },
-                                  ),
-                                ],
-                              ),
-                              const Divider(height: .1, thickness: .1),
-                              Row(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 12),
-                                    child: Text(
-                                      "Pinned",
-                                      style: textTheme.titleSmall!.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  Radio<String>(
-                                    value: "Pinned",
-                                    groupValue: tempFilter,
-                                    onChanged: (val) {
-                                      setModalState(() => tempFilter = val!);
-                                      setState(() => selectedFilter = val!);
-                                      onFilterSelected(val!);
-                                      // update parent too
-                                    },
-                                  ),
-                                ],
-                              ),
-                              //const Divider(height: .1, thickness: .1),
-                            ],
-                          ),
+                        _FilterRadioRow(
+                          label: "Grid",
+                          value: "grid",
+                          groupValue: tempShowAs,
+                          onChanged: (val) {
+                            setModalState(() => tempShowAs = val);
+                            setState(() => showAs = val);
+                          },
                         ),
                       ],
                     ),
-                  ),
-                );
-              },
+                    const SizedBox(height: 20),
+                    const _FilterSheetLabel("Filter by"),
+                    const SizedBox(height: 10),
+                    _FilterOptionCard(
+                      children: [
+                        _FilterRadioRow(
+                          label: "All",
+                          value: "All",
+                          groupValue: tempFilter,
+                          onChanged: (val) {
+                            setModalState(() => tempFilter = val);
+                            setState(() => selectedFilter = val);
+                            onFilterSelected(val);
+                          },
+                        ),
+                        _FilterRadioRow(
+                          label: "Newest",
+                          value: "Newest",
+                          groupValue: tempFilter,
+                          onChanged: (val) {
+                            setModalState(() => tempFilter = val);
+                            setState(() => selectedFilter = val);
+                            onFilterSelected(val);
+                          },
+                        ),
+                        _FilterRadioRow(
+                          label: "Pinned",
+                          value: "Pinned",
+                          groupValue: tempFilter,
+                          onChanged: (val) {
+                            setModalState(() => tempFilter = val);
+                            setState(() => selectedFilter = val);
+                            onFilterSelected(val);
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             );
           },
         );
       },
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  final String text;
+  const _SectionHeader({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text.toUpperCase(),
+      style: TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.8,
+        color: context.mutedText,
+      ),
+    );
+  }
+}
+
+class _FilterSheetLabel extends StatelessWidget {
+  final String text;
+  const _FilterSheetLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text.toUpperCase(),
+      style: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0.8,
+        color: context.mutedText,
+      ),
+    );
+  }
+}
+
+class _FilterOptionCard extends StatelessWidget {
+  final List<Widget> children;
+  const _FilterOptionCard({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    final divider = Divider(color: context.hairline, height: 1, thickness: 1);
+    final rows = <Widget>[];
+    for (var i = 0; i < children.length; i++) {
+      if (i > 0) rows.add(divider);
+      rows.add(children[i]);
+    }
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: context.canvasBackground,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.hairline),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(children: rows),
+      ),
+    );
+  }
+}
+
+class _FilterRadioRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final String groupValue;
+  final ValueChanged<String> onChanged;
+
+  const _FilterRadioRow({
+    required this.label,
+    required this.value,
+    required this.groupValue,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isSelected = groupValue == value;
+    return SizedBox(
+      height: 52,
+      child: InkWell(
+        onTap: () => onChanged(value),
+        child: Row(
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: context.onCanvasText,
+              ),
+            ),
+            const Spacer(),
+            Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  width: 2,
+                  color: isSelected
+                      ? context.accent
+                      : (Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF3A3938)
+                          : const Color(0xFFCBD5E1)),
+                ),
+              ),
+              child: isSelected
+                  ? Center(
+                      child: Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: context.accent,
+                        ),
+                      ),
+                    )
+                  : null,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

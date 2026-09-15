@@ -1,3 +1,4 @@
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_bloc.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_event.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_state.dart';
@@ -41,97 +42,93 @@ class _FeaturedImagesWidgetState extends State<FeaturedImagesWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return BlocBuilder<DesignerBloc, DesignerState>(
       builder: (context, state) {
-        return Card(
-          color: colorScheme.onPrimary,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.zero, // instead of circular(0)
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: context.cardSurface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: context.hairline),
           ),
-          elevation: 0,
-          margin: const EdgeInsets.symmetric(vertical: 2),
-          child: SizedBox(
-            width: double.infinity, // 👈 makes the card full width
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Row(
-                    children: [
-                      Text('Featured Images', style: textTheme.titleSmall),
-                      if (widget.designer.featuredImages!.length < 4) ...[
-                        const Spacer(),
-                        Stack(
-                          children: [
-                            if (isUploading) ...[
-                              CircularProgressIndicator(strokeWidth: 3),
-                            ],
-                            if (widget.isEditable!) ...[
-                              CustomIconButtonRounded(
-                                iconData: Icons.add_photo_alternate,
-                                onPressed: () {
-                                  if (isUploading) return;
-                                  pickImages(context);
-                                },
-                              ),
-                            ],
-                          ],
-                        ),
+                  Text('Featured Images', style: textTheme.titleSmall),
+                  if (widget.designer.featuredImages!.length < 4) ...[
+                    const Spacer(),
+                    Stack(
+                      children: [
+                        if (isUploading) ...[
+                          CircularProgressIndicator(
+                            strokeWidth: 3,
+                            color: context.accent,
+                          ),
+                        ],
+                        if (widget.isEditable!) ...[
+                          CustomIconButtonRounded(
+                            iconData: Icons.add_photo_alternate,
+                            onPressed: () {
+                              if (isUploading) return;
+                              pickImages(context);
+                            },
+                          ),
+                        ],
                       ],
-                    ],
-                  ),
-                  if (widget.designer.featuredImages!.isNotEmpty) ...[
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      height: 100,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: widget.designer.featuredImages!.length,
-                        itemBuilder: (context, index) {
-                          final imagePath =
-                              widget.designer.featuredImages![index];
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(12),
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => FullscreenGalleryWidget(
-                                      images: widget.designer.featuredImages!,
-                                      initialIndex: index,
-                                    ),
-                                  ),
-                                );
-                              },
-                              child: Hero(
-                                tag: imagePath,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: widget.isEditable!
-                                      ? DeletableImageWidget(
-                                          imagePath: imagePath,
-                                          onDelete: () =>
-                                              deleteImage(imagePath, context),
-                                        )
-                                      : ViewOnlyImageWidget(
-                                          imagePath: imagePath,
-                                        ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
                     ),
                   ],
                 ],
               ),
-            ),
+              if (widget.designer.featuredImages!.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                SizedBox(
+                  height: 100,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: widget.designer.featuredImages!.length,
+                    itemBuilder: (context, index) {
+                      final imagePath = widget.designer.featuredImages![index];
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => FullscreenGalleryWidget(
+                                  images: widget.designer.featuredImages!,
+                                  initialIndex: index,
+                                ),
+                              ),
+                            );
+                          },
+                          child: Hero(
+                            tag: imagePath,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: widget.isEditable!
+                                  ? DeletableImageWidget(
+                                      imagePath: imagePath,
+                                      onDelete: () =>
+                                          deleteImage(imagePath, context),
+                                    )
+                                  : ViewOnlyImageWidget(
+                                      imagePath: imagePath,
+                                    ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ],
           ),
         );
       },

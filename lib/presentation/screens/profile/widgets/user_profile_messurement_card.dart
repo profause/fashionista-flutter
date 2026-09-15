@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/designers/designer_model.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
@@ -36,14 +37,14 @@ class _UserProfileMessurementCardState
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.only(top: 12, bottom: 10),
+      padding: const EdgeInsets.only(top: 8, bottom: 6),
       decoration: BoxDecoration(
-        color: colorScheme.onPrimary,
-        borderRadius: BorderRadius.circular(0),
+        color: context.cardSurface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.hairline),
       ),
       child: ListTile(
         title: Text('My Measurements', style: textTheme.bodyMedium),

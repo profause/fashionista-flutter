@@ -25,7 +25,7 @@ class ClientInfoPinnedWidget extends StatelessWidget {
         children: [
           DefaultProfileAvatar(
             key: ValueKey(clientInfo.uid),
-            name: null,
+            name: clientInfo.fullName,
             size: 60,
             uid: clientInfo.uid,
           ),

@@ -1,3 +1,4 @@
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:flutter/material.dart';
@@ -14,130 +15,80 @@ class ClientInfoCardWidget extends StatefulWidget {
 }
 
 class _ClientInfoCardWidgetState extends State<ClientInfoCardWidget> {
-  //bool _isImageLoading = false;
-
-  @override
-  void initState() {
-    //_isImageLoading = false;
-    super.initState();
-  }
-
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
-
     return InkWell(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(16),
       onTap:
           widget.onTap ??
           () {
-            //context.read<ClientCubit>().updateClient(widget.clientInfo);
-            // Example: Navigate to Client Details Screen
             context.push('/clients/view/${widget.clientInfo.uid}');
           },
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+        height: 78,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
-          color: colorScheme.onPrimary,
-          borderRadius: BorderRadius.circular(0),
-          boxShadow: [
+          color: context.cardSurface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: context.hairline),
+          boxShadow: const [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.01),
-              blurRadius: 6,
-              offset: const Offset(0, 3),
+              color: Color(0x0D000000),
+              blurRadius: 3,
+              offset: Offset(0, 1),
             ),
           ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Row(
-            children: [
-              // Avatar
-              DefaultProfileAvatar(
-                key: ValueKey(widget.clientInfo.uid),
-                name: null,
-                size: 60,
-                uid: widget.clientInfo.uid,
-              ),
-              const SizedBox(width: 12),
-              // Client info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          widget.clientInfo.fullName,
-                          style: textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const Spacer(),
-                        Text(
-                          widget.clientInfo.createdDate != null &&
-                                  widget.clientInfo.createdDate!.year ==
-                                      DateTime.now().year &&
-                                  widget.clientInfo.createdDate!.month ==
-                                      DateTime.now().month &&
-                                  widget.clientInfo.createdDate!.day ==
-                                      DateTime.now().day
-                              ? 'New'
-                              : '',
-                          style: textTheme.bodySmall!.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
+        child: Row(
+          children: [
+            DefaultProfileAvatar(
+              key: ValueKey(widget.clientInfo.uid),
+              name: widget.clientInfo.fullName,
+              size: 44,
+              uid: widget.clientInfo.uid,
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.clientInfo.fullName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: context.onCanvasText,
                     ),
-
-                    const SizedBox(height: 4),
-                    Text(
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    [
                       widget.clientInfo.mobileNumber,
-                      style: textTheme.bodySmall!.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      if (widget.clientInfo.gender.isNotEmpty)
+                        widget.clientInfo.gender,
+                    ].join('  •  '),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: context.mutedText,
                     ),
-                    const SizedBox(height: 2),
-                    Text(widget.clientInfo.gender, style: textTheme.bodySmall),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(
+              Icons.chevron_right,
+              size: 18,
+              color: Color(0xFF9CA3AF),
+            ),
+          ],
         ),
       ),
     );
   }
-
-  // Widget _buildInitialsAvatar(ColorScheme colorScheme) {
-  //   String initials = widget.clientInfo.fullName.isNotEmpty
-  //       ? widget.clientInfo.fullName
-  //             .trim()
-  //             .split(' ')
-  //             .map((word) => word.isNotEmpty ? word[0] : '')
-  //             .take(2)
-  //             .join()
-  //             .toUpperCase()
-  //       : '?';
-
-  //   return Container(
-  //     width: 62,
-  //     height: 62,
-  //     decoration: BoxDecoration(
-  //       shape: BoxShape.circle,
-  //       color: colorScheme.primary.withValues(alpha: 0.1),
-  //     ),
-  //     alignment: Alignment.center,
-  //     child: Text(
-  //       initials,
-  //       style: TextStyle(
-  //         color: colorScheme.primary,
-  //         fontWeight: FontWeight.bold,
-  //         fontSize: 18,
-  //       ),
-  //     ),
-  //   );
-  // }
 }

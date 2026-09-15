@@ -30,7 +30,7 @@ class _SignInScreenState extends State<SignInScreen> {
   RecaptchaClient? _recaptchaClient;
 
   final PageController _pageController = PageController();
-  String otpString = "";
+  int _currentPage = 0;
   late ButtonLoadingStateCubit _buttonLoadingStateCubit;
   late PreviousScreenStateCubit _previousScreenStateCubit;
   late AuthProviderCubit _authProviderCubit;
@@ -44,7 +44,13 @@ class _SignInScreenState extends State<SignInScreen> {
     _onboardingCubit.hasSeenOnboarding(true); //here
     super.initState();
     _initRecaptcha(); // 👈 kick off async call
-    _pageController.addListener(() {});
+    _pageController.addListener(() {
+      if (!mounted) return;
+      final index = _pageController.page?.round() ?? 0;
+      if (index != _currentPage) {
+        setState(() => _currentPage = index);
+      }
+    });
     if (mounted) {
       _buttonLoadingStateCubit = context.read<ButtonLoadingStateCubit>();
       _previousScreenStateCubit = context.read<PreviousScreenStateCubit>();
@@ -63,8 +69,6 @@ class _SignInScreenState extends State<SignInScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     if (_recaptchaClient == null) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -77,6 +81,7 @@ class _SignInScreenState extends State<SignInScreen> {
         },
       ),
       OtpVerificationPage(
+        phoneNumber: _authProviderCubit.authState.mobileNumber,
         onVerified: (otp) async {
           await verifyOneTimePassword(otp);
         },
@@ -97,21 +102,31 @@ class _SignInScreenState extends State<SignInScreen> {
       child: ValueListenableBuilder<String>(
         valueListenable: _verificationId,
         builder: (context, verificationId, _) {
-          otpString = verificationId;
           return Scaffold(
             appBar: AppBar(
               automaticallyImplyLeading: false,
-              foregroundColor: colorScheme.primary,
-              backgroundColor: colorScheme.onPrimary,
+              foregroundColor: Theme.of(context).colorScheme.onSurface,
               title: Text(
-                'Sign In',
+                _currentPage == 0 ? 'Sign In' : 'Otp Verification',
                 style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               elevation: 0,
+              scrolledUnderElevation: 0,
+              centerTitle: true,
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(1),
+                child: SizedBox(
+                  height: 1,
+                  child: ColoredBox(
+                    color: Theme.of(context).colorScheme.outlineVariant,
+                  ),
+                ),
+              ),
             ),
-            backgroundColor: colorScheme.surface,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             body: SafeArea(
               //tag: "getStartedButton",
               child: Column(
@@ -145,7 +160,7 @@ class _SignInScreenState extends State<SignInScreen> {
     try {
       _buttonLoadingStateCubit.setLoading(true);
       var result = await sl<SignInUsecase>().call(number);
-      _authProviderCubit.setAuthState('', number, '', true);
+      _authProviderCubit.setAuthState('', number, '', false);
       result.fold(
         (ifLeft) {
           _buttonLoadingStateCubit.setLoading(false);
@@ -155,7 +170,7 @@ class _SignInScreenState extends State<SignInScreen> {
         },
         (ifRight) {
           _buttonLoadingStateCubit.setLoading(false);
-          otpString = ifRight.toString();
+          _verificationId.value = ifRight.toString();
           nextPage();
         },
       );
@@ -172,7 +187,7 @@ class _SignInScreenState extends State<SignInScreen> {
     try {
       _buttonLoadingStateCubit.setLoading(true);
       PhoneAuthCredential credential = PhoneAuthProvider.credential(
-        verificationId: otpString,
+        verificationId: _verificationId.value,
         smsCode: otp,
       );
 

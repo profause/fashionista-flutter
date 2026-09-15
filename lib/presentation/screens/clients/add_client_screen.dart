@@ -12,8 +12,6 @@ import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/services/firebase/firebase_notification_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_user_service.dart';
-import 'package:fashionista/presentation/screens/profile/widgets/custom_chip_form_field_widget.dart';
-import 'package:fashionista/presentation/widgets/custom_text_input_field_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -38,6 +36,9 @@ class _AddClientScreenState extends State<AddClientScreen> {
   late TextEditingController _genderController;
   late ButtonLoadingStateCubit _buttonLoadingStateCubit;
   late UserBloc userBloc;
+  final FocusNode _fullNameFocusNode = FocusNode();
+  final FocusNode _phoneFocusNode = FocusNode();
+  String _selectedGender = 'Male';
 
   @override
   void initState() {
@@ -46,6 +47,13 @@ class _AddClientScreenState extends State<AddClientScreen> {
     _fullNameController = TextEditingController();
     _genderController = TextEditingController(text: "Male");
     _mobileNumberController = TextEditingController();
+
+    _fullNameFocusNode.addListener(() {
+      if (mounted) setState(() {});
+    });
+    _phoneFocusNode.addListener(() {
+      if (mounted) setState(() {});
+    });
   }
 
   bool _initialized = false;
@@ -73,164 +81,231 @@ class _AddClientScreenState extends State<AddClientScreen> {
     _fullNameController.dispose();
     _genderController.dispose();
     _mobileNumberController.dispose();
+    _fullNameFocusNode.dispose();
+    _phoneFocusNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: context.canvasBackground,
       appBar: AppBar(
-        foregroundColor: colorScheme.primary,
-        backgroundColor: colorScheme.onPrimary,
-        title: Text(
-          'Add Client',
-          style: textTheme.headlineSmall!.copyWith(fontWeight: FontWeight.bold),
-        ),
+        foregroundColor: context.onCanvasText,
+        backgroundColor: context.canvasBackground,
         elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: true,
+        shape: Border(bottom: BorderSide(color: context.hairline, width: 1)),
+        title: const Text(
+          'Add Client',
+          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+        ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(12),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: colorScheme.onPrimary,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+                child: Form(
+                  key: _formKey,
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: CustomTextInputFieldWidget(
-                          autofocus: true,
-                          controller: _fullNameController,
-                          hint: 'Full Name',
-                          validator: (value) {
-                            if (!RegExp(
-                              r'^([A-Za-z_][A-Za-z0-9_]\w+)?',
-                            ).hasMatch(value!)) {
-                              return 'Please enter a valid name';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                      const Divider(height: .1, thickness: .1),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: IntlPhoneField(
-                          initialValue: widget.clientMobileNumber, 
-                          validator: (value) {
-                            if (!RegExp(
-                              r'^((\+?\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$)?',
-                            ).hasMatch(value!.completeNumber)) {
-                              return 'Please enter a valid mobile number';
-                            }
-                            return null;
-                          },
-                          keyboardType: TextInputType.phone,
-                          obscureText: false,
-                          decoration: InputDecoration(
-                            hintText: 'Mobile Number',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            hintStyle: textTheme.titleSmall,
-                            filled: true,
-                            fillColor: Colors.transparent,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 4,
-                              vertical: 12,
-                            ),
-                          ),
-                          initialCountryCode: 'GH',
-                          disableLengthCheck: true,
-                          onChanged: (phone) {
-                            _mobileNumberController.text =
-                                (phone.completeNumber);
-                          },
-                        ),
-                      ),
+                      _buildFullNameField(),
+                      const SizedBox(height: 16),
+                      _buildMobileNumberField(),
+                      const SizedBox(height: 16),
+                      _buildGenderBlock(),
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
-                Container(
-                  decoration: BoxDecoration(
-                    color: colorScheme.onPrimary,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomChipFormFieldWidget(
-                          initialValue: 'Male',
-                          label: 'Gender',
-                          items: ['Male', 'Female'],
-                          onChanged: (gender) {
-                            _genderController.text = gender;
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: Hero(
-        tag: 'add-client-button',
-        child: Container(
-          margin: const EdgeInsets.all(16),
-          child: AnimatedPrimaryButton(
-            text: "Save",
-            onPressed: () async {
-              final number = _mobileNumberController.text.trim();
-              final isValid = RegExp(
-                r'^(\+?\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$',
-              ).hasMatch(number);
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+              child: AnimatedPrimaryButton(
+                text: "Save Client",
+                onPressed: () async {
+                  final number = _mobileNumberController.text.trim();
+                  final isValid = RegExp(
+                    r'^(\+?\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$',
+                  ).hasMatch(number);
 
-              if (!isValid) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("Enter mobile number to proceed"),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-                return; // Stop here if invalid
-              }
-              _saveClient(Client.empty());
-            },
-          ),
+                  if (!isValid) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Enter mobile number to proceed"),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                    return; // Stop here if invalid
+                  }
+                  _saveClient(Client.empty());
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  Widget _buildFullNameField() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: context.cardSurface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _fullNameFocusNode.hasFocus
+              ? context.accent
+              : context.hairline,
+          width: _fullNameFocusNode.hasFocus ? 1.5 : 1,
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0D1A1C1E),
+            blurRadius: 2,
+            offset: Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'FULL NAME',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: context.mutedText,
+              letterSpacing: 0.6,
+            ),
+            maxLines: 1,
+          ),
+          const SizedBox(height: 2),
+          TextFormField(
+            focusNode: _fullNameFocusNode,
+            autofocus: true,
+            controller: _fullNameController,
+            validator: (value) {
+              if (!RegExp(r'^([A-Za-z_][A-Za-z0-9_]\w+)?').hasMatch(value!)) {
+                return 'Please enter a valid name';
+              }
+              return null;
+            },
+            style: TextStyle(fontSize: 15, color: context.onCanvasText),
+            decoration: InputDecoration(
+              isDense: true,
+              hintText: 'e.g. Davlynx Mensah',
+              hintStyle: TextStyle(
+                fontSize: 15,
+                color: context.placeholderText,
+              ),
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              errorBorder: InputBorder.none,
+              focusedErrorBorder: InputBorder.none,
+              disabledBorder: InputBorder.none,
+              contentPadding: EdgeInsets.zero,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileNumberField() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: context.cardSurface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _phoneFocusNode.hasFocus ? context.accent : context.hairline,
+          width: _phoneFocusNode.hasFocus ? 1.5 : 1,
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0D1A1C1E),
+            blurRadius: 2,
+            offset: Offset(0, 1),
+          ),
+        ],
+      ),
+      child: IntlPhoneField(
+        focusNode: _phoneFocusNode,
+        initialValue: widget.clientMobileNumber,
+        validator: (value) {
+          if (!RegExp(
+            r'^((\+?\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$)?',
+          ).hasMatch(value!.completeNumber)) {
+            return 'Please enter a valid mobile number';
+          }
+          return null;
+        },
+        keyboardType: TextInputType.phone,
+        decoration: InputDecoration(
+          hintText: 'Mobile Number',
+          hintStyle: TextStyle(fontSize: 15, color: context.placeholderText),
+          border: InputBorder.none,
+          isDense: true,
+          counterText: '',
+          //contentPadding: EdgeInsets.zero,
+          enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+        ),
+        initialCountryCode: 'GH',
+        disableLengthCheck: true,
+        onChanged: (phone) {
+          _mobileNumberController.text = (phone.completeNumber);
+        },
+      ),
+    );
+  }
+
+  Widget _buildGenderBlock() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4),
+          child: Text(
+            'Gender',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: context.mutedText,
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            _GenderPill(
+              selected: _selectedGender == 'Male',
+              label: 'Male',
+              onTap: () => _selectGender('Male'),
+            ),
+            const SizedBox(width: 10),
+            _GenderPill(
+              selected: _selectedGender == 'Female',
+              label: 'Female',
+              onTap: () => _selectGender('Female'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  void _selectGender(String gender) {
+    setState(() => _selectedGender = gender);
+    _genderController.text = gender;
   }
 
   Future<void> findUserByMobileNumber(String mobileNumber) async {
@@ -248,6 +323,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
           _fullNameController.text = r.fullName;
           _mobileNumberController.text = r.mobileNumber;
           _genderController.text = r.gender;
+          _selectedGender = r.gender;
         });
       },
     );
@@ -361,5 +437,60 @@ class _AddClientScreenState extends State<AddClientScreen> {
     if (Navigator.canPop(context)) {
       Navigator.of(context, rootNavigator: true).pop();
     }
+  }
+}
+
+class _GenderPill extends StatelessWidget {
+  final bool selected;
+  final String label;
+  final VoidCallback onTap;
+
+  const _GenderPill({
+    required this.selected,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        height: 36,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: selected ? context.accent : context.cardSurface,
+          borderRadius: BorderRadius.circular(999),
+          border: selected ? null : Border.all(color: context.hairline),
+          boxShadow: selected
+              ? const [
+                  BoxShadow(
+                    color: Color(0x1FFF5A00),
+                    blurRadius: 6,
+                    offset: Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (selected) ...[
+              const Icon(Icons.check, size: 14, color: Colors.white),
+              const SizedBox(width: 6),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                color: selected ? Colors.white : context.mutedText,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

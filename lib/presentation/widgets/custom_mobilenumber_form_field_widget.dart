@@ -1,4 +1,3 @@
-import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:flutter/material.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:intl_phone_field/phone_number.dart';
@@ -28,6 +27,7 @@ class CustomMobilenumberFormFieldWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final fillColor = Theme.of(context).inputDecorationTheme.fillColor;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -46,19 +46,27 @@ class CustomMobilenumberFormFieldWidget extends StatelessWidget {
           obscureText: isPassword,
           enabled: enabled,
           decoration: InputDecoration(
-            labelText: 'Mobile Number',
-            hintText: 'Enter mobile number',
+            hintText: hint,
+            hintStyle: TextStyle(color: colorScheme.outline),
             filled: true,
-            fillColor: colorScheme.surface,
+            fillColor: fillColor,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
+              borderSide: BorderSide(color: colorScheme.outlineVariant),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: colorScheme.outlineVariant),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: AppTheme.lightGrey.withValues(alpha: 0.6),
-                width: 1,
+              borderSide: const BorderSide(
+                color: Color(0xFFFF5A00),
+                width: 1.5,
               ),
             ),
           ),

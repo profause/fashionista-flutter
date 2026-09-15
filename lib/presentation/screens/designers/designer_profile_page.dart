@@ -1,3 +1,4 @@
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_bloc.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_event.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_state.dart';
@@ -29,7 +30,6 @@ class _DesignerProfilePageState extends State<DesignerProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     return BlocBuilder<DesignerBloc, DesignerState>(
@@ -40,27 +40,38 @@ class _DesignerProfilePageState extends State<DesignerProfilePage> {
           case DesignerLoaded(:final designer):
             // ✅ Use ListView so it respects TabBarView constraints
             return ListView(
-              padding: const EdgeInsets.only(bottom: 16, top: 4),
+              padding: const EdgeInsets.only(
+                top: 8,
+                bottom: 20,
+                left: 16,
+                right: 16,
+              ),
               children: [
-                FilledButton(
+                FilledButton.icon(
                   onPressed: () {
                     context.push('/designers/${designer.uid}');
                   },
+                  icon: const Icon(Icons.open_in_new, size: 18),
+                  label: const Text('Go to designer page'),
                   style: FilledButton.styleFrom(
+                    backgroundColor: context.accent,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size.fromHeight(48),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    elevation: 0,
-                    backgroundColor: Colors.transparent,
-                    foregroundColor: colorScheme.onSurface, // text/icon color
+                    textStyle: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                  child: const Text("Go to designer page"),
                 ),
+                const SizedBox(height: 12),
                 ProfileInfoCardWidget(
                   items: [
                     ProfileInfoItem(
                       icon: Icons.person_outline_outlined,
-                      title: '',
+                      title: 'Designer name',
                       value: designer.name,
                       suffix: CustomIconButtonRounded(
                         iconData: Icons.edit,
@@ -76,14 +87,12 @@ class _DesignerProfilePageState extends State<DesignerProfilePage> {
                         },
                       ),
                     ),
-                  ],
-                ),
-                ProfileInfoCardWidget(
-                  items: [
                     ProfileInfoItem(
-                      icon: Icons.phone_android_outlined,
-                      title: 'Mobile Number',
-                      value: designer.mobileNumber,
+                      icon: Icons.store_mall_directory_outlined,
+                      title: 'Business name',
+                      value: designer.businessName.isEmpty
+                          ? 'No business name'
+                          : designer.businessName,
                       suffix: CustomIconButtonRounded(
                         iconData: Icons.arrow_right,
                         size: 24,
@@ -100,15 +109,13 @@ class _DesignerProfilePageState extends State<DesignerProfilePage> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 ProfileInfoCardWidget(
                   items: [
                     ProfileInfoItem(
-                      icon: Icons.store_mall_directory_outlined,
-                      title: 'Business Name',
-                      value: designer.businessName.isEmpty
-                          ? 'No business name'
-                          : designer.businessName,
+                      icon: Icons.phone_android_outlined,
+                      title: 'Mobile number',
+                      value: designer.mobileNumber,
                       suffix: CustomIconButtonRounded(
                         iconData: Icons.arrow_right,
                         size: 24,
@@ -145,127 +152,123 @@ class _DesignerProfilePageState extends State<DesignerProfilePage> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 FeaturedImagesWidget(designer: designer),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
 
                 /// Likes & Ratings card
-                Card(
-                  color: colorScheme.onPrimary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(0),
-                  ),
-                  margin: const EdgeInsets.symmetric(vertical: 2),
-                  elevation: 0,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Likes & Ratings', style: textTheme.titleSmall),
-                        const SizedBox(height: 4),
-                        RatingInputWidget(
-                          initialRating: designer.averageRating ?? 0,
-                          color: colorScheme.primary,
-                          size: 24,
-                          readOnly: true,
-                        ),
-                      ],
-                    ),
+                _SectionCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Likes & Ratings', style: textTheme.titleSmall),
+                      const SizedBox(height: 8),
+                      RatingInputWidget(
+                        initialRating: designer.averageRating ?? 0,
+                        color: context.accent,
+                        size: 24,
+                        readOnly: true,
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
 
                 /// Socials card
-                Card(
-                  color: colorScheme.onPrimary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(0),
-                  ),
-                  margin: const EdgeInsets.symmetric(vertical: 2),
-                  elevation: 0,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Socials', style: textTheme.titleSmall),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(
-                              HugeIcons.strokeRoundedFacebook01,
-                              size: 32,
-                              color: colorScheme.onSurface,
-                            ),
-                            const SizedBox(width: 8),
-                            Icon(
-                              HugeIcons.strokeRoundedNewTwitter,
-                              size: 32,
-                              color: colorScheme.onSurface,
-                            ),
-                            const SizedBox(width: 8),
-                            Icon(
-                              HugeIcons.strokeRoundedInstagram,
-                              size: 32,
-                              color: colorScheme.onSurface,
-                            ),
-                            const SizedBox(width: 8),
-                            Icon(
-                              HugeIcons.strokeRoundedTiktok,
-                              size: 32,
-                              color: colorScheme.onSurface,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                _SectionCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Socials', style: textTheme.titleSmall),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(
+                            HugeIcons.strokeRoundedFacebook01,
+                            size: 32,
+                            color: context.onCanvasText,
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            HugeIcons.strokeRoundedNewTwitter,
+                            size: 32,
+                            color: context.onCanvasText,
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            HugeIcons.strokeRoundedInstagram,
+                            size: 32,
+                            color: context.onCanvasText,
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            HugeIcons.strokeRoundedTiktok,
+                            size: 32,
+                            color: context.onCanvasText,
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
 
                 /// Bio + Tags card
-                Card(
-                  color: colorScheme.onPrimary,
-                  margin: const EdgeInsets.symmetric(vertical: 2),
-                  elevation: 0,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            CustomIconRounded(icon: Icons.account_box_outlined),
-                            const SizedBox(width: 8),
-                            Text("Bio", style: textTheme.titleSmall),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(designer.bio ?? '', style: textTheme.bodyMedium),
-                        const SizedBox(height: 8),
-                        Divider(color: Colors.grey.shade300),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            CustomIconRounded(icon: Icons.tag),
-                            const SizedBox(width: 8),
-                            Text("Featured Tags", style: textTheme.titleSmall),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: -6, // 👈 reduced padding
-                          children: designer.tags.isEmpty
-                              ? [SizedBox(height: 1)]
-                              : designer.tags
-                                    .split('|')
-                                    .map((tag) => Chip(label: Text(tag)))
-                                    .toList(),
-                        ),
-                      ],
-                    ),
+                _SectionCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const CustomIconRounded(
+                            icon: Icons.account_box_outlined,
+                          ),
+                          const SizedBox(width: 8),
+                          Text('Bio', style: textTheme.titleSmall),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(designer.bio ?? '', style: textTheme.bodyMedium),
+                      const SizedBox(height: 12),
+                      Divider(color: context.hairline, height: 1),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          const CustomIconRounded(icon: Icons.tag),
+                          const SizedBox(width: 8),
+                          Text('Featured Tags', style: textTheme.titleSmall),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: -6, // 👈 reduced padding
+                        children: designer.tags.isEmpty
+                            ? [const SizedBox(height: 1)]
+                            : designer.tags
+                                  .split('|')
+                                  .map(
+                                    (tag) => Chip(
+                                      label: Text(tag),
+                                      backgroundColor: context.iconSubstrate,
+                                      labelStyle: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                        color: context.onCanvasText,
+                                      ),
+                                      side: BorderSide(color: context.hairline),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(18),
+                                      ),
+                                      visualDensity: VisualDensity.compact,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -276,6 +279,25 @@ class _DesignerProfilePageState extends State<DesignerProfilePage> {
             return const Center(child: Text("No designer data"));
         }
       },
+    );
+  }
+}
+
+class _SectionCard extends StatelessWidget {
+  final Widget child;
+  const _SectionCard({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.cardSurface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.hairline),
+      ),
+      child: child,
     );
   }
 }

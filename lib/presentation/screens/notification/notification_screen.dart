@@ -1,4 +1,5 @@
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/notification/bloc/notification_bloc.dart';
 import 'package:fashionista/data/models/notification/bloc/notification_bloc_event.dart';
 import 'package:fashionista/data/models/notification/notification_model.dart';
@@ -31,34 +32,73 @@ class _NotificationScreenState extends State<NotificationScreen> {
     super.initState();
   }
 
+  void _markAllAsRead(List<NotificationModel> notifications) {
+    for (final notification in notifications) {
+      if (notification.status == 'new') {
+        context.read<NotificationBloc>().add(
+          UpdateNotification(notification.copyWith(status: 'read')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        foregroundColor: colorScheme.primary,
-        backgroundColor: colorScheme.onPrimary,
-        title: Text(
-          'Notifications',
-          style: textTheme.titleMedium!.copyWith(color: colorScheme.primary),
-        ),
-        elevation: 0,
-      ),
-      body: ValueListenableBuilder<Box<NotificationModel>>(
-        valueListenable: sl<HiveNotificationService>().itemListener(),
-        builder: (context, box, _) {
-          final notifications = box.values.toList().cast<NotificationModel>();
-          final sortedNotifications = [...notifications]
-            ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-          return ListView.separated(
-            padding: const EdgeInsets.only(top: 2),
-            scrollDirection: Axis.vertical,
-            shrinkWrap: true,
-            separatorBuilder: (context, index) =>
-                const Divider(height: .1, thickness: .1),
+    return ValueListenableBuilder<Box<NotificationModel>>(
+      valueListenable: sl<HiveNotificationService>().itemListener(),
+      builder: (context, box, _) {
+        final notifications = box.values.toList().cast<NotificationModel>();
+        final sortedNotifications = [...notifications]
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        return Scaffold(
+          backgroundColor: context.canvasBackground,
+          appBar: AppBar(
+            automaticallyImplyLeading: false,
+            backgroundColor: context.canvasBackground,
+            foregroundColor: context.onCanvasText,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            centerTitle: true,
+            leading: const SizedBox(
+              width: 40,
+              height: 40,
+              child: _BackButton(),
+            ),
+            title: Text(
+              'Notifications',
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: context.onCanvasText,
+                letterSpacing: -0.3,
+              ),
+            ),
+            actions: [
+              Center(
+                child: TextButton(
+                  onPressed: () => _markAllAsRead(sortedNotifications),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    foregroundColor: context.mutedText,
+                    textStyle: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  child: const Text('Mark all as read'),
+                ),
+              ),
+            ],
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(1),
+              child: ColoredBox(color: context.hairline.withValues(alpha: 0.7)),
+            ),
+          ),
+          body: ListView.separated(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
             itemCount: sortedNotifications.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final notification = sortedNotifications[index];
               switch (notification.type) {
@@ -116,57 +156,27 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   );
               }
             },
-          );
-        },
-      ),
+          ),
+        );
+      },
+    );
+  }
+}
 
-      // BlocBuilder<NotificationBloc, NotificationBlocState>(
-      //   builder: (context, state) {
-      //     switch (state) {
-      //       case NotificationLoading():
-      //         return const SizedBox(
-      //           height: 400,
-      //           child: Center(child: CircularProgressIndicator()),
-      //         );
+class _BackButton extends StatelessWidget {
+  const _BackButton();
 
-      //       case NotificationsLoaded(:final notifications):
-      //         return ListView.separated(
-      //           scrollDirection: Axis.vertical,
-      //           shrinkWrap: true,
-      //           separatorBuilder: (context, index) =>
-      //               const Divider(height: .1, thickness: .1),
-      //           itemCount: notifications.length,
-      //           itemBuilder: (context, index) {
-      //             final notification = notifications[index];
-      //             switch (notification.type) {
-      //               case "workOrderRequest":
-      //                 return NotificationWorkOrderRequestWidget(
-      //                   key: ValueKey(index),
-      //                   notification: notification,
-      //                 );
-      //               default:
-      //                 return NotificationInfoWidget(
-      //                   key: ValueKey(index),
-      //                   notification: notification,
-      //                 );
-      //             }
-      //           },
-      //         );
-      //       case NotificationError(:final message):
-      //         debugPrint(message);
-      //         return Center(child: Text("Error: $message"));
-      //       default:
-      //         return Center(
-      //           child: PageEmptyWidget(
-      //             title: "No Notifications Found",
-      //             subtitle: "",
-      //             icon: Icons.notifications_none_outlined,
-      //             iconSize: 48,
-      //           ),
-      //         );
-      //     }
-      //   },
-      // ),
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(Icons.chevron_left, size: 24, color: context.onCanvasText),
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(),
+      onPressed: () {
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+      },
     );
   }
 }

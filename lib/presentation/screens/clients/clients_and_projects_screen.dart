@@ -22,7 +22,7 @@ class ClientsAndProjectsScreen extends StatefulWidget {
 
 class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
     with SingleTickerProviderStateMixin {
-  static const double expandedHeight = 84;
+  static const double expandedHeight = 96;
 
   late final TabController _tabController;
   final GlobalKey<_ClientsAndProjectsScreenState> clientsAndProjectsKey =
@@ -60,11 +60,8 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: context.canvasBackground,
       body: NestedScrollView(
         physics: const ClampingScrollPhysics(),
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
@@ -77,8 +74,8 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
                 floating: true,
                 toolbarHeight: 0,
                 expandedHeight: expandedHeight,
-                backgroundColor: colorScheme.onPrimary,
-                foregroundColor: colorScheme.primary,
+                backgroundColor: context.canvasBackground,
+                foregroundColor: context.accent,
                 elevation: 0,
                 flexibleSpace: LayoutBuilder(
                   builder: (context, constraints) {
@@ -89,20 +86,19 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
                     return FlexibleSpaceBar(
                       collapseMode: CollapseMode.parallax,
                       background: SafeArea(
-                        child: Column(
-                          children: [
-                            Opacity(
-                              opacity:
-                                  percent, // ✅ fade name out as it collapses
-                              child: Text(
-                                "Clients & Projects",
-                                style: textTheme.titleMedium!.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                        bottom: false,
+                        child: Center(
+                          child: Opacity(
+                            opacity:
+                                percent, // ✅ fade name out as it collapses
+                            child: const Text(
+                              "Clients & Projects",
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
-                            //
-                          ],
+                          ),
                         ),
                       ),
                     );
@@ -111,105 +107,66 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
 
                 bottom: TabBar(
                   controller: _tabController,
-                  labelColor: colorScheme.primary,
-                  unselectedLabelColor: AppTheme.darkGrey,
-                  indicatorColor: AppTheme.appIconColor.withValues(alpha: 1),
-                  dividerColor: AppTheme.lightGrey,
+                  labelColor: context.onCanvasText,
+                  unselectedLabelColor: context.mutedText,
+                  labelStyle: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  unselectedLabelStyle: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  indicatorColor: context.accent,
+                  dividerColor: context.hairline,
+                  dividerHeight: 1,
+                  indicatorSize: TabBarIndicatorSize.label,
+                  indicatorWeight: 2.5,
+                  indicatorPadding: const EdgeInsets.only(bottom: 4),
                   physics: const BouncingScrollPhysics(),
-                  dividerHeight: 0,
-                  indicatorWeight: 2,
-                  indicatorPadding: const EdgeInsets.only(left: 8, right: 8),
                   indicator: UnderlineTabIndicator(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(999),
                     borderSide: BorderSide(
-                      width: 4,
-                      color: AppTheme.appIconColor.withValues(alpha: 1),
+                      width: 2.5,
+                      color: context.accent,
                     ),
                   ),
                   tabs: [
-                    Container(
-                      margin: const EdgeInsets.symmetric(
-                        vertical: 2,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 4,
                         horizontal: 8,
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            "Clients",
-                            style: textTheme.bodyMedium!.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
+                          const Text("Clients"),
+                          const SizedBox(width: 6),
                           BlocSelector<ClientBloc, ClientBlocState, int>(
                             selector: (state) =>
                                 state.clientsCount, // ✅ always available
                             builder: (context, count) {
-                              return Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 0,
-                                  horizontal: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color:
-                                      Theme.of(context).brightness ==
-                                          Brightness.dark
-                                      ? Colors.grey[800]
-                                      : Colors.grey[400],
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  "$count",
-                                  style: textTheme.labelSmall!.copyWith(
-                                    color: colorScheme.primary,
-                                  ),
-                                ),
-                              );
+                              return _CountPill(count: count);
                             },
                           ),
                         ],
                       ),
                     ),
                     // ✅ Projects tab
-                    Container(
-                      margin: const EdgeInsets.symmetric(
-                        vertical: 8,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 4,
                         horizontal: 8,
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            "My Projects",
-                            style: textTheme.bodyMedium!.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
+                          const Text("My Projects"),
+                          const SizedBox(width: 6),
                           BlocSelector<WorkOrderBloc, WorkOrderBlocState, int>(
                             selector: (state) => state.workOrdersCount,
                             builder: (context, count) {
-                              return Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 0,
-                                  horizontal: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color:
-                                      Theme.of(context).brightness ==
-                                          Brightness.dark
-                                      ? Colors.grey[800]
-                                      : Colors.grey[400],
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  "$count",
-                                  style: textTheme.labelSmall!.copyWith(
-                                    color: colorScheme.primary,
-                                  ),
-                                ),
-                              );
+                              return _CountPill(count: count);
                             },
                           ),
                         ],
@@ -261,18 +218,19 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
       floatingActionButton: Hero(
         tag: 'add-client-button',
         child: Material(
-          color: Theme.of(context).colorScheme.primary,
-          elevation: 6,
+          color: context.accent,
+          elevation: 8,
+          shadowColor: const Color(0x59FF5A00),
           shape: const CircleBorder(),
           child: InkWell(
             onTap: () async {
               _showOptionsBottomsheet(context);
             },
             customBorder: const CircleBorder(),
-            child: SizedBox(
+            child: const SizedBox(
               width: 56,
               height: 56,
-              child: Icon(Icons.add, color: colorScheme.onPrimary),
+              child: Icon(Icons.add, color: Colors.white, size: 26),
             ),
           ),
         ),
@@ -281,124 +239,108 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
   }
 
   void _showOptionsBottomsheet(BuildContext context) {
-    //final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: colorScheme.onPrimary,
+      backgroundColor: context.cardSurface,
+      barrierColor: const Color(0x730F172A),
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (context) {
-        return DraggableScrollableSheet(
-          expand: false,
-          initialChildSize: 0.3, // how tall it opens initially
-          minChildSize: 0.3,
-          maxChildSize: 0.4,
-          shouldCloseOnMinExtent: false,
-          builder: (context, scrollController) {
-            return SingleChildScrollView(
-              controller: scrollController,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    /// Handle bar
-                    Center(
-                      child: Container(
-                        height: 4,
-                        width: 40,
-                        margin: const EdgeInsets.only(bottom: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[400],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
+        return SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF3A3938)
+                          : const Color(0xFFCBD5E1),
+                      borderRadius: BorderRadius.circular(2),
                     ),
-
-                    SizedBox(
-                      width: double.infinity,
-                      child: TextButton.icon(
-                        onPressed: () {
+                  ),
+                ),
+                Container(
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                    color: context.canvasBackground,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: context.hairline),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x0D000000),
+                        blurRadius: 2,
+                        offset: Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      _ActionRow(
+                        icon: Icons.person_add_alt,
+                        label: "Add new client",
+                        onTap: () {
                           Navigator.pop(context);
                           context.push('/clients/add');
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //     builder: (_) => const AddClientScreen(),
-                          //   ),
-                          // );
                         },
-                        icon: const Icon(Icons.person, size: 18),
-                        label: const Text("Add new client"),
-                        style: TextButton.styleFrom(
-                          alignment: Alignment.centerLeft,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              8,
-                            ), // optional: rounded edges
-                          ),
-                        ),
                       ),
-                    ),
-
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      width: double.infinity,
-                      child: TextButton.icon(
-                        onPressed: () {
+                      Divider(color: context.hairline, height: 1, thickness: 1),
+                      _ActionRow(
+                        icon: Icons.work_history,
+                        label: "Start a new work order",
+                        onTap: () {
                           Navigator.pop(context);
                           context.push('/workorders/add');
                         },
-                        icon: const Icon(Icons.work_history, size: 18),
-                        label: const Text("Start a new work order"),
-                        style: TextButton.styleFrom(
-                          alignment: Alignment.centerLeft,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              8,
-                            ), // optional: rounded edges
-                          ),
-                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        label: const Text("Cancel"),
-                        style: OutlinedButton.styleFrom(
-                          elevation: 0,
-                          side: const BorderSide(color: Colors.grey),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            );
-          },
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 56,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: context.canvasBackground,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: context.hairline),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x0D000000),
+                            blurRadius: 2,
+                            offset: Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                      child: const Text(
+                        "Cancel",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFFFF3B30),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
@@ -409,5 +351,68 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
     _tabController.dispose();
     router.routerDelegate.removeListener(_onRouteChange);
     super.dispose();
+  }
+}
+
+class _ActionRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _ActionRow({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 56,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Icon(icon, size: 20, color: context.accent),
+              const SizedBox(width: 14),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CountPill extends StatelessWidget {
+  final int count;
+  const _CountPill({required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      decoration: BoxDecoration(
+        color: context.iconSubstrate,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: context.hairline),
+      ),
+      child: Text(
+        "$count",
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: context.mutedText,
+        ),
+      ),
+    );
   }
 }

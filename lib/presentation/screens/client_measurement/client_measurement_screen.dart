@@ -1,4 +1,5 @@
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/clients/bloc/client_bloc.dart';
 import 'package:fashionista/data/models/clients/bloc/client_event.dart';
 import 'package:fashionista/data/models/clients/bloc/client_state.dart';
@@ -23,10 +24,12 @@ class ClientMeasurementScreen extends StatefulWidget {
 class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
   bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
   String _searchText = "";
   @override
   void dispose() {
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -38,8 +41,6 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     return BlocBuilder<ClientBloc, ClientBlocState>(
       buildWhen: (context, state) {
         return state is ClientLoaded || state is ClientUpdated;
@@ -60,55 +61,58 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
                     return bodyPart.contains(_searchText.toLowerCase());
                   }).toList();
             return Scaffold(
-              backgroundColor: colorScheme.surface,
+              backgroundColor: context.canvasBackground,
               body: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Card(
-                    color: colorScheme.onPrimary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(0),
-                    ),
-                    elevation: 0,
-                    margin: const EdgeInsets.symmetric(vertical: 2),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                    child: Container(
+                      height: 40,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: context.cardSurface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: _searchFocusNode.hasFocus
+                              ? context.accent.withValues(alpha: 0.7)
+                              : context.hairline,
+                        ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x0D000000),
+                            blurRadius: 3,
+                            offset: Offset(0, 1),
+                          ),
+                        ],
+                      ),
                       child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Icon(
+                            Icons.search,
+                            size: 16,
+                            color: context.mutedText,
+                          ),
+                          const SizedBox(width: 10),
                           Expanded(
                             child: TextField(
                               key: const ValueKey("searchField"),
                               controller: _searchController,
-                              autofocus: true,
+                              focusNode: _searchFocusNode,
                               decoration: InputDecoration(
                                 hintText: 'Search measurements...',
+                                hintStyle: TextStyle(
+                                  fontSize: 14,
+                                  color: context.placeholderText,
+                                ),
                                 border: InputBorder.none,
-                                hintStyle: textTheme.labelMedium,
-                                suffixIcon: IconButton(
-                                  icon: _isSearching
-                                      ? const Icon(Icons.clear)
-                                      : const Icon(Icons.search),
-                                  onPressed: () {
-                                    if (_isSearching) {
-                                      // Clear search
-                                      _searchController.clear();
-                                      setState(() {
-                                        _isSearching = false;
-                                        _searchText = '';
-                                      });
-                                    } else {
-                                      // Optional: trigger search or focus
-                                      // FocusScope.of(context).requestFocus(FocusNode());
-                                    }
-                                  },
-                                ),
-                                contentPadding: const EdgeInsets.only(
-                                  left: 12,
-                                  top: 12,
-                                ),
+                                isDense: true,
+                                contentPadding: EdgeInsets.zero,
                               ),
-                              style: textTheme.bodyLarge,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: context.onCanvasText,
+                              ),
                               onChanged: (value) {
                                 setState(() {
                                   _isSearching = value.isNotEmpty;
@@ -117,118 +121,62 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
                               },
                             ),
                           ),
-                          // const SizedBox(width: 12),
-                          // Padding(
-                          //   padding: const EdgeInsets.only(right: 12),
-                          //   child: CustomIconButtonRounded(
-                          //     iconData: _isSearching
-                          //         ? Icons.close
-                          //         : Icons.search,
-                          //     onPressed: () {
-                          //       setState(() {
-                          //         _isSearching = !_isSearching;
-                          //         if (!_isSearching) {
-                          //           _searchController.clear();
-                          //         }
-                          //       });
-                          //     },
-                          //   ),
-                          // ),
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 0),
-
                   Expanded(
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      //physics: const NeverScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(12),
-                      itemCount: filteredMeasurements.length,
-                      itemBuilder: (context, index) {
-                        final measurement = filteredMeasurements[index];
-                        return MeasurementInfoCardWidget(
-                          client: widget.client,
-                          measurement: measurement,
-                          onDelete: () async {
-                            final canDelete = await showDialog<bool>(
-                              context: context,
-                              builder: (ctx) => AlertDialog(
-                                title: const Text('Delete Measurement'),
-                                content: const Text(
-                                  'Are you sure you want to delete this measurement?',
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                      children: [
+                        if (filteredMeasurements.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 40),
+                            child: Center(
+                              child: Text(
+                                'No measurements found',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: context.mutedText,
                                 ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.of(ctx).pop(false),
-                                    child: const Text('Cancel'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.of(ctx).pop(true),
-                                    style: TextButton.styleFrom(
-                                      foregroundColor: Colors.red,
+                              ),
+                            ),
+                          )
+                        else
+                          Container(
+                            decoration: BoxDecoration(
+                              color: context.cardSurface,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: context.hairline),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x0D000000),
+                                  blurRadius: 3,
+                                  offset: Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              children: [
+                                for (
+                                  var i = 0;
+                                  i < filteredMeasurements.length;
+                                  i++
+                                ) ...[
+                                  if (i > 0)
+                                    Container(
+                                      height: 1,
+                                      color: context.hairline,
                                     ),
-                                    child: const Text('Delete'),
+                                  _buildMeasurementRow(
+                                    client,
+                                    filteredMeasurements[i],
                                   ),
                                 ],
-                              ),
-                            );
-
-                            if (canDelete == true) {
-                              if (mounted) {
-                                showDialog(
-                                  context: context,
-                                  barrierDismissible:
-                                      false, // Prevent dismissing
-                                  builder: (_) => const Center(
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                );
-                              }
-
-                              final List<ClientMeasurement> measurements =
-                                  List.from(client.measurements);
-
-                              final index = measurements.indexWhere(
-                                (m) =>
-                                    m.bodyPart.toLowerCase() ==
-                                    measurement.bodyPart.toLowerCase(),
-                              );
-                              measurements.removeAt(index);
-
-                              final updatedClient = client.copyWith(
-                                measurements: measurements,
-                              );
-
-                              context.read<ClientBloc>().add(
-                                UpdateClient(updatedClient),
-                              );
-
-                              _deleteMeasurement(updatedClient);
-                            }
-                          },
-                          onEdit: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => BlocProvider.value(
-                                  value: context
-                                      .read<
-                                        ClientBloc
-                                      >(), // reuse existing cubit
-                                  child: AddClientMeasurementScreen(
-                                    clientMeasurement: measurement,
-                                    client: client,
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      },
+                              ],
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 ],
@@ -236,30 +184,41 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
               floatingActionButton: Hero(
                 tag: 'add-measurement-button',
                 child: Material(
-                  color: Theme.of(context).colorScheme.primary,
-                  elevation: 6,
+                  color: context.accent,
+                  elevation: 0,
                   shape: const CircleBorder(),
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => BlocProvider.value(
-                            value: context
-                                .read<ClientBloc>(), // reuse existing cubit
-                            child: AddClientMeasurementScreen(
-                              clientMeasurement: ClientMeasurement.empty(),
-                              client: client,
+                  child: Container(
+                    width: 56,
+                    height: 56,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0x61FF5A00),
+                          blurRadius: 18,
+                          offset: Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => BlocProvider.value(
+                              value:
+                                  context
+                                      .read<ClientBloc>(), // reuse existing cubit
+                              child: AddClientMeasurementScreen(
+                                clientMeasurement: ClientMeasurement.empty(),
+                                client: client,
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    },
-                    customBorder: const CircleBorder(),
-                    child: SizedBox(
-                      width: 56,
-                      height: 56,
-                      child: Icon(Icons.add, color: colorScheme.onPrimary),
+                        );
+                      },
+                      customBorder: const CircleBorder(),
+                      child: const Icon(Icons.add, color: Colors.white),
                     ),
                   ),
                 ),
@@ -267,6 +226,83 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
             );
         }
         return const Center(child: CircularProgressIndicator());
+      },
+    );
+  }
+
+  Widget _buildMeasurementRow(
+    Client client,
+    ClientMeasurement measurement,
+  ) {
+    return MeasurementInfoCardWidget(
+      client: client,
+      measurement: measurement,
+      onDelete: () async {
+        final canDelete = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Delete Measurement'),
+            content: const Text(
+              'Are you sure you want to delete this measurement?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Delete'),
+              ),
+            ],
+          ),
+        );
+
+        if (canDelete == true) {
+          if (mounted) {
+            showDialog(
+              context: context,
+              barrierDismissible: false, // Prevent dismissing
+              builder: (_) => const Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
+          }
+
+          final List<ClientMeasurement> measurements =
+              List.from(client.measurements);
+
+          final index = measurements.indexWhere(
+            (m) =>
+                m.bodyPart.toLowerCase() ==
+                measurement.bodyPart.toLowerCase(),
+          );
+          measurements.removeAt(index);
+
+          final updatedClient = client.copyWith(measurements: measurements);
+
+          context
+              .read<ClientBloc>()
+              .add(UpdateClient(updatedClient));
+
+          _deleteMeasurement(updatedClient);
+        }
+      },
+      onEdit: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => BlocProvider.value(
+              value:
+                  context.read<ClientBloc>(), // reuse existing cubit
+              child: AddClientMeasurementScreen(
+                clientMeasurement: measurement,
+                client: client,
+              ),
+            ),
+          ),
+        );
       },
     );
   }

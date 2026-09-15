@@ -1,5 +1,6 @@
 import 'package:fashionista/core/auth/auth_provider_cubit.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/services/hive/hive_client_service.dart';
@@ -32,7 +33,7 @@ class UserProfilePage extends StatelessWidget {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       body: ListView(
-        padding: const EdgeInsets.only(top: 4, bottom: 8),
+        padding: const EdgeInsets.only(top: 8, bottom: 20, left: 16, right: 16),
         children: [
           // personal info
           ProfileInfoCardWidget(
@@ -49,7 +50,7 @@ class UserProfilePage extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
 
           // contact info
           ProfileInfoCardWidget(
@@ -71,7 +72,7 @@ class UserProfilePage extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
 
           // demographic info
           ProfileInfoCardWidget(
@@ -88,13 +89,6 @@ class UserProfilePage extends StatelessWidget {
                     ? ''
                     : DateFormat('yyyy-MM-dd').format(user.dateOfBirth!),
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          // account info
-          ProfileInfoCardWidget(
-            items: [
               ProfileInfoItem(
                 icon: Icons.account_box,
                 title: 'Account type',
@@ -109,7 +103,7 @@ class UserProfilePage extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           ProfileInfoCardWidget(
             items: [
               ProfileInfoItem(
@@ -129,37 +123,37 @@ class UserProfilePage extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           UserProfileMessurementCard(key: ValueKey(user.uid),),
           // sign out
-          const SizedBox(height: 8),
-          Card(
-            margin: const EdgeInsets.all(0),
-            color: colorScheme.onPrimary,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(0),
+          const SizedBox(height: 12),
+          Container(
+            margin: EdgeInsets.zero,
+            decoration: BoxDecoration(
+              color: context.cardSurface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: context.hairline),
             ),
-            elevation: 0,
             child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  TextButton(
-                    onPressed: () => _signOut(context),
-                    style: TextButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    child: Text(
-                      'Sign out',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodyLarge?.copyWith(color: Colors.red),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              child: TextButton(
+                onPressed: () => _signOut(context),
+                style: TextButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                ),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Sign out',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: Colors.red,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                ],
+                ),
               ),
             ),
           ),

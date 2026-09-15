@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/auth/auth_provider_cubit.dart';
@@ -11,7 +12,6 @@ import 'package:fashionista/domain/usecases/profile/fetch_user_profile_usecase.d
 import 'package:fashionista/presentation/screens/designers/designer_profile_page.dart';
 import 'package:fashionista/presentation/screens/profile/user_profile_page.dart';
 import 'package:fashionista/presentation/widgets/banner_image_widget.dart';
-import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
@@ -60,46 +60,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
     const double maxAvatarRadius = 40;
     const double minAvatarRadius = 32;
-    //const double avatarRadius = 40;
-    const double expandedHeight = 180;
+    const double expandedHeight = 176;
     return BlocBuilder<UserBloc, User>(
       builder: (context, user) {
         if (user.uid != null) {
           return DefaultTabController(
             length: user.accountType.toLowerCase() == 'designer' ? 2 : 1,
             child: Scaffold(
-              backgroundColor: colorScheme.surface,
+              backgroundColor: context.canvasBackground,
               body: NestedScrollView(
                 headerSliverBuilder: (context, innerBoxIsScrolled) {
                   return [
                     SliverAppBar(
                       pinned: false,
                       expandedHeight: expandedHeight,
-                      backgroundColor: colorScheme.onPrimary,
-                      foregroundColor: colorScheme.primary,
+                      backgroundColor: context.canvasBackground,
+                      foregroundColor: context.onCanvasText,
                       elevation: 0,
-                      //title: Text(user.fullName, style: textTheme.labelLarge!),
+                      surfaceTintColor: Colors.transparent,
                       actions: [
                         Padding(
-                          padding: const EdgeInsets.only(right: 18),
+                          padding: const EdgeInsets.only(top: 10, right: 12),
                           child: Row(
                             children: [
-                              CustomIconButtonRounded(
-                                size: 20,
+                              _GlassActionButton(
                                 iconData: Icons.edit,
                                 onPressed: () {
                                   context.push('/edit-profile');
                                 },
                               ),
                               const SizedBox(width: 8),
-                              CustomIconButtonRounded(
-                                size: 20,
-                                iconData: Icons.settings,
+                              _GlassActionButton(
+                                iconData: Icons.settings_outlined,
                                 onPressed: () {
                                   context.push('/settings');
                                 },
@@ -124,16 +118,62 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             background: Stack(
                               clipBehavior: Clip.none,
                               children: [
-                                // Banner image
-                                BannerImageWidget(
-                                  uid: user.uid!,
-                                  url: ValueNotifier(user.bannerImage!),
-                                  isEditable: false,
+                                // Monochrome cover banner image
+                                ColorFiltered(
+                                  colorFilter: const ColorFilter.matrix(<double>[
+                                    0.2126,
+                                    0.7152,
+                                    0.0722,
+                                    0,
+                                    0,
+                                    0.2126,
+                                    0.7152,
+                                    0.0722,
+                                    0,
+                                    0,
+                                    0.2126,
+                                    0.7152,
+                                    0.0722,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    1,
+                                    0,
+                                  ]),
+                                  child: BannerImageWidget(
+                                    uid: user.uid!,
+                                    url: ValueNotifier(user.bannerImage!),
+                                    isEditable: false,
+                                    height: expandedHeight,
+                                  ),
+                                ),
+                                // Top scrim + gradient blending into the canvas
+                                Positioned.fill(
+                                  child: IgnorePointer(
+                                    child: DecoratedBox(
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          stops: const [0.0, 0.28, 0.55, 1.0],
+                                          colors: [
+                                            Colors.black.withValues(
+                                              alpha: 0.20,
+                                            ),
+                                            Colors.black.withValues(alpha: 0.0),
+                                            Colors.black.withValues(alpha: 0.0),
+                                            context.canvasBackground,
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                                 ),
                                 Positioned(
-                                  top:
-                                      (expandedHeight / 2) + (avatarRadius / 2),
-                                  left: 16,
+                                  top: expandedHeight - avatarRadius - 4,
+                                  left: 20,
                                   child: buildProfileAvatar(avatarRadius, user),
                                 ),
                               ],
@@ -142,64 +182,59 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         },
                       ),
                       bottom: PreferredSize(
-                        preferredSize: const Size.fromHeight(
-                          0,
-                        ), // set your desired height
-                        child: TabBar(
-                          labelColor: colorScheme.primary,
-                          unselectedLabelColor: AppTheme.darkGrey,
-                          indicatorColor: AppTheme.appIconColor.withValues(
-                            alpha: 1,
-                          ),
-                          dividerColor: AppTheme.lightGrey,
-                          dividerHeight: 0,
-                          indicatorWeight: 2,
-                          tabAlignment: TabAlignment.center,
-                          labelPadding: const EdgeInsets.all(0),
-                          //padding: const EdgeInsets.all(64),
-                          isScrollable: false,
-                          indicator: UnderlineTabIndicator(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(
-                              width: 4,
-                              color: AppTheme.appIconColor.withValues(alpha: 1),
-                            ),
-                            // insets: EdgeInsets.symmetric(
-                            //   horizontal: 60,
-                            // ), // adjust for fixed width
-                          ),
-                          tabs: [
-                            Container(
-                              margin: const EdgeInsets.symmetric(
-                                vertical: 8,
-                                horizontal: 8,
-                              ),
-                              // divider color
-                              child: Text(
-                                "Profile",
-                                style: textTheme.bodyMedium!.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                        preferredSize: const Size.fromHeight(56),
+                        child: Container(
+                          color: context.canvasBackground,
+                          alignment: Alignment.center,
+                          child: TabBar(
+                            labelColor: context.onCanvasText,
+                            unselectedLabelColor: context.mutedText,
+                            dividerColor: Colors.transparent,
+                            dividerHeight: 1,
+                            indicatorWeight: 2,
+                            indicatorSize: TabBarIndicatorSize.label,
+                            tabAlignment: TabAlignment.center,
+                            labelPadding: const EdgeInsets.all(0),
+                            indicator: UnderlineTabIndicator(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                width: 2,
+                                color: context.accent,
                               ),
                             ),
-                            //Tab(text: "Profile"),
-                            if (user.accountType.toLowerCase() ==
-                                "designer") ...[
+                            indicatorPadding: const EdgeInsets.only(bottom: 12),
+                            tabs: [
                               Container(
                                 margin: const EdgeInsets.symmetric(
-                                  vertical: 8,
+                                  vertical: 16,
                                   horizontal: 8,
                                 ),
-                                // divider color
-                                child: Text(
-                                  "Designer Card",
-                                  style: textTheme.bodyMedium!.copyWith(
-                                    fontWeight: FontWeight.bold,
+                                child: const Text(
+                                  "Profile",
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ),
+                              if (user.accountType.toLowerCase() ==
+                                  "designer") ...[
+                                Container(
+                                  margin: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                    horizontal: 8,
+                                  ),
+                                  child: const Text(
+                                    "Designer Card",
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
                       ),
                     ),
@@ -224,32 +259,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget buildProfileAvatar(double radius, User user) {
+    final double avatarSize = radius * 2;
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        CircleAvatar(
-          radius: radius,
-          backgroundColor: Colors.white,
-          child: Container(
-            margin: const EdgeInsets.all(3),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(radius),
-            ),
-            clipBehavior: Clip.antiAlias,
+        Container(
+          width: avatarSize,
+          height: avatarSize,
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            color: context.cardSurface,
+            shape: BoxShape.circle,
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x2E000000),
+                blurRadius: 12,
+                offset: Offset(0, 3),
+              ),
+            ],
+          ),
+          child: ClipOval(
             child: CachedNetworkImage(
-              fit: BoxFit.fill,
+              fit: BoxFit.cover,
               imageUrl: user.profileImage,
               errorListener: (error) {},
               placeholder: (context, url) => DefaultProfileAvatar(
                 key: ValueKey(user.uid),
                 name: null,
-                size: radius * 2,
+                size: avatarSize - 6,
                 uid: user.uid!,
               ),
               errorWidget: (context, url, error) => DefaultProfileAvatar(
                 key: ValueKey(user.uid),
                 name: null,
-                size: radius * 2,
+                size: avatarSize - 6,
                 uid: user.uid!,
               ),
             ),
@@ -258,13 +301,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Positioned(
           bottom: 0,
           right: 0,
-          child: CustomIconButtonRounded(
-            size: 20,
-            onPressed: () {
-              //_chooseImageSource(context);
-              _showImageSourceDialog();
-            },
-            iconData: Icons.camera_alt,
+          child: Container(
+            width: 26,
+            height: 26,
+            decoration: BoxDecoration(
+              color: context.accent,
+              shape: BoxShape.circle,
+              border: Border.all(color: context.cardSurface, width: 2),
+              boxShadow: const [
+                BoxShadow(color: Color(0x33000000), blurRadius: 4),
+              ],
+            ),
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints.tightFor(width: 26, height: 26),
+              icon: const Icon(Icons.camera_alt, size: 14, color: Colors.white),
+              onPressed: () {
+                _showImageSourceDialog();
+              },
+            ),
           ),
         ),
         if (_isUploading) ...[
@@ -511,6 +566,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (Navigator.canPop(context)) {
       Navigator.of(context, rootNavigator: true).pop();
     }
+  }
+}
+
+class _GlassActionButton extends StatelessWidget {
+  final IconData iconData;
+  final VoidCallback onPressed;
+  const _GlassActionButton({required this.iconData, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isDark = context.isDarkTheme;
+    return GestureDetector(
+      onTap: onPressed,
+      child: ClipOval(
+        child: BackdropFilter(
+          filter: ui.ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+          child: Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.16)
+                  : Colors.white.withValues(alpha: 0.70),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.30)
+                    : Colors.white.withValues(alpha: 0.80),
+              ),
+            ),
+            child: Icon(iconData, size: 18, color: context.onCanvasText),
+          ),
+        ),
+      ),
+    );
   }
 }
 

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/widgets/bloc/getstarted_stats_cubit.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/domain/usecases/profile/update_user_profile_usecase.dart';
@@ -67,19 +68,60 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
     );
   }
 
+  void _exit() {
+    if (widget.fromWhere?.contains('UserProfilePage') ?? false) {
+      context.pop();
+    } else {
+      context.go('/home');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: context.canvasBackground,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: context.canvasBackground,
+        foregroundColor: context.onCanvasText,
         elevation: 0,
-        foregroundColor: colorScheme.primary,
-        backgroundColor: colorScheme.onPrimary,
+        scrolledUnderElevation: 0,
+        centerTitle: true,
+        leading: const SizedBox(
+          width: 40,
+          height: 40,
+          child: _BackButton(),
+        ),
         title: Text(
-          'Select Your Fashion Interests',
-          style: textTheme.titleLarge!.copyWith(fontWeight: FontWeight.bold),
+          'Select Your Interests',
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            color: context.onCanvasText,
+            letterSpacing: -0.3,
+          ),
+        ),
+        actions: [
+          Center(
+            child: TextButton(
+              onPressed: _exit,
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                foregroundColor: context.mutedText,
+                textStyle: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: context.mutedText,
+                ),
+              ),
+              child: const Text('Skip'),
+            ),
+          ),
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: ColoredBox(color: context.hairline),
         ),
       ),
       body: FutureBuilder<Map<String, List<String>>>(
@@ -89,63 +131,81 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text("No interests available"));
+            return const Center(child: Text('No interests available'));
           }
 
           final interestsByCategory = snapshot.data!;
 
           return ListView(
-            padding: const EdgeInsets.all(16),
-            children: interestsByCategory.entries.map((entry) {
-              final category = entry.key;
-              final interests = entry.value;
-
-              return Column(
-                key: ValueKey(category),
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    category,
-                    style: Theme.of(context).textTheme.titleMedium,
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  'Choose at least 3 categories to personalize your fashion feed, designer drops, and outfit recommendations.',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: context.mutedText,
+                    height: 1.6,
                   ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: interests.map((interest) {
-                      return ValueListenableBuilder<Set<String>>(
-                        valueListenable: selectedInterestsNotifier,
-                        builder: (context, selectedInterests, _) {
-                          final isSelected = selectedInterests.contains(
-                            interest,
-                          );
-                          return ChoiceChip(
-                            key: ValueKey(interest),
-                            label: Text(interest),
-                            selected: isSelected,
-                            onSelected: (selected) =>
-                                _toggleInterest(interest, selected),
-                          );
-                        },
-                      );
-                    }).toList(),
-                  ),
-                  Divider(
-                    height: 32,
-                    thickness: 1,
-                    color: Colors.grey[300]!.withValues(alpha: 0.5),
-                  ),
-                ],
-              );
-            }).toList(),
+                ),
+              ),
+              const SizedBox(height: 28),
+              for (final item in interestsByCategory.entries.indexed) ...[
+                _buildCategorySection(item.$1, item.$2.key, item.$2.value),
+              ],
+            ],
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      bottomNavigationBar: _InterestCtaButton(
         onPressed: _saveInterests,
-        icon: const Icon(Icons.check),
-        label: const Text("Done"),
       ),
+    );
+  }
+
+  Widget _buildCategorySection(
+    int index,
+    String category,
+    List<String> interests,
+  ) {
+    return Column(
+      key: ValueKey(category),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (index > 0) ...[
+          const SizedBox(height: 20),
+          const Divider(height: 1, thickness: 1),
+          const SizedBox(height: 20),
+        ],
+        Text(
+          category,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: context.onCanvasText,
+            letterSpacing: 0.5,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: interests.map((interest) {
+            return ValueListenableBuilder<Set<String>>(
+              valueListenable: selectedInterestsNotifier,
+              builder: (context, selectedInterests, _) {
+                final isSelected = selectedInterests.contains(interest);
+                return _InterestChip(
+                  label: interest,
+                  selected: isSelected,
+                  onTap: () => _toggleInterest(interest, !isSelected),
+                );
+              },
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 
@@ -154,7 +214,7 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("You must be logged in to save interests."),
+          content: Text('You must be logged in to save interests.'),
         ),
       );
       return;
@@ -168,7 +228,6 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
     context.read<UserBloc>().add(UpdateUser(updatedUser));
 
     final userInterestCount = selected.length;
-    //here
     final cubit = context.read<GetstartedStatsCubit>();
     cubit.updateInterests(userInterestCount);
 
@@ -187,12 +246,11 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
       },
       (ifRight) {
         if (mounted) {
-          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("✅ Interests saved successfully")),
+            const SnackBar(content: Text('✅ Interests saved successfully')),
           );
 
-          if (widget.fromWhere!.contains('UserProfilePage')) {
+          if (widget.fromWhere?.contains('UserProfilePage') ?? false) {
             context.pop();
           } else {
             context.go('/home');
@@ -200,8 +258,6 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
         }
       },
     );
-
-    //Navigator.pop(context); // close the screen
   }
 
   /// Load previously saved interests from Firestore
@@ -223,12 +279,170 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
         selectedInterestsNotifier.value = selected;
       }
     }
-    //setState(() => _loadingUserInterests = false);
   }
 
   @override
   void initState() {
     super.initState();
     _loadUserInterests();
+  }
+}
+
+class _InterestChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _InterestChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
+          height: 36,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            color: selected ? context.accent : context.cardSurface,
+            borderRadius: BorderRadius.circular(18),
+            border: selected
+                ? null
+                : Border.all(color: context.hairline),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (selected) ...[
+                Icon(
+                  Icons.check,
+                  size: 14,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 6),
+              ],
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                  color: selected
+                      ? Colors.white
+                      : context.mutedText,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _InterestCtaButton extends StatelessWidget {
+  final VoidCallback onPressed;
+
+  const _InterestCtaButton({required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            height: 40,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  context.canvasBackground.withValues(alpha: 0),
+                  context.canvasBackground,
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: context.accent.withValues(alpha: 0.28),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: SizedBox(
+                height: 54,
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: onPressed,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: context.accent,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Done'),
+                      SizedBox(width: 8),
+                      Icon(Icons.arrow_forward, size: 20),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BackButton extends StatelessWidget {
+  const _BackButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(Icons.chevron_left, size: 24, color: context.onCanvasText),
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(),
+      onPressed: () {
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+      },
+    );
   }
 }
