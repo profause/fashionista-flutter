@@ -22,6 +22,7 @@ class ClientsScreen extends StatefulWidget {
 
 class _ClientsScreenState extends State<ClientsScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
   String _searchText = "";
   String selectedFilter = 'All';
   String? showAs = "list";
@@ -35,6 +36,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
   @override
   void dispose() {
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -57,52 +59,58 @@ class _ClientsScreenState extends State<ClientsScreen> {
               child: Row(
                 children: [
                   Expanded(
-                    child: SizedBox(
+                    child: Container(
                       height: 44,
-                      child: TextField(
-                        controller: _searchController,
-                        cursorColor: context.accent,
-                        style: const TextStyle(fontSize: 15),
-                        decoration: InputDecoration(
-                          hintText: "Search clients...",
-                          hintStyle: TextStyle(
-                            fontSize: 15,
-                            color: context.mutedText,
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      decoration: BoxDecoration(
+                        color: context.cardSurface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: _searchFocusNode.hasFocus
+                              ? context.accent
+                              : context.hairline,
+                        ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x05000000),
+                            blurRadius: 8,
+                            offset: Offset(0, 2),
                           ),
-                          prefixIcon: Icon(
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
                             Icons.search,
+                            size: 18,
                             color: context.mutedText,
-                            size: 20,
                           ),
-                          prefixIconConstraints: const BoxConstraints(
-                            minWidth: 44,
-                            minHeight: 44,
-                          ),
-                          filled: true,
-                          fillColor: context.cardSurface,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 0,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: context.hairline),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: context.hairline),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: context.accent,
-                              width: 1.5,
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextField(
+                              controller: _searchController,
+                              focusNode: _searchFocusNode,
+                              cursorColor: context.accent,
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: context.onCanvasText,
+                              ),
+                              decoration: InputDecoration(
+                                hintText: "Search clients...",
+                                hintStyle: TextStyle(
+                                  fontSize: 15,
+                                  color: context.mutedText,
+                                ),
+                                isDense: true,
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
+                              ),
+                              onChanged: (value) {
+                                setState(() => _searchText = value);
+                              },
                             ),
                           ),
-                        ),
-                        onChanged: (value) {
-                          setState(() => _searchText = value);
-                        },
+                        ],
                       ),
                     ),
                   ),

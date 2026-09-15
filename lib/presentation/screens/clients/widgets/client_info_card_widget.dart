@@ -83,7 +83,7 @@ class _ClientInfoCardWidgetState extends State<ClientInfoCardWidget> {
             const SizedBox(width: 8),
             const Icon(
               Icons.chevron_right,
-              size: 18,
+              size: 16,
               color: Color(0xFF9CA3AF),
             ),
           ],

@@ -1,9 +1,9 @@
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/work_order/work_order_model.dart';
 import 'package:fashionista/data/services/hive/hive_work_order_service.dart';
 import 'package:fashionista/presentation/screens/work_order/widgets/pinned_work_order_info_card_widget.dart';
 import 'package:fashionista/presentation/screens/work_order/widgets/work_order_info_card_widget.dart';
-import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -18,6 +18,7 @@ class ProjectsPage extends StatefulWidget {
 
 class _ProjectsPageState extends State<ProjectsPage> {
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
   String _searchText = "";
 
   @override
@@ -30,14 +31,11 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
     return MultiSliver(
       // 👈 helper from 'sliver_tools' package, or just return a Column of slivers
       children: [
         SliverAppBar(
-          backgroundColor: colorScheme.surface,
+          backgroundColor: context.canvasBackground,
           pinned: true, // keeps the searchbar visible when collapsed
           floating: true, // allows it to appear/disappear as you scroll
           snap: true, // snaps into view when scrolling up
@@ -46,45 +44,12 @@ class _ProjectsPageState extends State<ProjectsPage> {
           toolbarHeight: 5,
           flexibleSpace: FlexibleSpaceBar(
             background: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 20, 12, 8),
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
               child: Row(
                 children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        hintText: "Search projects...",
-                        hintStyle: textTheme.bodyMedium!.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        prefixIcon: Icon(
-                          Icons.search,
-                          color: colorScheme.primary,
-                        ),
-                        filled: true,
-                        fillColor: colorScheme.surfaceContainerHighest,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 0,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                      onChanged: (value) {
-                        setState(() => _searchText = value);
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  CustomIconButtonRounded(
-                    backgroundColor: colorScheme.surfaceContainerHighest,
-                    onPressed: () {
-                      //_showFilterBottomSheet(context);
-                    },
-                    iconData: Icons.filter_list_outlined,
-                  ),
+                  Expanded(child: _buildSearchField()),
+                  const SizedBox(width: 12),
+                  _buildFilterButton(),
                 ],
               ),
             ),
@@ -142,7 +107,15 @@ class _ProjectsPageState extends State<ProjectsPage> {
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.only(left: 16, bottom: 8),
-                      child: Text("Bookmarked", style: textTheme.labelLarge),
+                      child: Text(
+                        "BOOKMARKED (${pinnedWorkOrders.length})",
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
+                          color: context.mutedText,
+                        ),
+                      ),
                     ),
                   ),
                   // ✅ Pinned work orders (horizontal)
@@ -168,22 +141,22 @@ class _ProjectsPageState extends State<ProjectsPage> {
                       ),
                     ),
                   ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
-                  const SliverToBoxAdapter(
-                    child: Divider(
-                      height: .1,
-                      thickness: .1,
-                      indent: 16,
-                      endIndent: 16,
-                    ),
-                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 12)),
                 ],
 
                 if (workOrderRequests.isNotEmpty) ...[
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.only(left: 16, bottom: 8, top: 12),
-                      child: Text("Requests", style: textTheme.labelLarge),
+                      child: Text(
+                        "REQUESTS (${workOrderRequests.length})",
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
+                          color: context.mutedText,
+                        ),
+                      ),
                     ),
                   ),
                   // ✅ Pinned work orders (horizontal)
@@ -209,15 +182,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                       ),
                     ),
                   ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
-                  const SliverToBoxAdapter(
-                    child: Divider(
-                      height: .1,
-                      thickness: .1,
-                      indent: 16,
-                      endIndent: 16,
-                    ),
-                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 12)),
                 ],
 
                 if (unpinnedWorkOrders.isNotEmpty) ...[
@@ -228,7 +193,15 @@ class _ProjectsPageState extends State<ProjectsPage> {
                         bottom: 8,
                         top: 12,
                       ),
-                      child: Text("All", style: textTheme.labelLarge),
+                      child: Text(
+                        "ALL (${unpinnedWorkOrders.length})",
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
+                          color: context.mutedText,
+                        ),
+                      ),
                     ),
                   ),
                   // ✅ Unpinned work orders (vertical)
@@ -258,6 +231,82 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
   @override
   void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
+  }
+
+  Widget _buildSearchField() {
+    return Container(
+      height: 44,
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      decoration: BoxDecoration(
+        color: context.cardSurface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _searchFocusNode.hasFocus ? context.accent : context.hairline,
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x05000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.search, size: 18, color: context.placeholderText),
+          const SizedBox(width: 10),
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              focusNode: _searchFocusNode,
+              style: TextStyle(
+                fontSize: 15,
+                color: context.onCanvasText,
+              ),
+              decoration: InputDecoration(
+                hintText: "Search projects...",
+                hintStyle: TextStyle(
+                  fontSize: 15,
+                  color: context.placeholderText,
+                ),
+                isDense: true,
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+              ),
+              onChanged: (value) {
+                setState(() => _searchText = value);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterButton() {
+    return SizedBox(
+      width: 44,
+      height: 44,
+      child: OutlinedButton(
+        style: OutlinedButton.styleFrom(
+          backgroundColor: context.cardSurface,
+          side: BorderSide(color: context.hairline),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: EdgeInsets.zero,
+          minimumSize: const Size(44, 44),
+        ),
+        onPressed: () {},
+        child: Icon(
+          Icons.filter_list_outlined,
+          size: 20,
+          color: context.onCanvasText,
+        ),
+      ),
+    );
   }
 }

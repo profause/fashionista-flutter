@@ -87,18 +87,31 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
                       collapseMode: CollapseMode.parallax,
                       background: SafeArea(
                         bottom: false,
-                        child: Center(
-                          child: Opacity(
-                            opacity:
-                                percent, // ✅ fade name out as it collapses
-                            child: const Text(
-                              "Clients & Projects",
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
+                        child: Column(
+                          children: [
+                            Expanded(
+                              child: Center(
+                                child: Opacity(
+                                  opacity:
+                                      percent, // ✅ fade name out as it collapses
+                                  child: Text(
+                                    "Clients & Projects",
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: -0.3,
+                                      color: context.onCanvasText,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
+                            Divider(
+                              height: 1,
+                              thickness: 1,
+                              color: context.hairline.withValues(alpha: 0.8),
+                            ),
+                          ],
                         ),
                       ),
                     );
@@ -399,7 +412,7 @@ class _CountPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: context.iconSubstrate,
         borderRadius: BorderRadius.circular(999),

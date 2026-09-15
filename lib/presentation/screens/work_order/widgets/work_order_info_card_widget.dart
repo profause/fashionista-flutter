@@ -2,13 +2,12 @@ import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_event.dart';
 import 'package:fashionista/data/models/work_order/work_order_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_work_order_service.dart';
 import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
-import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
-import 'package:fashionista/presentation/widgets/custom_icon_rounded.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -50,152 +49,188 @@ class _WorkOrderInfoCardWidgetState extends State<WorkOrderInfoCardWidget>
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
-    //final featuredMedia = workOrderInfo.featuredMedia!.first;
+    final workOrder = widget.workOrderInfo;
     return Container(
       decoration: BoxDecoration(
-        color: colorScheme.onPrimary,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
+        color: context.cardSurface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.hairline),
+        boxShadow: const [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.04),
+            color: Color(0x05000000),
             blurRadius: 8,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 2),
           ),
         ],
       ),
       child: Material(
-        color: colorScheme.onPrimary,
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
         child: InkWell(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           onTap: () {
-            if (widget.workOrderInfo.status == 'REQUEST') {
-              context.push('/workorders/request/${widget.workOrderInfo.uid}');
+            if (workOrder.status == 'REQUEST') {
+              context.push('/workorders/request/${workOrder.uid}');
             } else {
-              context.push('/workorders/details/${widget.workOrderInfo.uid}');
+              context.push('/workorders/details/${workOrder.uid}');
             }
           },
           child: Padding(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(10),
             child: Row(
               children: [
-                SizedBox(
-                  width: 100,
-                  height: 100,
-                  child: AspectRatio(
-                    aspectRatio: 1 / 1,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: CachedNetworkImage(
-                        imageUrl: widget.workOrderInfo.featuredMedia!.isEmpty
-                            ? ''
-                            : widget.workOrderInfo.featuredMedia!.first.url!
-                                  .trim(),
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => const Center(
-                          child: SizedBox(
-                            height: 18,
-                            width: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
+                Container(
+                  width: 72,
+                  height: 96,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: context.hairline),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: CachedNetworkImage(
+                      imageUrl: workOrder.featuredMedia!.isEmpty
+                          ? ''
+                          : workOrder.featuredMedia!.first.url!.trim(),
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => const Center(
+                        child: SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
                         ),
-                        errorListener: (value) {
-                          
-                        },
-                        errorWidget: (context, url, error) =>
-                            const CustomColoredBanner(text: ''),
                       ),
+                      errorWidget: (context, url, error) =>
+                          const CustomColoredBanner(text: ''),
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              widget.workOrderInfo.title,
-                              style: textTheme.bodyLarge,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          ValueListenableBuilder<bool>(
-                            valueListenable: isBookmarkedNotifier!,
-                            builder: (_, isBookmarked, _) {
-                              return CustomIconButtonRounded(
-                                onPressed: () async {
-                                  isBookmarkedNotifier!.value = !isBookmarked;
-                                  _pinOrUnpinWorkOrder();
-                                }, // safe to leave as empty
-                                iconData: Icons.bookmark_border,
-                                size: 18,
-                                icon: AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 200),
-                                  transitionBuilder: (child, animation) {
-                                    return ScaleTransition(
-                                      scale: animation,
-                                      child: FadeTransition(
-                                        opacity: animation,
-                                        child: child,
-                                      ),
-                                    );
-                                  },
-                                  child: Icon(
-                                    isBookmarked
-                                        ? Icons.bookmark
-                                        : Icons.bookmark_border_outlined,
-                                    key: ValueKey(
-                                      isBookmarked,
-                                    ), // important for switcher
-                                    color: isBookmarked
-                                        ? colorScheme.onPrimary
-                                        : colorScheme.primary,
-                                    size: 20,
-                                  ),
+                  child: SizedBox(
+                    height: 96,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                workOrder.title,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: context.onCanvasText,
                                 ),
-                              );
-                            },
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            ValueListenableBuilder<bool>(
+                              valueListenable: isBookmarkedNotifier!,
+                              builder: (_, isBookmarked, _) {
+                                return GestureDetector(
+                                  onTap: () {
+                                    isBookmarkedNotifier!.value = !isBookmarked;
+                                    _pinOrUnpinWorkOrder();
+                                  },
+                                  child: AnimatedSwitcher(
+                                    duration: const Duration(milliseconds: 200),
+                                    transitionBuilder: (child, animation) {
+                                      return ScaleTransition(
+                                        scale: animation,
+                                        child: FadeTransition(
+                                          opacity: animation,
+                                          child: child,
+                                        ),
+                                      );
+                                    },
+                                    child: Icon(
+                                      isBookmarked
+                                          ? Icons.bookmark
+                                          : Icons.bookmark_border_outlined,
+                                      key: ValueKey(isBookmarked),
+                                      color: isBookmarked
+                                          ? context.accent
+                                          : context.mutedText,
+                                      size: 20,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                        Text(
+                          workOrder.description ?? '',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: context.mutedText,
                           ),
-                        ],
-                      ),
-                      Text(
-                        widget.workOrderInfo.description ?? '',
-                        style: textTheme.bodyMedium,
-                        maxLines: 2, // 👈 show only 2 lines (adjust as needed)
-                        overflow: TextOverflow.ellipsis, // 👈 adds "..."
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Row(
-                            children: [
-                              CustomIconRounded(icon: Icons.person, size: 12),
-                              const SizedBox(width: 4),
-                              Text(
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Row(
+                          children: [
+                            Container(
+                              width: 16,
+                              height: 16,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: context.iconSubstrate,
+                                border: Border.all(color: context.hairline),
+                              ),
+                              child: Icon(
+                                Icons.person,
+                                size: 10,
+                                color: context.mutedText,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                widget.workOrderInfo.client!.name!,
-                                style: textTheme.labelMedium,
+                                workOrder.client?.name ?? "",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color: context.mutedText,
+                                ),
                               ),
-                            ],
-                          ),
-                          const Spacer(),
-                          Text(
-                            widget.workOrderInfo.dueDate != null
-                                ? DateFormat(
-                                    'yyyy-MM-dd',
-                                  ).format(widget.workOrderInfo.dueDate!)
-                                : 'no due date',
-                            style: textTheme.labelSmall,
-                          ),
-                        ],
-                      ),
-                    ],
+                            ),
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: context.accent.withValues(alpha: 0.06),
+                                borderRadius: BorderRadius.circular(999),
+                                border: Border.all(
+                                  color: context.accent.withValues(
+                                    alpha: 0.25,
+                                  ),
+                                ),
+                              ),
+                              child: Text(
+                                workOrder.dueDate != null
+                                    ? DateFormat(
+                                        'yyyy-MM-dd',
+                                      ).format(workOrder.dueDate!)
+                                    : 'no due date',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: context.accent,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
