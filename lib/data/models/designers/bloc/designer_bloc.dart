@@ -1,3 +1,4 @@
+import 'package:fashionista/data/models/designers/designer_model.dart';
 import 'package:fashionista/data/services/hive/hive_designers_service.dart';
 import 'package:fashionista/domain/usecases/designers/find_designers_usecase.dart';
 import 'package:flutter/widgets.dart';
@@ -26,11 +27,33 @@ class DesignerBloc extends Bloc<DesignerBlocEvent, DesignerState> {
     LoadDesigner event,
     Emitter<DesignerState> emit,
   ) async {
-    emit(const DesignerLoading());
+    Designer? cached;
+    if (event.isFromCache) {
+      // 1️⃣ Try Hive cache first for an instant paint
+      final cachedItems = await sl<HiveDesignersService>().getItems('designers');
+      for (final item in cachedItems) {
+        if (item.uid == event.uid) {
+          cached = item;
+          break;
+        }
+      }
+      if (cached != null) {
+        emit(DesignerLoaded(cached));
+      }
+    } else {
+      emit(const DesignerLoading());
+    }
+
+    // 2️⃣ Fetch from network and refresh quietly if cache was shown
     final result = await sl<FindDesignerByIdUsecase>().call(event.uid);
 
     result.fold(
-      (failure) => emit(DesignerError(failure.toString())),
+      (failure) {
+        if (cached == null) {
+          emit(DesignerError(failure.toString()));
+        }
+        // else → keep showing cached quietly
+      },
       (designer) => emit(DesignerLoaded(designer)),
     );
   }

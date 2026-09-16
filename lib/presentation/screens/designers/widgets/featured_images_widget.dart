@@ -59,7 +59,8 @@ class _FeaturedImagesWidgetState extends State<FeaturedImagesWidget> {
               Row(
                 children: [
                   Text('Featured Images', style: textTheme.titleSmall),
-                  if (widget.designer.featuredImages!.length < 4) ...[
+                  if (widget.isEditable == true &&
+                      widget.designer.featuredImages!.length < 4) ...[
                     const Spacer(),
                     Stack(
                       children: [
@@ -80,13 +81,46 @@ class _FeaturedImagesWidgetState extends State<FeaturedImagesWidget> {
                         ],
                       ],
                     ),
+                  ] else if (widget.designer.featuredImages!.isNotEmpty) ...[
+                    const Spacer(),
+                    InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => FullscreenGalleryWidget(
+                              images: widget.designer.featuredImages!,
+                              initialIndex: 0,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'See all (${widget.designer.featuredImages!.length})',
+                            style: textTheme.bodyMedium!.copyWith(
+                              color: context.accent,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Icon(
+                            Icons.chevron_right,
+                            size: 18,
+                            color: context.accent,
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ],
               ),
               if (widget.designer.featuredImages!.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 SizedBox(
-                  height: 100,
+                  height: 128,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: widget.designer.featuredImages!.length,
