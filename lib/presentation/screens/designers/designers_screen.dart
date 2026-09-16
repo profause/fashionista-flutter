@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fashionista/core/auth/auth_provider_cubit.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_bloc.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_event.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_state.dart';
@@ -19,12 +20,18 @@ class DesignersScreen extends StatefulWidget {
 }
 
 class _DesignersScreenState extends State<DesignersScreen> {
+  static const List<String> filters = [
+    'All',
+    'Trending',
+    'Newest',
+    'Top Rated',
+    'Favourites',
+  ];
+
   late CollectionReference<Designer> collection;
   late Query<Designer> query;
   late AuthProviderCubit _authProviderCubit;
-  //bool _isLoading = false;
   final collectionRef = FirebaseFirestore.instance.collection('designers');
-  bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
   String _searchText = "";
   String selectedFilter = 'All';
@@ -33,14 +40,11 @@ class _DesignersScreenState extends State<DesignersScreen> {
       GlobalKey<RefreshIndicatorState>();
 
   Future<void> refreshDesigners() async {
-    // 🔥 Dispatch load event, which immediately emits DesignerLoading
     context.read<DesignerBloc>().add(LoadDesignersCacheFirstThenNetwork());
   }
 
   @override
   void initState() {
-    //_isLoading = false;
-    //if (mounted) {
     _authProviderCubit = context.read<AuthProviderCubit>();
 
     collection = collectionRef.withConverter<Designer>(
@@ -53,124 +57,170 @@ class _DesignersScreenState extends State<DesignersScreen> {
       toFirestore: (designer, _) => designer.toJson(),
     );
 
-    //}
-    setState(() {
-      selectedFilter = 'All';
-    });
+    selectedFilter = 'All';
     super.initState();
+  }
+
+  void _selectFilter(String filter) {
+    setState(() {
+      selectedFilter = filter;
+      query = queryBuilder(filter);
+    });
+  }
+
+  void _showFilterSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: context.cardSurface,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+                child: Text(
+                  'Filter Options',
+                  style: Theme.of(sheetContext).textTheme.titleMedium!
+                      .copyWith(fontWeight: FontWeight.bold),
+                ),
+              ),
+              ...filters.map((filter) {
+                final isSelected = selectedFilter == filter;
+                return ListTile(
+                  leading: Icon(
+                    isSelected ? Icons.check_circle : Icons.circle_outlined,
+                    color: isSelected ? context.accent : context.mutedText,
+                  ),
+                  title: Text(filter),
+                  trailing:
+                      const Icon(Icons.chevron_right, size: 20),
+                  onTap: () {
+                    _selectFilter(filter);
+                    Navigator.of(sheetContext).pop();
+                  },
+                );
+              }),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  List<Designer> _filterBySearch(List<Designer> designers) {
+    if (_searchText.isEmpty) return designers;
+    final q = _searchText.toLowerCase();
+    return designers.where((d) {
+      return d.name.toLowerCase().contains(q) ||
+          d.businessName.toLowerCase().contains(q) ||
+          d.location.toLowerCase().contains(q) ||
+          d.tags.toLowerCase().contains(q);
+    }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final filters = ['All', 'Trending', 'Newest', 'Top Rated', 'Favourites'];
-    Future<void> refreshDesigners() async {
-      // Force rebuild StreamBuilder by calling setState
-      setState(() {});
-      await Future.delayed(const Duration(milliseconds: 400)); // optional
-    }
 
     return Scaffold(
       extendBody: false,
-      backgroundColor: colorScheme.surface,
+      backgroundColor: context.canvasBackground,
       appBar: AppBar(
-        foregroundColor: colorScheme.primary,
-        backgroundColor: colorScheme.onPrimary,
-        title: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          transitionBuilder: (child, animation) {
-            // Incoming: slide in from right
-            final inAnimation = Tween<Offset>(
-              begin: const Offset(1.0, 0.0), // from right
-              end: Offset.zero,
-            ).animate(animation);
-
-            // Outgoing: shrink/slide away from center
-            final outAnimation = Tween<Offset>(
-              begin: Offset.zero, // start at center
-              end: const Offset(0.0, 0.0), // move slightly up
-            ).animate(animation);
-
-            if (child.key == const ValueKey("searchField")) {
-              return FadeTransition(
-                opacity: animation,
-                child: SlideTransition(position: inAnimation, child: child),
-              );
-            } else {
-              return FadeTransition(
-                opacity: animation,
-                child: SlideTransition(position: outAnimation, child: child),
-              );
-            }
-          },
-          child: _isSearching
-              ? TextField(
-                  key: const ValueKey("searchField"),
-                  controller: _searchController,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    hintText: 'Search designers...',
-                    border: InputBorder.none,
-                    hintStyle: textTheme.titleSmall,
-                  ),
-                  style: textTheme.bodyMedium,
-                  onChanged: (value) {
-                    setState(() => _searchText = value);
-                  },
-                )
-              : const AppBarTitle(title: "Designers"),
-        ),
-
+        foregroundColor: context.accent,
+        backgroundColor: context.cardSurface,
+        title: const AppBarTitle(title: "Designers"),
         elevation: 0,
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            child: IconButton(
-              icon: Icon(
-                _isSearching ? Icons.close : Icons.search,
-                size: 30,
-                color: colorScheme.primary,
-              ),
-              onPressed: () {
-                setState(() {
-                  if (_isSearching) {
-                    _searchText = "";
-                    _searchController.clear();
-                  }
-                  _isSearching = !_isSearching;
-                });
-              },
-            ),
-          ),
-        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  CustomFilterButton(
-                    items: filters,
-                    initialValue: 'All',
-                    onSelect: (filter) {
-                      setState(() {
-                        selectedFilter = filter;
-                        query = queryBuilder(filter);
-                      });
-                    },
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 44,
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (value) =>
+                          setState(() => _searchText = value),
+                      decoration: InputDecoration(
+                        hintText: 'Search atelier, couturier, craft...',
+                        hintStyle: textTheme.bodyMedium!
+                            .copyWith(color: context.mutedText),
+                        prefixIcon: Icon(
+                          Icons.search,
+                          size: 20,
+                          color: context.mutedText,
+                        ),
+                        filled: true,
+                        fillColor: context.cardSurface,
+                        isDense: true,
+                        contentPadding:
+                            const EdgeInsets.symmetric(vertical: 12),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: context.hairline),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: context.accent,
+                            width: 1.5,
+                          ),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: context.hairline),
+                        ),
+                      ),
+                    ),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 12),
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: context.cardSurface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: context.hairline),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.tune, size: 22),
+                    color: context.onCanvasText,
+                    tooltip: 'Filter Options',
+                    onPressed: _showFilterSheet,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
+          SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                CustomFilterButton(
+                  items: filters,
+                  initialValue: 'All',
+                  onSelect: _selectFilter,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 4),
           Expanded(
             child: BlocProvider(
               create: (_) =>
@@ -198,14 +248,7 @@ class _DesignersScreenState extends State<DesignersScreen> {
                         case DesignersLoaded(
                           :final designers,
                         ):
-                          final filteredDesigners = _searchText.isEmpty
-                              ? designers
-                              : designers.where((designer) {
-                                  final name = designer.name.toLowerCase();
-                                  return name.contains(
-                                    _searchText.toLowerCase(),
-                                  );
-                                }).toList();
+                          final filteredDesigners = _filterBySearch(designers);
 
                           if (filteredDesigners.isEmpty) {
                             return ListView(
@@ -227,6 +270,10 @@ class _DesignersScreenState extends State<DesignersScreen> {
 
                           return ListView.builder(
                             physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 4,
+                            ),
                             itemCount: filteredDesigners.length,
                             itemBuilder: (context, index) {
                               final designer = filteredDesigners[index];

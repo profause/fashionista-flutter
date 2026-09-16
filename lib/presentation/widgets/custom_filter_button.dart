@@ -1,3 +1,4 @@
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:flutter/material.dart';
 
 class CustomFilterButton extends StatefulWidget {
@@ -23,7 +24,6 @@ class _CustomFilterButtonState extends State<CustomFilterButton> {
   void initState() {
     super.initState();
     selectedValue = widget.initialValue ?? '';
-    //selectValue(selectedValue);
   }
 
   void selectValue(String initialValue) {
@@ -36,34 +36,62 @@ class _CustomFilterButtonState extends State<CustomFilterButton> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      margin: const EdgeInsets.only(right: 12),
-      child: Wrap(
-        spacing: 8,
-        children: widget.items.map((value) {
-          final bool isSelected = selectedValue == value;
-          return ChoiceChip(
-            label: Text(
-              value,
-              style: textTheme.labelMedium!.copyWith(
-                color: isSelected ? colorScheme.onPrimary : colorScheme.primary,
+    return Row(
+      children: widget.items.map((value) {
+        final bool isSelected = selectedValue == value;
+        return Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(999),
+            onTap: () => selectValue(value),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 10,
+              ),
+              decoration: BoxDecoration(
+                color: isSelected ? context.accent : context.cardSurface,
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(
+                  color: isSelected ? context.accent : context.hairline,
+                ),
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: context.accent.withValues(alpha: 0.25),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ]
+                    : [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isSelected) ...[
+                    const Icon(Icons.check, size: 16, color: Colors.white),
+                    const SizedBox(width: 4),
+                  ],
+                  Text(
+                    value,
+                    style: textTheme.labelMedium!.copyWith(
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                      color: isSelected ? Colors.white : context.onCanvasText,
+                    ),
+                  ),
+                ],
               ),
             ),
-            selected: isSelected,
-            onSelected: (_) => selectValue(value),
-            selectedColor: Theme.of(context).colorScheme.primary,
-            labelStyle: textTheme.labelMedium!.copyWith(
-              color: isSelected
-                  ? Theme.of(context).colorScheme.onPrimary
-                  : Theme.of(context).colorScheme.primary,
-            ),
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            visualDensity: VisualDensity.compact,
-            //padding: EdgeInsets.zero, // remove extra padding
-          );
-        }).toList(),
-      ),
+          ),
+        );
+      }).toList(),
     );
   }
 }
