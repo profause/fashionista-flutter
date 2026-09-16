@@ -30,153 +30,230 @@ class WorkOrderStatusInfoCardWidget extends StatelessWidget {
         .toList();
     return InkWell(
       onTap: onTap, // ✅ triggers the callback when tapped
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        decoration: BoxDecoration(
-          //color: colorScheme.onPrimary,
-          //borderRadius: BorderRadius.circular(12),
-        ),
-        padding: const EdgeInsets.only(left: 16.0, right: 16.0),
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              SizedBox(
-                width: 24,
-                child: Text(
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  formatRelativeTime(workOrderStatusInfo.createdAt!).trim(),
-                  style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
+      borderRadius: BorderRadius.circular(16),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 44,
+              child: Column(
                 children: [
-                  // Circle
-                  Container(
-                    width: 12,
-                    height: 12,
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      color: colorScheme.onSurface.withValues(alpha: 0.3),
+                  // Timestamp
+                  Tooltip(
+                    message: workOrderStatusInfo.createdAt.toString(),
+                    child: Text(
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      formatRelativeTime(workOrderStatusInfo.createdAt!)
+                          .trim(),
+                      style: textTheme.bodySmall?.copyWith(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: isFirst
+                            ? const Color(0xFFFF5A00)
+                            : colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
-
-                  // Vertical line (hidden if last)
+                  const SizedBox(height: 4),
+                  // Node circle
+                  Container(
+                    width: isFirst ? 14 : 10,
+                    height: isFirst ? 14 : 10,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isFirst
+                          ? const Color(0xFFFF5A00)
+                          : colorScheme.onSurface.withValues(alpha: 0.25),
+                      border: Border.all(
+                        color: colorScheme.surface,
+                        width: 2,
+                      ),
+                      boxShadow: isFirst
+                          ? [
+                              BoxShadow(
+                                color: const Color(
+                                  0xFFFF5A00,
+                                ).withValues(alpha: 0.3),
+                                blurRadius: 8,
+                                spreadRadius: 1,
+                              ),
+                            ]
+                          : null,
+                    ),
+                  ),
                   if (!isLast)
                     Expanded(
                       child: Container(
                         width: 2,
-                        color: colorScheme.onSurface.withValues(alpha: 0.3),
+                        margin: const EdgeInsets.symmetric(vertical: 2),
+                        color: colorScheme.onSurface.withValues(alpha: 0.12),
                       ),
                     ),
                 ],
               ),
-              const SizedBox(width: 16),
-              // Content
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 12.0, top: 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      //const Divider(height: .1, thickness: .1),
-                      //const SizedBox(height: 4),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.start,
-
-                        children: [
-                          Expanded(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Tooltip(
-                                  message: workOrderStatusInfo
-                                      .status, // 👈 shows full text
-                                  child: Text(
-                                    workOrderStatusInfo.status,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: textTheme.bodyMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: colorScheme.onSurface.withValues(alpha: 0.08),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (isFirst) ...[
+                                // "In Progress" chip
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(
+                                      0xFFFFF0E6,
+                                    ),
+                                    borderRadius: BorderRadius.circular(999),
+                                    border: Border.all(
+                                      color: const Color(
+                                        0xFFFF5A00,
+                                      ).withValues(alpha: 0.2),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'In Progress',
+                                    style: TextStyle(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFFFF5A00),
                                     ),
                                   ),
                                 ),
-                                Text(
-                                  workOrderStatusInfo.description ?? '',
-                                  maxLines: 2,
+                                const SizedBox(height: 9),
+                              ],
+                              Tooltip(
+                                message: workOrderStatusInfo
+                                    .status, // 👈 shows full text
+                                child: Text(
+                                  workOrderStatusInfo.status,
+                                  maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: textTheme.bodyMedium!.copyWith(
-                                    fontSize: 13,
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    fontSize: 14.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: colorScheme.onSurface,
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          if (onDelete != null) ...[
-                            CustomIconButtonRounded(
-                              backgroundColor: colorScheme.onSurface.withValues(
-                                alpha: 0.1,
                               ),
-                              onPressed: () => onDelete?.call(),
-                              iconData: Icons.delete,
-                              size: 16,
-                            ),
-                          ],
-                        ],
-                      ),
-
+                              Text(
+                                workOrderStatusInfo.description ?? '',
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: textTheme.bodyMedium!.copyWith(
+                                  fontSize: 12.5,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        if (onDelete != null)
+                          CustomIconButtonRounded(
+                            onPressed: () => onDelete?.call(),
+                            iconData: Icons.delete,
+                            size: 16,
+                          ),
+                      ],
+                    ),
+                    if (previewImages.isNotEmpty) ...[
+                      const SizedBox(height: 12),
                       SizedBox(
-                        height: 150,
+                        height: 154,
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.only(
-                            right: 8,
-                            top: 8,
-                            bottom: 8,
-                          ),
+                          //padding: const EdgeInsets.only(top: 2, bottom: 4),
                           itemCount: previewImages.length,
-                          separatorBuilder: (_, _) => const SizedBox(width: 8),
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(width: 8),
                           itemBuilder: (context, index) {
                             final image = previewImages[index];
-                            return AspectRatio(
-                              aspectRatio: 3 / 4,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: CachedNetworkImage(
-                                  imageUrl: image!,
-                                  fit: BoxFit.cover,
-                                  placeholder: (context, url) => const Center(
-                                    child: SizedBox(
-                                      height: 18,
-                                      width: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
+                            return Container(
+                              width: 112,
+                              clipBehavior: Clip.antiAlias,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                //border: Border.all(
+                                //  color: colorScheme.onSurface.withValues(alpha: 0.08),
+                                //),
+                              ),
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  CachedNetworkImage(
+                                    imageUrl: image!,
+                                    fit: BoxFit.cover,
+                                    placeholder: (context, url) => const Center(
+                                      child: SizedBox(
+                                        height: 18,
+                                        width: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      ),
+                                    ),
+                                    errorWidget: (context, url, error) =>
+                                        const CustomColoredBanner(text: ''),
+                                  ),
+                                  // Scrim for readability of label chip
+                                  DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          Colors.transparent,
+                                          Colors.black.withValues(alpha: 0.45),
+                                        ],
                                       ),
                                     ),
                                   ),
-                                  errorWidget: (context, url, error) =>
-                                      const CustomColoredBanner(text: ''),
-                                ),
+                                ],
                               ),
                             );
                           },
                         ),
                       ),
                     ],
-                  ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

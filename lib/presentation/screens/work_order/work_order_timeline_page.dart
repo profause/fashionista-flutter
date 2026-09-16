@@ -6,6 +6,7 @@ import 'package:cloudinary_url_gen/transformation/resize/resize.dart';
 import 'package:cloudinary_url_gen/transformation/transformation.dart';
 import 'package:fashionista/core/service_locator/app_config.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/utils/get_image_aspect_ratio.dart';
 import 'package:fashionista/data/models/author/author_model.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
@@ -22,11 +23,8 @@ import 'package:fashionista/data/services/firebase/firebase_notification_service
 import 'package:fashionista/data/services/firebase/firebase_user_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_work_order_service.dart';
 import 'package:fashionista/presentation/screens/work_order/widgets/work_order_status_info_card_widget.dart';
-import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
-import 'package:fashionista/presentation/widgets/custom_text_input_field_widget.dart';
 import 'package:fashionista/presentation/widgets/dotted_outline_button_widget.dart';
 import 'package:fashionista/presentation/widgets/fullscreen_gallery_widget.dart';
-import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -61,8 +59,6 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     return MultiSliver(
       // 👈 helper from 'sliver_tools' package, or just return a Column of slivers
       children: [
@@ -72,26 +68,67 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
             children: [
               Padding(
                 padding: const EdgeInsets.only(left: 16, top: 8, right: 16),
-                child: Text(
-                  textAlign: TextAlign.start,
-                  'Stay on top of deadlines, updates, and progress — all in one place.',
-                  style: textTheme.titleSmall,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: context.cardSurface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: context.hairline),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: context.accent.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: context.accent.withValues(alpha: 0.25),
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.info_outline,
+                          size: 16,
+                          color: context.accent,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Text(
+                          'Stay on top of deadlines, updates, and production '
+                          'progress — all in one unified space.',
+                          style: TextStyle(
+                            fontSize: 14,
+                            height: 1.5,
+                            color: context.descriptionText,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               Padding(
                 padding: const EdgeInsets.only(left: 16.0, right: 16.0),
                 child: DottedOutlineButton(
-                  label: 'Update timeline',
-                  icon: Icons.update, // optional icon
-                  iconColor: colorScheme.onSurfaceVariant,
+                  label: 'Update Production Timeline',
+                  icon: Icons.update,
+                  iconColor: context.accent,
+                  iconSize: 18,
                   width: double.infinity,
-                  height: 45,
-                  borderRadius: 12,
-                  borderColor: colorScheme.onSurface.withValues(alpha: 0.3),
+                  height: 52,
+                  borderRadius: 16,
+                  strokeWidth: 1.5,
+                  borderColor: context.accent,
+                  backgroundColor: context.cardSurface,
                   textStyle: TextStyle(
-                    color: colorScheme.onSurfaceVariant,
+                    color: context.accent,
                     fontWeight: FontWeight.w600,
+                    letterSpacing: 0.4,
                   ),
                   onPressed: () {
                     _showTimelineBottomsheet(
@@ -124,8 +161,9 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
                         shrinkWrap: true, // 👈 fixes unbounded height
                         physics:
                             NeverScrollableScrollPhysics(), // 👈 disable inner scrolling
-                        padding: EdgeInsets
-                            .zero, // optional, since SliverList usually doesn't add padding
+                        padding: const EdgeInsets
+                            .symmetric(horizontal: 16), // optional, since SliverList usually doesn't add padding
+                            
                         itemBuilder: (context, index) {
                           final statusProgress = workOrderProgress[index];
                           return WorkOrderStatusInfoCardWidget(
@@ -182,18 +220,12 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
                         itemCount: workOrderProgress.length,
                       );
                     case WorkOrderProgressError(:final message):
-                      debugPrint(message);
+                      //debugPrint(message);
                       return Center(child: Text("Error: $message"));
+                    case WorkOrderProgressEmpty():
+                      return _buildEmptyState(context);
                     default:
-                      return Center(
-                        child: PageEmptyWidget(
-                          title: "No prgress updates found",
-                          subtitle:
-                              "Provide details of the progress you have made so far.",
-                          icon: Icons.work_history,
-                          iconSize: 48,
-                        ),
-                      );
+                      return _buildEmptyState(context);
                   }
                 },
               ),
@@ -201,6 +233,87 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 48, 24, 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: context.accent.withValues(alpha: 0.05),
+                border: Border.all(
+                  color: context.accent.withValues(alpha: 0.25),
+                ),
+              ),
+              child: Icon(Icons.work_history, size: 36, color: context.accent),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'No Progress Updates Found',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.3,
+                color: context.onCanvasText,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 310),
+              child: Text(
+                'Provide logged details of the custom tailoring updates you have '
+                'executed so far to keep your client informed.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.5,
+                  color: context.mutedText,
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            FilledButton(
+              onPressed: () {
+                _showTimelineBottomsheet(
+                  context,
+                  (statusProgress) => _onSaveProgress(statusProgress),
+                );
+              },
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                backgroundColor: context.accent,
+                foregroundColor: Colors.white,
+                elevation: 2,
+                shadowColor: context.accent.withValues(alpha: 0.25),
+                shape: const StadiumBorder(),
+                textStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.add, size: 16),
+                  SizedBox(width: 8),
+                  Text('Log First Update'),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -350,7 +463,7 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
       isScrollControlled: true,
       backgroundColor: colorScheme.onPrimary,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (context) {
         return StatefulBuilder(
@@ -363,8 +476,9 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
               builder: (context, scrollController) {
                 return SingleChildScrollView(
                   controller: scrollController,
+                  scrollDirection: Axis.vertical,
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -384,190 +498,216 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
                         Text(
                           "Provide details of the progress you have made so far.",
                           style: textTheme.bodyMedium!.copyWith(
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
                           ),
                         ),
                         const SizedBox(height: 16),
                         Container(
+                          height: 52,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
                           decoration: BoxDecoration(
-                            color: colorScheme.surface.withValues(alpha: 1),
+                            color: colorScheme.surface,
                             borderRadius: BorderRadius.circular(12),
-                          ),
-
-                          child: Column(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: CustomTextInputFieldWidget(
-                                  autofocus: true,
-                                  controller: statusTextFieldController,
-                                  hint:
-                                      'Status... eg: knitting, cutting, sewing',
-                                  validator: (value) {
-                                    if ((value ?? "").isEmpty) {
-                                      return 'Enter status of the project...';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                              const Divider(height: .1, thickness: .1),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: CustomTextInputFieldWidget(
-                                  autofocus: false,
-                                  controller: descriptionTextFieldController,
-                                  hint:
-                                      'Describe the progress you have made so far...',
-                                  minLines: 2,
-                                  maxLength: 150,
-                                  validator: (value) {
-                                    if ((value ?? "").isEmpty) {
-                                      return 'Describe the progress you have made so far...';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          "Featured images can help you share your progress with your clients.",
-                          style: textTheme.bodyMedium!.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          margin: const EdgeInsets.only(top: 8),
-                          padding: const EdgeInsets.all(0),
-                          decoration: BoxDecoration(
-                            color: colorScheme.surface.withValues(alpha: 1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            children: [
-                              if (previewImages.isNotEmpty) ...[
-                                SizedBox(
-                                  height: 200,
-                                  child: ListView.separated(
-                                    scrollDirection: Axis.horizontal,
-                                    padding: const EdgeInsets.all(8),
-                                    itemCount: previewImages.length,
-                                    separatorBuilder: (_, _) =>
-                                        const SizedBox(width: 8),
-                                    itemBuilder: (context, index) {
-                                      final image = previewImages[index];
-                                      return Stack(
-                                        children: [
-                                          AspectRatio(
-                                            aspectRatio: 3 / 4,
-                                            child: ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                              child: Image.file(
-                                                File(image.path),
-                                                //width: 180,
-                                                //height: 180,
-                                                fit: BoxFit.cover,
-                                              ),
-                                            ),
-                                          ),
-                                          Positioned(
-                                            top: 4,
-                                            right: 4,
-                                            child: GestureDetector(
-                                              onTap: () {
-                                                setModalState(() {
-                                                  previewImages.removeAt(index);
-                                                });
-                                              },
-                                              child: Container(
-                                                decoration: const BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  color: Colors.black54,
-                                                ),
-                                                padding: const EdgeInsets.all(
-                                                  2,
-                                                ),
-                                                child: const Icon(
-                                                  Icons.close,
-                                                  color: Colors.white,
-                                                  size: 16,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ],
-                              if (previewImages.length < 2) ...[
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    const SizedBox(width: 8),
-                                    CustomIconButtonRounded(
-                                      onPressed: () {
-                                        //if (true) return;
-                                        _pickImages(context, (images) {
-                                          //set images to previewImages[]
-                                          setModalState(() {
-                                            previewImages.addAll(images);
-                                          });
-                                        });
-                                      },
-                                      iconData: Icons.image_outlined,
-                                    ),
-                                    const SizedBox(width: 16),
-                                    CustomIconButtonRounded(
-                                      onPressed: () {
-                                        _captureImage(ImageSource.camera, (
-                                          image,
-                                        ) {
-                                          //set images to previewImages[]
-                                          setModalState(() {
-                                            previewImages.add(image);
-                                          });
-                                        });
-                                      },
-                                      iconData: Icons.camera_alt_outlined,
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                              ],
-                              //const Divider(height: .1, thickness: .1),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.only(
-                            top: 4,
-                            bottom: 4,
-                            left: 8,
-                            right: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: colorScheme.surface.withValues(alpha: 1),
-                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: context.hairline),
                           ),
                           child: Row(
                             children: [
-                              Text(
-                                "Notify client",
-                                style: textTheme.bodyMedium!.copyWith(
-                                  fontWeight: FontWeight.w500,
+                              Expanded(
+                                child: TextField(
+                                  controller: statusTextFieldController,
+                                  autofocus: true,
+                                  style: const TextStyle(fontSize: 15),
+                                  decoration: InputDecoration(
+                                    hintText:
+                                        'Status... e.g. knitting, cutting, sewing',
+                                    hintStyle: textTheme.bodyMedium?.copyWith(
+                                      color: context.placeholderText,
+                                      fontSize: 15,
+                                    ),
+                                    border: InputBorder.none,
+                                    enabledBorder: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                    errorBorder: InputBorder.none,
+                                    fillColor: Colors.transparent,
+                                    isDense: true,
+                                  ),
                                 ),
                               ),
-                              const Spacer(),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          constraints: const BoxConstraints(minHeight: 110),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: colorScheme.surface,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: context.hairline),
+                          ),
+                          child: TextField(
+                            controller: descriptionTextFieldController,
+                            minLines: 2,
+                            maxLines: 4,
+                            maxLength: 150,
+                            style: const TextStyle(fontSize: 15),
+                            decoration: InputDecoration(
+                              hintText:
+                                  'Describe the progress you have made so far...',
+                              hintStyle: textTheme.bodyMedium?.copyWith(
+                                color: context.placeholderText,
+                                fontSize: 15,
+                              ),
+                              border: InputBorder.none,
+                              counterStyle: textTheme.bodySmall?.copyWith(
+                                color: context.mutedText,
+                                fontSize: 12,
+                              ),
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              errorBorder: InputBorder.none,
+                              fillColor: Colors.transparent,
+                              isDense: true,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          'Featured Images',
+                          style: textTheme.labelSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                            color: context.secondaryLabel,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Share real-time workshop progress with your clients.',
+                          style: textTheme.bodySmall?.copyWith(
+                            color: context.mutedText,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        if (previewImages.isNotEmpty) ...[
+                          SizedBox(
+                            height: 140,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: previewImages.length,
+                              separatorBuilder: (_, _) =>
+                                  const SizedBox(width: 8),
+                              itemBuilder: (context, index) {
+                                final image = previewImages[index];
+                                return Stack(
+                                  children: [
+                                    AspectRatio(
+                                      aspectRatio: 3 / 4,
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: Image.file(
+                                          File(image.path),
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      top: 4,
+                                      right: 4,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          setModalState(() {
+                                            previewImages.removeAt(index);
+                                          });
+                                        },
+                                        child: Container(
+                                          decoration: const BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: Colors.black54,
+                                          ),
+                                          padding: const EdgeInsets.all(2),
+                                          child: const Icon(
+                                            Icons.close,
+                                            color: Colors.white,
+                                            size: 16,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                        if (previewImages.length < 2)
+                          Container(
+                            height: 72,
+                            padding: const EdgeInsets.symmetric(horizontal: 14),
+                            decoration: BoxDecoration(
+                              color: colorScheme.surface,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: context.hairline),
+                            ),
+                            child: Row(
+                              children: [
+                                _buildMediaButton(
+                                  context: context,
+                                  icon: Icons.image_outlined,
+                                  tooltip: 'Upload Photo',
+                                  onPressed: () {
+                                    _pickImages(context, (images) {
+                                      setModalState(() {
+                                        previewImages.addAll(images);
+                                      });
+                                    });
+                                  },
+                                ),
+                                const SizedBox(width: 12),
+                                _buildMediaButton(
+                                  context: context,
+                                  icon: Icons.camera_alt_outlined,
+                                  tooltip: 'Open Camera',
+                                  onPressed: () {
+                                    _captureImage(ImageSource.camera, (image) {
+                                      setModalState(() {
+                                        previewImages.add(image);
+                                      });
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        const SizedBox(height: 16),
+                        Container(
+                          height: 56,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: colorScheme.surface,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: context.hairline),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Notify client',
+                                  style: textTheme.bodyMedium!.copyWith(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                              ),
                               Switch(
                                 value: notifyClient,
+                                activeTrackColor: context.accent,
+                                activeThumbColor: Colors.white,
                                 onChanged: (value) {
                                   setModalState(() {
                                     notifyClient = value;
@@ -579,8 +719,8 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
                         ),
                         const SizedBox(height: 16),
                         SizedBox(
-                          width: double.infinity, // takes full available width
-                          height: 45,
+                          width: double.infinity,
+                          height: 52,
                           child: FilledButton(
                             onPressed: () {
                               if (previewImages.isEmpty) {
@@ -643,13 +783,18 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              elevation: 0,
-                              backgroundColor:
-                                  colorScheme.surface, // solid grey background
-                              foregroundColor:
-                                  colorScheme.onSurface, // text/icon color
+                              elevation: 2,
+                              shadowColor: context.accent.withValues(
+                                alpha: 0.3,
+                              ),
+                              backgroundColor: context.accent,
+                              foregroundColor: Colors.white,
+                              textStyle: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
-                            child: const Text("Save"),
+                            child: const Text('Save Progress Update'),
                           ),
                         ),
                       ],
@@ -661,6 +806,33 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
           },
         );
       },
+    );
+  }
+
+  Widget _buildMediaButton({
+    required BuildContext context,
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onPressed,
+  }) {
+    return Material(
+      color: context.cardSurface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: BorderSide(color: context.hairline),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: onPressed,
+        child: Tooltip(
+          message: tooltip,
+          child: SizedBox(
+            width: 48,
+            height: 48,
+            child: Icon(icon, size: 20, color: context.onCanvasText),
+          ),
+        ),
+      ),
     );
   }
 

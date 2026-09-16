@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/utils/get_image_aspect_ratio.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
@@ -11,8 +12,6 @@ import 'package:fashionista/data/models/work_order/bloc/work_order_status_progre
 import 'package:fashionista/data/models/work_order/work_order_status_progress_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_work_order_service.dart';
 import 'package:fashionista/presentation/screens/work_order/widgets/work_order_status_info_card_widget.dart';
-import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
-import 'package:fashionista/presentation/widgets/custom_text_input_field_widget.dart';
 import 'package:fashionista/presentation/widgets/fullscreen_gallery_widget.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -94,8 +93,7 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
                         shrinkWrap: true, // 👈 fixes unbounded height
                         physics:
                             NeverScrollableScrollPhysics(), // 👈 disable inner scrolling
-                        padding: EdgeInsets
-                            .zero, // optional, since SliverList usually doesn't add padding
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
                         itemBuilder: (context, index) {
                           final statusProgress = workOrderProgress[index];
                           return WorkOrderStatusInfoCardWidget(
@@ -258,7 +256,7 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
       isScrollControlled: true,
       backgroundColor: colorScheme.onPrimary,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (context) {
         return StatefulBuilder(
@@ -272,7 +270,7 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
                 return SingleChildScrollView(
                   controller: scrollController,
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -292,190 +290,214 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
                         Text(
                           "Provide details of the progress you have made so far.",
                           style: textTheme.bodyMedium!.copyWith(
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
                           ),
                         ),
                         const SizedBox(height: 16),
                         Container(
+                          height: 52,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
                           decoration: BoxDecoration(
-                            color: colorScheme.surface.withValues(alpha: 1),
+                            color: colorScheme.surface,
                             borderRadius: BorderRadius.circular(12),
-                          ),
-
-                          child: Column(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: CustomTextInputFieldWidget(
-                                  autofocus: true,
-                                  controller: statusTextFieldController,
-                                  hint:
-                                      'Status... eg: knitting, cutting, sewing',
-                                  validator: (value) {
-                                    if ((value ?? "").isEmpty) {
-                                      return 'Enter status of the project...';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                              const Divider(height: .1, thickness: .1),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: CustomTextInputFieldWidget(
-                                  autofocus: false,
-                                  controller: descriptionTextFieldController,
-                                  hint:
-                                      'Describe the progress you have made so far...',
-                                  minLines: 2,
-                                  maxLength: 150,
-                                  validator: (value) {
-                                    if ((value ?? "").isEmpty) {
-                                      return 'Describe the progress you have made so far...';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          "Featured images can help you share your progress with your clients.",
-                          style: textTheme.bodyMedium!.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          margin: const EdgeInsets.only(top: 8),
-                          padding: const EdgeInsets.all(0),
-                          decoration: BoxDecoration(
-                            color: colorScheme.surface.withValues(alpha: 1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            children: [
-                              if (previewImages.isNotEmpty) ...[
-                                SizedBox(
-                                  height: 200,
-                                  child: ListView.separated(
-                                    scrollDirection: Axis.horizontal,
-                                    padding: const EdgeInsets.all(8),
-                                    itemCount: previewImages.length,
-                                    separatorBuilder: (_, _) =>
-                                        const SizedBox(width: 8),
-                                    itemBuilder: (context, index) {
-                                      final image = previewImages[index];
-                                      return Stack(
-                                        children: [
-                                          AspectRatio(
-                                            aspectRatio: 3 / 4,
-                                            child: ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                              child: Image.file(
-                                                File(image.path),
-                                                //width: 180,
-                                                //height: 180,
-                                                fit: BoxFit.cover,
-                                              ),
-                                            ),
-                                          ),
-                                          Positioned(
-                                            top: 4,
-                                            right: 4,
-                                            child: GestureDetector(
-                                              onTap: () {
-                                                setModalState(() {
-                                                  previewImages.removeAt(index);
-                                                });
-                                              },
-                                              child: Container(
-                                                decoration: const BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  color: Colors.black54,
-                                                ),
-                                                padding: const EdgeInsets.all(
-                                                  2,
-                                                ),
-                                                child: const Icon(
-                                                  Icons.close,
-                                                  color: Colors.white,
-                                                  size: 16,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ],
-                              if (previewImages.length < 2) ...[
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    const SizedBox(width: 8),
-                                    CustomIconButtonRounded(
-                                      onPressed: () {
-                                        //if (true) return;
-                                        _pickImages(context, (images) {
-                                          //set images to previewImages[]
-                                          setModalState(() {
-                                            previewImages.addAll(images);
-                                          });
-                                        });
-                                      },
-                                      iconData: Icons.image_outlined,
-                                    ),
-                                    const SizedBox(width: 16),
-                                    CustomIconButtonRounded(
-                                      onPressed: () {
-                                        _captureImage(ImageSource.camera, (
-                                          image,
-                                        ) {
-                                          //set images to previewImages[]
-                                          setModalState(() {
-                                            previewImages.add(image);
-                                          });
-                                        });
-                                      },
-                                      iconData: Icons.camera_alt_outlined,
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                              ],
-                              //const Divider(height: .1, thickness: .1),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.only(
-                            top: 4,
-                            bottom: 4,
-                            left: 8,
-                            right: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: colorScheme.surface.withValues(alpha: 1),
-                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: context.hairline),
                           ),
                           child: Row(
                             children: [
-                              Text(
-                                "Notify client",
-                                style: textTheme.bodyMedium!.copyWith(
-                                  fontWeight: FontWeight.w500,
+                              Expanded(
+                                child: TextField(
+                                  controller: statusTextFieldController,
+                                  autofocus: true,
+                                  style: const TextStyle(fontSize: 15),
+                                  decoration: InputDecoration(
+                                    hintText:
+                                        'Status... e.g. knitting, cutting, sewing',
+                                    hintStyle: textTheme.bodyMedium?.copyWith(
+                                      color: context.placeholderText,
+                                      fontSize: 15,
+                                    ),
+                                    border: InputBorder.none,
+                                    isDense: true,
+                                  ),
                                 ),
                               ),
-                              const Spacer(),
+                              Icon(
+                                Icons.arrow_drop_down,
+                                color: context.secondaryLabel,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          constraints: const BoxConstraints(minHeight: 110),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: colorScheme.surface,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: context.hairline),
+                          ),
+                          child: TextField(
+                            controller: descriptionTextFieldController,
+                            minLines: 2,
+                            maxLines: 4,
+                            maxLength: 150,
+                            style: const TextStyle(fontSize: 15),
+                            decoration: InputDecoration(
+                              hintText:
+                                  'Describe the progress you have made so far...',
+                              hintStyle: textTheme.bodyMedium?.copyWith(
+                                color: context.placeholderText,
+                                fontSize: 15,
+                              ),
+                              border: InputBorder.none,
+                              counterStyle: textTheme.bodySmall?.copyWith(
+                                color: context.mutedText,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          'Featured Images',
+                          style: textTheme.labelSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                            color: context.secondaryLabel,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Share real-time workshop progress with your clients.',
+                          style: textTheme.bodySmall?.copyWith(
+                            color: context.mutedText,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        if (previewImages.isNotEmpty) ...[
+                          SizedBox(
+                            height: 140,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: previewImages.length,
+                              separatorBuilder: (_, _) =>
+                                  const SizedBox(width: 8),
+                              itemBuilder: (context, index) {
+                                final image = previewImages[index];
+                                return Stack(
+                                  children: [
+                                    AspectRatio(
+                                      aspectRatio: 3 / 4,
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(12),
+                                        child: Image.file(
+                                          File(image.path),
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      top: 4,
+                                      right: 4,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          setModalState(() {
+                                            previewImages.removeAt(index);
+                                          });
+                                        },
+                                        child: Container(
+                                          decoration: const BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: Colors.black54,
+                                          ),
+                                          padding: const EdgeInsets.all(2),
+                                          child: const Icon(
+                                            Icons.close,
+                                            color: Colors.white,
+                                            size: 16,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                        if (previewImages.length < 2)
+                          Container(
+                            height: 72,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                            ),
+                            decoration: BoxDecoration(
+                              color: colorScheme.surface,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: context.hairline),
+                            ),
+                            child: Row(
+                              children: [
+                                _buildMediaButton(
+                                  context: context,
+                                  icon: Icons.image_outlined,
+                                  tooltip: 'Upload Photo',
+                                  onPressed: () {
+                                    _pickImages(context, (images) {
+                                      setModalState(() {
+                                        previewImages.addAll(images);
+                                      });
+                                    });
+                                  },
+                                ),
+                                const SizedBox(width: 12),
+                                _buildMediaButton(
+                                  context: context,
+                                  icon: Icons.camera_alt_outlined,
+                                  tooltip: 'Open Camera',
+                                  onPressed: () {
+                                    _captureImage(ImageSource.camera, (image) {
+                                      setModalState(() {
+                                        previewImages.add(image);
+                                      });
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        const SizedBox(height: 16),
+                        Container(
+                          height: 56,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: colorScheme.surface,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: context.hairline),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Notify client via SMS',
+                                  style: textTheme.bodyMedium!.copyWith(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                              ),
                               Switch(
                                 value: notifyClient,
+                                activeTrackColor: context.accent,
+                                activeThumbColor: Colors.white,
                                 onChanged: (value) {
                                   setModalState(() {
                                     notifyClient = value;
@@ -487,8 +509,9 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
                         ),
                         const SizedBox(height: 16),
                         SizedBox(
-                          width: double.infinity, // takes full available width
-                          child: ElevatedButton(
+                          width: double.infinity,
+                          height: 52,
+                          child: FilledButton(
                             onPressed: () {
                               if (previewImages.isEmpty) {
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -546,14 +569,22 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
 
                               onSave(statusProgress);
                             },
-                            style: ElevatedButton.styleFrom(
-                              elevation: 0,
-                              backgroundColor:
-                                  colorScheme.surface, // solid grey background
-                              foregroundColor:
-                                  colorScheme.onSurface, // text/icon color
+                            style: FilledButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 2,
+                              shadowColor: context.accent.withValues(
+                                alpha: 0.3,
+                              ),
+                              backgroundColor: context.accent,
+                              foregroundColor: Colors.white,
+                              textStyle: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
-                            child: const Text("Save"),
+                            child: const Text('Save Progress Update'),
                           ),
                         ),
                       ],
@@ -565,6 +596,33 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
           },
         );
       },
+    );
+  }
+
+  Widget _buildMediaButton({
+    required BuildContext context,
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onPressed,
+  }) {
+    return Material(
+      color: context.cardSurface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: BorderSide(color: context.hairline),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: onPressed,
+        child: Tooltip(
+          message: tooltip,
+          child: SizedBox(
+            width: 48,
+            height: 48,
+            child: Icon(icon, size: 20, color: context.onCanvasText),
+          ),
+        ),
+      ),
     );
   }
 
