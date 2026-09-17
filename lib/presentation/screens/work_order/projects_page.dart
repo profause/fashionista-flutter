@@ -468,7 +468,7 @@ class _FilterOptionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.canvasBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: context.hairline),
+        //border: Border.all(color: context.hairline),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),

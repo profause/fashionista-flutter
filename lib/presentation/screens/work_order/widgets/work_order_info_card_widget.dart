@@ -54,7 +54,7 @@ class _WorkOrderInfoCardWidgetState extends State<WorkOrderInfoCardWidget>
       decoration: BoxDecoration(
         color: context.cardSurface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: context.hairline),
+        //border: Border.all(color: context.hairline),
         boxShadow: const [
           BoxShadow(
             color: Color(0x05000000),
@@ -84,7 +84,7 @@ class _WorkOrderInfoCardWidgetState extends State<WorkOrderInfoCardWidget>
                   height: 96,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: context.hairline),
+                    //border: Border.all(color: context.hairline),
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
@@ -178,7 +178,7 @@ class _WorkOrderInfoCardWidgetState extends State<WorkOrderInfoCardWidget>
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: context.iconSubstrate,
-                                border: Border.all(color: context.hairline),
+                                //border: Border.all(color: context.hairline),
                               ),
                               child: Icon(
                                 Icons.person,

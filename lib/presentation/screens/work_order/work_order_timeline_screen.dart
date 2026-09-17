@@ -301,7 +301,7 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
                           decoration: BoxDecoration(
                             color: colorScheme.surface,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: context.hairline),
+                            //border: Border.all(color: context.hairline),
                           ),
                           child: Row(
                             children: [
@@ -339,7 +339,7 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
                           decoration: BoxDecoration(
                             color: colorScheme.surface,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: context.hairline),
+                            //border: Border.all(color: context.hairline),
                           ),
                           child: TextField(
                             controller: descriptionTextFieldController,
@@ -442,7 +442,7 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
                             decoration: BoxDecoration(
                               color: colorScheme.surface,
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: context.hairline),
+                              //border: Border.all(color: context.hairline),
                             ),
                             child: Row(
                               children: [
@@ -481,7 +481,7 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
                           decoration: BoxDecoration(
                             color: colorScheme.surface,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: context.hairline),
+                            //border: Border.all(color: context.hairline),
                           ),
                           child: Row(
                             children: [

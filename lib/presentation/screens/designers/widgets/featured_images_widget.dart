@@ -51,7 +51,7 @@ class _FeaturedImagesWidgetState extends State<FeaturedImagesWidget> {
           decoration: BoxDecoration(
             color: context.cardSurface,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: context.hairline),
+            //border: Border.all(color: context.hairline),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

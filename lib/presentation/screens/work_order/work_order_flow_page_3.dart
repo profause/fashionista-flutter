@@ -108,7 +108,7 @@ class _WorkOrderFlowPage3State extends State<WorkOrderFlowPage3> {
       decoration: BoxDecoration(
         color: context.cardSurface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: context.hairline),
+        //border: Border.all(color: context.hairline),
         boxShadow: const [
           BoxShadow(
             color: Color(0x05000000),
@@ -198,7 +198,7 @@ class _WorkOrderFlowPage3State extends State<WorkOrderFlowPage3> {
           height: 180,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: context.hairline),
+            //border: Border.all(color: context.hairline),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
@@ -317,7 +317,7 @@ class _WorkOrderFlowPage3State extends State<WorkOrderFlowPage3> {
           decoration: BoxDecoration(
             color: context.cardSurface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: context.hairline),
+            //border: Border.all(color: context.hairline),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x05000000),

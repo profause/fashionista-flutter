@@ -107,7 +107,7 @@ class _WorkOrderDetailsPageState extends State<WorkOrderDetailsPage> {
             decoration: BoxDecoration(
               color: context.cardSurface,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: context.hairline),
+              //border: Border.all(color: context.hairline),
               boxShadow: const [
                 BoxShadow(
                   color: Color(0x0A000000),
@@ -191,7 +191,7 @@ class _WorkOrderDetailsPageState extends State<WorkOrderDetailsPage> {
       decoration: BoxDecoration(
         color: context.cardSurface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: context.hairline),
+        //border: Border.all(color: context.hairline),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0A000000),
@@ -261,7 +261,7 @@ class _WorkOrderDetailsPageState extends State<WorkOrderDetailsPage> {
                           decoration: BoxDecoration(
                             color: context.canvasBackground,
                             borderRadius: BorderRadius.circular(999),
-                            border: Border.all(color: context.hairline),
+                            //border: Border.all(color: context.hairline),
                           ),
                           child: Icon(
                             Icons.phone_outlined,
@@ -306,7 +306,7 @@ class _WorkOrderDetailsPageState extends State<WorkOrderDetailsPage> {
                     decoration: BoxDecoration(
                       color: context.iconSubstrate,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: context.hairline),
+                      //border: Border.all(color: context.hairline),
                     ),
                     child: Text.rich(
                       TextSpan(
@@ -422,7 +422,7 @@ class _WorkOrderDetailsPageState extends State<WorkOrderDetailsPage> {
       decoration: BoxDecoration(
         color: context.cardSurface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: context.hairline),
+        //border: Border.all(color: context.hairline),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0A000000),
@@ -458,7 +458,7 @@ class _WorkOrderDetailsPageState extends State<WorkOrderDetailsPage> {
                 decoration: BoxDecoration(
                   color: context.iconSubstrate,
                   borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: context.hairline),
+                  //border: Border.all(color: context.hairline),
                 ),
                 child: Text(
                   '#${tag.trim()}',
@@ -489,7 +489,7 @@ class _WorkOrderDetailsPageState extends State<WorkOrderDetailsPage> {
       decoration: BoxDecoration(
         color: context.cardSurface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: context.hairline),
+        //border: Border.all(color: context.hairline),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0A000000),

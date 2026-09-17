@@ -656,7 +656,7 @@ class _PillSelectorState extends State<_PillSelector> {
         decoration: BoxDecoration(
           color: context.cardSurface,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: context.hairline),
+          //border: Border.all(color: context.hairline),
           boxShadow: const [
             BoxShadow(
               color: Color(0x0D1A1C1E),

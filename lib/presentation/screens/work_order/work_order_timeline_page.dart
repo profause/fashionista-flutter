@@ -74,7 +74,7 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
                   decoration: BoxDecoration(
                     color: context.cardSurface,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: context.hairline),
+                    //border: Border.all(color: context.hairline),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -509,7 +509,7 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
                           decoration: BoxDecoration(
                             color: colorScheme.surface,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: context.hairline),
+                            //border: Border.all(color: context.hairline),
                           ),
                           child: Row(
                             children: [
@@ -547,7 +547,7 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
                           decoration: BoxDecoration(
                             color: colorScheme.surface,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: context.hairline),
+                            //border: Border.all(color: context.hairline),
                           ),
                           child: TextField(
                             controller: descriptionTextFieldController,
@@ -652,7 +652,7 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
                             decoration: BoxDecoration(
                               color: colorScheme.surface,
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: context.hairline),
+                              //border: Border.all(color: context.hairline),
                             ),
                             child: Row(
                               children: [
@@ -691,7 +691,7 @@ class _WorkOrderTimelinePageState extends State<WorkOrderTimelinePage> {
                           decoration: BoxDecoration(
                             color: colorScheme.surface,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: context.hairline),
+                            //border: Border.all(color: context.hairline),
                           ),
                           child: Row(
                             children: [

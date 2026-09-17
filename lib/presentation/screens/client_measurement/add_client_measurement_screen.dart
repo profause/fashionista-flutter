@@ -109,7 +109,7 @@ class _AddClientMeasurementScreenState
                 decoration: BoxDecoration(
                   color: context.cardSurface,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: context.hairline),
+                  //border: Border.all(color: context.hairline),
                   boxShadow: const [
                     BoxShadow(
                       color: Color(0x0D000000),
@@ -302,7 +302,7 @@ class _AddClientMeasurementScreenState
           decoration: BoxDecoration(
             color: context.cardSurface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: context.hairline),
+            //border: Border.all(color: context.hairline),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x0D000000),
@@ -429,7 +429,7 @@ class _AddClientMeasurementScreenState
           decoration: BoxDecoration(
             color: context.cardSurface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: context.hairline),
+            //border: Border.all(color: context.hairline),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x0D000000),

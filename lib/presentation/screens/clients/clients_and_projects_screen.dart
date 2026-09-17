@@ -289,7 +289,7 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
                   decoration: BoxDecoration(
                     color: context.canvasBackground,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: context.hairline),
+                    //border: Border.all(color: context.hairline),
                     boxShadow: const [
                       BoxShadow(
                         color: Color(0x0D000000),
@@ -331,7 +331,7 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
                       decoration: BoxDecoration(
                         color: context.canvasBackground,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: context.hairline),
+                        //border: Border.all(color: context.hairline),
                         boxShadow: const [
                           BoxShadow(
                             color: Color(0x0D000000),
@@ -416,7 +416,7 @@ class _CountPill extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.iconSubstrate,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: context.hairline),
+        //border: Border.all(color: context.hairline),
       ),
       child: Text(
         "$count",

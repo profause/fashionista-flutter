@@ -43,7 +43,7 @@ class _DesignerInfoCardWidgetState extends State<DesignerInfoCardWidget> {
       decoration: BoxDecoration(
         color: context.cardSurface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: context.hairline),
+        //border: Border.all(color: context.hairline),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -136,7 +136,7 @@ class _DesignerInfoCardWidgetState extends State<DesignerInfoCardWidget> {
                     decoration: BoxDecoration(
                       color: context.iconSubstrate,
                       shape: BoxShape.circle,
-                      border: Border.all(color: context.hairline),
+                      //border: Border.all(color: context.hairline),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.08),
@@ -296,7 +296,7 @@ class _DesignerInfoCardWidgetState extends State<DesignerInfoCardWidget> {
                             decoration: BoxDecoration(
                               color: context.canvasBackground,
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: context.hairline),
+                              //border: Border.all(color: context.hairline),
                             ),
                             child: Icon(
                               Icons.chat_bubble_outline,
