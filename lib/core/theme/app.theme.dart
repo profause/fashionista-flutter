@@ -383,7 +383,6 @@ const Color _odSurfaceHigh = Color(0xFF2A2A29);
 const Color _odSurfaceHighest = Color(0xFF353533);
 const Color _odOnSurfaceVariant = Color(0xFFE4BEB1);
 const Color _odOutline = Color(0xFFAB897E);
-const Color _odOutlineVariant = Color(0xFF5B4137);
 const Color _odSecondary = Color(0xFFC8C6C4);
 const Color _odOnSecondary = Color(0xFF31302F);
 const Color _odSecondaryContainer = Color(0xFF474745);
@@ -435,7 +434,7 @@ final ThemeData fashionistaDarkTheme = ThemeData(
     surfaceContainerHighest: _odSurfaceHighest,
     onSurfaceVariant: _odOnSurfaceVariant,
     outline: _odOutline,
-    outlineVariant: _odOutlineVariant,
+    outlineVariant: Color(0xFF353637),
     surfaceTint: _odPrimaryPeach,
     inverseSurface: _odInverseSurface,
     onInverseSurface: _odInverseOnSurface,

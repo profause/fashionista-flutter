@@ -45,124 +45,126 @@ class _FeaturedImagesWidgetState extends State<FeaturedImagesWidget> {
     final textTheme = Theme.of(context).textTheme;
     return BlocBuilder<DesignerBloc, DesignerState>(
       builder: (context, state) {
-        return Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: context.cardSurface,
-            borderRadius: BorderRadius.circular(16),
-            //border: Border.all(color: context.hairline),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text('Featured Images', style: textTheme.titleSmall),
-                  if (widget.isEditable == true &&
-                      widget.designer.featuredImages!.length < 4) ...[
-                    const Spacer(),
-                    Stack(
-                      children: [
-                        if (isUploading) ...[
-                          CircularProgressIndicator(
-                            strokeWidth: 3,
-                            color: context.accent,
-                          ),
+        return Card(
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: context.cardSurface,
+              borderRadius: BorderRadius.circular(16),
+              //border: Border.all(color: context.hairline),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text('Featured Images', style: textTheme.titleSmall),
+                    if (widget.isEditable == true &&
+                        widget.designer.featuredImages!.length < 4) ...[
+                      const Spacer(),
+                      Stack(
+                        children: [
+                          if (isUploading) ...[
+                            CircularProgressIndicator(
+                              strokeWidth: 3,
+                              color: context.accent,
+                            ),
+                          ],
+                          if (widget.isEditable!) ...[
+                            CustomIconButtonRounded(
+                              iconData: Icons.add_photo_alternate,
+                              onPressed: () {
+                                if (isUploading) return;
+                                pickImages(context);
+                              },
+                            ),
+                          ],
                         ],
-                        if (widget.isEditable!) ...[
-                          CustomIconButtonRounded(
-                            iconData: Icons.add_photo_alternate,
-                            onPressed: () {
-                              if (isUploading) return;
-                              pickImages(context);
+                      ),
+                    ] else if (widget.designer.featuredImages!.isNotEmpty) ...[
+                      const Spacer(),
+                      InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => FullscreenGalleryWidget(
+                                images: widget.designer.featuredImages!,
+                                initialIndex: 0,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'See all (${widget.designer.featuredImages!.length})',
+                              style: textTheme.bodyMedium!.copyWith(
+                                color: context.accent,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Icon(
+                              Icons.chevron_right,
+                              size: 18,
+                              color: context.accent,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                if (widget.designer.featuredImages!.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 128,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: widget.designer.featuredImages!.length,
+                      itemBuilder: (context, index) {
+                        final imagePath = widget.designer.featuredImages![index];
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(12),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => FullscreenGalleryWidget(
+                                    images: widget.designer.featuredImages!,
+                                    initialIndex: index,
+                                  ),
+                                ),
+                              );
                             },
-                          ),
-                        ],
-                      ],
-                    ),
-                  ] else if (widget.designer.featuredImages!.isNotEmpty) ...[
-                    const Spacer(),
-                    InkWell(
-                      borderRadius: BorderRadius.circular(8),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => FullscreenGalleryWidget(
-                              images: widget.designer.featuredImages!,
-                              initialIndex: 0,
+                            child: Hero(
+                              tag: imagePath,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: widget.isEditable!
+                                    ? DeletableImageWidget(
+                                        imagePath: imagePath,
+                                        onDelete: () =>
+                                            deleteImage(imagePath, context),
+                                      )
+                                    : ViewOnlyImageWidget(
+                                        imagePath: imagePath,
+                                      ),
+                              ),
                             ),
                           ),
                         );
                       },
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'See all (${widget.designer.featuredImages!.length})',
-                            style: textTheme.bodyMedium!.copyWith(
-                              color: context.accent,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          Icon(
-                            Icons.chevron_right,
-                            size: 18,
-                            color: context.accent,
-                          ),
-                        ],
-                      ),
                     ),
-                  ],
-                ],
-              ),
-              if (widget.designer.featuredImages!.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                SizedBox(
-                  height: 128,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: widget.designer.featuredImages!.length,
-                    itemBuilder: (context, index) {
-                      final imagePath = widget.designer.featuredImages![index];
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(12),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => FullscreenGalleryWidget(
-                                  images: widget.designer.featuredImages!,
-                                  initialIndex: index,
-                                ),
-                              ),
-                            );
-                          },
-                          child: Hero(
-                            tag: imagePath,
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: widget.isEditable!
-                                  ? DeletableImageWidget(
-                                      imagePath: imagePath,
-                                      onDelete: () =>
-                                          deleteImage(imagePath, context),
-                                    )
-                                  : ViewOnlyImageWidget(
-                                      imagePath: imagePath,
-                                    ),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
                   ),
-                ),
+                ],
               ],
-            ],
+            ),
           ),
         );
       },

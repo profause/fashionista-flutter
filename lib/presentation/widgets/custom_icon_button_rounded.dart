@@ -1,7 +1,5 @@
-import 'package:fashionista/data/models/settings/bloc/settings_bloc.dart';
-import 'package:fashionista/data/models/settings/models/settings_model.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CustomIconButtonRounded extends StatelessWidget {
   final VoidCallback onPressed;
@@ -15,35 +13,26 @@ class CustomIconButtonRounded extends StatelessWidget {
     this.icon,
     this.size = 24,
     required this.iconData,
-    this.backgroundColor = Colors.transparent,
+    this.backgroundColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    //final iconTheme = Theme.of(context).iconTheme;
-    //final colorScheme = Theme.of(context).colorScheme;
-    return BlocBuilder<SettingsBloc, Settings>(
-      builder: (context, settings) {
-        ThemeMode themeMode = ThemeMode.values[settings.displayMode as int];
-        return Material(
-          color: backgroundColor != Colors.transparent
-              ? backgroundColor
-              : (themeMode == ThemeMode.light
-                    ? Colors.grey.shade200
-                    : Colors.black.withValues(alpha: 0.3)),
-          //colorScheme.onSurface, // background color
-          shape: const CircleBorder(),
-          // borderRadius: BorderRadius.circular(size! / 2), // makes it round
-          child: InkWell(
-            borderRadius: BorderRadius.circular(50), // ripple matches shape
-            onTap: onPressed,
-            child: Padding(
-              padding: EdgeInsets.all(6), // space around icon
-              child: icon ?? Icon(iconData, size: size),
-            ),
+    return Material(
+      color: backgroundColor ??
+          context.iconSubstrate, // neutral icon tile background
+      shape: const CircleBorder(),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(50), // ripple matches shape
+        onTap: onPressed,
+        child: Padding(
+          padding: EdgeInsets.all(6), // space around icon
+          child: IconTheme(
+            data: IconThemeData(color: context.secondaryLabel, size: size),
+            child: icon ?? Icon(iconData, size: size),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

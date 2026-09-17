@@ -8,36 +8,38 @@ class ProfileInfoCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: context.cardSurface,
-        borderRadius: BorderRadius.circular(16),
-        ////border: Border.all(color: context.hairline),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0D000000),
-            blurRadius: 2,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Column(
-        children: List.generate(items.length * 2 - 1, (index) {
-          if (index.isOdd) {
-            return Divider(
-              height: 1,
-              thickness: 1,
-              color: context.hairline,
-              indent: 56,
-              endIndent: 12,
-            );
-          }
-
-          final item = items[index ~/ 2];
-          return _ProfileInfoRow(item: item);
-        }),
+    return Card(
+      child: Container(
+        margin: EdgeInsets.zero,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: context.cardSurface,
+          borderRadius: BorderRadius.circular(16),
+          ////border: Border.all(color: context.hairline),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x0D000000),
+              blurRadius: 2,
+              offset: Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Column(
+          children: List.generate(items.length * 2 - 1, (index) {
+            if (index.isOdd) {
+              return Divider(
+                height: 1,
+                thickness: 1,
+                color: context.hairline,
+                indent: 56,
+                endIndent: 12,
+              );
+            }
+      
+            final item = items[index ~/ 2];
+            return _ProfileInfoRow(item: item);
+          }),
+        ),
       ),
     );
   }

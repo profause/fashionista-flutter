@@ -363,29 +363,31 @@ class _SettingsCard extends StatelessWidget {
         rows.add(Divider(
           height: 1,
           thickness: 1,
+          indent: 12,
+          endIndent: 12,
           color: Theme.of(context).colorScheme.outlineVariant,
         ));
       }
       rows.add(children[i]);
     }
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color ?? Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outlineVariant,
+    return Card(
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardTheme.color ?? Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x0A1A1C1E),
+              blurRadius: 4,
+              offset: Offset(0, 1),
+            ),
+          ],
         ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A1A1C1E),
-            blurRadius: 4,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: rows,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: rows,
+        ),
       ),
     );
   }
