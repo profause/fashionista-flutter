@@ -50,6 +50,7 @@ class _DesignerDetailsProfilePageState
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       children: [
+        const SizedBox(height: 8),
         ProfileInfoCardWidget(
           items: [
             ProfileInfoItem(

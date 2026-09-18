@@ -13,7 +13,6 @@ import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/services/firebase/firebase_designers_service.dart';
 import 'package:fashionista/presentation/screens/designers/widgets/designer_rating_list_widget.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/designer_review_widget.dart';
-import 'package:fashionista/presentation/widgets/custom_text_input_field_widget.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:fashionista/presentation/widgets/rating_input_widget.dart';
 import 'package:flutter/material.dart';
@@ -44,90 +43,97 @@ class _DesignerReviewPageState extends State<DesignerReviewPage> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.only(top: 2),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const SizedBox(height: 8),
           Container(
-            padding: const EdgeInsets.only(
-              left: 16,
-              right: 16,
-              bottom: 12,
-              top: 16,
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: context.cardSurface,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: context.hairline),
             ),
-            color: colorScheme.onPrimary,
-            child: Column(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Expanded(
+                  child: DesignerRatingListWidget(
+                    ratings: widget.designer.ratings!,
+                    totalRating: widget.designer.totalRating!,
+                  ),
+                ),
+                const SizedBox(width: 18),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          DesignerRatingListWidget(
-                            ratings: widget.designer.ratings!,
-                            totalRating: widget.designer.totalRating!,
-                          ),
-                        ],
+                    Text(
+                      '${widget.designer.averageRating ?? 0.0}',
+                      style: textTheme.headlineMedium!.copyWith(
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
-                    const SizedBox(width: 18),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          '${widget.designer.averageRating ?? 0.0}',
-                          style: textTheme.headlineSmall,
-                        ),
-                        const SizedBox(height: 4),
-                        RatingInputWidget(
-                          initialRating: widget.designer.averageRating ?? 0,
-                          color: AppTheme.appIconColor.withValues(alpha: 1),
-                          size: 18,
-                          readOnly: true,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${widget.designer.reviewCount ?? 0} Reviews',
-                          style: textTheme.bodySmall,
-                        ),
-                      ],
+                    const SizedBox(height: 6),
+                    RatingInputWidget(
+                      initialRating: widget.designer.averageRating ?? 0,
+                      color: context.accent,
+                      size: 16,
+                      readOnly: true,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      '${widget.designer.reviewCount ?? 0} Reviews',
+                      style: textTheme.bodySmall!.copyWith(
+                        color: context.mutedText,
+                      ),
                     ),
                   ],
                 ),
-                if (userId != widget.designer.uid) ...[
-                  const SizedBox(height: 12),
-                  FilledButton(
-                    onPressed: () {
-                      DesignerReviewModel designerReviewModel =
-                          DesignerReviewModel.empty();
-                      //show review bottomsheet
-                      _showReviewBottomsheet(
-                        context,
-                        (review) => _onSaveReview(review),
-                        designerReviewModel,
-                      );
-                    },
-                    style: FilledButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 0,
-                      backgroundColor:
-                          colorScheme.surface, // solid grey background
-                      foregroundColor: colorScheme.onSurface, // text/icon color
-                    ),
-                    child: Text('Write a Review'),
-                  ),
-                ],
               ],
             ),
           ),
-          const SizedBox(height: 2),
+          if (userId != widget.designer.uid) ...[
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 50,
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  DesignerReviewModel designerReviewModel =
+                      DesignerReviewModel.empty();
+                  //show review bottomsheet
+                  _showReviewBottomsheet(
+                    context,
+                    (review) => _onSaveReview(review),
+                    designerReviewModel,
+                  );
+                },
+                icon: Icon(
+                  Icons.edit_outlined,
+                  size: 16,
+                  color: context.accent,
+                ),
+                label: Text('Write a Review'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: context.onCanvasText,
+                  backgroundColor: context.cardSurface,
+                  side: BorderSide(color: context.hairline),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  textStyle: textTheme.titleSmall!.copyWith(
+                    color: context.onCanvasText,
+                  ),
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(height: 8),
           BlocBuilder<DesignerReviewBloc, DesignerReviewBlocState>(
             builder: (context, state) {
               switch (state) {
@@ -149,8 +155,11 @@ class _DesignerReviewPageState extends State<DesignerReviewPage> {
                     physics: const NeverScrollableScrollPhysics(),
                     padding: EdgeInsets.zero, //
                     itemCount: reviews.length,
-                    separatorBuilder: (context, index) =>
-                        const Divider(height: .1, thickness: .1),
+                    separatorBuilder: (context, index) => Divider(
+                      height: 1,
+                      thickness: 1,
+                      color: context.hairline,
+                    ),
                     itemBuilder: (context, index) {
                       final review = reviews[index];
                       return DesignerReviewWidget(
@@ -237,11 +246,11 @@ class _DesignerReviewPageState extends State<DesignerReviewPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Theme.of(context).colorScheme.onPrimary,
+      backgroundColor: context.cardSurface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (context) {
+      builder: (sheetContext) {
         commentTextFieldController.text = designerReviewModel.comment.text;
         rating = designerReviewModel.rating!.toDouble();
 
@@ -251,10 +260,11 @@ class _DesignerReviewPageState extends State<DesignerReviewPage> {
         return Padding(
           // 👇 ensures bottom sheet shifts up when keyboard appears
           padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
           ),
           child: StatefulBuilder(
             builder: (context, setModalState) {
+              final textTheme = Theme.of(context).textTheme;
               return DraggableScrollableSheet(
                 expand: false,
                 initialChildSize: 0.5,
@@ -266,143 +276,231 @@ class _DesignerReviewPageState extends State<DesignerReviewPage> {
                     onTap: () => FocusScope.of(context).unfocus(),
                     child: SingleChildScrollView(
                       controller: scrollController,
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.only(bottom: 12),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // Top handle
+                          // Top drag handle
                           Center(
                             child: Container(
-                              height: 4,
-                              width: 40,
-                              margin: const EdgeInsets.only(bottom: 16),
+                              height: 6,
+                              width: 36,
+                              margin: const EdgeInsets.only(top: 10, bottom: 6),
                               decoration: BoxDecoration(
-                                color: Colors.grey[400],
-                                borderRadius: BorderRadius.circular(8),
+                                color: context.softBorder,
+                                borderRadius: BorderRadius.circular(999),
                               ),
                             ),
                           ),
 
-                          Text(
-                            "Write a Review",
-                            style: Theme.of(context).textTheme.bodyMedium!
-                                .copyWith(fontWeight: FontWeight.w600),
+                          // Header with close action
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(24, 10, 20, 0),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    "Write a Review",
+                                    style: textTheme.titleLarge!.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 17,
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(),
+                                  icon: const Icon(Icons.close),
+                                  iconSize: 18,
+                                  color: context.onCanvasText,
+                                  style: IconButton.styleFrom(
+                                    minimumSize: const Size(28, 28),
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                    padding: EdgeInsets.zero,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          const SizedBox(height: 24),
 
                           // ⭐ Rating input
-                          RatingInputWidget(
-                            initialRating: rating,
-                            color: Theme.of(context).colorScheme.primary,
-                            size: 32,
-                            readOnly: false,
-                            onChanged: (r) => setModalState(() => rating = r),
-                          ),
-                          const SizedBox(height: 8),
-
-                          // 💬 Comment input (auto-focus + scrolls above keyboard)
-                          Focus(
-                            onFocusChange: (hasFocus) {
-                              if (hasFocus) {
-                                // slight delay to ensure keyboard opens first
-                                Future.delayed(
-                                  const Duration(milliseconds: 300),
-                                ).then((_) {
-                                  if (scrollController.hasClients) {
-                                    scrollController.animateTo(
-                                      scrollController.position.maxScrollExtent,
-                                      duration: const Duration(
-                                        milliseconds: 300,
-                                      ),
-                                      curve: Curves.easeOut,
-                                    );
-                                  }
-                                });
-                              }
-                            },
-                            child: CustomTextInputFieldWidget(
-                              onChanged: (_) {
-                                setModalState(() {});
-                              },
-                              autofocus: true,
-                              //focusNode: focusNode,
-                              controller: commentTextFieldController,
-                              hint:
-                                  'Share details of your experience with this designer',
-                              minLines: 2,
-                              maxLength: 150,
-                              validator: (value) {
-                                if ((value ?? "").isEmpty) {
-                                  return 'Enter review to proceed...';
-                                }
-                                return null;
-                              },
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            child: Center(
+                              child: RatingInputWidget(
+                                initialRating: rating,
+                                color: context.accent,
+                                size: 32,
+                                readOnly: false,
+                                onChanged: (r) =>
+                                    setModalState(() => rating = r),
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 12),
+
+                          // 💬 Comment input (auto-focus + scrolls above keyboard)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                            ),
+                            child: Focus(
+                              onFocusChange: (hasFocus) {
+                                if (hasFocus) {
+                                  // slight delay to ensure keyboard opens first
+                                  Future.delayed(
+                                    const Duration(milliseconds: 300),
+                                  ).then((_) {
+                                    if (scrollController.hasClients) {
+                                      scrollController.animateTo(
+                                        scrollController
+                                            .position
+                                            .maxScrollExtent,
+                                        duration: const Duration(
+                                          milliseconds: 300,
+                                        ),
+                                        curve: Curves.easeOut,
+                                      );
+                                    }
+                                  });
+                                }
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.fromLTRB(
+                                  14,
+                                  12,
+                                  14,
+                                  8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: context.isDarkTheme
+                                      ? context.secondaryButtonBg
+                                      : const Color(0xFFF8FAFC),
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: context.isDarkTheme
+                                        ? context.softBorder
+                                        : const Color(0xFFE2E8F0),
+                                  ),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    TextField(
+                                      onChanged: (_) {
+                                        setModalState(() {});
+                                      },
+                                      autofocus: true,
+                                      //focusNode: focusNode,
+                                      controller: commentTextFieldController,
+                                      minLines: 3,
+                                      maxLines: 5,
+                                      maxLength: 150,
+                                      style: textTheme.bodyLarge!.copyWith(
+                                        fontSize: 15,
+                                      ),
+                                      decoration: InputDecoration(
+                                        hintText:
+                                            'Share details of your experience with this designer',
+                                        hintStyle: textTheme.bodyMedium!
+                                            .copyWith(
+                                              color: context.placeholderText,
+                                            ),
+                                        border: InputBorder.none,
+                                        isDense: true,
+                                        counterText: '',
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                              vertical: 0,
+                                            ),
+                                      ),
+                                    ),
+                                    Align(
+                                      alignment: Alignment.bottomRight,
+                                      child: Text(
+                                        '${commentTextFieldController.text.length}/150',
+                                        style: textTheme.bodySmall!.copyWith(
+                                          color: context.mutedText,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
 
                           // 💾 Save button
-                          SizedBox(
-                            height: 48,
-                            width: double.infinity,
-                            child: FilledButton(
-                              onPressed: () {
-                                if (commentTextFieldController.text
-                                    .trim()
-                                    .isEmpty) {
-                                  // ScaffoldMessenger.of(context).showSnackBar(
-                                  //   const SnackBar(
-                                  //     content: Text('Enter review to proceed'),
-                                  //   ),
-                                  // );
-                                  AppToast.info(
-                                    context,
-                                    "Enter review to proceed",
-                                  );
-                                  return;
-                                }
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                            child: SizedBox(
+                              height: 50,
+                              width: double.infinity,
+                              child: FilledButton(
+                                onPressed: () {
+                                  if (commentTextFieldController.text
+                                      .trim()
+                                      .isEmpty) {
+                                    // ScaffoldMessenger.of(context).showSnackBar(
+                                    //   const SnackBar(
+                                    //     content: Text('Enter review to proceed'),
+                                    //   ),
+                                    // );
+                                    AppToast.info(
+                                      context,
+                                      "Enter review to proceed",
+                                    );
+                                    return;
+                                  }
 
-                                UserBloc userBloc = context.read<UserBloc>();
-                                User user = userBloc.state;
-                                final uid = designerReviewModel.uid!.isEmpty
-                                    ? Uuid().v4()
-                                    : designerReviewModel.uid;
-                                final author = AuthorModel.empty().copyWith(
-                                  uid: user.uid,
-                                  name: user.fullName,
-                                  avatar: user.profileImage,
-                                );
-                                final comment = CommentModel.empty().copyWith(
-                                  uid: uid,
-                                  refId: widget.designer.uid,
-                                  text: commentTextFieldController.text,
-                                  createdAt:
-                                      DateTime.now().millisecondsSinceEpoch,
-                                  author: author,
-                                );
-                                final review = designerReviewModel.copyWith(
-                                  comment: comment,
-                                  refId: widget.designer.uid,
-                                  uid: uid,
-                                  rating: rating.toInt(),
-                                  createdAt: comment.createdAt,
-                                );
-                                onSave(review);
-                              },
-                              style: FilledButton.styleFrom(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  UserBloc userBloc =
+                                      context.read<UserBloc>();
+                                  User user = userBloc.state;
+                                  final uid =
+                                      designerReviewModel.uid!.isEmpty
+                                      ? Uuid().v4()
+                                      : designerReviewModel.uid;
+                                  final author =
+                                      AuthorModel.empty().copyWith(
+                                        uid: user.uid,
+                                        name: user.fullName,
+                                        avatar: user.profileImage,
+                                      );
+                                  final comment =
+                                      CommentModel.empty().copyWith(
+                                        uid: uid,
+                                        refId: widget.designer.uid,
+                                        text: commentTextFieldController
+                                            .text,
+                                        createdAt: DateTime.now()
+                                            .millisecondsSinceEpoch,
+                                        author: author,
+                                      );
+                                  final review =
+                                      designerReviewModel.copyWith(
+                                        comment: comment,
+                                        refId: widget.designer.uid,
+                                        uid: uid,
+                                        rating: rating.toInt(),
+                                        createdAt: comment.createdAt,
+                                      );
+                                  onSave(review);
+                                },
+                                style: FilledButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  backgroundColor: context.accent,
+                                  foregroundColor: Colors.white,
+                                  shadowColor: context.accent.withValues(
+                                    alpha: 0.25,
+                                  ),
+                                  elevation: 4,
                                 ),
-                                elevation: 0,
-                                backgroundColor: Theme.of(
-                                  context,
-                                ).colorScheme.surface,
-                                foregroundColor: Theme.of(
-                                  context,
-                                ).colorScheme.onSurface,
+                                child: const Text('Save Review'),
                               ),
-                              child: const Text('Save'),
                             ),
                           ),
                         ],

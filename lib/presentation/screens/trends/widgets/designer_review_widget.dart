@@ -38,8 +38,7 @@ class _DesignerReviewWidgetState extends State<DesignerReviewWidget> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return Container(
-      padding: const EdgeInsets.all(14),
-      color: colorScheme.onPrimary,
+      padding: const EdgeInsets.symmetric(vertical: 14),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,7 +46,7 @@ class _DesignerReviewWidgetState extends State<DesignerReviewWidget> {
           Row(
             children: [
               Material(
-                color: Colors.white,
+                color: colorScheme.surface,
                 borderOnForeground: true,
                 borderRadius: BorderRadius.circular(60),
                 child: Padding(
@@ -64,7 +63,7 @@ class _DesignerReviewWidgetState extends State<DesignerReviewWidget> {
                             .isNotEmpty
                         ? CircleAvatar(
                             radius: 18,
-                            backgroundColor: AppTheme.lightGrey,
+                            backgroundColor: colorScheme.surfaceContainerLow,
                             backgroundImage: CachedNetworkImageProvider(
                               widget.designerReviewModel.comment.author.avatar!,
                               errorListener: (error) {},
@@ -83,14 +82,14 @@ class _DesignerReviewWidgetState extends State<DesignerReviewWidget> {
                 child: Text(
                   widget.designerReviewModel.comment.author.name!,
                   style: textTheme.bodyMedium!.copyWith(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
+                    color: context.onCanvasText,
                   ),
                 ),
               ),
-              const Spacer(),
               Text(
                 formatRelativeTime(widget.designerReviewModel.createdAt!),
-                style: textTheme.bodySmall,
+                style: textTheme.bodySmall!.copyWith(color: context.mutedText),
               ),
             ],
           ),
@@ -99,7 +98,7 @@ class _DesignerReviewWidgetState extends State<DesignerReviewWidget> {
             padding: const EdgeInsets.only(left: 4.0),
             child: RatingInputWidget(
               initialRating: widget.designerReviewModel.rating!.toDouble(),
-              color: colorScheme.primary,
+              color: context.accent,
               size: 18,
               readOnly: true,
             ),
@@ -109,7 +108,10 @@ class _DesignerReviewWidgetState extends State<DesignerReviewWidget> {
             padding: const EdgeInsets.only(left: 4.0),
             child: Text(
               widget.designerReviewModel.comment.text,
-              style: textTheme.bodyLarge!.copyWith(fontSize: 15),
+              style: textTheme.bodyLarge!.copyWith(
+                fontSize: 15,
+                color: context.descriptionText,
+              ),
             ),
           ),
           const SizedBox(height: 8),

@@ -13,7 +13,6 @@ class DesignerRatingListWidget extends StatelessWidget {
       ..sort((a, b) => int.parse(b.key).compareTo(int.parse(a.key))); // 5→1 order
 
     final textTheme = Theme.of(context).textTheme;
-    //final colorScheme = Theme.of(context).colorScheme;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -26,17 +25,24 @@ class DesignerRatingListWidget extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 8),
           child: Row(
             children: [
-              // Rating label (e.g. "5 ★")
+              // Rating label (e.g. "5")
               SizedBox(
-                width: 40,
+                width: 12,
                 child: Text(
-                  '$stars ★',
+                  '$stars',
                   style: textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
+                    color: context.mutedText,
                   ),
+                  textAlign: TextAlign.right,
                 ),
               ),
-
+              const SizedBox(width: 6),
+              Icon(
+                Icons.star_rounded,
+                size: 15,
+                color: context.accent,
+              ),
               const SizedBox(width: 8),
 
               // Animated progress bar
@@ -47,12 +53,12 @@ class DesignerRatingListWidget extends StatelessWidget {
                   curve: Curves.easeOutCubic,
                   builder: (context, animatedValue, _) {
                     return ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(8),
                       child: LinearProgressIndicator(
                         value: animatedValue,
-                        minHeight: 8,
-                        backgroundColor: AppTheme.appIconColor.withValues(alpha: .1),
-                        color: AppTheme.appIconColor.withValues(alpha: 1),
+                        minHeight: 6,
+                        backgroundColor: context.softBorder,
+                        color: context.accent,
                       ),
                     );
                   },
