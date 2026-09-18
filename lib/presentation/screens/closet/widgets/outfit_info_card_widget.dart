@@ -1,17 +1,16 @@
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_outfit_bloc.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_outfit_bloc_event.dart';
 import 'package:fashionista/data/models/closet/outfit_model.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_closet_service.dart';
 import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
-import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 class OutfitInfoCardWidget extends StatefulWidget {
   final OutfitModel outfitModel;
@@ -49,8 +48,6 @@ class _OutfitInfoCardWidgetState extends State<OutfitInfoCardWidget>
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     List<FeaturedMediaModel> featuredMedia = widget.outfitModel.closetItems.map(
       (item) {
         return item.featuredMedia.first;
@@ -73,8 +70,9 @@ class _OutfitInfoCardWidgetState extends State<OutfitInfoCardWidget>
       child: Container(
         margin: const EdgeInsets.all(0),
         decoration: BoxDecoration(
-          color: colorScheme.onPrimary,
-          borderRadius: BorderRadius.circular(8),
+          color: context.cardSurface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: context.hairline),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.04),
@@ -87,77 +85,9 @@ class _OutfitInfoCardWidgetState extends State<OutfitInfoCardWidget>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              margin: const EdgeInsets.all(8),
-              clipBehavior: Clip.antiAlias,
-              decoration: BoxDecoration(
-                color: colorScheme.onPrimary,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: MasonryGridView.builder(
-                padding: EdgeInsets.zero,
-                shrinkWrap:
-                    true, // ✅ important when inside SingleChildScrollView
-                physics:
-                    const NeverScrollableScrollPhysics(), // ✅ let parent handle scroll
-                cacheExtent: 10,
-                // ✅ adapt crossAxisCount based on item count
-                gridDelegate: SliverSimpleGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: featuredMedia.length == 1
-                      ? 1 // 1 item -> full width
-                      : featuredMedia.length <= 4
-                      ? 2 // 2–4 items -> 2 columns
-                      : 3, // 5+ items -> 3 columns
-                ),
-                mainAxisSpacing: 2,
-                crossAxisSpacing: 2,
-                itemCount: featuredMedia.length,
-                itemBuilder: (context, index) {
-                  final preview = featuredMedia[index];
-                  // 👇 Assign different aspect ratios randomly for variety
-                  // ✅ aspect ratio adapts too
-                  // double aspectRatio;
-                  // if (featuredMedia.length == 1) {
-                  //   aspectRatio = 3 / 2; // square full width
-                  // } else if (featuredMedia.length == 2) {
-                  //   aspectRatio = 4 / 5; // taller
-                  // } else {
-                  //   // variety for larger grids
-                  //   final aspectRatioOptions = [1 / 1, 3 / 4, 3 / 1];
-                  //   aspectRatio =
-                  //       aspectRatioOptions[Random().nextInt(
-                  //         aspectRatioOptions.length,
-                  //       )];
-                  // }
-                  return Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: CachedNetworkImage(
-                        imageUrl: preview.url!.isEmpty
-                            ? ''
-                            : preview.url!.trim(),
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => const Center(
-                          child: SizedBox(
-                            height: 18,
-                            width: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                        ),
-                        errorWidget: (context, url, error) {
-                          return const CustomColoredBanner(text: '');
-                        },
-                        errorListener: (value) {},
-                      ),
-                    
-                  );
-                },
-              ),
-            ),
-
+            _buildCompositeImage(context, featuredMedia),
             Padding(
-              padding: const EdgeInsets.only(left: 12, right: 8, bottom: 8),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -166,24 +96,28 @@ class _OutfitInfoCardWidgetState extends State<OutfitInfoCardWidget>
                       Expanded(
                         child: Text(
                           widget.outfitModel.style ?? '',
-                          style: textTheme.titleSmall,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ).copyWith(color: context.onCanvasText),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      CustomIconButtonRounded(
-                        iconData: Icons.favorite_outline,
-                        size: 18,
-                        onPressed: () =>
-                            addOrRemoveFromFavourite(widget.outfitModel.uid!),
-                        icon: AnimatedSwitcher(
+                      GestureDetector(
+                        onTap: () => addOrRemoveFromFavourite(
+                          widget.outfitModel.uid!,
+                        ),
+                        child: AnimatedSwitcher(
                           duration: const Duration(milliseconds: 200),
                           child: Icon(
                             isFavourite
                                 ? Icons.favorite
                                 : Icons.favorite_outline,
                             key: ValueKey(isFavourite),
-                            color: isFavourite ? Colors.red : Colors.grey,
+                            color: isFavourite
+                                ? context.accent
+                                : context.secondaryLabel,
                             size: 18,
                           ),
                         ),
@@ -193,7 +127,10 @@ class _OutfitInfoCardWidgetState extends State<OutfitInfoCardWidget>
                   const SizedBox(height: 4),
                   Text(
                     widget.outfitModel.occassion,
-                    style: textTheme.bodySmall,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ).copyWith(color: context.mutedText),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -202,6 +139,120 @@ class _OutfitInfoCardWidgetState extends State<OutfitInfoCardWidget>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildCompositeImage(
+    BuildContext context,
+    List<FeaturedMediaModel> media,
+  ) {
+    final items = media.take(4).toList();
+    final hairline = context.hairline;
+
+    Widget borderedCell(
+      int index, {
+      bool rightDivider = false,
+      bool bottomDivider = false,
+    }) {
+      return Container(
+        decoration: BoxDecoration(
+          border: Border(
+            right: rightDivider
+                ? BorderSide(color: hairline)
+                : BorderSide.none,
+            bottom: bottomDivider
+                ? BorderSide(color: hairline)
+                : BorderSide.none,
+          ),
+        ),
+        child: _imageCell(items[index]),
+      );
+    }
+
+    Widget content;
+    if (items.isEmpty) {
+      content = const SizedBox.shrink();
+    } else if (items.length == 1) {
+      content = borderedCell(0);
+    } else if (items.length == 2) {
+      content = Row(
+        children: [
+          Expanded(child: borderedCell(0, rightDivider: true)),
+          Expanded(child: borderedCell(1)),
+        ],
+      );
+    } else if (items.length == 3) {
+      content = Row(
+        children: [
+          Expanded(child: borderedCell(0, rightDivider: true)),
+          Expanded(
+            child: Column(
+              children: [
+                Expanded(child: borderedCell(1, bottomDivider: true)),
+                Expanded(child: borderedCell(2)),
+              ],
+            ),
+          ),
+        ],
+      );
+    } else {
+      content = Column(
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  child: borderedCell(
+                    0,
+                    rightDivider: true,
+                    bottomDivider: true,
+                  ),
+                ),
+                Expanded(child: borderedCell(1, bottomDivider: true)),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(child: borderedCell(2, rightDivider: true)),
+                Expanded(child: borderedCell(3)),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    return AspectRatio(
+      aspectRatio: 1,
+      child: Container(
+        decoration: BoxDecoration(
+          color: context.iconSubstrate,
+          border: Border(bottom: BorderSide(color: hairline)),
+        ),
+        child: content,
+      ),
+    );
+  }
+
+  Widget _imageCell(FeaturedMediaModel preview) {
+    return SizedBox.expand(
+      child: CachedNetworkImage(
+        imageUrl: preview.url!.isEmpty ? '' : preview.url!.trim(),
+        fit: BoxFit.cover,
+        placeholder: (context, url) => const Center(
+          child: SizedBox(
+            height: 18,
+            width: 18,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+        errorWidget: (context, url, error) {
+          return const CustomColoredBanner(text: '');
+        },
+        errorListener: (value) {},
       ),
     );
   }

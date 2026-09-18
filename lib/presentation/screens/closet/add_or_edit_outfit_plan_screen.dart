@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/service_locator/local_notification_service.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_outfit_bloc.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_outfit_bloc_event.dart';
 import 'package:fashionista/data/models/closet/outfit_plan_model.dart'
@@ -12,13 +13,10 @@ import 'package:fashionista/data/services/firebase/firebase_closet_service.dart'
 import 'package:fashionista/presentation/screens/closet/widgets/recurrence_picker_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/date_picker_form_field_widget.dart';
 import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
-import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
-import 'package:fashionista/presentation/widgets/custom_text_input_field_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
@@ -110,42 +108,45 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     //final random = Random();
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: context.canvasBackground,
       appBar: AppBar(
-        foregroundColor: colorScheme.primary,
-        backgroundColor: colorScheme.onPrimary,
+        backgroundColor: context.canvasBackground,
+        centerTitle: true,
         title: Text(
           'Create outfit plan',
-          style: textTheme.titleLarge!.copyWith(
-            fontWeight: FontWeight.bold,
-            color: colorScheme.primary,
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+            color: context.onCanvasText,
           ),
         ),
-        elevation: 0,
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12.0),
-            child: CustomIconButtonRounded(
-              onPressed: () async {
-                if (_formKey.currentState!.validate()) {
-                  await _saveOutfitPlan(
-                    widget.outfitPlan ?? OutfitPlanModel.empty(),
-                  );
-                  //Navigator.of(context).pop();
-                }
-              },
-              iconData: Icons.check,
+          TextButton(
+            onPressed: () async {
+              if (_formKey.currentState!.validate()) {
+                await _saveOutfitPlan(
+                  widget.outfitPlan ?? OutfitPlanModel.empty(),
+                );
+                //Navigator.of(context).pop();
+              }
+            },
+            child: Text(
+              'Done',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: context.accent,
+              ),
             ),
           ),
+          const SizedBox(width: 4),
         ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           child: Form(
             key: _formKey,
             child: Column(
@@ -153,98 +154,140 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
               children: [
                 Container(
                   clipBehavior: Clip.antiAlias,
+                  width: double.infinity,
                   decoration: BoxDecoration(
-                    color: colorScheme.onPrimary,
-                    borderRadius: BorderRadius.circular(12),
+                    color: context.cardSurface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: context.hairline),
                   ),
-                  child: MasonryGridView.builder(
-                    shrinkWrap: true, // ✅ expands in height as items grow
-                    physics:
-                        const NeverScrollableScrollPhysics(), // ✅ let parent scroll
-                    cacheExtent: 10,
-                    gridDelegate:
-                        SliverSimpleGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: featuredMedia.length > 4 ? 3 : 2,
-                        ),
-                    mainAxisSpacing: 2,
-                    crossAxisSpacing: 2,
-                    itemCount: featuredMedia.length,
-                    itemBuilder: (context, index) {
-                      final preview = featuredMedia[index];
-                      return Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: CachedNetworkImage(
-                          imageUrl: preview.url!.isEmpty
-                              ? ''
-                              : preview.url!.trim(),
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) => const Center(
-                            child: SizedBox(
-                              height: 18,
-                              width: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: featuredMedia.map((preview) {
+                          return Container(
+                            width: 84,
+                            height: 84,
+                            clipBehavior: Clip.antiAlias,
+                            decoration: BoxDecoration(
+                              color: context.cardSurface,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: context.hairline),
+                            ),
+                            child: CachedNetworkImage(
+                              imageUrl: (preview.url?.isEmpty ?? true)
+                                  ? ''
+                                  : preview.url!.trim(),
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => const Center(
+                                child: SizedBox(
+                                  height: 18,
+                                  width: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                              ),
+                              errorWidget: (context, url, error) {
+                                return const CustomColoredBanner(text: '');
+                              },
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Color(0xFFFF5A00),
                             ),
                           ),
-                          errorWidget: (context, url, error) {
-                            return const CustomColoredBanner(text: '');
-                          },
-                          errorListener: (value) {},
-                        ),
-                      );
-                    },
+                          const SizedBox(width: 6),
+                          Text(
+                            '${featuredMedia.length} items',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: context.secondaryLabel,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 12),
                 Container(
-                  margin: const EdgeInsets.only(bottom: 8),
+                  height: 54,
                   decoration: BoxDecoration(
-                    color: colorScheme.onPrimary,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
+                    color: context.cardSurface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: context.hairline),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _occasionController,
+                          maxLength: 50,
+                          autofocus: true,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: context.onCanvasText,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: 'Outfit plan name',
+                            hintStyle: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                              color: context.placeholderText,
+                            ),
+                            border: InputBorder.none,
+                            counterText: '',
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          validator: (value) {
+                            if ((value ?? "").isEmpty) {
+                              return 'Describe your style inspiration...';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      ValueListenableBuilder<TextEditingValue>(
+                        valueListenable: _occasionController,
+                        builder: (context, value, _) {
+                          return Text(
+                            '${value.text.length}/50',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: context.placeholderText,
+                            ),
+                          );
+                        },
                       ),
                     ],
-                  ),
-
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: CustomTextInputFieldWidget(
-                      autofocus: true,
-                      controller: _occasionController,
-                      hint: 'Describe your style inspiration...',
-                      minLines: 1,
-                      maxLength: 50,
-                      validator: (value) {
-                        if ((value ?? "").isEmpty) {
-                          return 'Describe your style inspiration...';
-                        }
-                        return null;
-                      },
-                    ),
                   ),
                 ),
 
                 Container(
-                  margin: const EdgeInsets.only(bottom: 8),
                   decoration: BoxDecoration(
-                    color: colorScheme.onPrimary,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
+                    color: context.cardSurface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: context.hairline),
                   ),
-
                   child: Padding(
-                    padding: const EdgeInsets.all(12.0),
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
                         DatePickerFormField(
@@ -269,12 +312,16 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
                             }
                           },
                         ),
-                        Divider(thickness: 1, color: Colors.grey[300]),
+                        Divider(height: 1, color: context.hairline),
                         Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
                             "Recurrence",
-                            style: textTheme.titleSmall,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                              color: context.onCanvasText,
+                            ),
                           ),
                         ),
                         RecurrencePickerWidget(
@@ -289,38 +336,71 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text("End date", style: textTheme.titleSmall),
-                            Row(
-                              children: [
-                                Radio<String>(
-                                  value: "never",
-                                  groupValue: endType,
-                                  visualDensity: VisualDensity.compact,
-                                  onChanged: (val) => setState(() {
-                                    endType = val!;
+                            Text(
+                              "End date",
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                                color: context.onCanvasText,
+                              ),
+                            ),
+                            RadioGroup<String>(
+                              groupValue: endType,
+                              onChanged: (val) {
+                                if (val == null) return;
+                                setState(() {
+                                  endType = val;
+                                  if (val == "date") {
+                                    _recurrenceEndDateController.text =
+                                        DateFormat('yyyy-MM-dd').format(
+                                          selectedEndDate,
+                                        );
+                                  } else {
                                     selectedEndDate = DateTime.now();
                                     _recurrenceEndDateController.clear();
-                                  }),
-                                ),
-                                Text("Never", style: textTheme.titleSmall),
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                Radio<String>(
-                                  value: "date",
-                                  groupValue: endType,
-                                  visualDensity: VisualDensity.compact,
-                                  onChanged: (val) => setState(() {
-                                    endType = val!;
-                                    _recurrenceEndDateController.text =
-                                        DateFormat(
-                                          'yyyy-MM-dd',
-                                        ).format(selectedEndDate);
-                                  }),
-                                ),
-                                Text("On date", style: textTheme.titleSmall),
-                              ],
+                                  }
+                                });
+                              },
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Radio<String>(
+                                        value: "never",
+                                        visualDensity: VisualDensity.compact,
+                                      ),
+                                      Text(
+                                        "Never",
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w500,
+                                          color: endType == "never"
+                                              ? context.onCanvasText
+                                              : context.mutedText,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      Radio<String>(
+                                        value: "date",
+                                        visualDensity: VisualDensity.compact,
+                                      ),
+                                      Text(
+                                        "On date",
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w500,
+                                          color: endType == "date"
+                                              ? context.onCanvasText
+                                              : context.mutedText,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                             if (endType == "date")
                               InkWell(
@@ -348,6 +428,7 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
                                       const Icon(
                                         Icons.calendar_today,
                                         size: 18,
+                                        color: Color(0xFFFF5A00),
                                       ),
                                       const SizedBox(width: 8),
                                       Text(
@@ -357,7 +438,10 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
                                                 selectedEndDate,
                                               )
                                             : "Pick end date",
-                                        style: textTheme.titleSmall,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          color: context.onCanvasText,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -371,27 +455,27 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
                 ),
                 //const SizedBox(height: 8,),
                 Container(
-                  margin: const EdgeInsets.only(bottom: 8),
                   decoration: BoxDecoration(
-                    color: colorScheme.onPrimary,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
+                    color: context.cardSurface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: context.hairline),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.all(12.0),
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            Text('Set Reminder', style: textTheme.titleSmall),
+                            Text(
+                              'Set Reminder',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: context.onCanvasText,
+                              ),
+                            ),
                             const Spacer(),
                             Switch(
                               value: setReminder,
@@ -405,63 +489,79 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
                         ),
                         if (setReminder) ...[
                           const SizedBox(height: 8),
-                          Divider(thickness: 1, color: Colors.grey[300]),
+                          Divider(height: 1, color: context.hairline),
                           const SizedBox(height: 8),
                           Align(
                             alignment: Alignment.centerLeft,
                             child: Text(
                               "When would you like to be reminded?",
-                              style: textTheme.titleSmall,
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                                color: context.onCanvasText,
+                              ),
                             ),
                           ),
-                          Row(
-                            children: [
-                              Radio<int>(
-                                value: 10,
-                                groupValue: whenToRemind,
-                                visualDensity: VisualDensity.compact,
-                                onChanged: (val) => setState(() {
-                                  whenToRemind = val!;
-                                }),
-                              ),
-                              Text(
-                                "10 minutes earlier",
-                                style: textTheme.titleSmall,
-                              ),
-                            ],
-                          ),
-
-                          Row(
-                            children: [
-                              Radio<int>(
-                                value: 30,
-                                groupValue: whenToRemind,
-                                visualDensity: VisualDensity.compact,
-                                onChanged: (val) => setState(() {
-                                  whenToRemind = val!;
-                                }),
-                              ),
-                              Text(
-                                "30 minutes earlier",
-                                style: textTheme.titleSmall,
-                              ),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              Radio<int>(
-                                value: 60,
-                                groupValue: whenToRemind,
-                                visualDensity: VisualDensity.compact,
-                                onChanged: (val) => setState(() {
-                                  whenToRemind = val!;
-                                }),
-                              ),
-                              Text(
-                                "An hour earlier",
-                                style: textTheme.titleSmall,
-                              ),
-                            ],
+                          RadioGroup<int>(
+                            groupValue: whenToRemind,
+                            onChanged: (val) {
+                              if (val == null) return;
+                              setState(() {
+                                whenToRemind = val;
+                              });
+                            },
+                            child: Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Radio<int>(
+                                      value: 10,
+                                      visualDensity: VisualDensity.compact,
+                                    ),
+                                    Text(
+                                      "10 minutes earlier",
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w500,
+                                        color: context.onCanvasText,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    Radio<int>(
+                                      value: 30,
+                                      visualDensity: VisualDensity.compact,
+                                    ),
+                                    Text(
+                                      "30 minutes earlier",
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w500,
+                                        color: context.onCanvasText,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    Radio<int>(
+                                      value: 60,
+                                      visualDensity: VisualDensity.compact,
+                                    ),
+                                    Text(
+                                      "An hour earlier",
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w500,
+                                        color: context.onCanvasText,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ],
@@ -557,12 +657,14 @@ class _AddOrEditOutfitPlanScreenState extends State<AddOrEditOutfitPlanScreen> {
               "Your outfit for ${outfitPlan.occassion} is scheduled!",
             );
           }
-          ScaffoldMessenger.of(context).showSnackBar(
+          final ctx = context;
+          if (!ctx.mounted) return;
+          ScaffoldMessenger.of(ctx).showSnackBar(
             SnackBar(content: Text('✅ Outfit plan saved successfully!')),
           );
-          dismissLoadingDialog(context);
+          dismissLoadingDialog(ctx);
           if (!isEdit) {
-            Navigator.pop(context, true);
+            Navigator.pop(ctx, true);
           }
         },
       );

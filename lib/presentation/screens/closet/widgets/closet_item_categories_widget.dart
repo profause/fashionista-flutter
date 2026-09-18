@@ -1,3 +1,4 @@
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -38,28 +39,51 @@ class ClosetItemCategoriesWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return SizedBox(
       height: 50,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: categories.length,
         separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final item = categories[index];
-          return ActionChip(
-            avatar: Icon(
-              item["icon"] as IconData,
-              size: 18,
-              color: colorScheme.primary,
+          return Material(
+            color: context.cardSurface,
+            shape: StadiumBorder(
+              side: BorderSide(color: context.hairline),
             ),
-            label: Text(item["label"] as String),
-            onPressed: () {
-              // TODO: Handle category filter
-              debugPrint("Selected: ${item['label']}");
-            },
+            child: InkWell(
+              customBorder: const StadiumBorder(),
+              onTap: () {
+                // TODO: Handle category filter
+                debugPrint("Selected: ${item['label']}");
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 9,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      item["icon"] as IconData,
+                      size: 16,
+                      color: context.secondaryLabel,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      item["label"] as String,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ).copyWith(color: context.onCanvasText),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           );
         },
       ),

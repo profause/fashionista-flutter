@@ -57,8 +57,8 @@ class _ClosetScreenState extends State<ClosetScreen>
                 floating: true,
                 toolbarHeight: 0,
                 expandedHeight: expandedHeight,
-                backgroundColor: colorScheme.onPrimary,
-                foregroundColor: colorScheme.primary,
+                backgroundColor: context.canvasBackground,
+                foregroundColor: context.onCanvasText,
                 elevation: 0,
                 flexibleSpace: BlocBuilder<UserBloc, User>(
                   builder: (context, user) {
@@ -81,7 +81,7 @@ class _ClosetScreenState extends State<ClosetScreen>
                                     alignment: Alignment.center,
                                     children: [
                                       Material(
-                                        color: Colors.white,
+                                        color: context.cardSurface,
                                         borderOnForeground: true,
                                         borderRadius: BorderRadius.circular(60),
                                         child: Padding(
@@ -97,7 +97,8 @@ class _ClosetScreenState extends State<ClosetScreen>
                                                         avatarSize /
                                                         2, // ✅ shrink smoothly
                                                     backgroundColor:
-                                                        AppTheme.lightGrey,
+                                                        colorScheme
+                                                            .surfaceContainerHighest,
                                                     backgroundImage:
                                                         CachedNetworkImageProvider(
                                                           user.profileImage,
@@ -138,19 +139,19 @@ class _ClosetScreenState extends State<ClosetScreen>
 
                 bottom: TabBar(
                   controller: _tabController,
-                  labelColor: colorScheme.primary,
-                  unselectedLabelColor: AppTheme.darkGrey,
-                  indicatorColor: AppTheme.appIconColor.withValues(alpha: 1),
-                  dividerColor: AppTheme.lightGrey,
+                  labelColor: context.onCanvasText,
+                  unselectedLabelColor: context.mutedText,
+                  indicatorColor: context.accent,
+                  dividerColor: context.hairline,
                   physics: const BouncingScrollPhysics(),
-                  dividerHeight: 0,
+                  dividerHeight: 1,
                   indicatorWeight: 2,
                   indicatorPadding: const EdgeInsets.only(left: 8, right: 8),
                   indicator: UnderlineTabIndicator(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(
                       width: 4,
-                      color: AppTheme.appIconColor.withValues(alpha: 1),
+                      color: context.accent,
                     ),
                   ),
                   tabs: [
@@ -179,20 +180,19 @@ class _ClosetScreenState extends State<ClosetScreen>
                               return Container(
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 0,
-                                  horizontal: 4,
+                                  horizontal: 6,
                                 ),
                                 decoration: BoxDecoration(
-                                  color:
-                                      Theme.of(context).brightness ==
-                                          Brightness.dark
-                                      ? Colors.grey[800] // dark mode background
-                                      : Colors.grey[400],
-                                  borderRadius: BorderRadius.circular(8),
+                                  color: context.accent.withValues(
+                                    alpha: 0.10,
+                                  ),
+                                  borderRadius: BorderRadius.circular(999),
                                 ),
                                 child: Text(
                                   "$count",
                                   style: textTheme.labelSmall!.copyWith(
-                                    color: colorScheme.primary,
+                                    color: context.accent,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               );
@@ -226,20 +226,19 @@ class _ClosetScreenState extends State<ClosetScreen>
                               return Container(
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 0,
-                                  horizontal: 4,
+                                  horizontal: 6,
                                 ),
                                 decoration: BoxDecoration(
-                                  color:
-                                      Theme.of(context).brightness ==
-                                          Brightness.dark
-                                      ? Colors.grey[800] // dark mode background
-                                      : Colors.grey[400],
-                                  borderRadius: BorderRadius.circular(8),
+                                  color: context.accent.withValues(
+                                    alpha: 0.10,
+                                  ),
+                                  borderRadius: BorderRadius.circular(999),
                                 ),
                                 child: Text(
                                   "$count",
                                   style: textTheme.labelSmall!.copyWith(
-                                    color: colorScheme.primary,
+                                    color: context.accent,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               );

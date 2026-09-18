@@ -10,6 +10,7 @@ import 'package:cloudinary_url_gen/transformation/resize/resize.dart';
 import 'package:cloudinary_url_gen/transformation/transformation.dart';
 import 'package:fashionista/core/service_locator/app_config.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_item_bloc.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_item_bloc_event.dart';
 import 'package:fashionista/data/models/closet/closet_item_model.dart';
@@ -19,8 +20,6 @@ import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/services/firebase/firebase_closet_service.dart';
 import 'package:fashionista/presentation/screens/closet/widgets/closet_item_category_autocomplete_form_field_widget.dart';
 import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
-import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
-import 'package:fashionista/presentation/widgets/custom_text_input_field_widget.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -31,6 +30,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:dartz/dartz.dart' as dartz;
 import 'package:uuid/uuid.dart';
+// ignore: implementation_imports
 import 'package:cloudinary_api/src/request/model/uploader_params.dart';
 
 List<String> hints = [
@@ -91,308 +91,370 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     final random = Random();
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: context.canvasBackground,
       appBar: AppBar(
-        foregroundColor: colorScheme.primary,
-        backgroundColor: colorScheme.onPrimary,
-        title: Text(
-          'Add item to your closet',
-          style: textTheme.titleLarge!.copyWith(
-            fontWeight: FontWeight.bold,
-            color: colorScheme.primary,
+        backgroundColor: context.canvasBackground,
+        centerTitle: true,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            height: 1,
+            color: context.hairline.withValues(alpha: 0.6),
           ),
         ),
-        elevation: 0,
+        title: Text(
+          'Add Item',
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+            color: context.onCanvasText,
+          ),
+        ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12.0),
-            child: CustomIconButtonRounded(
-              onPressed: () async {
-                if (_formKey.currentState!.validate()) {
-                  await _saveClosetItem(
-                    widget.closetItemModel ?? ClosetItemModel.empty(),
-                  );
-                  //Navigator.of(context).pop();
-                }
-              },
-              iconData: Icons.check,
+          TextButton(
+            onPressed: () async {
+              if (_formKey.currentState!.validate()) {
+                await _saveClosetItem(
+                  widget.closetItemModel ?? ClosetItemModel.empty(),
+                );
+                //Navigator.of(context).pop();
+              }
+            },
+            child: Text(
+              'Save',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: context.accent,
+              ),
             ),
           ),
+          const SizedBox(width: 4),
         ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  //margin: const EdgeInsets.only(top: 8),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: colorScheme.onPrimary,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: CustomTextInputFieldWidget(
-                    autofocus: true,
-                    controller: _descriptionController,
-                    hint: hints[random.nextInt(hints.length)],
-                    minLines: 1,
-                    maxLength: 50,
-                    validator: (value) {
-                      if ((value ?? "").isEmpty) {
-                        return 'Please enter a description';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
                 const SizedBox(height: 8),
                 Container(
-                  padding: const EdgeInsets.only(
-                    top: 8,
-                    left: 4,
-                    right: 0,
-                    bottom: 0,
-                  ),
+                  width: double.infinity,
+                  height: 96,
+                  padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
                   decoration: BoxDecoration(
-                    color: colorScheme.onPrimary,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(8),
-                      topRight: Radius.circular(8),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
+                    color: context.cardSurface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: context.hairline),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _descriptionController,
+                          maxLength: 50,
+                          autofocus: true,
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: context.onCanvasText,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: hints[random.nextInt(hints.length)],
+                            hintStyle: TextStyle(
+                              fontSize: 15,
+                              color: context.placeholderText,
+                            ),
+                            border: InputBorder.none,
+                            counterText: '',
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          validator: (value) {
+                            if ((value ?? "").isEmpty) {
+                              return 'Please enter a description';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      ValueListenableBuilder<TextEditingValue>(
+                        valueListenable: _descriptionController,
+                        builder: (context, value, _) {
+                          return Align(
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              '${value.text.length}/50',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: context.placeholderText,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: context.cardSurface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: context.hairline),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: ClosetItemCategoryAutocompleteFormFieldWidget(
                     controller: _categoryController,
                   ),
                 ),
-                const SizedBox(height: 1),
+                const SizedBox(height: 16),
                 Container(
-                  padding: const EdgeInsets.only(
-                    top: 8,
-                    left: 12,
-                    right: 0,
-                    bottom: 4,
-                  ),
+                  height: 52,
+                  width: double.infinity,
                   decoration: BoxDecoration(
-                    color: colorScheme.onPrimary,
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(8),
-                      bottomRight: Radius.circular(8),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
+                    color: context.cardSurface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: context.hairline),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _brandController,
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: context.onCanvasText,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: 'What brand is it?',
+                            hintStyle: TextStyle(
+                              fontSize: 15,
+                              color: context.placeholderText,
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ),
                       ),
                     ],
-                  ),
-                  child: CustomTextInputFieldWidget(
-                    autofocus: false,
-                    controller: _brandController,
-                    hint: 'What brand is it?',
-                    minLines: 1,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Padding(
-                  padding: const EdgeInsets.only(left: 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Upload an image of the item',
-                        style: textTheme.bodyLarge,
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          CustomIconButtonRounded(
-                            size: 24,
-                            onPressed: () {
-                              //_chooseImageSource(context);
-                              _showImageSourceDialog();
-                            },
-                            iconData: Icons.add_photo_alternate_outlined,
+                const SizedBox(height: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    GestureDetector(
+                      onTap: _showImageSourceDialog,
+                      child: CustomPaint(
+                        painter: _DashedBorderPainter(context.hairline),
+                        child: Container(
+                          width: double.infinity,
+                          height: 126,
+                          decoration: BoxDecoration(
+                            color: context.cardSurface,
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          const SizedBox(width: 8),
-                          if (previewImages.isNotEmpty)
-                            Expanded(
-                              child: SizedBox(
-                                height: 120,
-                                child: ListView.separated(
-                                  scrollDirection: Axis.horizontal,
-                                  padding: const EdgeInsets.all(8),
-                                  itemCount: previewImages.length,
-                                  separatorBuilder: (_, _) =>
-                                      const SizedBox(width: 8),
-                                  itemBuilder: (context, index) {
-                                    final image = previewImages[index];
-                                    return Stack(
-                                      children: [
-                                        AspectRatio(
-                                          aspectRatio: 1 / 1,
-                                          child: ClipRRect(
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                            child: isEdit
-                                                ? CachedNetworkImage(
-                                                    imageUrl: image.trim(),
-                                                    fit: BoxFit.cover,
-                                                    placeholder:
-                                                        (
-                                                          context,
-                                                          url,
-                                                        ) => const Center(
-                                                          child: SizedBox(
-                                                            height: 18,
-                                                            width: 18,
-                                                            child:
-                                                                CircularProgressIndicator(
-                                                                  strokeWidth:
-                                                                      2,
-                                                                ),
-                                                          ),
-                                                        ),
-                                                    errorWidget:
-                                                        (context, url, error) {
-                                                          return const CustomColoredBanner(
-                                                            text: '',
-                                                          );
-                                                        },
-                                                    errorListener: (value) {},
-                                                  )
-                                                : Image.file(
-                                                    File(image),
-                                                    //width: 180,
-                                                    //height: 180,
-                                                    fit: BoxFit.cover,
-                                                  ),
-                                          ),
-                                        ),
-                                        Positioned(
-                                          top: 4,
-                                          right: 4,
-                                          child: GestureDetector(
-                                            onTap: () {
-                                              setState(() {
-                                                previewImages.removeAt(index);
-                                              });
-                                            },
-                                            child: Container(
-                                              decoration: const BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                color: Colors.black54,
-                                              ),
-                                              padding: const EdgeInsets.all(2),
-                                              child: const Icon(
-                                                Icons.close,
-                                                color: Colors.white,
-                                                size: 16,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  },
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: context.canvasBackground,
+                                  border: Border.all(color: context.hairline),
+                                ),
+                                child: Icon(
+                                  Icons.image_outlined,
+                                  size: 20,
+                                  color: context.secondaryLabel,
                                 ),
                               ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Pick color(s) for this item',
-                        style: textTheme.bodyLarge,
-                      ),
-                      const SizedBox(height: 8),
-
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          // Selected colors
-                          for (final color in _selectedColors)
-                            Stack(
-                              alignment: Alignment.topRight,
-                              children: [
-                                Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: color,
-                                    border: Border.all(color: Colors.black12),
-                                  ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Upload an image of the item',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: context.onCanvasText,
                                 ),
-                                GestureDetector(
-                                  onTap: () {
-                                    setState(
-                                      () => _selectedColors.remove(color),
-                                    );
-                                  },
-                                  child: Container(
-                                    decoration: const BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Colors.black54,
-                                    ),
-                                    padding: const EdgeInsets.all(2),
-                                    child: const Icon(
-                                      Icons.close,
-                                      color: Colors.white,
-                                      size: 14,
-                                    ),
-                                  ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'PNG, JPG up to 10MB',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: context.placeholderText,
                                 ),
-                              ],
-                            ),
-
-                          // Add new color button
-                          GestureDetector(
-                            onTap: () => _showColorPickerDialog(context),
-                            child: Container(
-                              width: 40,
-                              height: 40,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (previewImages.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: 84,
+                        width: double.infinity,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: previewImages.length,
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(width: 8),
+                          itemBuilder: (context, index) {
+                            final image = previewImages[index];
+                            return Container(
+                              width: 84,
+                              height: 84,
+                              clipBehavior: Clip.antiAlias,
                               decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.grey.shade300,
-                                border: Border.all(color: Colors.black12),
+                                color: context.cardSurface,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: context.hairline),
                               ),
-                              child: const Icon(
-                                Icons.add,
-                                size: 20,
-                                color: Colors.black54,
+                              child: Stack(
+                                children: [
+                                  Positioned.fill(
+                                    child: isEdit
+                                        ? CachedNetworkImage(
+                                            imageUrl: image.trim(),
+                                            fit: BoxFit.cover,
+                                            placeholder: (context, url) =>
+                                                const Center(
+                                                  child: SizedBox(
+                                                    height: 18,
+                                                    width: 18,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                          strokeWidth: 2,
+                                                        ),
+                                                  ),
+                                                ),
+                                            errorWidget: (context, url, error) {
+                                              return const CustomColoredBanner(
+                                                text: '',
+                                              );
+                                            },
+                                          )
+                                        : Image.file(
+                                            File(image),
+                                            fit: BoxFit.cover,
+                                          ),
+                                  ),
+                                  Positioned(
+                                    top: 4,
+                                    right: 4,
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          previewImages.removeAt(index);
+                                        });
+                                      },
+                                      child: Container(
+                                        decoration: const BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Colors.black54,
+                                        ),
+                                        padding: const EdgeInsets.all(2),
+                                        child: const Icon(
+                                          Icons.close,
+                                          color: Colors.white,
+                                          size: 16,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ),
-                        ],
+                            );
+                          },
+                        ),
                       ),
                     ],
-                  ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Pick color(s) for this item',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: context.onCanvasText,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        for (final color in _selectedColors)
+                          Stack(
+                            alignment: Alignment.topRight,
+                            children: [
+                              Container(
+                                width: 38,
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: color,
+                                  border: Border.all(color: context.hairline),
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  setState(
+                                    () => _selectedColors.remove(color),
+                                  );
+                                },
+                                child: Container(
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.black54,
+                                  ),
+                                  padding: const EdgeInsets.all(2),
+                                  child: const Icon(
+                                    Icons.close,
+                                    color: Colors.white,
+                                    size: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        GestureDetector(
+                          onTap: () => _showColorPickerDialog(context),
+                          child: Container(
+                            width: 38,
+                            height: 38,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: context.cardSurface,
+                              border: Border.all(color: context.hairline),
+                            ),
+                            child: Icon(
+                              Icons.add,
+                              size: 20,
+                              color: context.secondaryLabel,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -413,7 +475,7 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
       final category = _categoryController.text.trim();
       final closeItemId = isEdit ? closetItemModel.uid : Uuid().v4();
       List<FeaturedMediaModel> featuredImages = closetItemModel.featuredMedia;
-      List<int> colors = _selectedColors.map((color) => color.value).toList();
+      List<int> colors = _selectedColors.map((color) => color.toARGB32()).toList();
       final bool isFavourite = closetItemModel.isFavourite ?? false;
       // Show progress dialog
       showLoadingDialog(context);
@@ -769,8 +831,9 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
         isUploading = false;
       });
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+      final ctx = context;
+      if (ctx.mounted) {
+        ScaffoldMessenger.of(ctx).showSnackBar(
           const SnackBar(content: Text("✅ Images uploaded successfully!")),
         );
       }
@@ -862,5 +925,41 @@ class _AddOrEditClosetItemsPageState extends State<AddOrEditClosetItemsPage> {
     _imageFile = null;
     super.dispose();
   }
-  
+}
+
+class _DashedBorderPainter extends CustomPainter {
+  final Color color;
+
+  _DashedBorderPainter(this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+
+    const dash = 6.0;
+    const gap = 4.0;
+
+    final rrect = RRect.fromRectAndRadius(
+      Offset.zero & size,
+      const Radius.circular(12),
+    );
+    final path = Path()..addRRect(rrect);
+    final metric = path.computeMetrics().first;
+
+    var distance = 0.0;
+    while (distance < metric.length) {
+      final start = distance;
+      final end = (distance + dash).clamp(0.0, metric.length);
+      canvas.drawPath(metric.extractPath(start, end), paint);
+      distance += dash + gap;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DashedBorderPainter oldDelegate) {
+    return oldDelegate.color != color;
+  }
 }

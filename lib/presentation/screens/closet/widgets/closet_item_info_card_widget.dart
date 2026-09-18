@@ -1,12 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_item_bloc.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_item_bloc_event.dart';
 import 'package:fashionista/data/models/closet/closet_item_model.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_closet_service.dart';
 import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
-import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -50,8 +50,6 @@ class _ClosetItemInfoCardWidgetState extends State<ClosetItemInfoCardWidget>
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     final FeaturedMediaModel featuredMedia =
         widget.closetItem.featuredMedia.isNotEmpty
         ? widget.closetItem.featuredMedia.first
@@ -70,8 +68,9 @@ class _ClosetItemInfoCardWidgetState extends State<ClosetItemInfoCardWidget>
       child: Container(
         margin: const EdgeInsets.all(0),
         decoration: BoxDecoration(
-          color: colorScheme.onPrimary,
-          borderRadius: BorderRadius.circular(8),
+          color: context.cardSurface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: context.hairline),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.04),
@@ -128,20 +127,41 @@ class _ClosetItemInfoCardWidgetState extends State<ClosetItemInfoCardWidget>
                   ),
                 ),
                 Positioned(
+                  top: 6,
                   right: 6,
-                  bottom: 8,
-                  child: CustomIconButtonRounded(
-                    iconData: Icons.favorite_outline,
-                    size: 18,
-                    onPressed: () =>
+                  child: GestureDetector(
+                    onTap: () =>
                         addOrRemoveFromFavourite(widget.closetItem.uid!),
-                    icon: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 200),
-                      child: Icon(
-                        isFavourite ? Icons.favorite : Icons.favorite_outline,
-                        key: ValueKey(isFavourite),
-                        color: isFavourite ? Colors.red : Colors.grey,
-                        size: 18,
+                    child: Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: context.isDarkTheme
+                            ? context.secondaryButtonBg
+                            : Colors.white.withValues(alpha: 0.85),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.12),
+                            blurRadius: 4,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 200),
+                          child: Icon(
+                            isFavourite
+                                ? Icons.favorite
+                                : Icons.favorite_outline,
+                            key: ValueKey(isFavourite),
+                            color: isFavourite
+                                ? context.accent
+                                : context.secondaryLabel,
+                            size: 15,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -152,40 +172,30 @@ class _ClosetItemInfoCardWidgetState extends State<ClosetItemInfoCardWidget>
             // ✅ Let this part flex to fit inside grid item
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.only(
-                  left: 4,
-                  right: 4,
-                  top: 4,
-                  bottom: 6,
-                ),
-                child: Row(
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.closetItem.description,
-                            style: textTheme.bodyMedium!.copyWith(
-                              color: colorScheme.primary,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            widget.closetItem.category,
-                            style: textTheme.bodySmall!.copyWith(
-                              color: colorScheme.primary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
+                    Text(
+                      widget.closetItem.description,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        height: 1.2,
+                      ).copyWith(color: context.onCanvasText),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      widget.closetItem.category,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        height: 1.33,
+                      ).copyWith(color: context.mutedText),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),

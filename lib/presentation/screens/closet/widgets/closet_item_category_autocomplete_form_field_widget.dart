@@ -1,3 +1,4 @@
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/presentation/screens/closet/widgets/closet_item_categories_widget.dart';
 import 'package:flutter/material.dart';
 
@@ -32,9 +33,6 @@ class _ClosetItemCategoryAutocompleteFormFieldWidgetState
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
     return RawAutocomplete<Map<String, dynamic>>(
       textEditingController: widget.controller,
       focusNode: _focusNode,
@@ -67,12 +65,23 @@ class _ClosetItemCategoryAutocompleteFormFieldWidgetState
               controller: widget.controller, // external controller
               focusNode: _focusNode,
               onFieldSubmitted: (_) => onFieldSubmitted(),
+              style: TextStyle(
+                fontSize: 15,
+                color: context.onCanvasText,
+              ),
               decoration: InputDecoration(
                 hintText: "Pick or type a category ✨",
-                hintStyle: textTheme.titleSmall,
-                suffixIcon: const Icon(Icons.search),
+                hintStyle: TextStyle(
+                  fontSize: 15,
+                  color: context.placeholderText,
+                ),
+                suffixIcon: Icon(
+                  Icons.expand_more_rounded,
+                  color: context.secondaryLabel,
+                ),
                 filled: false,
                 fillColor: Colors.transparent,
+                contentPadding: const EdgeInsets.symmetric(vertical: 15),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -86,15 +95,9 @@ class _ClosetItemCategoryAutocompleteFormFieldWidgetState
           child: Container(
             margin: const EdgeInsets.only(top: 8),
             decoration: BoxDecoration(
-              color: colorScheme.onPrimary,
+              color: context.cardSurface,
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 6,
-                  offset: const Offset(0, 3),
-                ),
-              ],
+              border: Border.all(color: context.hairline),
             ),
             child: SizedBox(
               width: MediaQuery.of(context).size.width - 25,
@@ -107,9 +110,15 @@ class _ClosetItemCategoryAutocompleteFormFieldWidgetState
                   return ListTile(
                     leading: Icon(
                       option["icon"] as IconData,
-                      color: colorScheme.primary,
+                      color: context.accent,
                     ),
-                    title: Text(option["label"], style: textTheme.bodyMedium),
+                    title: Text(
+                      option["label"],
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: context.onCanvasText,
+                      ),
+                    ),
                     onTap: () {
                       widget.controller.text = option["label"] as String;
                       onSelected(option);

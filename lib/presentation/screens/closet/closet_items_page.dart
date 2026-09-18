@@ -4,12 +4,15 @@ import 'package:fashionista/data/models/closet/bloc/closet_item_bloc.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_item_bloc_event.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_item_bloc_state.dart';
 import 'package:fashionista/data/models/closet/closet_item_model.dart';
+import 'package:fashionista/data/models/closet/outfit_closet_item_model.dart';
+import 'package:fashionista/data/models/closet/outfit_plan_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_closet_service.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/presentation/screens/closet/add_or_edit_closet_items_page.dart';
+import 'package:fashionista/presentation/screens/closet/add_or_edit_outfit_plan_screen.dart';
 import 'package:fashionista/presentation/screens/closet/widgets/closet_item_categories_widget.dart';
 import 'package:fashionista/presentation/screens/closet/widgets/closet_item_info_card_widget.dart';
 import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
-import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -61,47 +64,87 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
               child: Row(
                 children: [
                   Expanded(
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: "Search items...",
-                        hintStyle: textTheme.bodyMedium!.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                    child: SizedBox(
+                      height: 40,
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: "Search items...",
+                          hintStyle: textTheme.bodyMedium!.copyWith(
+                            color: context.mutedText,
+                          ),
+                          prefixIcon: const Icon(Icons.search, size: 20),
+                          prefixIconColor: context.secondaryLabel,
+                          filled: true,
+                          fillColor: context.cardSurface,
+                          contentPadding: EdgeInsets.zero,
+                          isDense: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(color: context.hairline),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(color: context.hairline),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(
+                              color: context.accent.withValues(alpha: 0.7),
+                            ),
+                          ),
                         ),
-                        prefixIcon: Icon(
-                          Icons.search,
-                          color: colorScheme.primary,
-                        ),
-                        filled: true,
-                        fillColor: colorScheme.surfaceContainerHighest,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 0,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
+                        onChanged: (value) {
+                          setState(() => _searchText = value);
+                        },
                       ),
-                      onChanged: (value) {
-                        setState(() => _searchText = value);
-                      },
                     ),
                   ),
                   const SizedBox(width: 8),
-                  CustomIconButtonRounded(
-                    backgroundColor: colorScheme.surfaceContainerHighest,
-                    onPressed: () => setState(() {
-                      filterByFavourite = !filterByFavourite;
-                    }),
-                    iconData: filterByFavourite
-                        ? Icons.favorite
-                        : Icons.favorite_border,
+                  SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: Material(
+                      color: context.cardSurface,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        side: BorderSide(color: context.hairline),
+                      ),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(10),
+                        onTap: () => setState(() {
+                          filterByFavourite = !filterByFavourite;
+                        }),
+                        child: Icon(
+                          filterByFavourite
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          size: 20,
+                          color: filterByFavourite
+                              ? context.accent
+                              : context.onCanvasText,
+                        ),
+                      ),
+                    ),
                   ),
                   const SizedBox(width: 8),
-                  CustomIconButtonRounded(
-                    backgroundColor: colorScheme.surfaceContainerHighest,
-                    onPressed: () {},
-                    iconData: Icons.filter_list_outlined,
+                  SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: Material(
+                      color: context.cardSurface,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        side: BorderSide(color: context.hairline),
+                      ),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(10),
+                        onTap: () {},
+                        child: const Icon(
+                          Icons.filter_list_outlined,
+                          size: 20,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -109,16 +152,22 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
           ),
         ),
 
-        /// Example Horizontal Chips
+        /// Categories header + chips
         SliverToBoxAdapter(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.all(12.0),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: Text("Categories", style: textTheme.titleLarge),
+                  child: Text(
+                    "Categories",
+                    style: textTheme.titleMedium!.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: context.onCanvasText,
+                    ),
+                  ),
                 ),
               ),
               ClosetItemCategoriesWidget(),
@@ -171,15 +220,16 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
                 }
                 return SliverPadding(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
+                    horizontal: 16,
                     vertical: 8,
                   ),
                   sliver: SliverGrid(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: (MediaQuery.of(context).size.width ~/ 180)
-                          .clamp(3, 6),
-                      mainAxisSpacing: 8,
-                      crossAxisSpacing: 8,
+                      crossAxisCount:
+                          (MediaQuery.of(context).size.width ~/ 180)
+                              .clamp(3, 6),
+                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 10,
                       childAspectRatio: 0.65,
                     ),
                     delegate: SliverChildBuilderDelegate((context, index) {
@@ -290,49 +340,38 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
   }
 
   void _showBottomSheet(BuildContext context, ClosetItemModel closetItem) {
+    final thumbnailUrl = closetItem.featuredMedia.isNotEmpty
+        ? closetItem.featuredMedia.first.url
+        : null;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Theme.of(context).colorScheme.onPrimary,
+      backgroundColor: context.canvasBackground,
+      clipBehavior: Clip.antiAlias,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (context) {
         return DraggableScrollableSheet(
           expand: false,
-          initialChildSize: 0.7, // how tall it opens initially
-          minChildSize: 0.4,
-          maxChildSize: 0.7,
+          initialChildSize: 0.85, // how tall it opens initially
+          minChildSize: 0.55,
+          maxChildSize: 0.92,
           builder: (context, scrollController) {
             return SingleChildScrollView(
               controller: scrollController,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    /// Handle bar
-                    Center(
-                      child: Container(
-                        height: 4,
-                        width: 40,
-                        margin: const EdgeInsets.only(bottom: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[400],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-
-                    /// Item Image
-                    AspectRatio(
-                      aspectRatio: 1,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: CachedNetworkImage(
-                          imageUrl: closetItem.featuredMedia.isNotEmpty
-                              ? closetItem.featuredMedia.first.url!
-                              : '',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  /// Hero image (full-bleed, bleeds behind the rounded corners)
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.55,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        CachedNetworkImage(
+                          imageUrl: thumbnailUrl ?? '',
                           fit: BoxFit.cover,
                           placeholder: (context, url) => const Center(
                             child: SizedBox(
@@ -346,129 +385,224 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
                           },
                           errorListener: (value) {},
                         ),
-                      ),
+                        /// Bottom scrim fading the photo into the panel
+                        DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withValues(alpha: 0.28),
+                              ],
+                              stops: const [0.55, 1.0],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 8),
+                  ),
 
-                    /// Title + Brand
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface.withValues(alpha: 1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Row(
+                  /// Content panel
+                  Container(
+                    color: context.canvasBackground,
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        /// Title + brand chip
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
-                              child: Column(
-                                children: [
-                                  Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text(
-                                      closetItem.description,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleLarge!
-                                          .copyWith(
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.primary,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                    ),
-                                  ),
-
-                                  if (closetItem.brand != null) ...[
-                                    const SizedBox(height: 4),
-                                    Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(
-                                        closetItem.brand!,
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.labelLarge,
-                                      ),
-                                    ),
-                                  ],
-                                ],
+                              child: Text(
+                                closetItem.description,
+                                style: TextStyle(
+                                  fontSize: 26,
+                                  height: 1.15,
+                                  fontWeight: FontWeight.w700,
+                                  color: context.onCanvasText,
+                                ),
                               ),
                             ),
-                            CustomIconButtonRounded(
-                              size: 24,
-                              iconData: Icons.favorite_outline,
-                              onPressed: () async {
-                                addOrRemoveFromFavourite(closetItem);
-                              },
-                              icon: AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 200),
-                                transitionBuilder: (child, animation) {
-                                  return ScaleTransition(
-                                    scale: animation,
-                                    child: FadeTransition(
-                                      opacity: animation,
-                                      child: child,
+                            if (closetItem.brand != null) ...[
+                              const SizedBox(width: 16),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 7,
+                                ),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: context.hairline),
+                                ),
+                                child: Text(
+                                  closetItem.brand!,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: context.secondaryLabel,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+
+                        /// Category
+                        Text(
+                          "Category: ${closetItem.category}",
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: context.secondaryLabel,
+                          ),
+                        ),
+
+                        if ((closetItem.colors ?? []).isNotEmpty) ...[
+                          const SizedBox(height: 14),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              for (final color in closetItem.colors!)
+                                Container(
+                                  width: 14,
+                                  height: 14,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Color(color),
+                                    border: Border.all(
+                                      color: context.hairline,
                                     ),
-                                  );
-                                },
-                                child: Icon(
-                                  closetItem.isFavourite!
-                                      ? Icons.favorite
-                                      : Icons.favorite_outline,
-                                  key: ValueKey(
-                                    closetItem.isFavourite!,
-                                  ), // important for switcher
-                                  color: closetItem.isFavourite!
-                                      ? Colors.red
-                                      : Colors.grey,
-                                  size: 24,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+
+                        const SizedBox(height: 24),
+
+                        /// Add to planner + favourite
+                        Row(
+                          children: [
+                            Expanded(
+                              child: SizedBox(
+                                height: 48,
+                                child: FilledButton.icon(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => AddOrEditOutfitPlanScreen(
+                                          outfitPlan: OutfitPlanModel.empty()
+                                              .copyWith(
+                                                occassion:
+                                                    closetItem.description,
+                                                thumbnailUrl: thumbnailUrl,
+                                                outfitItem: OutfitClosetItem
+                                                    .empty()
+                                                    .copyWith(
+                                                      thumbnailUrl:
+                                                          thumbnailUrl,
+                                                      uid: closetItem.uid!,
+                                                      featuredMedia: closetItem
+                                                          .featuredMedia,
+                                                      description: closetItem
+                                                          .description,
+                                                      category: closetItem
+                                                          .category,
+                                                    ),
+                                              ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  style: FilledButton.styleFrom(
+                                    backgroundColor: context.accent,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    textStyle: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  icon: const Icon(
+                                    Icons.calendar_today,
+                                    size: 18,
+                                  ),
+                                  label: const Text("Add to Planner"),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            SizedBox(
+                              width: 48,
+                              height: 48,
+                              child: Material(
+                                color: context.cardSurface,
+                                shape: CircleBorder(
+                                  side: BorderSide(color: context.hairline),
+                                ),
+                                child: InkWell(
+                                  customBorder: const CircleBorder(),
+                                  onTap: () {
+                                    addOrRemoveFromFavourite(closetItem);
+                                  },
+                                  child: Center(
+                                    child: AnimatedSwitcher(
+                                      duration: const Duration(
+                                        milliseconds: 200,
+                                      ),
+                                      transitionBuilder: (child, animation) {
+                                        return ScaleTransition(
+                                          scale: animation,
+                                          child: FadeTransition(
+                                            opacity: animation,
+                                            child: child,
+                                          ),
+                                        );
+                                      },
+                                      child: Icon(
+                                        closetItem.isFavourite!
+                                            ? Icons.favorite
+                                            : Icons.favorite_border,
+                                        key: ValueKey(
+                                          closetItem.isFavourite!,
+                                        ),
+                                        color: closetItem.isFavourite!
+                                            ? context.accent
+                                            : context.secondaryLabel,
+                                        size: 24,
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    ),
 
-                    const SizedBox(height: 16),
+                        const SizedBox(height: 16),
 
-                    /// Actions Row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              // Selected colors
-                              for (final color in closetItem.colors!)
-                                Stack(
-                                  alignment: Alignment.topRight,
-                                  children: [
-                                    Container(
-                                      width: 40,
-                                      height: 40,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: Color(color),
-                                        border: Border.all(
-                                          color: Colors.black12,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                            ],
-                          ),
+                        /// Divider
+                        Divider(
+                          height: 1,
+                          thickness: 1,
+                          color: context.hairline,
                         ),
 
-                        Expanded(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              CustomIconButtonRounded(
+                        const SizedBox(height: 12),
+
+                        /// Edit / Delete
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
                                 onPressed: () {
                                   Navigator.pop(context);
                                   Navigator.push(
@@ -480,11 +614,29 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
                                     ),
                                   );
                                 },
-                                size: 24,
-                                iconData: Icons.edit,
+                                icon: Icon(
+                                  Icons.edit_outlined,
+                                  size: 18,
+                                  color: context.onCanvasText,
+                                ),
+                                label: Text(
+                                  "Edit",
+                                  style: TextStyle(
+                                    color: context.onCanvasText,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  side: BorderSide(color: context.hairline),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
                               ),
-                              const SizedBox(width: 12),
-                              CustomIconButtonRounded(
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: OutlinedButton.icon(
                                 onPressed: () async {
                                   final canDelete = await showDialog<bool>(
                                     context: context,
@@ -503,7 +655,9 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
                                           onPressed: () =>
                                               Navigator.of(ctx).pop(true),
                                           style: TextButton.styleFrom(
-                                            foregroundColor: Colors.red,
+                                            foregroundColor: Theme.of(
+                                              ctx,
+                                            ).colorScheme.error,
                                           ),
                                           child: const Text('Delete'),
                                         ),
@@ -515,21 +669,36 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
                                     _deleteClosetItem(closetItem);
                                   }
                                 },
-                                iconData: Icons.delete,
                                 icon: Icon(
-                                  Icons.delete,
-                                  color: Colors.red,
-                                  size: 24,
+                                  Icons.delete_outline,
+                                  size: 18,
+                                  color: Theme.of(context).colorScheme.error,
                                 ),
-                                //backgroundColor: Colors.red.shade400,
+                                label: Text(
+                                  "Delete",
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.error,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  side: BorderSide(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.error.withValues(alpha: 0.4),
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             );
           },
