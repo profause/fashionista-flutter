@@ -22,6 +22,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:dartz/dartz.dart' as dartz;
+import 'package:go_router/go_router.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
 class OutfitsPage extends StatefulWidget {
@@ -145,15 +146,24 @@ class OutfitsPageState extends State<OutfitsPage> {
                     width: 40,
                     height: 40,
                     child: Material(
-                      color: context.cardSurface,
+                      color: colorScheme.primary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                         side: BorderSide(color: context.hairline),
                       ),
                       child: InkWell(
                         borderRadius: BorderRadius.circular(10),
-                        onTap: () {},
-                        child: const Icon(Icons.filter_list_outlined, size: 20),
+                        onTap: () => {
+                          showAddOutfitBottomSheet(
+                            context,
+                            OutfitModel.empty(),
+                          ),
+                        },
+                        child: Icon(
+                          Icons.add,
+                          size: 20,
+                          color: context.onCanvasText,
+                        ),
                       ),
                     ),
                   ),

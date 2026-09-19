@@ -7,6 +7,7 @@ import 'package:fashionista/data/services/hive/hive_client_service.dart';
 import 'package:fashionista/presentation/screens/clients/widgets/client_info_card_widget.dart';
 import 'package:fashionista/presentation/screens/clients/widgets/client_info_pinned_widget.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
+import 'package:fashionista/presentation/widgets/radio_option_row_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -136,8 +137,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                           context,
                           showAs!,
                           selectedFilter,
-                          (filter) =>
-                              setState(() => selectedFilter = filter),
+                          (filter) => setState(() => selectedFilter = filter),
                         );
                       },
                       icon: Icon(
@@ -318,10 +318,9 @@ class _ClientsScreenState extends State<ClientsScreen> {
                         height: 6,
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color:
-                              Theme.of(context).brightness == Brightness.dark
-                                  ? const Color(0xFF3A3938)
-                                  : const Color(0xFFD1D5DB),
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? const Color(0xFF3A3938)
+                              : const Color(0xFFD1D5DB),
                           borderRadius: BorderRadius.circular(999),
                         ),
                       ),
@@ -330,7 +329,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                     const SizedBox(height: 10),
                     _FilterOptionCard(
                       children: [
-                        _FilterRadioRow(
+                        RadioOptionRow(
                           label: "List",
                           value: "list",
                           groupValue: tempShowAs,
@@ -339,7 +338,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                             setState(() => showAs = val);
                           },
                         ),
-                        _FilterRadioRow(
+                        RadioOptionRow(
                           label: "Grid",
                           value: "grid",
                           groupValue: tempShowAs,
@@ -355,7 +354,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                     const SizedBox(height: 10),
                     _FilterOptionCard(
                       children: [
-                        _FilterRadioRow(
+                        RadioOptionRow(
                           label: "All",
                           value: "All",
                           groupValue: tempFilter,
@@ -365,7 +364,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                             onFilterSelected(val);
                           },
                         ),
-                        _FilterRadioRow(
+                        RadioOptionRow(
                           label: "Newest",
                           value: "Newest",
                           groupValue: tempFilter,
@@ -375,7 +374,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                             onFilterSelected(val);
                           },
                         ),
-                        _FilterRadioRow(
+                        RadioOptionRow(
                           label: "Pinned",
                           value: "Pinned",
                           groupValue: tempFilter,
@@ -456,71 +455,6 @@ class _FilterOptionCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(children: rows),
-      ),
-    );
-  }
-}
-
-class _FilterRadioRow extends StatelessWidget {
-  final String label;
-  final String value;
-  final String groupValue;
-  final ValueChanged<String> onChanged;
-
-  const _FilterRadioRow({
-    required this.label,
-    required this.value,
-    required this.groupValue,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final bool isSelected = groupValue == value;
-    return SizedBox(
-      height: 52,
-      child: InkWell(
-        onTap: () => onChanged(value),
-        child: Row(
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: context.onCanvasText,
-              ),
-            ),
-            const Spacer(),
-            Container(
-              width: 20,
-              height: 20,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  width: 2,
-                  color: isSelected
-                      ? context.accent
-                      : (Theme.of(context).brightness == Brightness.dark
-                          ? const Color(0xFF3A3938)
-                          : const Color(0xFFCBD5E1)),
-                ),
-              ),
-              child: isSelected
-                  ? Center(
-                      child: Container(
-                        width: 10,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: context.accent,
-                        ),
-                      ),
-                    )
-                  : null,
-            ),
-          ],
-        ),
       ),
     );
   }

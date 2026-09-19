@@ -1,3 +1,4 @@
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:flutter/material.dart';
 
 class CustomAutocompleteFormFieldWidget extends StatefulWidget {
@@ -7,7 +8,8 @@ class CustomAutocompleteFormFieldWidget extends StatefulWidget {
 
   const CustomAutocompleteFormFieldWidget({
     super.key,
-    required this.controller, required this.autoCompleteItems,
+    required this.controller,
+    required this.autoCompleteItems,
     required this.hintText,
   });
 
@@ -69,13 +71,18 @@ class _CustomAutocompleteFormFieldWidgetState
               controller: widget.controller, // external controller
               focusNode: _focusNode,
               onFieldSubmitted: (_) => onFieldSubmitted(),
+              style: const TextStyle(fontSize: 14),
               decoration: InputDecoration(
-                contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 4,
-                    vertical: 0,
-                  ),
                 hintText: widget.hintText,
-                suffixIcon: const Icon(Icons.search),
+                hintStyle: TextStyle(
+                  fontSize: 14,
+                  color: context.placeholderText,
+                ),
+                suffixIcon: Icon(
+                  Icons.search,
+                  size: 20,
+                  color: context.secondaryLabel,
+                ),
                 filled: true,
                 fillColor: Colors.transparent,
                 border: OutlineInputBorder(

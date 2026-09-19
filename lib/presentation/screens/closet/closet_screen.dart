@@ -336,28 +336,28 @@ class _ClosetScreenState extends State<ClosetScreen>
           ],
         ),
       ),
-      floatingActionButton:
-          (_tabController.index == 0 || _tabController.index == 1)
-          ? FloatingActionButton(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30), // 👈 adjust radius
-              ),
-              onPressed: () {
-                if (_tabController.index == 0) {
-                    context.push('/closet/add-item');
-                } else if (_tabController.index == 1) {
-                  outfitsKey.currentState?.showAddOutfitBottomSheet(
-                    context,
-                    OutfitModel.empty(),
-                  );
-                } else if (_tabController.index == 2) {
-                  // open "Add Planner" page
-                }
-              },
-              backgroundColor: colorScheme.primary,
-              child: const Icon(Icons.add),
-            )
-          : SizedBox.shrink(), // 👈 FAB hidden when not tab 0 or 1
+      // floatingActionButton:
+      //     (_tabController.index == 0 || _tabController.index == 1)
+      //     ? FloatingActionButton(
+      //         shape: RoundedRectangleBorder(
+      //           borderRadius: BorderRadius.circular(30), // 👈 adjust radius
+      //         ),
+      //         onPressed: () {
+      //           if (_tabController.index == 0) {
+      //               context.push('/closet/add-item');
+      //           } else if (_tabController.index == 1) {
+      //             outfitsKey.currentState?.showAddOutfitBottomSheet(
+      //               context,
+      //               OutfitModel.empty(),
+      //             );
+      //           } else if (_tabController.index == 2) {
+      //             // open "Add Planner" page
+      //           }
+      //         },
+      //         backgroundColor: colorScheme.primary,
+      //         child: const Icon(Icons.add),
+      //       )
+          //: SizedBox.shrink(), // 👈 FAB hidden when not tab 0 or 1
     );
   }
 

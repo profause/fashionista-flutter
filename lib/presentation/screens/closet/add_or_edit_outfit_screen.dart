@@ -8,6 +8,7 @@ import 'package:cloudinary_url_gen/transformation/resize/resize.dart';
 import 'package:cloudinary_url_gen/transformation/transformation.dart';
 import 'package:fashionista/core/service_locator/app_config.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_outfit_bloc.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_outfit_bloc_event.dart';
 import 'package:fashionista/data/models/closet/outfit_model.dart';
@@ -18,8 +19,6 @@ import 'package:fashionista/data/services/firebase/firebase_closet_service.dart'
 import 'package:fashionista/presentation/screens/closet/widgets/grid_thumbnail_widget.dart';
 import 'package:fashionista/presentation/screens/closet/widgets/outfit_tag_picker_widget.dart';
 import 'package:fashionista/presentation/widgets/custom_autocomplete_form_field_widget.dart';
-import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
-import 'package:fashionista/presentation/widgets/custom_text_input_field_widget.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -111,52 +110,77 @@ class _AddOrEditOutfitScreenState extends State<AddOrEditOutfitScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    //final random = Random();
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: context.canvasBackground,
       appBar: AppBar(
-        foregroundColor: colorScheme.primary,
-        backgroundColor: colorScheme.onPrimary,
-        title: Text(
-          'Add outfit to your closet',
-          style: textTheme.titleLarge!.copyWith(
-            fontWeight: FontWeight.bold,
-            color: colorScheme.primary,
+        backgroundColor: context.cardSurface,
+        foregroundColor: context.onCanvasText,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        leadingWidth: 56,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 8),
+          child: IconButton(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: const Icon(Icons.chevron_left, size: 30),
           ),
         ),
-        elevation: 0,
+        title: Text(
+          'Add Outfit To Your Closet',
+          style: textTheme.headlineSmall?.copyWith(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: context.onCanvasText,
+          ),
+          overflow: TextOverflow.ellipsis,
+        ),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 12.0),
-            child: CustomIconButtonRounded(
-              onPressed: () async {
-                if (_formKey.currentState!.validate()) {
-                  await _saveOutfitItem(
-                    widget.outfitModel ?? OutfitModel.empty(),
-                  );
-                  //Navigator.of(context).pop();
-                }
-              },
-              iconData: Icons.check,
+            padding: const EdgeInsets.only(right: 16),
+            child: Center(
+              child: SizedBox(
+                width: 32,
+                height: 32,
+                child: Material(
+                  color: context.accent,
+                  shape: const CircleBorder(),
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: () async {
+                      if (_formKey.currentState!.validate()) {
+                        await _saveOutfitItem(
+                          widget.outfitModel ?? OutfitModel.empty(),
+                        );
+                      }
+                    },
+                    child: const Center(
+                      child: Icon(Icons.check, size: 18, color: Colors.white),
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(height: 1, color: context.hairline),
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const SizedBox(height: 8),
                 Container(
                   clipBehavior: Clip.antiAlias,
                   decoration: BoxDecoration(
-                    color: colorScheme.onPrimary,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: GridThumbnailWidget(
@@ -172,70 +196,45 @@ class _AddOrEditOutfitScreenState extends State<AddOrEditOutfitScreen> {
                     },
                   ),
                 ),
-
-                const SizedBox(height: 12),
+                const SizedBox(height: 20),
+                // Field A: Style notes
+                _FieldLabel(text: 'Style notes'),
+                const SizedBox(height: 6),
+                _buildStyleNotesField(),
+                const SizedBox(height: 16),
+                // Field B: Occasion
+                const _FieldLabel(text: 'Occasion'),
+                const SizedBox(height: 6),
                 Container(
-                  padding: const EdgeInsets.only(
-                    left: 12,
-                    right: 12,
-                    top: 0,
-                    bottom: 12,
-                  ),
+                  height: 50,
+                  //padding: const EdgeInsets.symmetric(horizontal: 4),
                   decoration: BoxDecoration(
-                    color: colorScheme.onPrimary,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(8),
-                      topRight: Radius.circular(8),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: CustomTextInputFieldWidget(
-                    autofocus: true,
-                    controller: _styleController,
-                    hint: 'Describe your style inspiration...',
-                    minLines: 1,
-                    maxLength: 50,
-                    validator: (value) {
-                      if ((value ?? "").isEmpty) {
-                        return 'Describe your style inspiration...';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-
-                const SizedBox(height: 1),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: colorScheme.onPrimary,
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(8),
-                      bottomRight: Radius.circular(8),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
+                    color: context.cardSurface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: context.hairline),
+                    boxShadow: [_softShadow()],
                   ),
                   child: CustomAutocompleteFormFieldWidget(
                     controller: _occasionController,
                     autoCompleteItems: occasions,
-                    hintText: 'Describe the occassion...',
+                    hintText: 'Describe the occasion...',
                   ),
                 ),
-                const SizedBox(height: 16),
-                Text('Featured tags', style: textTheme.titleSmall),
-                const SizedBox(height: 8),
+                const SizedBox(height: 20),
+                // Featured tags header
+                Row(
+                  children: [
+                    Expanded(child: const _FieldLabel(text: 'Featured tags')),
+                    Text(
+                      'Multi-select',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: context.secondaryLabel,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
                 OutfitTagPickerWidget(
                   availableTags: outfitTags,
                   selectedTags: selectedTags,
@@ -251,6 +250,47 @@ class _AddOrEditOutfitScreenState extends State<AddOrEditOutfitScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildStyleNotesField() {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: context.cardSurface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: context.hairline),
+        boxShadow: [_softShadow()],
+      ),
+      child: TextFormField(
+        autofocus: true,
+        controller: _styleController,
+        minLines: 2,
+        maxLines: 4,
+        maxLength: 50,
+        validator: (value) {
+          if ((value ?? "").isEmpty) {
+            return 'Describe your style inspiration...';
+          }
+          return null;
+        },
+        style: const TextStyle(fontSize: 14),
+        decoration: InputDecoration(
+          counterStyle: TextStyle(fontSize: 11, color: context.placeholderText),
+          hintText: 'Describe your style inspiration...',
+          hintStyle: TextStyle(fontSize: 14, color: context.placeholderText),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.zero,
+        ),
+      ),
+    );
+  }
+
+  BoxShadow _softShadow() {
+    return BoxShadow(
+      color: Colors.black.withValues(alpha: 0.04),
+      blurRadius: 8,
+      offset: const Offset(0, 3),
     );
   }
 
@@ -454,5 +494,24 @@ class _AddOrEditOutfitScreenState extends State<AddOrEditOutfitScreen> {
     previewImages.clear();
     super.dispose();
   }
-  
+}
+
+class _FieldLabel extends StatelessWidget {
+  final String text;
+  const _FieldLabel({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: context.onCanvasText,
+        ),
+      ),
+    );
+  }
 }

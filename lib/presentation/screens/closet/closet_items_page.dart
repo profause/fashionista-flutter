@@ -18,6 +18,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dartz/dartz.dart' as dartz;
+import 'package:go_router/go_router.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
 final RouteObserver<ModalRoute<void>> closetItemPageRouteObserver =
@@ -139,9 +140,30 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
                       child: InkWell(
                         borderRadius: BorderRadius.circular(10),
                         onTap: () {},
-                        child: const Icon(
-                          Icons.filter_list_outlined,
+                        child: const Icon(Icons.filter_list_outlined, size: 20),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: Material(
+                      color: colorScheme.primary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        side: BorderSide(color: context.hairline),
+                      ),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(10),
+                        onTap: () => {
+                          //herheher
+                          context.push('/closet/add-item'),
+                        },
+                        child: Icon(
+                          Icons.add,
                           size: 20,
+                          color: context.onCanvasText,
                         ),
                       ),
                     ),
@@ -158,7 +180,7 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
@@ -170,7 +192,14 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
                   ),
                 ),
               ),
-              ClosetItemCategoriesWidget(),
+              const SizedBox(height: 8),
+              ClosetItemCategoriesWidget(
+                onSelected: (category) {
+                  // TODO: set search text to category
+                  
+                },
+              ),
+              const SizedBox(height: 8),
             ],
           ),
         ),
@@ -195,8 +224,10 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
                     : closetItems.where((item) {
                         final brand = item.brand!.toLowerCase();
                         final description = item.description.toLowerCase();
+                        final category = item.category.toLowerCase();
                         return brand.contains(_searchText.toLowerCase()) ||
-                            description.contains(_searchText.toLowerCase());
+                            description.contains(_searchText.toLowerCase()) ||
+                            category.contains(_searchText.toLowerCase());
                       }).toList();
 
                 filteredItems = !filterByFavourite
@@ -225,9 +256,8 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
                   ),
                   sliver: SliverGrid(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount:
-                          (MediaQuery.of(context).size.width ~/ 180)
-                              .clamp(3, 6),
+                      crossAxisCount: (MediaQuery.of(context).size.width ~/ 180)
+                          .clamp(3, 6),
                       mainAxisSpacing: 10,
                       crossAxisSpacing: 10,
                       childAspectRatio: 0.65,
@@ -385,6 +415,7 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
                           },
                           errorListener: (value) {},
                         ),
+
                         /// Bottom scrim fading the photo into the panel
                         DecoratedBox(
                           decoration: BoxDecoration(
@@ -473,9 +504,7 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     color: Color(color),
-                                    border: Border.all(
-                                      color: context.hairline,
-                                    ),
+                                    border: Border.all(color: context.hairline),
                                   ),
                                 ),
                             ],
@@ -502,19 +531,21 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
                                                 occassion:
                                                     closetItem.description,
                                                 thumbnailUrl: thumbnailUrl,
-                                                outfitItem: OutfitClosetItem
-                                                    .empty()
-                                                    .copyWith(
-                                                      thumbnailUrl:
-                                                          thumbnailUrl,
-                                                      uid: closetItem.uid!,
-                                                      featuredMedia: closetItem
-                                                          .featuredMedia,
-                                                      description: closetItem
-                                                          .description,
-                                                      category: closetItem
-                                                          .category,
-                                                    ),
+                                                outfitItem:
+                                                    OutfitClosetItem.empty()
+                                                        .copyWith(
+                                                          thumbnailUrl:
+                                                              thumbnailUrl,
+                                                          uid: closetItem.uid!,
+                                                          featuredMedia:
+                                                              closetItem
+                                                                  .featuredMedia,
+                                                          description:
+                                                              closetItem
+                                                                  .description,
+                                                          category: closetItem
+                                                              .category,
+                                                        ),
                                               ),
                                         ),
                                       ),
@@ -571,9 +602,7 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
                                         closetItem.isFavourite!
                                             ? Icons.favorite
                                             : Icons.favorite_border,
-                                        key: ValueKey(
-                                          closetItem.isFavourite!,
-                                        ),
+                                        key: ValueKey(closetItem.isFavourite!),
                                         color: closetItem.isFavourite!
                                             ? context.accent
                                             : context.secondaryLabel,

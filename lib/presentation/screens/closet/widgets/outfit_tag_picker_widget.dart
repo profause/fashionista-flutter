@@ -1,3 +1,4 @@
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:flutter/material.dart';
 
 class OutfitTagPickerWidget extends StatefulWidget {
@@ -55,8 +56,6 @@ class _OutfitTagPickerWidgetState extends State<OutfitTagPickerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    //final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -66,53 +65,100 @@ class _OutfitTagPickerWidgetState extends State<OutfitTagPickerWidget> {
           children: _allTags.map((tag) {
             final isSelected = _selectedTags.contains(tag);
 
-            return ChoiceChip(
-              label: Text(tag),
-              selected: isSelected,
-              onSelected: (_) => _toggleTag(tag),
-              selectedColor: Theme.of(context).colorScheme.primary,
-              labelStyle: textTheme.labelMedium!.copyWith(
-                color: isSelected
-                    ? Theme.of(context).colorScheme.onPrimary
-                    : Theme.of(context).colorScheme.primary,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            return GestureDetector(
+              onTap: () => _toggleTag(tag),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                height: 34,
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                decoration: BoxDecoration(
+                  color: isSelected ? context.accent : context.cardSurface,
+                  borderRadius: BorderRadius.circular(999),
+                  border: isSelected
+                      ? null
+                      : Border.all(color: context.hairline),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: SizedBox(
+                  height: 34,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        tag,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: isSelected
+                              ? Colors.white
+                              : context.descriptionText,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              //visualDensity: VisualDensity.compact,
-              //padding: EdgeInsets.zero,
             );
           }).toList(),
         ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _tagController,
-                decoration: InputDecoration(
-                  suffixIcon: IconButton(
-                    onPressed: _addCustomTag,
-                    icon: const Icon(Icons.add_circle),
-                  ),
-                  //contentPadding: EdgeInsets.symmetric(horizontal: 12),
-                  hintText: widget.hint ?? 'Add custom tag...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  hintStyle: textTheme.titleSmall,
-                  filled: true,
-                  fillColor: Colors.transparent,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 4,
-                    vertical: 0,
+        const SizedBox(height: 20),
+        Container(
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            color: context.cardSurface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: context.hairline),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _tagController,
+                  onSubmitted: (_) => _addCustomTag(),
+                  style: const TextStyle(fontSize: 14),
+                  cursorColor: context.accent,
+                  decoration: InputDecoration(
+                    hintText: widget.hint ?? 'Add custom tag...',
+                    hintStyle: TextStyle(
+                      fontSize: 14,
+                      color: context.placeholderText,
+                    ),
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
                   ),
                 ),
-                onSubmitted: (_) => _addCustomTag(),
               ),
-            ),
-            const SizedBox(width: 8),
-          ],
+              const SizedBox(width: 10),
+              GestureDetector(
+                onTap: _addCustomTag,
+                child: Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: context.accent,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.add, size: 18, color: Colors.white),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );

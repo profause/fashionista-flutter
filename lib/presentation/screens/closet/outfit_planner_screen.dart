@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
@@ -9,6 +8,7 @@ import 'package:fashionista/data/models/closet/bloc/closet_outfit_plan_bloc_even
 import 'package:fashionista/data/models/closet/bloc/closet_outfit_plan_bloc_state.dart';
 import 'package:fashionista/data/models/closet/outfit_model.dart';
 import 'package:fashionista/data/models/closet/outfit_plan_model.dart';
+import 'package:fashionista/data/models/closet/outfit_closet_item_model.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_closet_service.dart';
 import 'package:fashionista/data/services/hive/hive_outfit_service.dart';
@@ -18,7 +18,6 @@ import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:intl/intl.dart';
 import 'package:dartz/dartz.dart' as dartz;
 import 'package:sliver_tools/sliver_tools.dart';
@@ -67,6 +66,7 @@ class _OutfitPlannerScreenState extends State<OutfitPlannerScreen> {
       pushPinnedChildren: true,
       // 👈 helper from 'sliver_tools' package, or just return a Column of slivers
       children: [
+        SizedBox(height: 8),
         // Week selector pill
         SliverToBoxAdapter(
           child: Padding(
@@ -220,10 +220,8 @@ class _OutfitPlannerScreenState extends State<OutfitPlannerScreen> {
                         date: date,
                         plans: plansForDay,
                         isToday: isToday,
-                        onPlanTap: (plan) => _showDetailsBottomSheet(
-                          context,
-                          plan,
-                        ),
+                        onPlanTap: (plan) =>
+                            _showDetailsBottomSheet(context, plan),
                       );
                     },
                     childCount: normalizedWeekDays.length, // Always 7
@@ -393,9 +391,6 @@ class _OutfitPlannerScreenState extends State<OutfitPlannerScreen> {
     BuildContext context,
     OutfitPlanModel outfitPlan,
   ) async {
-    final random = Random();
-    List<FeaturedMediaModel> featuredMedia =
-        outfitPlan.outfitItem.featuredMedia;
     final OutfitModel outfit = await sl<HiveOutfitService>().getItem(
       '',
       outfitPlan.outfitItem.uid,
@@ -403,224 +398,173 @@ class _OutfitPlannerScreenState extends State<OutfitPlannerScreen> {
 
     if (!context.mounted) return;
 
-    //final thumbnailUrl = outfitPlan.thumbnailUrl ?? '';
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: context.cardSurface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      shape: RoundedRectangleBorder(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        side: BorderSide(color: context.hairline),
       ),
-
       builder: (context) {
         return DraggableScrollableSheet(
           expand: false,
           initialChildSize: 0.7, // how tall it opens initially
-          minChildSize: 0.7,
-          maxChildSize: 0.9,
+          minChildSize: 0.45,
+          maxChildSize: 0.92,
           shouldCloseOnMinExtent: false,
           builder: (context, scrollController) {
             return SingleChildScrollView(
               controller: scrollController,
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     /// Handle bar
                     Center(
                       child: Container(
-                        height: 6,
+                        height: 4,
                         width: 36,
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
                           color: context.softBorder,
-                          borderRadius: BorderRadius.circular(3),
+                          borderRadius: BorderRadius.circular(999),
                         ),
                       ),
                     ),
-                    //const SizedBox(height: 8),
-                    Container(
-                      clipBehavior: Clip.antiAlias,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: MasonryGridView.builder(
-                        padding: const EdgeInsets.all(0),
-                        shrinkWrap:
-                            true, // ✅ important when inside SingleChildScrollView
-                        physics:
-                            const NeverScrollableScrollPhysics(), // ✅ let parent handle scroll
-                        cacheExtent: 10,
-                        gridDelegate:
-                            SliverSimpleGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: featuredMedia.length > 4 ? 3 : 2,
-                            ),
-                        mainAxisSpacing: 2,
-                        crossAxisSpacing: 2,
-                        itemCount: featuredMedia.length,
-                        itemBuilder: (context, index) {
-                          final preview = featuredMedia[index];
-                          // 👇 Assign different aspect ratios randomly for variety
-                          final aspectRatioOptions = [1 / 1];
-                          final aspectRatio =
-                              aspectRatioOptions[random.nextInt(
-                                aspectRatioOptions.length,
-                              )];
-                          return Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: AspectRatio(
-                              aspectRatio: aspectRatio,
-                              child: CachedNetworkImage(
-                                imageUrl: preview.url!.isEmpty
-                                    ? ''
-                                    : preview.url!.trim(),
-                                fit: BoxFit.cover,
-                                placeholder: (context, url) => const Center(
-                                  child: SizedBox(
-                                    height: 18,
-                                    width: 18,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  ),
-                                ),
-                                errorWidget: (context, url, error) {
-                                  return const CustomColoredBanner(text: '');
-                                },
-                                errorListener: (value) {},
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 12),
+                    // Lookbook media showcase
+                    _buildPlannerLookbook(outfit.closetItems),
+                    const SizedBox(height: 16),
+                    // Outfit title & seasonal tags
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                outfit.occassion,
-                                style: Theme.of(context).textTheme.titleSmall,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            // CustomIconButtonRounded(
-                            //   iconData: Icons.favorite_outline,
-                            //   size: 24,
-                            //   onPressed: () => addOrRemoveFromFavourite(outfit),
-                            //   icon: AnimatedSwitcher(
-                            //     duration: const Duration(milliseconds: 200),
-                            //     child: Icon(
-                            //       outfit.isFavourite!
-                            //           ? Icons.favorite
-                            //           : Icons.favorite_outline,
-                            //       key: ValueKey(outfit.isFavourite!),
-                            //       color: outfit.isFavourite!
-                            //           ? Colors.red
-                            //           : Colors.grey,
-                            //       size: 24,
-                            //     ),
-                            //   ),
-                            // ),
-                          ],
+                        Text(
+                          outfit.occassion,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.4,
+                            height: 1.2,
+                            color: context.onCanvasText,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 4),
-                        // Text(
-                        //   outfit.occassion,
-                        //   style: Theme.of(context).textTheme.bodySmall,
-                        //   maxLines: 1,
-                        //   overflow: TextOverflow.ellipsis,
-                        // ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: outfit.tags!.isEmpty
+                              ? [const SizedBox(height: 1)]
+                              : outfit.tags!
+                                    .split('|')
+                                    .where((tag) => tag.trim().isNotEmpty)
+                                    .map(
+                                      (tag) => Container(
+                                        height: 32,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 14,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: context.iconSubstrate,
+                                          borderRadius: BorderRadius.circular(
+                                            999,
+                                          ),
+                                          border: Border.all(
+                                            color: context.hairline,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.ac_unit,
+                                              size: 14,
+                                              color: context.secondaryLabel,
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              tag.trim(),
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w500,
+                                                color: context.descriptionText,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                        ),
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 6, // 👈 reduced padding
-                      children: outfit.tags!.isEmpty
-                          ? [SizedBox(height: 1)]
-                          : outfit.tags!
-                                .split('|')
-                                .where(
-                                  (tag) => tag.trim().isNotEmpty,
-                                ) // ✅ only keep non-empty tags
-                                .map(
-                                  (tag) => Chip(
-                                    label: Text(tag),
-                                    visualDensity: VisualDensity.compact,
-                                    materialTapTargetSize:
-                                        MaterialTapTargetSize.shrinkWrap,
-                                  ),
-                                )
-                                .toList(),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () async {
-                              final canDelete = await showDialog<bool>(
-                                context: context,
-                                builder: (ctx) => AlertDialog(
-                                  title: const Text('Delete Item'),
-                                  content: const Text(
-                                    'Are you sure you want to delete this item?',
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.of(ctx).pop(false),
-                                      child: const Text('Cancel'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(ctx).pop(true);
-                                      },
-                                      style: TextButton.styleFrom(
-                                        foregroundColor: Theme.of(
-                                          context,
-                                        ).colorScheme.error,
-                                      ),
-                                      child: const Text('Delete'),
-                                    ),
-                                  ],
-                                ),
-                              );
-
-                              if (canDelete == true) {
-                                _deleteOutfitPlan(outfitPlan);
-                              }
-                            },
-                            icon: const Icon(Icons.remove, size: 18),
-                            label: const Text("remove from planner"),
-                            style: OutlinedButton.styleFrom(
-                              elevation: 0, // ✅ no elevation
-                              side: BorderSide(
-                                color: context.hairline,
-                              ), // ✅ hairline border
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                  8,
-                                ), // optional: rounded edges
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
+                    const SizedBox(height: 24),
+                    // Destructive action
+                    GestureDetector(
+                      onTap: () async {
+                        final canDelete = await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('Delete Item'),
+                            content: const Text(
+                              'Are you sure you want to delete this item?',
                             ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(ctx).pop(false),
+                                child: const Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(ctx).pop(true);
+                                },
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Theme.of(
+                                    context,
+                                  ).colorScheme.error,
+                                ),
+                                child: const Text('Delete'),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (canDelete == true) {
+                          _deleteOutfitPlan(outfitPlan);
+                        }
+                      },
+                      child: Container(
+                        height: 52,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          //color: Theme.of(context).colorScheme.errorContainer,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.error.withValues(alpha: 0.25),
                           ),
                         ),
-                      ],
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.remove, size: 18),
+                            const SizedBox(width: 8),
+                            Text(
+                              'remove from planner',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
+                    // Home indicator
                   ],
                 ),
               ),
@@ -628,6 +572,87 @@ class _OutfitPlannerScreenState extends State<OutfitPlannerScreen> {
           },
         );
       },
+    );
+  }
+
+  Widget _buildPlannerLookbook(List<OutfitClosetItem> items) {
+    if (items.isEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: const CustomColoredBanner(text: ''),
+      );
+    }
+
+    final cells = items.take(2).toList();
+
+    return AspectRatio(
+      aspectRatio: 1.65,
+      child: Container(
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: context.hairline),
+          color: context.iconSubstrate,
+        ),
+        child: Row(
+          children: [
+            for (var i = 0; i < cells.length; i++) ...[
+              if (i > 0) Container(width: 1, color: context.hairline),
+              Expanded(child: _plannerLookbookCell(cells[i])),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _plannerLookbookCell(OutfitClosetItem item) {
+    final url = item.featuredMedia.isNotEmpty
+        ? item.featuredMedia.first.url ?? ''
+        : '';
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        if (url.isEmpty)
+          const CustomColoredBanner(text: '')
+        else
+          CachedNetworkImage(
+            imageUrl: url.trim(),
+            fit: BoxFit.cover,
+            placeholder: (context, url) => const Center(
+              child: SizedBox(
+                height: 18,
+                width: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+            errorWidget: (context, url, error) =>
+                const CustomColoredBanner(text: ''),
+            errorListener: (value) {},
+          ),
+        if (item.category.trim().isNotEmpty)
+          Positioned(
+            left: 8,
+            bottom: 8,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                item.category.trim().toUpperCase(),
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
+                  color: Color(0xFFB0B3B8),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -642,7 +667,7 @@ class _OutfitPlannerScreenState extends State<OutfitPlannerScreen> {
       // final cloudinary = Cloudinary.fromConfiguration(config);
       // DestroyParams destroyParams = DestroyParams(publicId: '');
       // await cloudinary.uploader().destroy(destroyParams);
-      
+
       final List<Future<dartz.Either>> futures = [];
 
       futures.add(
@@ -856,9 +881,9 @@ class _PlannerDayCard extends StatelessWidget {
     final occasion = (plan.occassion?.trim().isNotEmpty ?? false)
         ? plan.occassion!.trim()
         : 'Outfit Fit';
-    final timeStr = DateFormat('hh:mm a').format(
-      DateTime.fromMillisecondsSinceEpoch(plan.date),
-    );
+    final timeStr = DateFormat(
+      'hh:mm a',
+    ).format(DateTime.fromMillisecondsSinceEpoch(plan.date));
 
     return InkWell(
       onTap: () => onPlanTap(plan),
@@ -916,9 +941,7 @@ class _PlannerDayCard extends StatelessWidget {
                       Row(
                         children: [
                           Icon(
-                            isToday
-                                ? Icons.schedule
-                                : Icons.circle,
+                            isToday ? Icons.schedule : Icons.circle,
                             size: isToday ? 12 : 6,
                             color: isToday
                                 ? context.accent
@@ -967,9 +990,7 @@ class _PlannerDayCard extends StatelessWidget {
     List<FeaturedMediaModel> media = List.of(plan.outfitItem.featuredMedia);
     final thumb = plan.thumbnailUrl?.trim();
     if (thumb != null && thumb.isNotEmpty) {
-      media = [
-        FeaturedMediaModel(aspectRatio: 1, url: thumb, type: 'image'),
-      ];
+      media = [FeaturedMediaModel(aspectRatio: 1, url: thumb, type: 'image')];
     }
     final items = media.take(4).toList();
     final count = items.length;
@@ -991,42 +1012,54 @@ class _PlannerDayCard extends StatelessWidget {
       child: count == 0
           ? const SizedBox.shrink()
           : count == 1
-              ? cell(0)
-              : count == 2
-                  ? Row(children: [
+          ? cell(0)
+          : count == 2
+          ? Row(
+              children: [
+                Expanded(child: cell(0)),
+                divider,
+                Expanded(child: cell(1)),
+              ],
+            )
+          : count == 3
+          ? Row(
+              children: [
+                Expanded(child: cell(0)),
+                divider,
+                Expanded(
+                  child: Column(
+                    children: [
+                      Expanded(child: cell(1)),
+                      dividerH,
+                      Expanded(child: cell(2)),
+                    ],
+                  ),
+                ),
+              ],
+            )
+          : Column(
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
                       Expanded(child: cell(0)),
                       divider,
                       Expanded(child: cell(1)),
-                    ])
-                  : count == 3
-                      ? Row(children: [
-                          Expanded(child: cell(0)),
-                          divider,
-                          Expanded(
-                            child: Column(children: [
-                              Expanded(child: cell(1)),
-                              dividerH,
-                              Expanded(child: cell(2)),
-                            ]),
-                          ),
-                        ])
-                      : Column(children: [
-                          Expanded(
-                            child: Row(children: [
-                              Expanded(child: cell(0)),
-                              divider,
-                              Expanded(child: cell(1)),
-                            ]),
-                          ),
-                          dividerH,
-                          Expanded(
-                            child: Row(children: [
-                              Expanded(child: cell(2)),
-                              divider,
-                              Expanded(child: cell(3)),
-                            ]),
-                          ),
-                        ]),
+                    ],
+                  ),
+                ),
+                dividerH,
+                Expanded(
+                  child: Row(
+                    children: [
+                      Expanded(child: cell(2)),
+                      divider,
+                      Expanded(child: cell(3)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
     );
   }
 
@@ -1041,9 +1074,7 @@ class _PlannerDayCard extends StatelessWidget {
           child: CircularProgressIndicator(strokeWidth: 2),
         ),
       ),
-      errorWidget: (context, url, error) => const CustomColoredBanner(
-        text: '',
-      ),
+      errorWidget: (context, url, error) => const CustomColoredBanner(text: ''),
     );
   }
 }
