@@ -87,11 +87,9 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       //extendBody: true,
-      backgroundColor: colorScheme.surface,
+      backgroundColor: context.canvasBackground,
       body: Column(
         children: [
           // EXPANDED PAGE CONTENT
@@ -119,115 +117,75 @@ class _MainScreenState extends State<MainScreen> {
         ],
       ),
 
-      bottomNavigationBar: BottomNavigationBar(
-        showSelectedLabels: true,
-        showUnselectedLabels: true,
-        selectedLabelStyle: textTheme.labelMedium!.copyWith(
-          fontWeight: FontWeight.bold,
-          fontSize: 13,
-          color: colorScheme.primary,
-        ),
-        unselectedLabelStyle: textTheme.labelMedium!.copyWith(
-          fontWeight: FontWeight.w500,
-          fontSize: 13,
-          color: colorScheme.primary.withValues(alpha: 0.7),
-        ),
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: AppTheme.appIconColor,
-        backgroundColor: colorScheme.onPrimary,
-        //unselectedItemColor: colorScheme.primary.withValues(alpha: 0.5),
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
+      bottomNavigationBar: NavigationBar(
+        elevation: 0,
+        selectedIndex: widget.navigationShell.currentIndex,
+        onDestinationSelected: _onItemTapped,
+        destinations: [
+          NavigationDestination(
+            icon: const Icon(Icons.home_outlined),
+            selectedIcon: const Icon(Icons.home),
             label: 'Home',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people_alt_outlined),
-            activeIcon: Icon(Icons.people_alt),
+          NavigationDestination(
+            icon: const Icon(Icons.people_alt_outlined),
+            selectedIcon: const Icon(Icons.people_alt),
             label: _userBloc.state.accountType == 'Designer'
                 ? 'Clients'
                 : 'Designers',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.checkroom_outlined),
-            activeIcon: Icon(Icons.checkroom),
+          NavigationDestination(
+            icon: const Icon(Icons.checkroom_outlined),
+            selectedIcon: const Icon(Icons.checkroom),
             label: 'Closet',
           ),
-          BottomNavigationBarItem(
-            icon: BlocBuilder<UserBloc, User>(
-              builder: (context, user) {
-                return CircleAvatar(
-                  radius: 16,
-                  backgroundColor: Colors.grey.shade300,
-                  child: Container(
-                    margin: const EdgeInsets.all(2),
-                    clipBehavior: Clip.antiAlias,
-                    decoration: BoxDecoration(shape: BoxShape.circle),
-                    child: CachedNetworkImage(
-                      imageUrl: user.profileImage,
-                      errorListener: (error) {},
-                      placeholder: (context, url) => DefaultProfileAvatar(
-                        key: ValueKey(user.uid),
-                        name: null,
-                        size: 18 * 1.8,
-                        uid: user.uid!,
-                      ),
-                      errorWidget: (context, url, error) =>
-                          DefaultProfileAvatar(
-                            key: ValueKey(user.uid),
-                            name: null,
-                            size: 18 * 1.8,
-                            uid: user.uid!,
-                          ),
-                    ),
-                  ),
-                );
-              },
-            ),
-            activeIcon: BlocBuilder<UserBloc, User>(
-              builder: (context, user) {
-                return Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppTheme.appIconColor, width: 1),
-                  ),
-                  child: CircleAvatar(
-                    radius: 16,
-                    backgroundColor: Colors.grey.shade300,
-                    child: Container(
-                      margin: const EdgeInsets.all(2),
-                      clipBehavior: Clip.antiAlias,
-                      decoration: BoxDecoration(shape: BoxShape.circle),
-                      child: CachedNetworkImage(
-                        imageUrl: user.profileImage,
-                        errorListener: (error) {},
-                        placeholder: (context, url) => DefaultProfileAvatar(
-                          key: ValueKey(user.uid),
-                          name: null,
-                          size: 18 * 1.8,
-                          uid: user.uid!,
-                        ),
-                        errorWidget: (context, url, error) =>
-                            DefaultProfileAvatar(
-                              key: ValueKey(user.uid),
-                              name: null,
-                              size: 18 * 1.8,
-                              uid: user.uid!,
-                            ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
+          NavigationDestination(
+            icon: _buildProfileIcon(selected: false),
+            selectedIcon: _buildProfileIcon(selected: true),
             label: 'Profile',
           ),
         ],
-        currentIndex: widget.navigationShell.currentIndex,
-        onTap: _onItemTapped,
-        elevation: 0,
       ),
+    );
+  }
+
+  Widget _buildProfileIcon({required bool selected}) {
+    return BlocBuilder<UserBloc, User>(
+      builder: (context, user) {
+        final avatar = CircleAvatar(
+          radius: 16,
+          backgroundColor: context.iconSubstrate,
+          child: Container(
+            margin: const EdgeInsets.all(2),
+            clipBehavior: Clip.antiAlias,
+            decoration: const BoxDecoration(shape: BoxShape.circle),
+            child: CachedNetworkImage(
+              imageUrl: user.profileImage,
+              errorListener: (error) {},
+              placeholder: (context, url) => DefaultProfileAvatar(
+                key: ValueKey(user.uid),
+                name: null,
+                size: 18 * 1.8,
+                uid: user.uid!,
+              ),
+              errorWidget: (context, url, error) => DefaultProfileAvatar(
+                key: ValueKey(user.uid),
+                name: null,
+                size: 18 * 1.8,
+                uid: user.uid!,
+              ),
+            ),
+          ),
+        );
+        if (!selected) return avatar;
+        return Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: context.accent, width: 1),
+          ),
+          child: avatar,
+        );
+      },
     );
   }
 }

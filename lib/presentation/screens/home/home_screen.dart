@@ -49,7 +49,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
@@ -60,8 +59,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           // 1. Twitter/X-style fixed app bar
           // -------------------------------
           SliverAppBar(
-            backgroundColor: colorScheme.onPrimary,
-            foregroundColor: colorScheme.primary,
+            backgroundColor: context.canvasBackground,
+            foregroundColor: context.onCanvasText,
             pinned: false, // ← stays fixed ALWAYS
             floating: true,
             snap: false,
@@ -70,14 +69,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               style: textTheme.titleMedium!.copyWith(
                 fontWeight: FontWeight.bold,
                 fontSize: 22,
-                color: colorScheme.primary,
+                color: context.onCanvasText,
               ),
             ),
             actions: [
               Hero(
                 tag: 'add-post',
                 child: IconButton(
-                  icon: Icon(Icons.settings, color: colorScheme.primary),
+                  icon: Icon(Icons.settings, color: context.onCanvasText),
                   onPressed: () {
                     context.push('/settings');
                   },
@@ -104,7 +103,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           padding: const EdgeInsets.only(right: 12.0),
                           child: Icon(
                             Icons.notifications,
-                            color: colorScheme.primary,
+                            color: context.onCanvasText,
                           ),
                         ),
                         if (hasNew) // ✅ only show dot when there are new notifications
@@ -115,7 +114,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               width: 8,
                               height: 8,
                               decoration: BoxDecoration(
-                                color: AppTheme.appIconColor,
+                                color: context.accent,
                                 shape: BoxShape.circle,
                               ),
                             ),
@@ -140,26 +139,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             delegate: _TabBarDelegate(
               TabBar(
                 controller: _tabController,
-                indicatorColor: colorScheme.primary,
-                labelColor: colorScheme.primary,
-                unselectedLabelColor: AppTheme.darkGrey,
+                labelColor: context.onCanvasText,
+                unselectedLabelColor: context.mutedText,
                 dividerHeight: 0.5,
                 indicatorWeight: 2,
-                dividerColor: colorScheme.primary.withValues(alpha: 0.2),
+                dividerColor: context.hairline,
                 indicator: UnderlineTabIndicator(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(
-                    width: 4,
-                    color: AppTheme.appIconColor.withValues(alpha: 1),
-                  ),
+                  borderSide: BorderSide(width: 4, color: context.accent),
                 ),
                 tabs: [
                   Tab(
                     child: Text(
                       "Discover",
                       style: textTheme.bodyMedium!.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.primary,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     //text: "Discover"
@@ -169,8 +163,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     child: Text(
                       "For You",
                       style: textTheme.bodyMedium!.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.primary,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -227,7 +220,7 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
       curve: Curves.fastOutSlowIn,
       //padding: EdgeInsets.only(bottom: 12),
       alignment: Alignment.center,
-      color: Theme.of(context).colorScheme.onPrimary,
+      color: context.canvasBackground,
       child: Opacity(opacity: opacity, child: _tabBar),
     );
   }
