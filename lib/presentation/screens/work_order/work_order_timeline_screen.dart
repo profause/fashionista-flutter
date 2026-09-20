@@ -17,6 +17,7 @@ import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
@@ -51,26 +52,112 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        foregroundColor: colorScheme.primary,
-        backgroundColor: colorScheme.onPrimary,
-        title: Text('Project Timeline'),
+        foregroundColor: colorScheme.onSurface,
+        backgroundColor: colorScheme.surface,
+        centerTitle: true,
+        leading: IconButton(
+          onPressed: () => context.pop(),
+          icon: Icon(
+            Icons.chevron_left_rounded,
+            size: 26,
+            color: context.onCanvasText,
+          ),
+          splashRadius: 20,
+          tooltip: 'Back',
+        ),
+        title: Text(
+          'Project Timeline',
+          style: textTheme.titleMedium?.copyWith(
+            color: colorScheme.onSurface,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'refresh') {
+                context.read<WorkOrderStatusProgressBloc>().add(
+                  LoadStatusProgress(widget.workOrderId),
+                );
+              }
+            },
+            tooltip: 'More options',
+            itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: 'refresh',
+                child: Text('Refresh timeline'),
+              ),
+            ],
+          ),
+        ],
         elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            height: 1,
+            color: colorScheme.outline.withValues(alpha: 0.18),
+          ),
+        ),
       ),
       body: SafeArea(
-        // 👈 makes sure it stays below status bar
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.only(left: 16, top: 4, right: 16),
-                child: Text(
-                  textAlign: TextAlign.start,
-                  'Stay on top of deadlines, updates, and progress — all in one place.',
-                  style: textTheme.titleSmall,
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: context.cardSurface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: colorScheme.outline.withValues(alpha: 0.18),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.035),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: context.accent.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: context.accent.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.info_outline,
+                          size: 14,
+                          color: context.accent,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Stay on top of deadlines, updates, and progress — all in one place.',
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w500,
+                            height: 1.45,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               BlocBuilder<
                 WorkOrderStatusProgressBloc,
                 WorkOrderStatusProgressBlocState
@@ -90,10 +177,9 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
                       );
                     case WorkOrderProgressLoaded(:final workOrderProgress):
                       return ListView.separated(
-                        shrinkWrap: true, // 👈 fixes unbounded height
-                        physics:
-                            NeverScrollableScrollPhysics(), // 👈 disable inner scrolling
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                         itemBuilder: (context, index) {
                           final statusProgress = workOrderProgress[index];
                           return WorkOrderStatusInfoCardWidget(
@@ -237,7 +323,6 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
     Function(WorkOrderStatusProgressModel statusProgress) onSave,
   ) {
     final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
 
     final TextEditingController statusTextFieldController =
         TextEditingController();
@@ -254,7 +339,7 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: colorScheme.onPrimary,
+      backgroundColor: context.cardSurface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -299,7 +384,7 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
                           height: 52,
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           decoration: BoxDecoration(
-                            color: colorScheme.surface,
+                            color: context.iconSubstrate,
                             borderRadius: BorderRadius.circular(12),
                             //border: Border.all(color: context.hairline),
                           ),
@@ -337,7 +422,7 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: colorScheme.surface,
+                            color: context.iconSubstrate,
                             borderRadius: BorderRadius.circular(12),
                             //border: Border.all(color: context.hairline),
                           ),
@@ -440,7 +525,7 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
                               horizontal: 14,
                             ),
                             decoration: BoxDecoration(
-                              color: colorScheme.surface,
+                              color: context.iconSubstrate,
                               borderRadius: BorderRadius.circular(12),
                               //border: Border.all(color: context.hairline),
                             ),
@@ -479,7 +564,7 @@ class _WorkOrderTimelineScreenState extends State<WorkOrderTimelineScreen> {
                           height: 56,
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           decoration: BoxDecoration(
-                            color: colorScheme.surface,
+                            color: context.iconSubstrate,
                             borderRadius: BorderRadius.circular(12),
                             //border: Border.all(color: context.hairline),
                           ),

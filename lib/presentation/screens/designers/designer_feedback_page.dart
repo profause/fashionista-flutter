@@ -65,12 +65,7 @@ class _DesignerFeedbackPageState extends State<DesignerFeedbackPage>
                 physics: const NeverScrollableScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 itemCount: comments.length,
-                separatorBuilder: (context, index) => const Divider(
-                  height: .1,
-                  thickness: .1,
-                  indent: 40,
-                  endIndent: 20,
-                ),
+                separatorBuilder: (context, index) => const SizedBox.shrink(),
                 itemBuilder: (context, index) {
                   final comment = comments[index];
                   return CommentWidget(

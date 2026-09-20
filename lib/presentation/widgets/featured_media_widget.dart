@@ -6,6 +6,7 @@ import 'package:cloudinary_url_gen/config/cloudinary_config.dart';
 import 'package:cloudinary_url_gen/transformation/resize/resize.dart';
 import 'package:cloudinary_url_gen/transformation/transformation.dart';
 import 'package:fashionista/core/service_locator/app_config.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
 import 'package:fashionista/data/models/settings/bloc/settings_bloc.dart';
 import 'package:flutter/material.dart';
@@ -14,17 +15,34 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class FeaturedMediaWidget extends StatefulWidget {
   final List<FeaturedMediaModel> featuredMedia;
 
-  const FeaturedMediaWidget({super.key, required this.featuredMedia});
+  /// Optional caption rendered over a bottom gradient (post overlay style).
+  final String? caption;
+
+  const FeaturedMediaWidget({
+    super.key,
+    required this.featuredMedia,
+    this.caption,
+  });
 
   @override
   State<FeaturedMediaWidget> createState() => _FeaturedMediaWidgetState();
 }
 
 class _FeaturedMediaWidgetState extends State<FeaturedMediaWidget> {
+  static const double _portraitCapAspectRatio = 3 / 4;
+
   final PageController _pageController = PageController();
   int _currentIndex = 0;
   double _currentHeight = 250; // default initial height
   late SettingsBloc _settingsBloc;
+
+  double _normalizeAspectRatio(double? aspectRatio) {
+    final ratio = aspectRatio ?? (16 / 9);
+    if (ratio < 1) {
+      return ratio < _portraitCapAspectRatio ? _portraitCapAspectRatio : ratio;
+    }
+    return ratio;
+  }
 
   @override
   void initState() {
@@ -41,32 +59,33 @@ class _FeaturedMediaWidgetState extends State<FeaturedMediaWidget> {
   }
 
   Future<void> _loadFirstImageSize() async {
-    final size = widget.featuredMedia.first.aspectRatio;
-    if (size != null && mounted) {
+    final ratio = widget.featuredMedia.first.aspectRatio;
+    if (mounted) {
       setState(() {
-        _currentHeight = _calculateDisplayHeight(size);
+        _currentHeight = _calculateDisplayHeight(ratio);
       });
     }
   }
 
-  double _calculateDisplayHeight(double aspectRatio) {
+  double _calculateDisplayHeight(double? aspectRatio) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final newHeight = screenWidth / aspectRatio;
+    final normalizedAspectRatio = _normalizeAspectRatio(aspectRatio);
+    final newHeight = screenWidth / normalizedAspectRatio;
     return newHeight.clamp(180, 800);
   }
 
   Future<void> _updateHeightForIndex(int index) async {
-    final size = widget.featuredMedia[index].aspectRatio;
-    if (size != null && mounted) {
+    final ratio = widget.featuredMedia[index].aspectRatio;
+    if (mounted) {
       setState(() {
-        _currentHeight = _calculateDisplayHeight(size);
+        _currentHeight = _calculateDisplayHeight(ratio);
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final String caption = widget.caption?.trim() ?? '';
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 400),
@@ -75,8 +94,9 @@ class _FeaturedMediaWidgetState extends State<FeaturedMediaWidget> {
       width: double.infinity,
       clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
+        color: context.iconSubstrate,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.hairline),
       ),
       child: Stack(
         children: [
@@ -91,8 +111,8 @@ class _FeaturedMediaWidgetState extends State<FeaturedMediaWidget> {
               final imageUrl = widget.featuredMedia[index].url;
               return Container(
                 decoration: BoxDecoration(
-                  color: colorScheme.onPrimary,
-                  borderRadius: BorderRadius.circular(12),
+                  color: context.cardSurface,
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 clipBehavior: Clip.antiAlias,
                 child: InteractiveViewer(
@@ -113,7 +133,7 @@ class _FeaturedMediaWidgetState extends State<FeaturedMediaWidget> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       ),
                     ),
-                    fit: BoxFit.fill,
+                    fit: BoxFit.cover,
                     placeholderFadeInDuration: const Duration(
                       milliseconds: 150,
                     ),
@@ -126,11 +146,13 @@ class _FeaturedMediaWidgetState extends State<FeaturedMediaWidget> {
                     transformation:
                         Transformation().addTransformation(
                           _settingsBloc.state.imageQuality == 'HD'
-                              ? 'q_100'//'q_auto:best'
+                              ? 'q_100' //'q_auto:best'
                               : 'q_auto:good',
                         )..resize(
                           Resize.fill().aspectRatio(
-                            widget.featuredMedia[index].aspectRatio,
+                            _normalizeAspectRatio(
+                              widget.featuredMedia[index].aspectRatio,
+                            ),
                           ),
                         ),
                   ),
@@ -153,6 +175,43 @@ class _FeaturedMediaWidgetState extends State<FeaturedMediaWidget> {
             },
           ),
 
+          // � Caption overlay (bottom gradient keeps text readable)
+          if (caption.isNotEmpty)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: IgnorePointer(
+                child: Container(
+                  height: 112,
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 26),
+                  alignment: Alignment.bottomLeft,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        Colors.black.withValues(alpha: 0.70),
+                        Colors.black.withValues(alpha: 0.35),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                  child: Text(
+                    caption,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      height: 1.3,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
           // 🔘 Page Indicator
           if (widget.featuredMedia.length > 1)
             Positioned(
@@ -170,8 +229,8 @@ class _FeaturedMediaWidgetState extends State<FeaturedMediaWidget> {
                     width: _currentIndex == index ? 20 : 6,
                     decoration: BoxDecoration(
                       color: _currentIndex == index
-                          ? colorScheme.primary
-                          : colorScheme.outlineVariant,
+                          ? context.accent
+                          : Colors.white.withValues(alpha: 0.6),
                       borderRadius: BorderRadius.circular(3),
                     ),
                   ),

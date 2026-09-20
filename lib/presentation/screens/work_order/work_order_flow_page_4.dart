@@ -234,6 +234,7 @@ class _WorkOrderFlowPage4State extends State<WorkOrderFlowPage4> {
             ],
           ),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildSummaryRow(
                 label: 'PROJECT TITLE',

@@ -7,6 +7,7 @@ import 'package:cloudinary_url_gen/transformation/resize/resize.dart';
 import 'package:cloudinary_url_gen/transformation/transformation.dart';
 import 'package:fashionista/core/service_locator/app_config.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/utils/get_image_aspect_ratio.dart';
 import 'package:fashionista/core/widgets/autosuggest_tag_input_field.dart';
 import 'package:fashionista/data/models/author/author_model.dart';
@@ -18,9 +19,8 @@ import 'package:fashionista/data/models/trends/bloc/trend_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc_event.dart';
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
 import 'package:fashionista/domain/usecases/trends/add_trend_usecase.dart';
+import 'package:fashionista/presentation/widgets/appbar_title.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
-import 'package:fashionista/presentation/widgets/custom_icon_rounded.dart';
-import 'package:fashionista/presentation/widgets/custom_text_input_field_widget.dart';
 import 'package:fashionista/presentation/widgets/profile_avatar_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_storage/firebase_storage.dart';
@@ -59,6 +59,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
 
   int _currentLength = 0;
   final int _maxLength = 100; // keep in sync with input field
+  static const int _maxMedia = 4; // matches the picker limit
 
   final ImagePicker picker = ImagePicker();
   List<XFile> pickedImages = [];
@@ -93,28 +94,19 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     final random = Random();
 
-    // progress value for determinate progress indicator
-    double progress = _currentLength / _maxLength;
-    if (progress > 1.0) progress = 1.0;
-
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: context.canvasBackground,
       appBar: AppBar(
-        foregroundColor: colorScheme.primary,
-        backgroundColor: colorScheme.onPrimary,
-        title: Text(
-          'Start a trend',
-          style: textTheme.titleLarge!.copyWith(
-            fontWeight: FontWeight.bold,
-            color: colorScheme.primary,
-          ),
-        ),
+        backgroundColor: context.canvasBackground,
+        foregroundColor: context.onCanvasText,
         elevation: 0,
+        scrolledUnderElevation: 0,
+        shape: Border(bottom: BorderSide(color: context.hairline)),
+        title: const AppBarTitle(title: 'Start a trend'),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12.0),
@@ -127,6 +119,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
                     //Navigator.of(context).pop();
                   }
                 },
+                icon: Icon(Icons.check, color: context.accent, size: 24),
                 iconData: Icons.check,
               ),
             ),
@@ -135,188 +128,276 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 14.0),
-                      child: ProfileAvatar(radius: 24),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: CustomTextInputFieldWidget(
-                        autofocus: true,
-                        controller: _descriptionController,
-                        hint: hints[random.nextInt(hints.length)],
-                        minLines: 2,
-                        maxLength: _maxLength,
-                        validator: (value) {
-                          if ((value ?? "").isEmpty) {
-                            return 'Please enter a description';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                  ],
+                _buildComposerCard(context, textTheme, random),
+                const SizedBox(height: 16),
+                _buildLookbookSection(context, textTheme),
+                const SizedBox(height: 16),
+                AutosuggestTagInputField(
+                  hint: 'Type and press Enter, Space or Comma',
+                  valueIn: [],
+                  options: selectedInterests,
+                  valueOut: (value) => _tagsController.text = value.join(','),
                 ),
-                const SizedBox(height: 8),
-                if (previewImages.isNotEmpty)
-                  SizedBox(
-                    height: 220,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.all(8),
-                      itemCount: previewImages.length,
-                      separatorBuilder: (_, _) => const SizedBox(width: 8),
-                      itemBuilder: (context, index) {
-                        final image = previewImages[index];
-                        return Stack(
-                          children: [
-                            AspectRatio(
-                              aspectRatio: 3 / 4,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.file(
-                                  File(image.path),
-                                  //width: 180,
-                                  //height: 180,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              top: 4,
-                              right: 4,
-                              child: GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    previewImages.removeAt(index);
-                                  });
-                                },
-                                child: Container(
-                                  decoration: const BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.black54,
-                                  ),
-                                  padding: const EdgeInsets.all(2),
-                                  child: const Icon(
-                                    Icons.close,
-                                    color: Colors.white,
-                                    size: 16,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
+                const SizedBox(height: 16),
+                _buildMediaToolkit(context, textTheme),
+                const SizedBox(height: 16),
+                _buildAudienceCard(context, textTheme),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildComposerCard(
+    BuildContext context,
+    TextTheme textTheme,
+    Random random,
+  ) {
+    final bool overLimit = _currentLength >= _maxLength;
+    return Container(
+      width: double.infinity,
+      constraints: const BoxConstraints(minHeight: 160),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.cardSurface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: context.hairline),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const ProfileAvatar(radius: 16),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextFormField(
+                  autofocus: true,
+                  controller: _descriptionController,
+                  minLines: 4,
+                  maxLines: 8,
+                  maxLength: _maxLength,
+                  keyboardType: TextInputType.multiline,
+                  style: textTheme.bodyLarge?.copyWith(
+                    color: context.onCanvasText,
+                    height: 1.4,
+                  ),
+                  validator: (value) {
+                    if ((value ?? "").isEmpty) {
+                      return 'Please enter a description';
+                    }
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                    counterText: '',
+                    isDense: true,
+                    isCollapsed: true,
+                    contentPadding: EdgeInsets.zero,
+                    border: InputBorder.none,
+                    hintText: hints[random.nextInt(hints.length)],
+                    hintStyle: textTheme.bodyLarge?.copyWith(
+                      color: context.placeholderText,
                     ),
                   ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomIconRounded(icon: Icons.tag, size: 20),
-                    const SizedBox(width: 8),
-
-                    //Text("Featured Tags"),
-                    Expanded(
-                      child: AutosuggestTagInputField(
-                        hint:
-                            'Type and press Enter, Space or Comma to add a tag',
-                        valueIn: [],
-                        options: selectedInterests,
-                        valueOut: (value) =>
-                            _tagsController.text = value.join(','),
-                      ),
-                    ),
-                  ],
                 ),
-                const SizedBox(height: 16),
-                Divider(height: .1, thickness: .1),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        CustomIconButtonRounded(
-                          onPressed: () {
-                            if (isUploading) return;
-                            pickImages(context);
-                          },
-                          iconData: Icons.image_outlined,
-                        ),
-                        //const SizedBox(width: 16),
-                        // CustomIconButtonRounded(
-                        //   onPressed: () {},
-                        //   iconData: Icons.video_camera_back,
-                        // ),
-                        const SizedBox(width: 16),
-                        CustomIconButtonRounded(
-                          onPressed: () {
-                            _pickImage(ImageSource.camera);
-                          },
-                          iconData: Icons.camera_alt_outlined,
-                        ),
-                        const SizedBox(width: 16),
-                        ValueListenableBuilder(
-                          valueListenable: imageQuality,
-                          builder: (context, quality, _) {
-                            return CustomIconButtonRounded(
-                              onPressed: () {
-                                if (imageQuality.value == 'SD') {
-                                  imageQuality.value = 'HD';
-                                } else {
-                                  imageQuality.value = 'SD';
-                                }
-                              },
-                              iconData: imageQuality.value == 'SD'
-                                  ? Icons.sd_outlined
-                                  : Icons.hd_outlined,
-                            );
-                          },
-                        ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: context.accent,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'Draft',
+                style: textTheme.labelSmall?.copyWith(
+                  color: context.secondaryLabel,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '$_currentLength/$_maxLength',
+                style: textTheme.labelSmall?.copyWith(
+                  color: overLimit ? context.accent : context.secondaryLabel,
+                  fontWeight: overLimit ? FontWeight.bold : null,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLookbookSection(BuildContext context, TextTheme textTheme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              '',
+              style: textTheme.labelSmall?.copyWith(
+                color: context.secondaryLabel,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 1.2,
+              ),
+            ),
+            const Spacer(),
+            GestureDetector(
+              onTap: isUploading ? null : () => pickImages(context),
+              child: Text(
+                'Add media',
+                style: textTheme.labelSmall?.copyWith(
+                  color: context.accent,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          height: 180,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: previewImages.length + 1,
+            separatorBuilder: (_, _) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              if (index == previewImages.length) {
+                return _addMediaTile(context, textTheme);
+              }
+              return _lookbookTile(context, textTheme, index);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _lookbookTile(BuildContext context, TextTheme textTheme, int index) {
+    final image = previewImages[index];
+    return SizedBox(
+      width: 140,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.file(File(image.path), fit: BoxFit.cover),
+            // Scrim keeps the label legible over any photo.
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: IgnorePointer(
+                child: Container(
+                  height: 72,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        Colors.black.withValues(alpha: .70),
+                        Colors.black.withValues(alpha: 0),
                       ],
                     ),
-                    Row(
-                      children: [
-                        Text(
-                          '$_currentLength/$_maxLength',
-                          style: textTheme.bodySmall?.copyWith(
-                            color: _currentLength >= _maxLength
-                                ? Colors.red
-                                : Colors.grey[700],
-                            fontWeight: _currentLength >= _maxLength
-                                ? FontWeight.bold
-                                : null,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            value: progress, // determinate value
-                            backgroundColor: Colors.grey[300],
-                            color: _currentLength >= _maxLength
-                                ? Colors.red
-                                : colorScheme.primary,
-                          ),
-                        ),
-                      ],
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 8,
+              bottom: 8,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: .45),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  'Look ${index + 1}',
+                  style: textTheme.labelSmall?.copyWith(
+                    color: Colors.white,
+                    fontSize: 10,
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 6,
+              right: 6,
+              child: GestureDetector(
+                onTap: () => _removePreviewImage(index),
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: .55),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: .25),
                     ),
-                  ],
+                  ),
+                  child: const Icon(Icons.close, color: Colors.white, size: 14),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _addMediaTile(BuildContext context, TextTheme textTheme) {
+    return SizedBox(
+      width: 140,
+      child: Material(
+        color: context.cardSurface,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: isUploading ? null : () => pickImages(context),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: context.softBorder),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: context.iconSubstrate,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.add, color: context.accent, size: 22),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Add Media',
+                  style: textTheme.labelSmall?.copyWith(
+                    color: context.secondaryLabel,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),
@@ -324,6 +405,152 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildMediaToolkit(BuildContext context, TextTheme textTheme) {
+    final double mediaProgress = (previewImages.length / _maxMedia).clamp(
+      0.0,
+      1.0,
+    );
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: context.cardSurface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: context.hairline),
+      ),
+      child: Row(
+        children: [
+          _toolkitTile(
+            context,
+            icon: Icons.photo_library_outlined,
+            iconColor: context.accent,
+            onTap: () {
+              if (isUploading) return;
+              pickImages(context);
+            },
+          ),
+          const SizedBox(width: 12),
+          _toolkitTile(
+            context,
+            icon: Icons.photo_camera_outlined,
+            onTap: () => _pickImage(ImageSource.camera),
+          ),
+          const SizedBox(width: 12),
+          ValueListenableBuilder<String>(
+            valueListenable: imageQuality,
+            builder: (context, quality, _) {
+              return _toolkitTile(
+                context,
+                icon: quality == 'SD' ? Icons.sd_outlined : Icons.hd_outlined,
+                onTap: () => imageQuality.value = quality == 'SD' ? 'HD' : 'SD',
+              );
+            },
+          ),
+          const Spacer(),
+          Text(
+            '${previewImages.length}/$_maxMedia Photos',
+            style: textTheme.labelSmall?.copyWith(
+              color: context.secondaryLabel,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.5,
+              value: mediaProgress, // media slots filled
+              backgroundColor: context.hairline,
+              color: context.accent,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _toolkitTile(
+    BuildContext context, {
+    required IconData icon,
+    required VoidCallback onTap,
+    Color? iconColor,
+  }) {
+    return Material(
+      color: context.iconSubstrate,
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: onTap,
+        child: SizedBox(
+          width: 36,
+          height: 36,
+          child: Icon(
+            icon,
+            size: 18,
+            color: iconColor ?? context.secondaryLabel,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAudienceCard(BuildContext context, TextTheme textTheme) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.cardSurface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: context.hairline),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: context.iconSubstrate,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.public, size: 16, color: context.secondaryLabel),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Audience',
+                  style: textTheme.labelMedium?.copyWith(
+                    color: context.onCanvasText,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Public · Anyone can join this trend',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: context.secondaryLabel,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Keeps the reel the user sees in sync with the list that gets uploaded.
+  void _removePreviewImage(int index) {
+    setState(() {
+      if (index < previewImages.length) previewImages.removeAt(index);
+      if (index < pickedImages.length) pickedImages.removeAt(index);
+      if (index < uploadProgress.length) uploadProgress.removeAt(index);
+    });
   }
 
   Future<void> pickImages(BuildContext context) async {

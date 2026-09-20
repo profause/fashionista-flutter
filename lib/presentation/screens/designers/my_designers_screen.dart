@@ -2,10 +2,12 @@ import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/designers/designer_model.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_designers_service.dart';
+import 'package:fashionista/presentation/widgets/appbar_title.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:flutter/material.dart';
@@ -35,19 +37,12 @@ class _MyDesignersScreenState extends State<MyDesignersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: context.canvasBackground,
       appBar: AppBar(
-        foregroundColor: colorScheme.primary,
-        backgroundColor: colorScheme.onPrimary,
-        title: Text(
-          'My Designers',
-          style: Theme.of(
-            context,
-          ).textTheme.headlineSmall!.copyWith(fontWeight: FontWeight.bold),
-        ),
+        foregroundColor: context.accent,
+        backgroundColor: context.cardSurface,
+        title: const AppBarTitle(title: 'My Designers'),
         elevation: 0,
       ),
       body: ValueListenableBuilder<List<Designer>>(
@@ -64,7 +59,7 @@ class _MyDesignersScreenState extends State<MyDesignersScreen> {
             );
           }
 
-          if (designers.isEmpty && !loadingFashionDesigners) {
+          if (designers.isEmpty) {
             return Center(
               child: PageEmptyWidget(
                 title: "No designers found",
@@ -74,41 +69,13 @@ class _MyDesignersScreenState extends State<MyDesignersScreen> {
               ),
             );
           }
-          return ListView.separated(
-            itemCount: designers.length,
-            separatorBuilder: (context, index) =>
-                const Divider(height: .1, thickness: .1, indent: 82),
-            itemBuilder: (context, index) {
-              final designer = designers[index];
 
-              return ListTile(
-                leading: Container(
-                  //margin: const EdgeInsets.all(2),
-                  clipBehavior: Clip.antiAlias,
-                  decoration: BoxDecoration(shape: BoxShape.circle),
-                  height: 32 * 1.8,
-                  width: 32 * 1.8,
-                  child: CachedNetworkImage(
-                    imageUrl: designer.profileImage!,
-                    errorListener: (error) {},
-                    placeholder: (context, url) => DefaultProfileAvatar(
-                      key: ValueKey(designer.uid),
-                      name: null,
-                      size: 32 * 1.8,
-                      uid: designer.uid,
-                    ),
-                    errorWidget: (context, url, error) => DefaultProfileAvatar(
-                      key: ValueKey(designer.uid),
-                      name: null,
-                      size: 32 * 1.8,
-                      uid: designer.uid,
-                    ),
-                  ),
-                ),
-                title: Text(designer.name),
-                subtitle: Text(designer.businessName),
-                onTap: () => context.push('/designers/${designer.uid}'),
-              );
+          return ListView.separated(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            itemCount: designers.length,
+            separatorBuilder: (_, _) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              return _DesignerListTileCard(designer: designers[index]);
             },
           );
         },
@@ -163,5 +130,108 @@ class _MyDesignersScreenState extends State<MyDesignersScreen> {
     myDesignersNotifier.dispose();
     _debounce?.cancel();
     super.dispose();
+  }
+}
+
+/// Theme-aware row card for a single designer in the "My Designers" list.
+class _DesignerListTileCard extends StatelessWidget {
+  const _DesignerListTileCard({required this.designer});
+
+  final Designer designer;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final String imageUrl = designer.profileImage ?? '';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: context.cardSurface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.hairline),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => context.push('/designers/${designer.uid}'),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              ClipOval(
+                child: SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: imageUrl.isEmpty
+                      ? DefaultProfileAvatar(
+                          name: designer.name,
+                          size: 48,
+                          uid: designer.uid,
+                        )
+                      : CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          fit: BoxFit.cover,
+                          errorListener: (error) {},
+                          placeholder: (_, _) => DefaultProfileAvatar(
+                            name: designer.name,
+                            size: 48,
+                            uid: designer.uid,
+                          ),
+                          errorWidget: (_, _, _) => DefaultProfileAvatar(
+                            name: designer.name,
+                            size: 48,
+                            uid: designer.uid,
+                          ),
+                        ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      designer.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.titleSmall?.copyWith(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        height: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      designer.businessName.toUpperCase(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.labelSmall?.copyWith(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.6,
+                        height: 1.2,
+                        color: context.mutedText,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                Icons.chevron_right,
+                size: 20,
+                color: context.mutedText,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

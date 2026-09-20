@@ -12,10 +12,12 @@ import 'package:fashionista/data/models/trends/bloc/trend_bloc_event.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc_state.dart';
 import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_designers_service.dart';
-import 'package:fashionista/presentation/screens/designers/widgets/designer_info_card_widget_discover_page.dart';
+import 'package:fashionista/presentation/screens/trends/widgets/designer_compact_card_widget.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/designer_shimmer_widget.dart';
+import 'package:fashionista/presentation/screens/trends/widgets/get_started_progress_card_widget.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/interest_shimmer_widget.dart';
-import 'package:fashionista/presentation/screens/trends/widgets/trend_info_card_widget_discover_page.dart';
+import 'package:fashionista/presentation/screens/trends/widgets/my_post_feed_card_widget.dart';
+import 'package:fashionista/presentation/screens/trends/widgets/quick_action_tile_widget.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -78,449 +80,501 @@ class _ForYouPageState extends State<ForYouPage> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
+      backgroundColor: context.canvasBackground,
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              color: colorScheme.onPrimary,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text("Get started", style: textTheme.labelLarge),
-                      const Spacer(),
-                      TextButton(
-                        onPressed: () {},
-                        child: Text('Skip', style: textTheme.bodyMedium),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  ListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    leading: SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: ValueListenableBuilder<int>(
-                        valueListenable: getStartedLikesNotifier,
-                        builder: (context, likes, _) {
-                          return CircularProgressIndicator(
-                            value: (likes / 10),
-                            strokeWidth: 3,
-                            backgroundColor: AppTheme.appIconColor.withValues(
-                              alpha: .1,
-                            ),
-                            valueColor: AlwaysStoppedAnimation(
-                              AppTheme.appIconColor.withValues(alpha: 1),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    title: Text('Like 10 posts', style: textTheme.labelLarge),
-                    subtitle: Text(
-                      'Teach our algorithms what you like',
-                      style: textTheme.bodyMedium,
-                    ),
-                  ),
-                  ListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    leading: SizedBox(
-                      width: 18,
-                      height: 18,
-                      child:
-                          BlocSelector<
-                            GetstartedStatsCubit,
-                            Map<String, int>,
-                            int
-                          >(
-                            selector: (state) => state['followings'] ?? 0,
-                            builder: (context, followings) {
-                              return CircularProgressIndicator(
-                                value: (followings / 10),
-                                strokeWidth: 3,
-                                backgroundColor: AppTheme.appIconColor
-                                    .withValues(alpha: .1),
-                                valueColor: AlwaysStoppedAnimation(
-                                  AppTheme.appIconColor.withValues(alpha: 1),
-                                ),
-                              );
-                            },
-                          ),
-                    ),
-                    title: Text(
-                      'Follow designers',
-                      style: textTheme.labelLarge,
-                    ),
-                    subtitle: Text(
-                      'Follow designers to view their work',
-                      style: textTheme.bodyMedium,
-                    ),
-                  ),
-
-                  ListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    leading: SizedBox(
-                      width: 18,
-                      height: 18,
-                      child:
-                          BlocSelector<
-                            GetstartedStatsCubit,
-                            Map<String, int>,
-                            int
-                          >(
-                            selector: (state) => state['interests'] ?? 0,
-                            builder: (context, interest) {
-                              return CircularProgressIndicator(
-                                value: (interest / 5),
-                                strokeWidth: 3,
-                                backgroundColor: AppTheme.appIconColor
-                                    .withValues(alpha: .1),
-                                valueColor: AlwaysStoppedAnimation(
-                                  AppTheme.appIconColor.withValues(alpha: 1),
-                                ),
-                              );
-                            },
-                          ),
-                    ),
-                    title: Text(
-                      'Show your interests',
-                      style: textTheme.labelLarge,
-                    ),
-                    subtitle: Text(
-                      'Exploring fashion identity',
-                      style: textTheme.bodyMedium,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            child: _buildGetStartedSection(context, textTheme),
+          ),
+          SliverToBoxAdapter(child: _buildQuickActionsSection(context)),
+          SliverToBoxAdapter(
+            child: _buildInterestsSection(context, textTheme),
           ),
           SliverToBoxAdapter(
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              //color: colorScheme.onPrimary,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: colorScheme.onPrimary,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Text(
-                            'My Measurements',
-                            style: textTheme.labelLarge,
-                          ),
-                        ),
-                        const Divider(height: .1, thickness: .1),
-                        Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('My Designers', style: textTheme.bodyMedium),
-                              //here
-                              ValueListenableBuilder<List<Designer>>(
-                                valueListenable: myDesignersNotifier,
-                                builder: (context, designers, _) {
-                                  if (designers.isEmpty &&
-                                      loadingFashionDesigners) {
-                                    return const SizedBox(
-                                      height: 18,
-                                      width: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    );
-                                  }
-
-                                  if (designers.isEmpty &&
-                                      !loadingFashionDesigners) {
-                                    return Text(
-                                      "No designers found",
-                                      style: textTheme.bodyMedium,
-                                    );
-                                  }
-
-                                  return SizedBox(
-                                    height: 60,
-                                    child: SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: SizedBox(
-                                        width:
-                                            designers.length * 24.0 +
-                                            24, // dynamic width
-                                        child: Stack(
-                                          children: [
-                                            for (
-                                              int i = 0;
-                                              i < designers.length;
-                                              i++
-                                            )
-                                              Positioned(
-                                                left: i * 24.0,
-                                                child: buildDesignerAvatar(
-                                                  designers[i],
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Interests', style: textTheme.labelLarge),
-                      TextButton(
-                        onPressed: () {
-                          final uri = Uri(
-                            path: '/user-interests',
-                            queryParameters: {'fromwhere': 'ForYouPage'},
-                          );
-                          context.push(uri.toString());
-                        },
-                        child: Text('More', style: textTheme.bodyMedium),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  ValueListenableBuilder<List<String>>(
-                    valueListenable: selectedInterestsNotifier,
-                    builder: (context, selectedInterests, _) {
-                      if (loadingFashionInterests) {
-                        return SizedBox(
-                          height: 40,
-                          child: ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: 6, // number of shimmer placeholders
-                            separatorBuilder: (_, _) =>
-                                const SizedBox(width: 8),
-                            itemBuilder: (_, __) {
-                              final randomWidth =
-                                  70 + (30 * (__ % 3)); // variable chip widths
-                              return InterestShimmerWidget(
-                                width: randomWidth.toDouble(),
-                              );
-                            },
-                          ),
-                        );
-                      }
-
-                      if (selectedInterests.isEmpty) {
-                        return Text(
-                          "No interests found",
-                          style: textTheme.bodyMedium,
-                        );
-                      }
-
-                      return SizedBox(
-                        height: 40,
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: selectedInterests.length,
-                          separatorBuilder: (_, _) => const SizedBox(width: 8),
-                          itemBuilder: (context, index) {
-                            final item = selectedInterests[index];
-                            return ActionChip(
-                              backgroundColor: Colors.transparent,
-                              label: Text(item),
-                              onPressed: () {
-                                debugPrint("Selected: $item");
-                              },
-                            );
-                          },
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
+            child: _buildDesignersSection(context, textTheme),
           ),
           SliverToBoxAdapter(
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Designers', style: textTheme.labelLarge),
-                      TextButton(
-                        onPressed: () {
-                          final uri = Uri(path: '/designers');
-                          context.push(uri.toString());
-                        },
-                        child: Text('More', style: textTheme.bodyMedium),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  // 👇 This part now uses ValueListenableBuilder
-                  ValueListenableBuilder<List<Designer>>(
-                    valueListenable: designersNotifier,
-                    builder: (context, designers, _) {
-                      if (loadingFashionDesigners) {
-                        return SizedBox(
-                          height: 240,
-                          child: ListView.separated(
-                            //padding: const EdgeInsets.all(16),
-                            scrollDirection: Axis.horizontal,
-                            itemCount: 6, // number of shimmer placeholders
-                            separatorBuilder: (_, _) =>
-                                const SizedBox(width: 8),
-                            itemBuilder: (_, _) {
-                              // variable chip widths
-                              return DesignerShimmerWidget();
-                            },
-                          ),
-                        );
-                      }
-
-                      if (designers.isEmpty) {
-                        return Text(
-                          "No designers found",
-                          style: textTheme.bodyMedium,
-                        );
-                      }
-
-                      return SizedBox(
-                        height: 220,
-                        child: ListView.separated(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          scrollDirection: Axis.horizontal,
-                          itemCount: designers.length,
-                          separatorBuilder: (_, _) => const SizedBox(width: 8),
-                          itemBuilder: (context, index) {
-                            final item = designers[index];
-                            return DesignerInfoCardWidgetDiscoverPage(
-                              key: ValueKey(index),
-                              designerInfo: item,
-                              onFollowTap: (bool isFollowing) {
-                                //here
-                                final cubit = context
-                                    .read<GetstartedStatsCubit>();
-                                final currentFollowings =
-                                    cubit.state['followings'] ?? 0;
-                                final newFollowings = isFollowing
-                                    ? currentFollowings + 1
-                                    : (currentFollowings > 0
-                                          ? currentFollowings - 1
-                                          : 0);
-
-                                cubit.updateFollowings(newFollowings);
-                              },
-                            );
-                          },
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
+            child: _buildMyPostsSection(context, textTheme),
           ),
-          SliverToBoxAdapter(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.push('/trends-new'),
+        shape: const CircleBorder(),
+        backgroundColor: context.accent,
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  /// "Get started" onboarding tracker: horizontally scrollable progress cards.
+  Widget _buildGetStartedSection(BuildContext context, TextTheme textTheme) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 16.0, bottom: 8),
-                  child: Text('My Posts', style: textTheme.labelLarge),
+                Text(
+                  'Get started',
+                  style: textTheme.titleSmall!.copyWith(fontSize: 15),
                 ),
-                const SizedBox(height: 4),
-                BlocBuilder<TrendBloc, TrendBlocState>(
-                  buildWhen: (context, state) {
-                    return state is TrendsCreatedByLoaded;
+                const Spacer(),
+                TextButton(
+                  onPressed: () {},
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(0, 32),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: Text(
+                    'Skip',
+                    style: textTheme.labelSmall!.copyWith(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                      letterSpacing: 0,
+                      color: context.mutedText,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 110,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              children: [
+                ValueListenableBuilder<int>(
+                  valueListenable: getStartedLikesNotifier,
+                  builder: (context, likes, _) {
+                    return GetStartedProgressCardWidget(
+                      title: 'Like 10 posts',
+                      subtitle: 'Teach our algorithms what you like',
+                      progress: likes / 10,
+                    );
                   },
-                  builder: (context, state) {
-                    switch (state) {
-                      case TrendLoading():
-                        return const Center(
-                          child: SizedBox(
-                            height: 18,
-                            width: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                        );
-                      case TrendsCreatedByLoaded(:final trends):
-                        final filtered =
-                            trends; //.where((item) => item.createdBy == _userBloc.state.uid).toList();
-                        return ListView.separated(
-                          padding: const EdgeInsets.all(0),
-                          physics: const NeverScrollableScrollPhysics(),
-                          shrinkWrap: true,
-                          itemCount: filtered.length,
-                          separatorBuilder: (_, _) => const SizedBox(height: 2),
-                          itemBuilder: (context, index) {
-                            final item = filtered[index];
-                            return TrendInfoCardWidgetDiscoverPage(
-                              trendInfo: item,
-                              onLikeTap: (bool isLiked) {
-                                //here
-                                final cubit = context
-                                    .read<GetstartedStatsCubit>();
-                                final currentLikes = cubit.state['likes'] ?? 0;
-                                final newLike = isLiked
-                                    ? currentLikes + 1
-                                    : (currentLikes > 0 ? currentLikes - 1 : 0);
-
-                                cubit.updateLikes(newLike);
-                              },
-                            );
-                          },
-                        );
-                      case TrendError(:final message):
-                        debugPrint("Error: $message");
-                        return SizedBox(
-                          height: 400,
-                          child: Center(child: Text("Error: $message")),
-                        );
-                      default:
-                        return SizedBox(
-                          height: 400,
-                          child: Center(
-                            child: PageEmptyWidget(
-                              title: "No Trends Found",
-                              subtitle: "Add new trend to see them here.",
-                              icon: Icons.newspaper_outlined,
-                            ),
-                          ),
-                        );
-                    }
+                ),
+                const SizedBox(width: 12),
+                BlocSelector<GetstartedStatsCubit, Map<String, int>, int>(
+                  selector: (state) => state['followings'] ?? 0,
+                  builder: (context, followings) {
+                    return GetStartedProgressCardWidget(
+                      title: 'Follow designers',
+                      subtitle: 'Follow creators to view work',
+                      progress: followings / 10,
+                      onTap: () => context.push('/designers'),
+                    );
+                  },
+                ),
+                const SizedBox(width: 12),
+                BlocSelector<GetstartedStatsCubit, Map<String, int>, int>(
+                  selector: (state) => state['interests'] ?? 0,
+                  builder: (context, interests) {
+                    return GetStartedProgressCardWidget(
+                      title: 'Show interests',
+                      subtitle: 'Explore your fashion identity',
+                      progress: interests / 5,
+                      onTap: () => _openUserInterests(context),
+                    );
                   },
                 ),
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  /// Shortcut tiles for measurements and the user's designers.
+  Widget _buildQuickActionsSection(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+      child: Row(
+        children: [
+          Expanded(
+            child: QuickActionTileWidget(
+              label: 'My Measurements',
+              onTap: () => context.go('/profile'),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: ValueListenableBuilder<List<Designer>>(
+              valueListenable: myDesignersNotifier,
+              builder: (context, designers, _) {
+                return QuickActionTileWidget(
+                  label: 'My Designers',
+                  onTap: () => context.push('/my-designers'),
+                  trailing: designers.isEmpty
+                      ? null
+                      : _designerAvatarStack(context, designers),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Interest pills: the user's own interests render as active (brand) pills.
+  Widget _buildInterestsSection(BuildContext context, TextTheme textTheme) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                'Interests',
+                style: textTheme.titleSmall!.copyWith(fontSize: 15),
+              ),
+              const Spacer(),
+              TextButton(
+                onPressed: () => _openUserInterests(context),
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size(0, 32),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Text(
+                  'More',
+                  style: textTheme.labelSmall!.copyWith(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0,
+                    color: context.accent,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ValueListenableBuilder<List<String>>(
+            valueListenable: selectedInterestsNotifier,
+            builder: (context, selectedInterests, _) {
+              if (loadingFashionInterests) {
+                return SizedBox(
+                  height: 34,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: 6, // number of shimmer placeholders
+                    separatorBuilder: (_, _) => const SizedBox(width: 8),
+                    itemBuilder: (_, index) {
+                      // variable chip widths
+                      final randomWidth = 70 + (30 * (index % 3)).toDouble();
+                      return InterestShimmerWidget(width: randomWidth);
+                    },
+                  ),
+                );
+              }
+
+              if (selectedInterests.isEmpty) {
+                return Text(
+                  "No interests found",
+                  style: textTheme.bodyMedium,
+                );
+              }
+
+              final List<String> userInterests =
+                  _userBloc.state.interests ?? [];
+
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: selectedInterests.map((item) {
+                  final bool isSelected = userInterests.any(
+                    (interest) =>
+                        interest.toLowerCase() == item.toLowerCase(),
+                  );
+                  return _interestPill(context, textTheme, item, isSelected);
+                }).toList(),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _interestPill(
+    BuildContext context,
+    TextTheme textTheme,
+    String label,
+    bool isSelected,
+  ) {
+    return Container(
+      height: 32,
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      decoration: BoxDecoration(
+        color: isSelected ? context.accent : context.secondaryButtonBg,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: isSelected ? Colors.transparent : context.hairline,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: textTheme.labelSmall!.copyWith(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0,
+              color: isSelected ? Colors.white : context.onCanvasText,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Compact, horizontally scrolling designer cards with a follow action.
+  Widget _buildDesignersSection(BuildContext context, TextTheme textTheme) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Text(
+                  'Designers',
+                  style: textTheme.titleSmall!.copyWith(fontSize: 15),
+                ),
+                const Spacer(),
+                TextButton(
+                  onPressed: () => context.push('/designers'),
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(0, 32),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: Text(
+                    'More',
+                    style: textTheme.labelSmall!.copyWith(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                      letterSpacing: 0,
+                      color: context.mutedText,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 170,
+            child: ValueListenableBuilder<List<Designer>>(
+              valueListenable: designersNotifier,
+              builder: (context, designers, _) {
+                if (loadingFashionDesigners) {
+                  return ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: 4, // number of shimmer placeholders
+                    separatorBuilder: (_, _) => const SizedBox(width: 12),
+                    itemBuilder: (_, _) => const DesignerShimmerWidget(),
+                  );
+                }
+
+                if (designers.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      "No designers found",
+                      style: textTheme.bodyMedium,
+                    ),
+                  );
+                }
+
+                return ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: designers.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 12),
+                  itemBuilder: (context, index) {
+                    final item = designers[index];
+                    return DesignerCompactCardWidget(
+                      key: ValueKey(item.uid),
+                      designerInfo: item,
+                      onFollowTap: (bool isFollowing) {
+                        final cubit = context.read<GetstartedStatsCubit>();
+                        final currentFollowings =
+                            cubit.state['followings'] ?? 0;
+                        final newFollowings = isFollowing
+                            ? currentFollowings + 1
+                            : (currentFollowings > 0
+                                  ? currentFollowings - 1
+                                  : 0);
+
+                        cubit.updateFollowings(newFollowings);
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Feed-style list of the trends created by the current user.
+  Widget _buildMyPostsSection(BuildContext context, TextTheme textTheme) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'My Posts',
+            style: textTheme.titleSmall!.copyWith(fontSize: 15),
+          ),
+          const SizedBox(height: 12),
+          BlocBuilder<TrendBloc, TrendBlocState>(
+            buildWhen: (context, state) {
+              return state is TrendsCreatedByLoaded;
+            },
+            builder: (context, state) {
+              switch (state) {
+                case TrendLoading():
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Center(
+                      child: SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                  );
+                case TrendsCreatedByLoaded(:final trends):
+                  if (trends.isEmpty) {
+                    return _buildEmptyPosts();
+                  }
+                  return ListView.separated(
+                    padding: EdgeInsets.zero,
+                    physics: const NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    itemCount: trends.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 16),
+                    itemBuilder: (context, index) {
+                      final item = trends[index];
+                      return MyPostFeedCardWidget(
+                        trendInfo: item,
+                        onLikeTap: (bool isLiked) {
+                          final cubit = context.read<GetstartedStatsCubit>();
+                          final currentLikes = cubit.state['likes'] ?? 0;
+                          final newLike = isLiked
+                              ? currentLikes + 1
+                              : (currentLikes > 0 ? currentLikes - 1 : 0);
+
+                          cubit.updateLikes(newLike);
+                        },
+                      );
+                    },
+                  );
+                case TrendError(:final message):
+                  debugPrint("Error: $message");
+                  return SizedBox(
+                    height: 240,
+                    child: Center(child: Text("Error: $message")),
+                  );
+                default:
+                  return _buildEmptyPosts();
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyPosts() {
+    return SizedBox(
+      height: 240,
+      child: Center(
+        child: PageEmptyWidget(
+          title: "No Trends Found",
+          subtitle: "Add new trend to see them here.",
+          icon: Icons.newspaper_outlined,
+        ),
+      ),
+    );
+  }
+
+  void _openUserInterests(BuildContext context) {
+    final uri = Uri(
+      path: '/user-interests',
+      queryParameters: {'fromwhere': 'ForYouPage'},
+    );
+    context.push(uri.toString());
+  }
+
+  /// Overlapping mini avatars shown on the "My Designers" shortcut tile.
+  Widget _designerAvatarStack(BuildContext context, List<Designer> designers) {
+    final List<Designer> visible = designers.take(3).toList();
+    return SizedBox(
+      height: 22,
+      width: visible.length * 14.0 + 8,
+      child: Stack(
+        children: [
+          for (int i = 0; i < visible.length; i++)
+            Positioned(
+              left: i * 14.0,
+              child: Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: context.canvasBackground,
+                    width: 2,
+                  ),
+                ),
+                child: ClipOval(
+                  child: (visible[i].profileImage ?? '').isEmpty
+                      ? DefaultProfileAvatar(
+                          name: visible[i].name,
+                          size: 18,
+                          uid: visible[i].uid,
+                        )
+                      : CachedNetworkImage(
+                          imageUrl: visible[i].profileImage!,
+                          fit: BoxFit.cover,
+                          errorListener: (value) {},
+                          placeholder: (_, _) => DefaultProfileAvatar(
+                            name: visible[i].name,
+                            size: 18,
+                            uid: visible[i].uid,
+                          ),
+                          errorWidget: (_, _, _) => DefaultProfileAvatar(
+                            name: visible[i].name,
+                            size: 18,
+                            uid: visible[i].uid,
+                          ),
+                        ),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -628,25 +682,5 @@ class _ForYouPageState extends State<ForYouPage> {
       getStartedFollowings = followings;
       getStartedInterests = interests;
     });
-  }
-
-  Widget buildDesignerAvatar(Designer item) {
-    return CircleAvatar(
-      radius: 24,
-      backgroundColor: Colors.white,
-      child: Container(
-        margin: const EdgeInsets.all(2),
-        clipBehavior: Clip.antiAlias,
-        decoration: const BoxDecoration(shape: BoxShape.circle),
-        child: CachedNetworkImage(
-          imageUrl: item.profileImage!,
-          errorListener: (value) {},
-          placeholder: (_, _) =>
-              DefaultProfileAvatar(name: null, size: 48, uid: item.uid),
-          errorWidget: (_, _, _) =>
-              DefaultProfileAvatar(name: null, size: 48, uid: item.uid),
-        ),
-      ),
-    );
   }
 }

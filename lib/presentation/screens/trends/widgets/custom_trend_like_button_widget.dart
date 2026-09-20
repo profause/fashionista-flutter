@@ -1,4 +1,5 @@
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/author/author_model.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/social_interactions/social_interaction_model.dart';
@@ -13,10 +14,21 @@ class CustomTrendLikeButtonWidget extends StatefulWidget {
   final ValueNotifier<LikeObject>? isLikedNotifier;
   final Function(bool isLiked)? onPressed;
 
+  /// Optional visual overrides (defaults keep the original tile look).
+  final double iconSize;
+  final Color? backgroundColor;
+  final Color? iconColor;
+  final Color? likedIconColor;
+
   const CustomTrendLikeButtonWidget({
     super.key,
     required this.trendId,
-    this.isLikedNotifier, this.onPressed,
+    this.isLikedNotifier,
+    this.onPressed,
+    this.iconSize = 18,
+    this.backgroundColor,
+    this.iconColor,
+    this.likedIconColor,
   });
 
   @override
@@ -61,19 +73,17 @@ class _CustomTrendLikeButtonWidgetState
     return ValueListenableBuilder<LikeObject>(
       valueListenable: widget.isLikedNotifier!,
       builder: (_, isLikedObject, _) {
-        //isLiked = isLikedObject.isLiked;
+        final bool liked = isLikedObject.isLiked;
+        final Color tint = liked
+            ? (widget.likedIconColor ?? context.accent)
+            : (widget.iconColor ?? context.secondaryLabel);
+
         return Row(
           children: [
-            // Text(
-            //   '$count',
-            //   style: Theme.of(
-            //     context,
-            //   ).textTheme.labelSmall!.copyWith(fontWeight: FontWeight.bold),
-            // ),
-            const SizedBox(width: 8),
             CustomIconButtonRounded(
-              size: 18,
+              size: widget.iconSize,
               iconData: Icons.favorite,
+              backgroundColor: widget.backgroundColor,
               onPressed: () async {
                 widget.isLikedNotifier!.value = LikeObject(
                   count: isLiked ? count + 1 : count - 1,
@@ -113,14 +123,10 @@ class _CustomTrendLikeButtonWidgetState
                   );
                 },
                 child: Icon(
-                  isLikedObject.isLiked
-                      ? Icons.favorite
-                      : Icons.favorite_border_outlined,
-                  key: ValueKey(
-                    isLikedObject.isLiked,
-                  ), // important for switcher
-                  //color: isLikedObject.isLiked ? Colors.red : Colors.grey,
-                  size: 18,
+                  liked ? Icons.favorite : Icons.favorite_border_outlined,
+                  key: ValueKey(liked), // important for switcher
+                  color: tint,
+                  size: widget.iconSize,
                 ),
               ),
             ),

@@ -1,3 +1,4 @@
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -70,7 +71,6 @@ class _AutosuggestTagInputFieldState extends State<AutosuggestTagInputField> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     return Column(
@@ -82,153 +82,205 @@ class _AutosuggestTagInputFieldState extends State<AutosuggestTagInputField> {
             widget.label!,
             style: textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.bold,
-              color: colorScheme.primary,
+              color: context.accent,
             ),
           ),
           const SizedBox(height: 8),
         ],
 
-        // Tag chips
-        Wrap(
-          spacing: 12.0,
-          runSpacing: 6.0,
-          children: _tags.map((tag) {
-            return GestureDetector(
-              onTap: () => _editTag(tag), // Tap to edit
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        // Hashtag input bar
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: context.cardSurface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: context.hairline),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 28,
+                height: 28,
+                alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: colorScheme.primary.withValues(alpha: 0.1),
-                  border: Border.all(
-                    color: colorScheme.primary.withValues(alpha: .5),
-                    width: 1.0,
-                  ),
+                  color: context.iconSubstrate,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      tag,
-                      style: textTheme.bodyMedium!.copyWith(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    GestureDetector(
-                      onTap: () => _removeTag(tag),
-                      child: const Icon(Icons.close, size: 16),
-                    ),
-                  ],
+                child: Text(
+                  '#',
+                  style: textTheme.titleSmall?.copyWith(
+                    color: context.accent,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
-            );
-          }).toList(),
-        ),
-        const SizedBox(height: 8),
-
-        // Input field with autocomplete
-        RawAutocomplete<String>(
-          textEditingController: _controller,
-          focusNode: _focusNode,
-          optionsBuilder: (TextEditingValue value) {
-            if (value.text.isEmpty) return const Iterable<String>.empty();
-
-            final query = value.text.toLowerCase();
-            final matches =
-                widget.options
-                    ?.where(
-                      (option) =>
-                          option.toLowerCase().contains(query) &&
-                          !_tags.contains(option),
-                    )
-                    .toList() ??
-                [];
-
-            // Allow free text entry if no match
-            if (matches.isEmpty) return [value.text];
-            return matches;
-          },
-          displayStringForOption: (option) => option,
-          fieldViewBuilder:
-              (
-                context,
-                textEditingController,
-                fieldFocusNode,
-                onFieldSubmitted,
-              ) {
-                return KeyboardListener(
-                  focusNode: _keyboardFocusNode,
-                  onKeyEvent: (event) {
-                    if (event is KeyDownEvent &&
-                        event.logicalKey == LogicalKeyboardKey.backspace &&
-                        _controller.text.isEmpty &&
-                        _tags.isNotEmpty) {
-                      _removeTag(_tags.last);
+              const SizedBox(width: 10),
+              Expanded(
+                child: RawAutocomplete<String>(
+                  textEditingController: _controller,
+                  focusNode: _focusNode,
+                  optionsBuilder: (TextEditingValue value) {
+                    if (value.text.isEmpty) {
+                      return const Iterable<String>.empty();
                     }
+
+                    final query = value.text.toLowerCase();
+                    final matches =
+                        widget.options
+                            ?.where(
+                              (option) =>
+                                  option.toLowerCase().contains(query) &&
+                                  !_tags.contains(option),
+                            )
+                            .toList() ??
+                        [];
+
+                    // Allow free text entry if no match
+                    if (matches.isEmpty) return [value.text];
+                    return matches;
                   },
-                  child: TextFormField(
-                    controller: _controller,
-                    focusNode: _focusNode,
-                    style: textTheme.bodyLarge,
-                    decoration: InputDecoration(
-                      hintText: widget.hint ?? 'Enter tags',
-                      border: OutlineInputBorder(
+                  displayStringForOption: (option) => option,
+                  fieldViewBuilder:
+                      (
+                        context,
+                        textEditingController,
+                        fieldFocusNode,
+                        onFieldSubmitted,
+                      ) {
+                        return KeyboardListener(
+                          focusNode: _keyboardFocusNode,
+                          onKeyEvent: (event) {
+                            if (event is KeyDownEvent &&
+                                event.logicalKey ==
+                                    LogicalKeyboardKey.backspace &&
+                                _controller.text.isEmpty &&
+                                _tags.isNotEmpty) {
+                              _removeTag(_tags.last);
+                            }
+                          },
+                          child: TextFormField(
+                            controller: _controller,
+                            focusNode: _focusNode,
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: context.onCanvasText,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: widget.hint ?? 'Enter tags',
+                              isDense: true,
+                              border: InputBorder.none,
+                              hintStyle: textTheme.bodyMedium?.copyWith(
+                                fontSize: 13,
+                                color: context.placeholderText,
+                              ),
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                            onFieldSubmitted: (value) {
+                              _addTag(value);
+                            },
+                            onChanged: (value) {
+                              if (value.endsWith(' ') || value.endsWith(',')) {
+                                _addTag(value.substring(0, value.length - 1));
+                              }
+                            },
+                          ),
+                        );
+                      },
+                  optionsViewBuilder: (context, onSelected, options) {
+                    return Align(
+                      alignment: Alignment.topLeft,
+                      child: Material(
+                        elevation: 2,
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
+                        color: context.cardSurface,
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width - 32,
+                          child: ListView.builder(
+                            padding: EdgeInsets.zero,
+                            shrinkWrap: true,
+                            itemCount: options.length,
+                            itemBuilder: (context, index) {
+                              final option = options.elementAt(index);
+                              return ListTile(
+                                title: Text(option),
+                                onTap: () {
+                                  onSelected(option);
+                                  _addTag(option);
+                                },
+                              );
+                            },
+                          ),
+                        ),
                       ),
-                      hintStyle: textTheme.titleSmall!.copyWith(
-                        fontSize: 13
-                      ),
-                      filled: true,
-                      fillColor: Colors.transparent,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 4,
-                        vertical: 0,
-                      ),
-                    ),
-                    onFieldSubmitted: (value) {
-                      _addTag(value);
-                    },
-                    onChanged: (value) {
-                      if (value.endsWith(' ') || value.endsWith(',')) {
-                        _addTag(value.substring(0, value.length - 1));
-                      }
-                    },
-                  ),
-                );
-              },
-          optionsViewBuilder: (context, onSelected, options) {
-            return Align(
-              alignment: Alignment.topLeft,
-              child: Material(
-                elevation: 2,
-                borderRadius: BorderRadius.circular(12),
-                color: colorScheme.onPrimary,
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width - 32,
-                  child: ListView.builder(
-                    padding: EdgeInsets.zero,
-                    shrinkWrap: true,
-                    itemCount: options.length,
-                    itemBuilder: (context, index) {
-                      final option = options.elementAt(index);
-                      return ListTile(
-                        title: Text(option),
-                        onTap: () {
-                          onSelected(option);
-                          _addTag(option);
-                        },
-                      );
-                    },
-                  ),
+                    );
+                  },
                 ),
               ),
-            );
-          },
+            ],
+          ),
         ),
+
+        // Added hashtags
+        if (_tags.isNotEmpty) ...[
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _tags
+                .map((tag) => _buildTagChip(context, textTheme, tag))
+                .toList(),
+          ),
+        ],
       ],
+    );
+  }
+
+  Widget _buildTagChip(BuildContext context, TextTheme textTheme, String tag) {
+    return GestureDetector(
+      onTap: () => _editTag(tag), // Tap to edit
+      child: Container(
+        height: 32,
+        padding: const EdgeInsets.only(left: 12, right: 4),
+        decoration: BoxDecoration(
+          color: context.iconSubstrate,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: context.hairline),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '#',
+              style: textTheme.labelMedium?.copyWith(
+                color: context.accent,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                tag,
+                overflow: TextOverflow.ellipsis,
+                style: textTheme.labelMedium?.copyWith(
+                  color: context.onCanvasText,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            const SizedBox(width: 2),
+            GestureDetector(
+              onTap: () => _removeTag(tag),
+              child: Padding(
+                padding: const EdgeInsets.all(5),
+                child: Icon(
+                  Icons.close,
+                  size: 14,
+                  color: context.secondaryLabel,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

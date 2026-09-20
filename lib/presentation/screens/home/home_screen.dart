@@ -138,6 +138,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             pinned: true,
             delegate: _TabBarDelegate(
               TabBar(
+                tabAlignment: TabAlignment.start,
+                isScrollable: true,
                 controller: _tabController,
                 labelColor: context.onCanvasText,
                 unselectedLabelColor: context.mutedText,
@@ -148,6 +150,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(width: 4, color: context.accent),
                 ),
+                indicatorSize: TabBarIndicatorSize.label,
+
                 tabs: [
                   Tab(
                     child: Text(

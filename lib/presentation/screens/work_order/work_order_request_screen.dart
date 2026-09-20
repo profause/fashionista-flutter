@@ -12,7 +12,6 @@ import 'package:fashionista/data/models/work_order/work_order_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_notification_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_user_service.dart';
-import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -46,19 +45,44 @@ class _WorkOrderRequestScreenState extends State<WorkOrderRequestScreen> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final darkCanvas = context.canvasBackground;
+    final darkCard = context.cardSurface;
+    final darkSurface = context.secondaryButtonBg;
+    final darkBorder = context.hairline;
+    final textMuted = context.mutedText;
+    final textDim = context.onCanvasText;
+    final statusAmber = Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFFF5C65C)
+        : const Color(0xFFA83900);
+    final statusDanger = Theme.of(context).colorScheme.error;
     final colorScheme = Theme.of(context).colorScheme;
-    final radius = 28.0;
     return Scaffold(
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        foregroundColor: colorScheme.primary,
-        backgroundColor: colorScheme.onPrimary,
+        foregroundColor: context.onCanvasText,
+        backgroundColor: darkCanvas,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        leading: IconButton(
+          onPressed: () => context.pop(),
+          icon: Icon(
+            Icons.chevron_left_rounded,
+            size: 26,
+            color: context.onCanvasText,
+          ),
+          splashRadius: 20,
+          tooltip: 'Back',
+        ),
         title: Text(
           'Work Order Request',
-          style: textTheme.titleMedium!.copyWith(color: colorScheme.primary),
+          style: textTheme.titleMedium!.copyWith(
+            fontSize: 17,
+            color: context.onCanvasText,
+            fontWeight: FontWeight.w600,
+          ),
         ),
-        elevation: 0,
+        centerTitle: true,
       ),
-      backgroundColor: colorScheme.surface,
       body: BlocBuilder<WorkOrderBloc, WorkOrderBlocState>(
         buildWhen: (context, state) {
           return state is WorkOrderLoaded ||
@@ -82,542 +106,697 @@ class _WorkOrderRequestScreenState extends State<WorkOrderRequestScreen> {
             case WorkOrderUpdated(:final workorder):
               workOrderInfo = workorder;
               final isRequest = workorder.workOrderType == 'REQUEST';
-              final isCancelled = workorder.status == 'CANCELLED';
               checkIfMyClient(workOrderInfo.client!.mobileNumber!);
-              return SingleChildScrollView(
-                padding: EdgeInsets.zero,
-                child: Column(
-                  children: [
-                    Container(
-                      margin: const EdgeInsets.only(top: 4),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: colorScheme.onPrimary,
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(0),
-                        ),
-                      ),
+
+              return Stack(
+                children: [
+                  Positioned.fill(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              CircleAvatar(
-                                radius: radius,
-                                backgroundColor: colorScheme.surface,
-                                child: Container(
-                                  margin: const EdgeInsets.all(2),
-                                  clipBehavior: Clip.antiAlias,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: CachedNetworkImage(
-                                    imageUrl: workOrderInfo.client!.avatar!,
-                                    errorListener: (error) {},
-                                    errorWidget: (context, url, error) =>
-                                        DefaultProfileAvatar(
-                                          name: null,
-                                          size: radius * 2,
-                                          uid: workOrderInfo.client!.uid!,
-                                        ),
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: darkCard,
+                              border: Border.all(color: darkBorder),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Column(
+                              children: [
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(bottom: 12),
+                                    child: Text(
+                                      'CLIENT COMMUNICATION',
+                                      style: textTheme.labelSmall!.copyWith(
+                                        color: textMuted,
+                                        letterSpacing: 1.1,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
-
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(left: 12.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: darkBorder,
+                                          width: 1,
+                                        ),
+                                        color: darkSurface,
+                                      ),
+                                      clipBehavior: Clip.antiAlias,
+                                      child: CachedNetworkImage(
+                                        imageUrl:
+                                            workOrderInfo.client!.avatar ?? '',
+                                        fit: BoxFit.cover,
+                                        alignment: const Alignment(0.0, 0.28),
+                                        errorWidget: (context, url, error) =>
+                                            DefaultProfileAvatar(
+                                              name: null,
+                                              size: 40,
+                                              uid:
+                                                  workOrderInfo.client!.uid ??
+                                                  '',
+                                            ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
+                                            workOrderInfo.client!.name ??
+                                                'Client',
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
-                                            workOrderInfo.client!.name!,
                                             style: textTheme.titleSmall!
                                                 .copyWith(
-                                                  color: colorScheme.primary,
+                                                  color: textDim,
+                                                  fontWeight: FontWeight.w600,
                                                 ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            workOrderInfo
+                                                    .client!
+                                                    .mobileNumber ??
+                                                '',
+                                            style: textTheme.bodyMedium!
+                                                .copyWith(color: textMuted),
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 0),
-                                      Text(
-                                        workOrderInfo.client!.mobileNumber!,
-                                        style: textTheme.bodyMedium!.copyWith(
-                                          color: colorScheme.primary,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ],
+                                const SizedBox(height: 14),
+                                ValueListenableBuilder<bool>(
+                                  valueListenable: isMyClient,
+                                  builder: (context, _, __) {
+                                    return Row(
+                                      children: [
+                                        Expanded(
+                                          child: TextButton.icon(
+                                            onPressed: () async {
+                                              final Uri dialUri = Uri(
+                                                scheme: 'tel',
+                                                path: workOrderInfo
+                                                    .client!
+                                                    .mobileNumber!,
+                                              );
+                                              await launchUrl(
+                                                dialUri,
+                                                mode: LaunchMode
+                                                    .externalApplication,
+                                              );
+                                            },
+                                            icon: Icon(
+                                              Icons.phone_rounded,
+                                              size: 16,
+                                              color: context.accent,
+                                            ),
+                                            label: const Text('Call'),
+                                            style: TextButton.styleFrom(
+                                              backgroundColor: darkSurface,
+                                              foregroundColor: textDim,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                side: BorderSide(
+                                                  color: darkBorder,
+                                                ),
+                                              ),
+                                              minimumSize:
+                                                  const Size.fromHeight(40),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: TextButton.icon(
+                                            onPressed: () async {
+                                              final Uri messageUri = Uri(
+                                                scheme: 'sms',
+                                                path: workOrderInfo
+                                                    .client!
+                                                    .mobileNumber!,
+                                              );
+                                              await launchUrl(
+                                                messageUri,
+                                                mode: LaunchMode
+                                                    .externalApplication,
+                                              );
+                                            },
+                                            icon: Icon(
+                                              Icons.chat_bubble_outline_rounded,
+                                              size: 16,
+                                              color: textDim,
+                                            ),
+                                            label: const Text('Message'),
+                                            style: TextButton.styleFrom(
+                                              backgroundColor: darkSurface,
+                                              foregroundColor: textDim,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                side: BorderSide(
+                                                  color: darkBorder,
+                                                ),
+                                              ),
+                                              minimumSize:
+                                                  const Size.fromHeight(40),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
-                          ValueListenableBuilder<bool>(
-                            valueListenable: isMyClient,
-                            builder: (context, isMyClient, _) {
-                              if (!isMyClient) {
-                                return Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: darkCard,
+                              border: Border.all(color: darkBorder),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    OutlinedButton.icon(
-                                      onPressed: () {
-                                        context.push(
-                                          '/clients/add/${workOrderInfo.client!.mobileNumber!}',
-                                        );
-                                      },
-                                      icon: const Icon(Icons.person_rounded),
-                                      label: const Text('Add as client'),
-                                      style: OutlinedButton.styleFrom(
-                                        side: BorderSide.none,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
+                                    Text(
+                                      'ORDER OVERVIEW',
+                                      style: textTheme.labelMedium!.copyWith(
+                                        color: textMuted,
+                                        letterSpacing: 1.1,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.appIconColor.withValues(
+                                          alpha: 0.12,
+                                        ),
+                                        border: Border.all(
+                                          color: AppTheme.appIconColor
+                                              .withValues(alpha: 0.22),
+                                        ),
+                                        borderRadius: BorderRadius.circular(
+                                          999,
                                         ),
                                       ),
-                                    ),
-
-                                    // 🔹 Vertical divider between buttons
-                                    Container(
-                                      height: 24, // control height
-                                      width: 1,
-                                      color: Colors.grey.withValues(alpha: 0.4),
-                                      margin: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                      ),
-                                    ),
-
-                                    OutlinedButton.icon(
-                                      onPressed: () async {
-                                        final Uri dialUri = Uri(
-                                          scheme: 'tel',
-                                          path: workOrderInfo
-                                              .client!
-                                              .mobileNumber!,
-                                        );
-                                        await launchUrl(
-                                          dialUri,
-                                          mode: LaunchMode.externalApplication,
-                                        );
-                                      },
-                                      icon: const Icon(Icons.call_rounded),
-                                      label: const Text('Contact client'),
-                                      style: OutlinedButton.styleFrom(
-                                        side: BorderSide.none,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
+                                      child: Text(
+                                        'Custom Tailoring',
+                                        style: textTheme.labelSmall!.copyWith(
+                                          color: AppTheme.appIconColor,
+                                          fontWeight: FontWeight.w600,
                                         ),
                                       ),
                                     ),
                                   ],
-                                );
-                              }
-                              return OutlinedButton.icon(
-                                onPressed: () async {
-                                  final Uri dialUri = Uri(
-                                    scheme: 'tel',
-                                    path: workOrderInfo.client!.mobileNumber!,
-                                  );
-                                  await launchUrl(
-                                    dialUri,
-                                    mode: LaunchMode.externalApplication,
-                                  );
-                                },
-                                icon: const Icon(Icons.call_rounded),
-                                label: const Text('Contact client'),
-                                style: OutlinedButton.styleFrom(
-                                  side: BorderSide.none,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
                                 ),
-                              );
-                            },
+                                const SizedBox(height: 14),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      width: 112,
+                                      height: 148,
+                                      decoration: BoxDecoration(
+                                        border: Border.all(color: darkBorder),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child:
+                                            workOrderInfo.featuredMedia !=
+                                                    null &&
+                                                workOrderInfo
+                                                    .featuredMedia!
+                                                    .isNotEmpty &&
+                                                workOrderInfo
+                                                        .featuredMedia!
+                                                        .first
+                                                        .url !=
+                                                    null
+                                            ? CachedNetworkImage(
+                                                imageUrl: workOrderInfo
+                                                    .featuredMedia!
+                                                    .first
+                                                    .url!,
+                                                fit: BoxFit.cover,
+                                                alignment: const Alignment(
+                                                  0.0,
+                                                  0.40,
+                                                ),
+                                                errorWidget:
+                                                    (context, url, error) =>
+                                                        const SizedBox.shrink(),
+                                              )
+                                            : Container(color: darkSurface),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 14),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'TITLE',
+                                            style: textTheme.labelSmall!
+                                                .copyWith(
+                                                  color: textMuted,
+                                                  letterSpacing: 1.0,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            workOrderInfo.title,
+                                            style: textTheme.titleSmall!
+                                                .copyWith(
+                                                  color: textDim,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                          ),
+                                          const SizedBox(height: 16),
+                                          Text(
+                                            'DESCRIPTION',
+                                            style: textTheme.labelSmall!
+                                                .copyWith(
+                                                  color: textMuted,
+                                                  letterSpacing: 1.0,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            workOrderInfo
+                                                        .description
+                                                        ?.isNotEmpty ==
+                                                    true
+                                                ? workOrderInfo.description!
+                                                : 'No description provided.',
+                                            maxLines: 7,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: textTheme.bodySmall!
+                                                .copyWith(
+                                                  color: textMuted,
+                                                  height: 1.5,
+                                                ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    SizedBox(
-                      width: double.infinity,
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: colorScheme.onPrimary,
-                          borderRadius: BorderRadius.circular(0),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withValues(alpha: 0.04),
-                              blurRadius: 8,
-                              offset: const Offset(0, 3),
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            decoration: BoxDecoration(
+                              color: darkCard,
+                              border: Border.all(color: darkBorder),
+                              borderRadius: BorderRadius.circular(16),
                             ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            TextButton(
-                              style: TextButton.styleFrom(
-                                backgroundColor: Colors.green.withValues(
-                                  alpha: 0.2,
-                                ),
-                                disabledBackgroundColor: colorScheme.surface,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              onPressed: !isRequest
-                                  ? null
-                                  : () async {
-                                      final canAccept = await showDialog<bool>(
-                                        context: context,
-                                        builder: (ctx) => AlertDialog(
-                                          title: const Text(
-                                            'Accept Work Order',
-                                          ),
-                                          content: const Text(
-                                            'Are you sure you want to accept this work order?',
-                                          ),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () =>
-                                                  Navigator.of(ctx).pop(false),
-                                              child: const Text('Cancel'),
-                                            ),
-                                            TextButton(
-                                              onPressed: () =>
-                                                  Navigator.of(ctx).pop(true),
-                                              style: TextButton.styleFrom(
-                                                foregroundColor: Colors.green,
-                                              ),
-                                              child: const Text('Accept'),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-
-                                      if (canAccept == true) {
-                                        await _acceptWorkOrder(workorder);
-                                      }
-                                    },
-                              child: Text(
-                                !isRequest ? 'Accepted' : 'Accept',
-                                style: textTheme.bodySmall!.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            TextButton(
-                              style: TextButton.styleFrom(
-                                backgroundColor: Colors.blueAccent.withValues(
-                                  alpha: 0.2,
-                                ),
-                                disabledBackgroundColor: colorScheme.surface,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              onPressed: isCancelled
-                                  ? null
-                                  : () {
-                                      context.push(
-                                        '/workorders/edit/${workOrderInfo.uid}',
-                                      );
-                                    },
-                              child: Text(
-                                "Edit",
-                                style: textTheme.bodySmall!.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            //const Spacer(),
-                            TextButton(
-                              style: TextButton.styleFrom(
-                                backgroundColor: AppTheme.appIconColor
-                                    .withValues(alpha: 0.2),
-                                disabledBackgroundColor: colorScheme.surface,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              onPressed: isCancelled
-                                  ? null
-                                  : () async {
-                                      final canCancel = await showDialog<bool>(
-                                        context: context,
-                                        builder: (ctx) => AlertDialog(
-                                          title: const Text('Cancel Request'),
-                                          content: const Text(
-                                            'Are you sure you want to cancel this request?',
-                                          ),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () =>
-                                                  Navigator.of(ctx).pop(false),
-                                              child: const Text('No'),
-                                            ),
-                                            TextButton(
-                                              onPressed: () =>
-                                                  Navigator.of(ctx).pop(true),
-                                              style: TextButton.styleFrom(
-                                                foregroundColor: Colors.red,
-                                              ),
-                                              child: const Text('Cancel'),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-
-                                      if (canCancel == true) {
-                                        await _cancelWorkOrder(workorder);
-                                      }
-                                    },
-                              child: Text(
-                                "Cancel",
-                                style: textTheme.bodySmall!.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    if (workOrderInfo.featuredMedia!.isNotEmpty)
-                      SizedBox(
-                        height: 220,
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.only(
-                            left: 16,
-                            right: 8,
-                            top: 12,
-                          ),
-                          itemCount: workOrderInfo.featuredMedia!.length,
-                          separatorBuilder: (_, _) => const SizedBox(width: 8),
-                          itemBuilder: (context, index) {
-                            final image =
-                                workOrderInfo.featuredMedia![index].url;
-                            return Stack(
+                            child: Column(
                               children: [
-                                AspectRatio(
-                                  aspectRatio: 3 / 4,
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: CachedNetworkImage(
-                                      imageUrl: image!.isEmpty
-                                          ? ''
-                                          : image.trim(),
-                                      fit: BoxFit.cover,
-                                      placeholder: (context, url) =>
-                                          const Center(
-                                            child: SizedBox(
-                                              height: 18,
-                                              width: 18,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                              ),
-                                            ),
-                                          ),
-                                      errorWidget: (context, url, error) =>
-                                          const CustomColoredBanner(text: ''),
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                      12,
+                                      12,
+                                      12,
+                                      4,
+                                    ),
+                                    child: Text(
+                                      'SCHEDULE & PLANNING',
+                                      style: textTheme.labelSmall!.copyWith(
+                                        color: textMuted,
+                                        letterSpacing: 1.1,
+                                        fontWeight: FontWeight.w700,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ],
-                            );
-                          },
-                        ),
-                      ),
-                    const SizedBox(height: 12),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: colorScheme.onPrimary,
-                        borderRadius: BorderRadius.circular(0),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withValues(alpha: 0.04),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text("Title"),
-                                Text(
-                                  workOrderInfo.title,
-                                  style: textTheme.bodyMedium!.copyWith(
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Divider(height: .1, thickness: .1),
-                          Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text("Description"),
-                                Text(
-                                  workOrderInfo.description ?? "",
-                                  style: textTheme.bodyMedium!.copyWith(
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    // Date Pickers
-                    Container(
-                      decoration: BoxDecoration(
-                        color: colorScheme.onPrimary,
-                        borderRadius: BorderRadius.circular(0),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withValues(alpha: 0.04),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text("Start"),
-                                Text(
-                                  workOrderInfo.startDate != null
+                                _timelineRow(
+                                  label: 'Start',
+                                  value: workOrderInfo.startDate != null
                                       ? DateFormat(
                                           'yyyy-MM-dd',
                                         ).format(workOrderInfo.startDate!)
                                       : 'no start date',
-                                  style: textTheme.bodyMedium!.copyWith(
-                                    fontWeight: FontWeight.w500,
+                                  trailing: Icon(
+                                    Icons.calendar_month_outlined,
+                                    color: textMuted,
+                                    size: 20,
                                   ),
+                                  textTheme: textTheme,
+                                  mutedColor: textMuted,
+                                  valueColor: textDim,
                                 ),
-                              ],
-                            ),
-                          ),
-                          const Divider(height: .1, thickness: .1),
-                          Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text("Due date"),
-                                Text(
-                                  workOrderInfo.dueDate != null
+                                Divider(height: 1, color: darkBorder),
+                                _timelineRow(
+                                  label: 'Due date',
+                                  value: workOrderInfo.dueDate != null
                                       ? DateFormat(
                                           'yyyy-MM-dd',
                                         ).format(workOrderInfo.dueDate!)
                                       : 'no due date',
-                                  style: textTheme.bodyMedium!.copyWith(
-                                    fontWeight: FontWeight.w500,
+                                  trailing: Icon(
+                                    Icons.calendar_month_outlined,
+                                    color: textMuted,
+                                    size: 20,
                                   ),
+                                  textTheme: textTheme,
+                                  mutedColor: textMuted,
+                                  valueColor: textDim,
+                                ),
+                                Divider(height: 1, color: darkBorder),
+                                _timelineRow(
+                                  label: 'Current progress',
+                                  value: workOrderInfo.status ?? 'DRAFT',
+                                  trailing: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: statusAmber.withValues(
+                                        alpha: 0.10,
+                                      ),
+                                      border: Border.all(
+                                        color: statusAmber.withValues(
+                                          alpha: 0.30,
+                                        ),
+                                      ),
+                                      borderRadius: BorderRadius.circular(999),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          width: 6,
+                                          height: 6,
+                                          decoration: BoxDecoration(
+                                            color: statusAmber,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          'Awaiting Confirmation',
+                                          style: textTheme.labelSmall!.copyWith(
+                                            color: statusAmber,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  textTheme: textTheme,
+                                  mutedColor: textMuted,
+                                  valueColor: const Color(0xFFF5C65C),
                                 ),
                               ],
                             ),
                           ),
+                          if (workOrderInfo.tags != null &&
+                              workOrderInfo.tags!.trim().isNotEmpty) ...[
+                            const SizedBox(height: 16),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: workOrderInfo.tags!
+                                    .split(',')
+                                    .where((tag) => tag.trim().isNotEmpty)
+                                    .map(
+                                      (tag) => Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 6,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: darkSurface,
+                                          borderRadius: BorderRadius.circular(
+                                            999,
+                                          ),
+                                          border: Border.all(color: darkBorder),
+                                        ),
+                                        child: Text(
+                                          tag.trim(),
+                                          style: textTheme.labelSmall!.copyWith(
+                                            color: textDim,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
                         ],
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: colorScheme.onPrimary,
-                        borderRadius: BorderRadius.circular(0),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withValues(alpha: 0.04),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
+                  ),
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: SafeArea(
+                      child: Container(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+                        decoration: BoxDecoration(
+                          color: darkCanvas,
+                          border: Border(
+                            top: BorderSide(color: darkBorder, width: 1),
                           ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Row(
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: TextButton(
+                                onPressed:
+                                    isMyClient.value || isCheckingMyClient
+                                    ? null
+                                    : () async {
+                                        final canCancel = await showDialog<bool>(
+                                          context: context,
+                                          builder: (ctx) => AlertDialog(
+                                            title: const Text('Cancel Request'),
+                                            content: const Text(
+                                              'Are you sure you want to cancel this request?',
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () => Navigator.of(
+                                                  ctx,
+                                                ).pop(false),
+                                                child: const Text('No'),
+                                              ),
+                                              TextButton(
+                                                onPressed: () =>
+                                                    Navigator.of(ctx).pop(true),
+                                                style: TextButton.styleFrom(
+                                                  foregroundColor: statusDanger,
+                                                ),
+                                                child: const Text('Cancel'),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+
+                                        if (canCancel == true) {
+                                          await _cancelWorkOrder(workOrderInfo);
+                                        }
+                                      },
+                                style: TextButton.styleFrom(
+                                  foregroundColor: statusDanger,
+                                  backgroundColor: statusDanger.withValues(
+                                    alpha: 0.10,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    side: BorderSide(color: statusDanger),
+                                  ),
+                                  minimumSize: const Size.fromHeight(48),
+                                ),
+                                child: const Text(
+                                  'Cancel',
+                                  style: TextStyle(fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: TextButton(
+                                onPressed: () {
+                                  context.push(
+                                    '/workorders/edit/${workOrderInfo.uid}',
+                                  );
+                                },
+                                style: TextButton.styleFrom(
+                                  foregroundColor: textDim,
+                                  backgroundColor: darkSurface,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    side: BorderSide(color: darkBorder),
+                                  ),
+                                  minimumSize: const Size.fromHeight(48),
+                                ),
+                                child: const Text(
+                                  'Edit',
+                                  style: TextStyle(fontWeight: FontWeight.w500),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              flex: 2,
+                              child: TextButton(
+                                onPressed: !isRequest
+                                    ? null
+                                    : () async {
+                                        final canAccept = await showDialog<bool>(
+                                          context: context,
+                                          builder: (ctx) => AlertDialog(
+                                            title: const Text(
+                                              'Accept Work Order',
+                                            ),
+                                            content: const Text(
+                                              'Are you sure you want to accept this work order?',
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () => Navigator.of(
+                                                  ctx,
+                                                ).pop(false),
+                                                child: const Text('Cancel'),
+                                              ),
+                                              TextButton(
+                                                onPressed: () =>
+                                                    Navigator.of(ctx).pop(true),
+                                                style: TextButton.styleFrom(
+                                                  foregroundColor:
+                                                      AppTheme.appIconColor,
+                                                ),
+                                                child: const Text('Accept'),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+
+                                        if (canAccept == true) {
+                                          await _acceptWorkOrder(workOrderInfo);
+                                        }
+                                      },
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.white,
+                                  backgroundColor: context.accent,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  minimumSize: const Size.fromHeight(48),
+                                  shadowColor: AppTheme.appIconColor.withValues(
+                                    alpha: 0.35,
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Text("Current progress"),
+                                    Icon(Icons.check_rounded, size: 18),
+                                    SizedBox(width: 6),
                                     Text(
-                                      workOrderInfo.status!,
-                                      style: textTheme.bodyMedium!.copyWith(
+                                      'Accept Request',
+                                      style: TextStyle(
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                   ],
                                 ),
-                              ],
-                            ),
-                          ),
-                          //const Divider(height: .1, thickness: .1),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    if (workOrderInfo.tags!.trim().isNotEmpty) ...[
-                      Container(
-                        padding: const EdgeInsets.only(left: 12, bottom: 16),
-                        alignment: Alignment.centerLeft,
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: List.generate(
-                            workOrderInfo.tags!.split(',').length,
-                            (index) => Chip(
-                              label: Text(
-                                workOrderInfo.tags!.split(',')[index],
                               ),
-                              padding: EdgeInsets.zero, // remove extra padding
-                              visualDensity:
-                                  VisualDensity.compact, // tighter look
-                              materialTapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
                             ),
-                          ),
+                          ],
                         ),
                       ),
-                      //const SizedBox(height: 12),
-                    ],
-                    const SizedBox(height: 12),
-                  ],
-                ),
+                    ),
+                  ),
+                ],
               );
             default:
-              return SizedBox.shrink();
+              return const SizedBox.shrink();
           }
         },
+      ),
+    );
+  }
+
+  Widget _timelineRow({
+    required String label,
+    required String value,
+    required TextTheme textTheme,
+    required Color mutedColor,
+    required Color valueColor,
+    required Widget trailing,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: textTheme.labelMedium!.copyWith(
+                  color: mutedColor,
+                  letterSpacing: 1.0,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: textTheme.bodyMedium!.copyWith(
+                  color: valueColor,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          trailing,
+        ],
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/utils/get_relative_time.dart';
 import 'package:fashionista/data/models/work_order/work_order_status_progress_model.dart';
 import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
@@ -25,6 +26,13 @@ class WorkOrderStatusInfoCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+    final cardSurface = context.cardSurface;
+    final hairline = context.hairline;
+    final mutedText = context.mutedText;
+    final accent = context.accent;
+    final activeStatus = context.isDarkTheme
+        ? const Color(0xFFF5C65C)
+        : const Color(0xFFA83900);
     final previewImages = workOrderStatusInfo.featuredMedia!
         .map((e) => e.url)
         .toList();
@@ -37,23 +45,21 @@ class WorkOrderStatusInfoCardWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             SizedBox(
-              width: 44,
+              width: 62,
               child: Column(
                 children: [
                   // Timestamp
                   Tooltip(
                     message: workOrderStatusInfo.createdAt.toString(),
                     child: Text(
-                      textAlign: TextAlign.center,
+                      textAlign: TextAlign.right,
                       maxLines: 2,
                       formatRelativeTime(workOrderStatusInfo.createdAt!)
                           .trim(),
                       style: textTheme.bodySmall?.copyWith(
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
-                        color: isFirst
-                            ? const Color(0xFFFF5A00)
-                            : colorScheme.onSurfaceVariant,
+                        color: isFirst ? activeStatus : mutedText,
                       ),
                     ),
                   ),
@@ -65,18 +71,16 @@ class WorkOrderStatusInfoCardWidget extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: isFirst
-                          ? const Color(0xFFFF5A00)
-                          : colorScheme.onSurface.withValues(alpha: 0.25),
+                          ? accent
+                          : context.secondaryLabel,
                       border: Border.all(
-                        color: colorScheme.surface,
+                        color: context.canvasBackground,
                         width: 2,
                       ),
                       boxShadow: isFirst
                           ? [
                               BoxShadow(
-                                color: const Color(
-                                  0xFFFF5A00,
-                                ).withValues(alpha: 0.3),
+                                  color: accent.withValues(alpha: 0.3),
                                 blurRadius: 8,
                                 spreadRadius: 1,
                               ),
@@ -89,7 +93,7 @@ class WorkOrderStatusInfoCardWidget extends StatelessWidget {
                       child: Container(
                         width: 2,
                         margin: const EdgeInsets.symmetric(vertical: 2),
-                        color: colorScheme.onSurface.withValues(alpha: 0.12),
+                        color: hairline,
                       ),
                     ),
                 ],
@@ -101,10 +105,10 @@ class WorkOrderStatusInfoCardWidget extends StatelessWidget {
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: colorScheme.surface,
+                  color: cardSurface,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: colorScheme.onSurface.withValues(alpha: 0.08),
+                    color: hairline,
                   ),
                   boxShadow: [
                     BoxShadow(
@@ -126,38 +130,8 @@ class WorkOrderStatusInfoCardWidget extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (isFirst) ...[
-                                // "In Progress" chip
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 3,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(
-                                      0xFFFFF0E6,
-                                    ),
-                                    borderRadius: BorderRadius.circular(999),
-                                    border: Border.all(
-                                      color: const Color(
-                                        0xFFFF5A00,
-                                      ).withValues(alpha: 0.2),
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    'In Progress',
-                                    style: TextStyle(
-                                      fontSize: 10.5,
-                                      fontWeight: FontWeight.w600,
-                                      color: Color(0xFFFF5A00),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 9),
-                              ],
                               Tooltip(
-                                message: workOrderStatusInfo
-                                    .status, // 👈 shows full text
+                                message: workOrderStatusInfo.status,
                                 child: Text(
                                   workOrderStatusInfo.status,
                                   maxLines: 1,
@@ -182,6 +156,32 @@ class WorkOrderStatusInfoCardWidget extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isFirst
+                              ? accent.withValues(alpha: 0.10)
+                              : context.iconSubstrate,
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(
+                                color: isFirst
+                                  ? accent.withValues(alpha: 0.22)
+                                  : hairline,
+                            ),
+                          ),
+                          child: Text(
+                            isFirst ? 'IN PROGRESS' : 'COMPLETED',
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                                color: isFirst ? activeStatus : mutedText,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
                         if (onDelete != null)
                           CustomIconButtonRounded(
                             onPressed: () => onDelete?.call(),
@@ -193,7 +193,7 @@ class WorkOrderStatusInfoCardWidget extends StatelessWidget {
                     if (previewImages.isNotEmpty) ...[
                       const SizedBox(height: 12),
                       SizedBox(
-                        height: 154,
+                        height: 160,
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
                           //padding: const EdgeInsets.only(top: 2, bottom: 4),
@@ -203,7 +203,7 @@ class WorkOrderStatusInfoCardWidget extends StatelessWidget {
                           itemBuilder: (context, index) {
                             final image = previewImages[index];
                             return Container(
-                              width: 112,
+                              width: 120,
                               clipBehavior: Clip.antiAlias,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(16),
