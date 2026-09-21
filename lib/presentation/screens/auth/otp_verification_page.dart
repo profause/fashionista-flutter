@@ -81,11 +81,21 @@ class _OtpVerificationPageState extends State<OtpVerificationPage>
   }
 
   String get _maskedPhone {
-    final digits = (widget.phoneNumber ?? '').replaceAll(RegExp(r'\D'), '');
-    final last2 = digits.length >= 2
-        ? digits.substring(digits.length - 2)
-        : (digits.isEmpty ? '00' : digits);
-    return '+233 •••• •••$last2';
+    final raw = widget.phoneNumber ?? '';
+    final digits = raw.replaceAll(RegExp(r'\D'), '');
+
+    if (digits.isEmpty) return '+••••••••••';
+
+    if (digits.length <= 5) {
+      final visiblePrefix = digits.substring(0, digits.length - 2);
+      return '+$visiblePrefix${'•' * 2}';
+    }
+
+    final first3 = digits.substring(0, 3);
+    final last2 = digits.substring(digits.length - 2);
+    final middle = '•' * (digits.length - 5);
+
+    return '+$first3$middle$last2';
   }
 
   Future<void> _submit() async {
@@ -146,12 +156,12 @@ class _OtpVerificationPageState extends State<OtpVerificationPage>
                         Text(
                           "Enter the 6-digit code",
                           textAlign: TextAlign.center,
-                          style:
-                              Theme.of(context).textTheme.headlineSmall!.copyWith(
-                                    fontSize: 23,
-                                    fontWeight: FontWeight.bold,
-                                    color: _onSurface,
-                                  ),
+                          style: Theme.of(context).textTheme.headlineSmall!
+                              .copyWith(
+                                fontSize: 23,
+                                fontWeight: FontWeight.bold,
+                                color: _onSurface,
+                              ),
                         ),
                         const SizedBox(height: 8),
                         Padding(
@@ -159,10 +169,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage>
                           child: Text.rich(
                             TextSpan(
                               text: 'Sent to your phone line ending in ',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: _secondary,
-                              ),
+                              style: TextStyle(fontSize: 14, color: _secondary),
                               children: [
                                 TextSpan(
                                   text: _maskedPhone,
@@ -179,34 +186,49 @@ class _OtpVerificationPageState extends State<OtpVerificationPage>
                         const SizedBox(height: 20),
 
                         /// OTP Input with Auto-fill
-                        PinFieldAutoFill(
-                          currentCode: _otpCode,
-                          codeLength: _otpLength,
-                          onCodeChanged: (value) {
-                            setState(() => _otpCode = value ?? '');
-                            if (value != null && value.length == _otpLength) {
-                              widget.onVerified(value);
-                              FocusScope.of(context).unfocus();
-                            }
-                          },
-                          onCodeSubmitted: (value) => widget.onVerified(value),
-                          decoration: BoxLooseDecoration(
-                            strokeColorBuilder: PinListenColorBuilder(
-                              _borderFilled,
-                              _borderEmpty,
+                        /// PinInputTextField derives its box height from the
+                        /// incoming height constraint, so fix it to 50.
+                        /// Its inner TextField also inherits the app-wide
+                        /// InputDecorationTheme (filled: true + fillColor),
+                        /// so that fill must be disabled for this subtree.
+                        Theme(
+                          data: Theme.of(context).copyWith(
+                            inputDecorationTheme:
+                                const InputDecorationThemeData(
+                                  filled: false,
+                                  fillColor: Colors.transparent,
+                                ),
+                          ),
+                          child: SizedBox(
+                            height: 50,
+                            child: PinFieldAutoFill(
+                              currentCode: _otpCode,
+                              codeLength: _otpLength,
+                              onCodeChanged: (value) {
+                                setState(() => _otpCode = value ?? '');
+                                if (value != null &&
+                                    value.length == _otpLength) {
+                                  widget.onVerified(value);
+                                  FocusScope.of(context).unfocus();
+                                }
+                              },
+                              onCodeSubmitted: (value) =>
+                                  widget.onVerified(value),
+                              decoration: BoxLooseDecoration(
+                                strokeColorBuilder: PinListenColorBuilder(
+                                  _borderFilled,
+                                  _borderEmpty,
+                                ),
+                                radius: const Radius.circular(12),
+                                gapSpace: 10,
+                                textStyle: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: _onSurface,
+                                ),
+                                strokeWidth: 1.5,
+                              ),
                             ),
-                            bgColorBuilder: FixedColorBuilder(
-                              Theme.of(context).cardTheme.color ??
-                                  Colors.white,
-                            ),
-                            radius: const Radius.circular(12),
-                            gapSpace: 10,
-                            textStyle: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: _onSurface,
-                            ),
-                            strokeWidth: 1.5,
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -282,7 +304,8 @@ class _OtpVerificationPageState extends State<OtpVerificationPage>
                         Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).cardTheme.color ??
+                            color:
+                                Theme.of(context).cardTheme.color ??
                                 Colors.white,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(color: _borderEmpty),
@@ -365,10 +388,7 @@ class _TappableText extends StatelessWidget {
   final VoidCallback onTap;
   final Widget child;
 
-  const _TappableText({
-    required this.onTap,
-    required this.child,
-  });
+  const _TappableText({required this.onTap, required this.child});
 
   @override
   Widget build(BuildContext context) {

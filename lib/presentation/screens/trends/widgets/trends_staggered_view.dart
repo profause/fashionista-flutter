@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/trend_info_card_widget.dart';
 import 'package:flutter/material.dart';
@@ -11,32 +9,26 @@ class TrendsStaggeredView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final random = Random();
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         child: MasonryGridView.builder(
-          padding: const EdgeInsets.only(top: 8),
+          padding: const EdgeInsets.only(top: 8, bottom: 24),
           shrinkWrap: true,
           cacheExtent: 500,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverSimpleGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
           ),
-          mainAxisSpacing: 2,
-          crossAxisSpacing: 2,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
           itemCount: items.length,
           itemBuilder: (context, index) {
             final trend = items[index];
-            // 👇 Assign different aspect ratios randomly for variety
-            final aspectRatioOptions = [1 / 1, 4 / 5, 2 / 3];
-            final aspectRatio =
-                aspectRatioOptions[random.nextInt(aspectRatioOptions.length)];
-
             return TrendInfoCardWidget(
               key: ValueKey(trend.uid),
               trendInfo: trend,
-              aspectRatio: aspectRatio,
+              aspectRatio: 3 / 4,
             );
           },
         ),

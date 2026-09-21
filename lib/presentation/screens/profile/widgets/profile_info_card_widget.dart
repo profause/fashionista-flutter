@@ -75,7 +75,6 @@ class _ProfileInfoRow extends StatelessWidget {
                     item.title,
                     style: const TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.w600,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

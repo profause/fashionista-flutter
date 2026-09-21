@@ -124,32 +124,30 @@ class UserProfilePage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          UserProfileMessurementCard(key: ValueKey(user.uid),),
+          UserProfileMessurementCard(key: ValueKey(user.uid)),
           // sign out
           const SizedBox(height: 12),
           Container(
-            margin: EdgeInsets.zero,
             decoration: BoxDecoration(
-              color: context.cardSurface,
+              color: colorScheme.primaryContainer.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(16),
-              //border: Border.all(color: context.hairline),
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               child: TextButton(
                 onPressed: () => _signOut(context),
                 style: TextButton.styleFrom(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  //padding: const EdgeInsets.symmetric(vertical: 8),
                 ),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
                     'Sign out',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.red,
+                      color: context.accent,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
