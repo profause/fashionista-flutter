@@ -11,17 +11,18 @@ part 'client_model.g.dart';
 @HiveType(typeId: hive.HiveType.clientType)
 class Client extends Equatable {
   @HiveField(ClientModelHiveType.uid)
+  @JsonKey(defaultValue: '')
   final String uid;
 
   @HiveField(ClientModelHiveType.createdBy)
-  @JsonKey(name: 'created_by')
+  @JsonKey(name: 'created_by', defaultValue: '')
   final String createdBy;
 
-  @JsonKey(name: 'full_name')
+  @JsonKey(name: 'full_name', defaultValue: '')
   @HiveField(ClientModelHiveType.fullName)
   final String fullName;
 
-  @JsonKey(name: 'mobile_number')
+  @JsonKey(name: 'mobile_number', defaultValue: '')
   @HiveField(ClientModelHiveType.mobileNumber)
   final String mobileNumber;
 
@@ -30,6 +31,7 @@ class Client extends Equatable {
   final String? imageUrl;
 
   @HiveField(ClientModelHiveType.gender)
+  @JsonKey(defaultValue: '')
   final String gender;
 
   @JsonKey(name: 'created_date')
@@ -57,7 +59,7 @@ class Client extends Equatable {
     required this.createdDate,
     required this.measurements,
     this.updatedAt,
-    this.isPinned
+    this.isPinned,
   });
 
   factory Client.fromJson(Map<String, dynamic> json) => _$ClientFromJson(json);
@@ -109,7 +111,7 @@ class Client extends Equatable {
       createdDate: null,
       measurements: [],
       updatedAt: null,
-      isPinned: false
+      isPinned: false,
     );
   }
 

@@ -40,7 +40,7 @@ class _MyDesignersScreenState extends State<MyDesignersScreen> {
     return Scaffold(
       backgroundColor: context.canvasBackground,
       appBar: AppBar(
-        foregroundColor: context.accent,
+        foregroundColor: context.onCanvasText,
         backgroundColor: context.cardSurface,
         title: const AppBarTitle(title: 'My Designers'),
         elevation: 0,

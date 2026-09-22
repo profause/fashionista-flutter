@@ -3,6 +3,7 @@ import 'package:dartz/dartz.dart';
 import 'package:fashionista/data/models/clients/client_measurement_model.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
 abstract class FirebaseClientsService {
   Future<Either> fetchClientsFromFirestore(String uid);
@@ -136,10 +137,17 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
           .collection('clients')
           .where('mobile_number', isEqualTo: mobileNumber)
           .get();
-      // Map each document to a Client
-      final clients = querySnapshot.docs
-          .map((doc) => Client.fromJson(doc.data()))
-          .toList();
+      // Map each document to a Client. Docs written by older app versions can
+      // be missing fields, so skip (and report) a malformed doc instead of
+      // failing the whole list.
+      final clients = <Client>[];
+      for (final doc in querySnapshot.docs) {
+        try {
+          clients.add(Client.fromJson(doc.data()));
+        } catch (e) {
+          debugPrint('Skipping malformed client doc ${doc.id}: $e');
+        }
+      }
       return Right(clients);
     } on FirebaseException catch (e) {
       return Left(e.message ?? 'An unknown Firebase error occurred');

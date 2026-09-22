@@ -72,12 +72,12 @@ class ClientAdapter extends TypeAdapter<Client> {
 // **************************************************************************
 
 Client _$ClientFromJson(Map<String, dynamic> json) => Client(
-      uid: json['uid'] as String,
-      createdBy: json['created_by'] as String,
-      fullName: json['full_name'] as String,
-      mobileNumber: json['mobile_number'] as String,
+      uid: json['uid'] as String? ?? '',
+      createdBy: json['created_by'] as String? ?? '',
+      fullName: json['full_name'] as String? ?? '',
+      mobileNumber: json['mobile_number'] as String? ?? '',
       imageUrl: json['image_url'] as String?,
-      gender: json['gender'] as String,
+      gender: json['gender'] as String? ?? '',
       createdDate: json['created_date'] == null
           ? null
           : DateTime.parse(json['created_date'] as String),

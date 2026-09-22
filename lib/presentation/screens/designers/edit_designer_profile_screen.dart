@@ -1,4 +1,5 @@
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/widgets/tag_input_field.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_bloc.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_event.dart';
@@ -9,7 +10,6 @@ import 'package:fashionista/domain/usecases/designers/update_designer_usecase.da
 import 'package:fashionista/presentation/screens/designers/widgets/featured_images_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_text_field_widget.dart';
 import 'package:fashionista/presentation/widgets/banner_image_widget.dart';
-import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_rounded.dart';
 import 'package:fashionista/presentation/widgets/social_handle_field_widget.dart';
 import 'package:flutter/material.dart';
@@ -70,7 +70,6 @@ class _EditDesignerProfileScreenState extends State<EditDesignerProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return BlocBuilder<DesignerBloc, DesignerState>(
       builder: (context, state) {
@@ -98,30 +97,36 @@ class _EditDesignerProfileScreenState extends State<EditDesignerProfileScreen> {
                 // }
               }, // We decide manually
               child: Scaffold(
-                backgroundColor: colorScheme.surface,
+                backgroundColor: context.canvasBackground,
                 appBar: AppBar(
-                  foregroundColor: colorScheme.primary,
-                  backgroundColor: colorScheme.onPrimary,
+                  backgroundColor: context.cardSurface,
+                  surfaceTintColor: Colors.transparent,
+                  foregroundColor: context.onCanvasText,
+                  elevation: 0,
+                  centerTitle: true,
                   title: Text(
-                    'Designer',
+                    'Designer Profile',
                     style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
+                      color: context.onCanvasText,
                     ),
                   ),
-                  elevation: 0,
                   actions: [
-                    Padding(
-                      padding: const EdgeInsets.only(right: 12),
-                      child: CustomIconButtonRounded(
-                        onPressed: () async {
-                          if (_formKey.currentState!.validate()) {
-                            await _saveDesignerProfile(designer, context);
-                            //Navigator.of(context).pop();
-                          }
-                        },
-                        iconData: Icons.check,
+                    TextButton(
+                      onPressed: () async {
+                        if (_formKey.currentState!.validate()) {
+                          await _saveDesignerProfile(designer, context);
+                        }
+                      },
+                      child: Text(
+                        'Save',
+                        style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: context.accent,
+                        ),
                       ),
                     ),
+                    const SizedBox(width: 8),
                   ],
                 ),
                 body: SafeArea(
@@ -137,21 +142,26 @@ class _EditDesignerProfileScreenState extends State<EditDesignerProfileScreen> {
                             url: ValueNotifier(designer.bannerImage!),
                           ),
 
-                          const SizedBox(height: 4),
-                          Padding(
-                            padding: EdgeInsetsGeometry.all(16),
+                          const Padding(
+                            padding: EdgeInsets.fromLTRB(20, 16, 20, 0),
                             child: Text(
                               "Your next client is looking — make sure they see your best.",
                             ),
                           ),
+                          const SizedBox(height: 16),
 
-                          //const SizedBox(height: 4),
+                          /// Business Dossier — the three identity fields of the
+                          /// designer, grouped into one card as per the design.
                           Card(
-                            color: colorScheme.onPrimary,
+                            color: context.cardSurface,
+                            margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                            elevation: 1,
+                            shadowColor: const Color(0x0A000000),
+                            surfaceTintColor: Colors.transparent,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(0),
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(color: context.hairline),
                             ),
-                            elevation: 0,
                             child: Padding(
                               padding: const EdgeInsets.all(16),
                               child: Column(
@@ -160,108 +170,98 @@ class _EditDesignerProfileScreenState extends State<EditDesignerProfileScreen> {
                                   Row(
                                     children: [
                                       CustomIconRounded(
-                                        icon: Icons.store_mall_directory,
+                                        icon: Icons.storefront_outlined,
                                       ),
-                                      const SizedBox(width: 8),
+                                      const SizedBox(width: 12),
                                       Expanded(
-                                        child: ProfileInfoTextFieldWidget(
-                                          label: 'Business Name',
-                                          controller: _businessNameController,
-                                          hint: 'Enter your Business Name',
-                                          validator: (value) {
-                                            if (!RegExp(
-                                              r'^([A-Za-z_][A-Za-z0-9_]\w+)?',
-                                            ).hasMatch(value!)) {
-                                              return 'Please enter a valid name';
-                                            }
-                                            return null;
-                                          },
+                                        child: Text(
+                                          'Business Dossier',
+                                          style: textTheme.titleSmall!.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                            color: context.onCanvasText,
+                                          ),
                                         ),
                                       ),
                                     ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  _dossierRow(
+                                    icon: Icons.drive_file_rename_outline,
+                                    child: ProfileInfoTextFieldWidget(
+                                      label: 'Business Name',
+                                      controller: _businessNameController,
+                                      hint: 'Enter your Business Name',
+                                      validator: (value) {
+                                        if (!RegExp(
+                                          r'^([A-Za-z_][A-Za-z0-9_]\w+)?',
+                                        ).hasMatch(value!)) {
+                                          return 'Please enter a valid name';
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                  ),
+                                  _dossierDivider(),
+                                  _dossierRow(
+                                    icon: Icons.call_outlined,
+                                    child: ProfileInfoTextFieldWidget(
+                                      label: 'Mobile Number',
+                                      controller: _mobileNumberController,
+                                      hint: 'Enter your business mobile number',
+                                      validator: (value) {
+                                        if (!RegExp(
+                                          r'^((\+?\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$)?',
+                                        ).hasMatch(value!)) {
+                                          return 'Please enter a valid mobile number';
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                  ),
+                                  _dossierDivider(),
+                                  _dossierRow(
+                                    icon: Icons.location_on_outlined,
+                                    child: ProfileInfoTextFieldWidget(
+                                      label: 'Business Location',
+                                      controller: _locationController,
+                                      hint: 'Enter your Business location',
+                                      validator: (value) {
+                                        if (!RegExp(
+                                          r'^([A-Za-z_][A-Za-z0-9_]\w+)?',
+                                        ).hasMatch(value!)) {
+                                          return 'Please enter a valid location';
+                                        }
+                                        return null;
+                                      },
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Card(
-                            color: colorScheme.onPrimary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(0),
-                            ),
-                            elevation: 0,
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      CustomIconRounded(
-                                        icon: Icons.phone_android_outlined,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Expanded(
-                                        child: ProfileInfoTextFieldWidget(
-                                          label: 'Mobile Number',
-                                          controller: _mobileNumberController,
-                                          hint:
-                                              'Enter your business mobile number',
-                                          validator: (value) {
-                                            if (!RegExp(
-                                              r'^((\+?\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$)?',
-                                            ).hasMatch(value!)) {
-                                              return 'Please enter a valid mobile number';
-                                            }
-                                            return null;
-                                          },
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Divider(
-                                    height: 16,
-                                    thickness: 1,
-                                    indent: 48,
-                                    color: Colors.grey[300],
-                                  ),
-                                  Row(
-                                    children: [
-                                      CustomIconRounded(
-                                        icon: Icons.edit_location,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: ProfileInfoTextFieldWidget(
-                                          label: 'Business Location',
-                                          controller: _locationController,
-                                          hint: 'Enter your Business location',
-                                          validator: (value) {
-                                            if (!RegExp(
-                                              r'^([A-Za-z_][A-Za-z0-9_]\w+)?',
-                                            ).hasMatch(value!)) {
-                                              return 'Please enter a valid location';
-                                            }
-                                            return null;
-                                          },
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
+                          _sectionHeaderCard(
+                            icon: Icons.photo_library_outlined,
+                            title: 'Featured Creations',
+                            meta:
+                                '${designer.featuredImages?.length ?? 0} / 4 slots',
+                            subtitle:
+                                'Selected pieces displayed on VIP tailoring commissions and lookbooks.',
                           ),
-                          const SizedBox(height: 4),
-                          FeaturedImagesWidget(designer: designer),
-                          const SizedBox(height: 4),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: FeaturedImagesWidget(designer: designer),
+                          ),
+                          const SizedBox(height: 16),
                           Card(
-                            color: colorScheme.onPrimary,
+                            color: context.cardSurface,
+                            margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                            elevation: 1,
+                            shadowColor: const Color(0x0A000000),
+                            surfaceTintColor: Colors.transparent,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(0),
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(color: context.hairline),
                             ),
-                            elevation: 0,
                             child: Padding(
                               padding: const EdgeInsets.all(16),
                               child: Column(
@@ -270,9 +270,33 @@ class _EditDesignerProfileScreenState extends State<EditDesignerProfileScreen> {
                                   Row(
                                     children: [
                                       CustomIconRounded(icon: Icons.tag),
-                                      const SizedBox(width: 8),
-                                      Text("Featured Tags"),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          'Featured Tags',
+                                          style: textTheme.titleSmall!.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                            color: context.onCanvasText,
+                                          ),
+                                        ),
+                                      ),
+                                      Text(
+                                        'Discovery filters',
+                                        style: textTheme.labelSmall!.copyWith(
+                                          color: context.mutedText,
+                                        ),
+                                      ),
                                     ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 48),
+                                    child: Text(
+                                      'Helps clients discover your atelier across wardrobe categories.',
+                                      style: textTheme.bodySmall!.copyWith(
+                                        color: context.descriptionText,
+                                      ),
+                                    ),
                                   ),
                                   const SizedBox(height: 12),
                                   TagInputField(
@@ -303,11 +327,15 @@ class _EditDesignerProfileScreenState extends State<EditDesignerProfileScreen> {
                           ),
                           const SizedBox(height: 4),
                           Card(
-                            color: colorScheme.onPrimary,
+                            color: context.cardSurface,
+                            margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                            elevation: 1,
+                            shadowColor: const Color(0x0A000000),
+                            surfaceTintColor: Colors.transparent,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(0),
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(color: context.hairline),
                             ),
-                            elevation: 0,
                             child: Padding(
                               padding: const EdgeInsets.all(16),
                               child: Column(
@@ -315,10 +343,30 @@ class _EditDesignerProfileScreenState extends State<EditDesignerProfileScreen> {
                                 children: [
                                   Row(
                                     children: [
-                                      CustomIconRounded(icon: Icons.link),
-                                      const SizedBox(width: 8),
-                                      Text("Social Media Handles"),
+                                      CustomIconRounded(
+                                        icon: Icons.hub_outlined,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          'Connected Channels',
+                                          style: textTheme.titleSmall!.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                            color: context.onCanvasText,
+                                          ),
+                                        ),
+                                      ),
                                     ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 48),
+                                    child: Text(
+                                      'Social Media Handles',
+                                      style: textTheme.bodySmall!.copyWith(
+                                        color: context.descriptionText,
+                                      ),
+                                    ),
                                   ),
                                   const SizedBox(height: 12),
                                   SocialHandleFieldWidget(
@@ -383,11 +431,15 @@ class _EditDesignerProfileScreenState extends State<EditDesignerProfileScreen> {
                           ),
                           const SizedBox(height: 4),
                           Card(
-                            color: colorScheme.onPrimary,
+                            color: context.cardSurface,
+                            margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                            elevation: 1,
+                            shadowColor: const Color(0x0A000000),
+                            surfaceTintColor: Colors.transparent,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(0),
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(color: context.hairline),
                             ),
-                            elevation: 0,
                             child: Padding(
                               padding: const EdgeInsets.all(16),
                               child: Column(
@@ -396,15 +448,25 @@ class _EditDesignerProfileScreenState extends State<EditDesignerProfileScreen> {
                                   Row(
                                     children: [
                                       CustomIconRounded(
-                                        icon: Icons.account_box_outlined,
+                                        icon: Icons.badge_outlined,
                                       ),
-                                      const SizedBox(width: 8),
-                                      Text("Bio"),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          'Studio Biography',
+                                          style: textTheme.titleSmall!.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                            color: context.onCanvasText,
+                                          ),
+                                        ),
+                                      ),
                                     ],
                                   ),
+                                  const SizedBox(height: 12),
                                   TextFormField(
                                     controller: _bioController,
                                     style: textTheme.titleSmall,
+                                    maxLength: 300,
                                     decoration: InputDecoration(
                                       hintText:
                                           "Give us your vibe in a few words.",
@@ -435,6 +497,89 @@ class _EditDesignerProfileScreenState extends State<EditDesignerProfileScreen> {
             return const Center(child: Text("No designer data"));
         }
       },
+    );
+  }
+
+  /// A row inside the Business Dossier card: a small leading icon plus the
+  /// field it labels.
+  Widget _dossierRow({required IconData icon, required Widget child}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 3),
+          child: Icon(icon, size: 18, color: context.secondaryLabel),
+        ),
+        const SizedBox(width: 10),
+        Expanded(child: child),
+      ],
+    );
+  }
+
+  Widget _dossierDivider() =>
+      Divider(height: 20, thickness: 1, indent: 28, color: context.hairline);
+
+  /// Header-only card for sections whose content widget renders its own card
+  /// (e.g. [FeaturedImagesWidget]).
+  Widget _sectionHeaderCard({
+    required IconData icon,
+    required String title,
+    String? meta,
+    String? subtitle,
+  }) {
+    final textTheme = Theme.of(context).textTheme;
+    return Card(
+      color: context.cardSurface,
+      margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+      elevation: 1,
+      shadowColor: const Color(0x0A000000),
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: context.hairline),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CustomIconRounded(icon: icon),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: textTheme.titleSmall!.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: context.onCanvasText,
+                    ),
+                  ),
+                ),
+                if (meta != null)
+                  Text(
+                    meta,
+                    style: textTheme.labelSmall!.copyWith(
+                      color: context.mutedText,
+                    ),
+                  ),
+              ],
+            ),
+            if (subtitle != null) ...[
+              const SizedBox(height: 4),
+              Padding(
+                padding: const EdgeInsets.only(left: 48),
+                child: Text(
+                  subtitle,
+                  style: textTheme.bodySmall!.copyWith(
+                    color: context.descriptionText,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 
