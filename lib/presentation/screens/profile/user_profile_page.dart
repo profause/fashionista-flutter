@@ -31,7 +31,7 @@ class UserProfilePage extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: context.canvasBackground,
       body: ListView(
         padding: const EdgeInsets.only(top: 8, bottom: 20, left: 16, right: 16),
         children: [

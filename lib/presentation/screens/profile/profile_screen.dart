@@ -63,6 +63,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     const double maxAvatarRadius = 40;
     const double minAvatarRadius = 32;
     const double expandedHeight = 176;
+     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return BlocBuilder<UserBloc, User>(
       builder: (context, user) {
         if (user.uid != null) {
@@ -118,62 +120,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             background: Stack(
                               clipBehavior: Clip.none,
                               children: [
-                                // Monochrome cover banner image
-                                ColorFiltered(
-                                  colorFilter: const ColorFilter.matrix(<double>[
-                                    0.2126,
-                                    0.7152,
-                                    0.0722,
-                                    0,
-                                    0,
-                                    0.2126,
-                                    0.7152,
-                                    0.0722,
-                                    0,
-                                    0,
-                                    0.2126,
-                                    0.7152,
-                                    0.0722,
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                    1,
-                                    0,
-                                  ]),
-                                  child: BannerImageWidget(
-                                    uid: user.uid!,
-                                    url: ValueNotifier(user.bannerImage!),
-                                    isEditable: false,
-                                    height: expandedHeight,
-                                  ),
-                                ),
-                                // Top scrim + gradient blending into the canvas
-                                Positioned.fill(
-                                  child: IgnorePointer(
-                                    child: DecoratedBox(
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          begin: Alignment.topCenter,
-                                          end: Alignment.bottomCenter,
-                                          stops: const [0.0, 0.28, 0.55, 1.0],
-                                          colors: [
-                                            Colors.black.withValues(
-                                              alpha: 0.20,
-                                            ),
-                                            Colors.black.withValues(alpha: 0.0),
-                                            Colors.black.withValues(alpha: 0.0),
-                                            context.canvasBackground,
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
+                                // Banner image
+                                BannerImageWidget(
+                                  uid: user.uid!,
+                                  url: ValueNotifier(user.bannerImage!),
+                                  isEditable: false,
                                 ),
                                 Positioned(
-                                  top: expandedHeight - avatarRadius - 4,
-                                  left: 20,
+                                  top:
+                                      (expandedHeight / 2) + (avatarRadius / 2),
+                                  left: 16,
                                   child: buildProfileAvatar(avatarRadius, user),
                                 ),
                               ],
@@ -182,59 +138,60 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         },
                       ),
                       bottom: PreferredSize(
-                        preferredSize: const Size.fromHeight(56),
-                        child: Container(
-                          color: context.canvasBackground,
-                          alignment: Alignment.center,
-                          child: TabBar(
-                            labelColor: context.onCanvasText,
-                            unselectedLabelColor: context.mutedText,
-                            dividerColor: Colors.transparent,
-                            dividerHeight: 1,
-                            indicatorWeight: 2,
-                            indicatorSize: TabBarIndicatorSize.label,
-                            tabAlignment: TabAlignment.center,
-                            labelPadding: const EdgeInsets.all(0),
-                            indicator: UnderlineTabIndicator(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(
-                                width: 2,
-                                color: context.accent,
+                        preferredSize: const Size.fromHeight(
+                          0,
+                        ),
+                        child: TabBar(
+                          labelColor: colorScheme.primary,
+                          unselectedLabelColor: AppTheme.darkGrey,
+                          indicatorColor: AppTheme.appIconColor.withValues(
+                            alpha: 1,
+                          ),
+                          dividerColor: AppTheme.lightGrey,
+                          dividerHeight: 0,
+                          indicatorWeight: 2,
+                          tabAlignment: TabAlignment.start,
+                          labelPadding: const EdgeInsets.all(0),
+                          //padding: const EdgeInsets.all(64),
+                          isScrollable: true,
+                          indicator: UnderlineTabIndicator(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(
+                              width: 4,
+                              color: AppTheme.appIconColor.withValues(alpha: 1),
+                            ),
+                            // insets: EdgeInsets.symmetric(
+                            //   horizontal: 60,
+                            // ), // adjust for fixed width
+                          ),
+                          tabs: [
+                            Container(
+                              margin: const EdgeInsets.symmetric(
+                                vertical: 8,
+                                horizontal: 8,
+                              ),
+                              // divider color
+                              child: Text(
+                                "Profile",
+                                
                               ),
                             ),
-                            indicatorPadding: const EdgeInsets.only(bottom: 12),
-                            tabs: [
+                            //Tab(text: "Profile"),
+                            if (user.accountType.toLowerCase() ==
+                                "designer") ...[
                               Container(
                                 margin: const EdgeInsets.symmetric(
-                                  vertical: 16,
+                                  vertical: 8,
                                   horizontal: 8,
                                 ),
-                                child: const Text(
-                                  "Profile",
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                                // divider color
+                                child: Text(
+                                  "Designer Card",
+                                 
                                 ),
                               ),
-                              if (user.accountType.toLowerCase() ==
-                                  "designer") ...[
-                                Container(
-                                  margin: const EdgeInsets.symmetric(
-                                    vertical: 16,
-                                    horizontal: 8,
-                                  ),
-                                  child: const Text(
-                                    "Designer Card",
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ],
                             ],
-                          ),
+                          ],
                         ),
                       ),
                     ),
