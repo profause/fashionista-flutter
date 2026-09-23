@@ -74,7 +74,7 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
                 floating: true,
                 toolbarHeight: 0,
                 expandedHeight: expandedHeight,
-                backgroundColor: context.canvasBackground,
+                backgroundColor: context.cardSurface,
                 foregroundColor: context.accent,
                 elevation: 0,
                 flexibleSpace: LayoutBuilder(

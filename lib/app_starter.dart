@@ -4,6 +4,7 @@ import 'package:fashionista/data/models/settings/bloc/settings_bloc.dart';
 import 'package:fashionista/data/models/settings/models/settings_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class AppStarter extends StatelessWidget {
   const AppStarter({super.key});
@@ -11,12 +12,19 @@ class AppStarter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SettingsBloc, Settings>(
-      builder: (context, settings) => MaterialApp.router(
-        debugShowCheckedModeBanner: false,
-        theme: fashionistaLightTheme,
-        darkTheme: fashionistaDarkTheme,
-        themeMode: ThemeMode.values[settings.displayMode as int],
-        routerConfig: appRouter,
+      builder: (context, settings) => ScreenUtilInit(
+        // Design-draft reference size: every `AppConstants` `.w`/`.h`/`.sp`
+        // token (and `AppConstants.fontSize*`) scales relative to this.
+        designSize: const Size(375, 812),
+        minTextAdapt: true,
+        splitScreenMode: true,
+        builder: (context, child) => MaterialApp.router(
+          debugShowCheckedModeBanner: false,
+          theme: fashionistaLightTheme,
+          darkTheme: fashionistaDarkTheme,
+          themeMode: ThemeMode.values[settings.displayMode as int],
+          routerConfig: appRouter,
+        ),
       ),
     );
   }

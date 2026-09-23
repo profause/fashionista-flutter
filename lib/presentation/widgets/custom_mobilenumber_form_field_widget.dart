@@ -65,7 +65,7 @@ class CustomMobilenumberFormFieldWidget extends StatelessWidget {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(
-                color: Color(0xFFFF5A00),
+                color: Color(0xFF0F7CF9),
                 width: 1.5,
               ),
             ),

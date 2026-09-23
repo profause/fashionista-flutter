@@ -43,15 +43,15 @@ class _MobileNumberAuthPageState extends State<MobileNumberAuthPage> {
                             width: 56,
                             height: 56,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFFDBCE).withValues(
-                                alpha: 0.6,
-                              ),
+                              color: const Color(
+                                0xFFD3E3FF,
+                              ).withValues(alpha: 0.6),
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFFFF5A00).withValues(
-                                    alpha: 0.1,
-                                  ),
+                                  color: const Color(
+                                    0xFF0F7CF9,
+                                  ).withValues(alpha: 0.1),
                                   blurRadius: 16,
                                   offset: const Offset(0, 4),
                                 ),
@@ -60,7 +60,7 @@ class _MobileNumberAuthPageState extends State<MobileNumberAuthPage> {
                             child: const Icon(
                               Icons.phone_android_outlined,
                               size: 28,
-                              color: Color(0xFFFF5A00),
+                              color: Color(0xFF0F7CF9),
                             ),
                           ),
                         ),
@@ -81,12 +81,12 @@ class _MobileNumberAuthPageState extends State<MobileNumberAuthPage> {
                           child: Text(
                             "We'll send a 6-digit OTP code to verify your phone.",
                             textAlign: TextAlign.center,
-                            style:
-                                Theme.of(context).textTheme.bodyMedium!.copyWith(
+                            style: Theme.of(context).textTheme.bodyMedium!
+                                .copyWith(
                                   fontSize: 14,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurfaceVariant,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
                                 ),
                           ),
                         ),

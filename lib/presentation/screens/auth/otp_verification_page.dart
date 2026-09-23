@@ -25,16 +25,16 @@ class _OtpVerificationPageState extends State<OtpVerificationPage>
     with SingleTickerProviderStateMixin, CodeAutoFill {
   bool get _isDark => Theme.of(context).brightness == Brightness.dark;
   Color get _bgColor =>
-      _isDark ? const Color(0xFF0D0D0C) : const Color(0xFFF6FAFF);
+      _isDark ? const Color(0xFF10090D) : const Color(0xFFFFFBFE);
   Color get _onSurface =>
-      _isDark ? const Color(0xFFE5E2E0) : const Color(0xFF141D23);
+      _isDark ? const Color(0xFFE6E0E9) : const Color(0xFF1C1B1F);
   Color get _secondary =>
-      _isDark ? const Color(0xFFA1A19A) : const Color(0xFF5D5E61);
-  static const _primary = Color(0xFFFF5A00);
+      _isDark ? const Color(0xFF938F99) : const Color(0xFF49454F);
+  static const _primary = Color(0xFF0F7CF9);
   Color get _borderFilled =>
-      _isDark ? const Color(0xFF353533) : const Color(0xFFCBD5E1);
+      _isDark ? const Color(0xFF49454F) : const Color(0xFF79747E);
   Color get _borderEmpty =>
-      _isDark ? const Color(0xFF2D2D2A) : const Color(0xFFE2E8F0);
+      _isDark ? const Color(0xFF49454F) : const Color(0xFFCAC4D0);
 
   final int _otpLength = 6;
   late AnimationController _fadeController;
@@ -135,7 +135,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage>
                             width: 56,
                             height: 56,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFFE8D6),
+                              color: const Color(0xFFD3E3FF),
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
@@ -323,7 +323,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage>
                                 width: 32,
                                 height: 32,
                                 decoration: const BoxDecoration(
-                                  color: Color(0xFFFFE8D6),
+                                  color: Color(0xFFD3E3FF),
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(

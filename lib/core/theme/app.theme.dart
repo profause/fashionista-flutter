@@ -2,36 +2,39 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-// ─── Atelier Chic (light) design tokens ─────────────────────────────────
-const Color _acCanvas = Color(0xFFF8F9FA); // cool light canvas base
-const Color _acCard = Color(0xFFFFFFFF); // pure white surfaces
-const Color _acBorder = Color(0xFFE4E7EB); // architectural hairlines
-const Color _acEmber = Color(0xFFFF5A00); // signature brand accent
-const Color _acEmberPressed = Color(0xFFE04F00);
+import 'app_constants.dart';
+
+// ─── Azure Chic (light) design tokens ───────────────────────────────────
+const Color _acCanvas = Color(0xFFF0F1F3); // cool light canvas base
+const Color _acCard = Color(0xFFFFFFFF); // elevated surfaces (surfaceContainerLow)
+const Color _acBorder = Color(0xFFD8D8DA); // architectural hairlines
+const Color _acEmber = Color(0xFF0F7CF9); // signature brand accent
+const Color _acEmberPressed = Color(0xFF0B62C4);
 const Color _acOnEmber = Color(0xFFFFFFFF);
-const Color _acCharcoal = Color(0xFF1A1C1E); // editorial text anchor
-const Color _acSurface = Color(0xFF141D23);
-const Color _acMuted = Color(0xFF6C757D); // secondary / metadata text
-const Color _acPrimary = Color(0xFFA83900); // rust primary (text/links)
-const Color _acPeachContainer = Color(0xFFFFB59A);
-const Color _acOnPrimaryContainer = Color(0xFF511700);
+const Color _acCharcoal = Color(0xFF1C1B1F); // editorial text anchor
+const Color _acSurface = Color(0xFF1C1B1F);
+const Color _acMuted = Color(0xFF49454F); // secondary / metadata text
+const Color _acPrimary = Color(0xFF0F7CF9); // azure primary (text/links)
+const Color _acPeachContainer = Color(0xFF5FCCFF);
+const Color _acOnPrimaryContainer = Color(0xFF0054D1);
 const Color _acSurfaceContainerLowest = Color(0xFFFFFFFF);
-const Color _acSurfaceLow = Color(0xFFECF5FE);
-const Color _acSurfaceContainer = Color(0xFFE6EFF8);
-const Color _acSurfaceHigh = Color(0xFFE0E9F2);
-const Color _acSurfaceHighest = Color(0xFFDBE4ED);
-const Color _acSurfaceDim = Color(0xFFD2DBE4);
-const Color _acOnSurfaceVariant = Color(0xFF5B4137);
-const Color _acOutline = Color(0xFF907065);
-const Color _acInverseSurface = Color(0xFF293138);
-const Color _acOnInverseSurface = Color(0xFFE9F2FB);
-const Color _acSecondary = Color(0xFF5D5E61);
-const Color _acSecondaryContainer = Color(0xFFE2E2E5);
-const Color _acOnSecondaryContainer = Color(0xFF636467);
-const Color _acTertiary = Color(0xFF006C49);
-const Color _acTertiaryContainer = Color(0xFF00A673);
-const Color _acOnTertiaryContainer = Color(0xFF003220);
+const Color _acSurfaceLow = Color(0xFFFFFFFF);
+const Color _acSurfaceContainer = Color(0xFFF3EDF7);
+const Color _acSurfaceHigh = Color(0xFFECE6F0);
+const Color _acSurfaceHighest = Color(0xFFE6E0E9);
+const Color _acSurfaceDim = Color(0xFFE6E0E9);
+const Color _acOnSurfaceVariant = Color(0xFF49454F);
+const Color _acOutline = Color(0xFF79747E);
+const Color _acInverseSurface = Color(0xFF313033);
+const Color _acOnInverseSurface = Color(0xFFF4EFF4);
+const Color _acSecondary = Color(0xFF177FF5);
+const Color _acSecondaryContainer = Color(0xFF67CFFF);
+const Color _acOnSecondaryContainer = Color(0xFF0057CD);
+const Color _acTertiary = Color(0xFF0F7EFD);
+const Color _acTertiaryContainer = Color(0xFF5FCFFF);
+const Color _acOnTertiaryContainer = Color(0xFF0056D5);
 const Color _acError = Color(0xFFBA1A1A);
 const Color _acErrorContainer = Color(0xFFFFDAD6);
 const Color _acOnErrorContainer = Color(0xFF93000A);
@@ -59,10 +62,10 @@ final ThemeData fashionistaLightTheme = ThemeData(
     onError: _acOnEmber,
     errorContainer: _acErrorContainer,
     onErrorContainer: _acOnErrorContainer,
-    surface: Color(0xFFF6FAFF),
+    surface: _acCanvas,
     onSurface: _acSurface,
     surfaceDim: _acSurfaceDim,
-    surfaceBright: Color(0xFFF6FAFF),
+    surfaceBright: _acSurfaceContainerLowest,
     surfaceContainerLowest: _acSurfaceContainerLowest,
     surfaceContainerLow: _acSurfaceLow,
     surfaceContainer: _acSurfaceContainer,
@@ -179,7 +182,7 @@ final ThemeData fashionistaLightTheme = ThemeData(
       letterSpacing: 0.44,
       color: _acMuted,
     ),
-  ),
+  ).apply(fontSizeFactor: ScreenUtil().scaleText),
   dividerColor: _acBorder,
   dividerTheme: const DividerThemeData(
     color: _acBorder,
@@ -193,22 +196,26 @@ final ThemeData fashionistaLightTheme = ThemeData(
     surfaceTintColor: Colors.transparent,
     margin: EdgeInsets.zero,
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppConstants.radiusLG),
       side: const BorderSide(color: _acBorder),
     ),
   ),
   dialogTheme: DialogThemeData(
     backgroundColor: _acCard,
     surfaceTintColor: Colors.transparent,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(AppConstants.radiusLG),
+    ),
   ),
-  bottomSheetTheme: const BottomSheetThemeData(
+  bottomSheetTheme: BottomSheetThemeData(
     backgroundColor: _acCard,
     modalBackgroundColor: _acCard,
     modalBarrierColor: _acScrim,
     surfaceTintColor: Colors.transparent,
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      borderRadius: BorderRadius.vertical(
+        top: Radius.circular(AppConstants.radiusLG),
+      ),
     ),
   ),
   inputDecorationTheme: InputDecorationTheme(
@@ -217,7 +224,10 @@ final ThemeData fashionistaLightTheme = ThemeData(
     isDense: true,
     hintStyle: const TextStyle(fontSize: 14, color: _acMuted),
     errorStyle: const TextStyle(fontSize: 12, color: _acError),
-    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    contentPadding: EdgeInsets.symmetric(
+      horizontal: AppConstants.spacingMD,
+      vertical: 12,
+    ),
     // enabledBorder: OutlineInputBorder(
     //   borderRadius: BorderRadius.circular(8),
     //   borderSide: const BorderSide(color: _acBorder),
@@ -227,7 +237,7 @@ final ThemeData fashionistaLightTheme = ThemeData(
     //   borderSide: const BorderSide(color: _acEmber, width: 1.5),
     // ),
     border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(AppConstants.radiusSM),
       borderSide: const BorderSide(color: _acBorder),
     ),
     labelStyle: const TextStyle(fontSize: 14, color: _acMuted),
@@ -246,10 +256,18 @@ final ThemeData fashionistaLightTheme = ThemeData(
       foregroundColor: Colors.white,
       disabledForegroundColor: Colors.white.withValues(alpha: 0.6),
       overlayColor: _acEmberPressed.withValues(alpha: 0.4),
-      minimumSize: const Size(0, 48),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+      minimumSize: Size(0, AppConstants.buttonHeight),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppConstants.spacingLG,
+        vertical: 12,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppConstants.radiusSM),
+      ),
+      textStyle: TextStyle(
+        fontSize: AppConstants.fontSizeTitleMedium,
+        fontWeight: FontWeight.w600,
+      ),
     ),
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
@@ -356,50 +374,50 @@ final ThemeData fashionistaLightTheme = ThemeData(
   ),
   datePickerTheme: DatePickerThemeData(
     backgroundColor: _acCard,
-    headerBackgroundColor: const Color(0xFFF6FAFF),
+    headerBackgroundColor: _acSurfaceLow,
     headerForegroundColor: _acSurface,
     surfaceTintColor: Colors.transparent,
   ),
 );
 
-// ─── Obsidian Ember (dark) design tokens ────────────────────────────────
-const Color _odBase = Color(0xFF0D0D0C); // canvas floor
-const Color _odCard = Color(0xFF1A1A19); // elevated containers, inputs, sheets
-const Color _odBorder = Color(0xFF2D2D2A); // structural outlines / dividers
-const Color _odPrimary = Color(0xFFFF5A00); // ember accent
-const Color _odPrimaryPressed = Color(0xFFE04F00);
-const Color _odPrimaryPeach = Color(0xFFFFB59A);
+// ─── Midnight Azure (dark) design tokens ────────────────────────────────
+const Color _odBase = Color(0xFF10090D); // canvas floor
+const Color _odCard = Color(0xFF1D1418); // elevated containers, inputs, sheets
+const Color _odBorder = Color(0xFF49454F); // structural outlines / dividers
+const Color _odPrimary = Color(0xFF0068E5); // azure accent
+const Color _odPrimaryPressed = Color(0xFF0040BD);
+const Color _odPrimaryPeach = Color(0xFF5FCCFF);
 const Color _odOnPrimary = Color(0xFFFFFFFF);
-const Color _odOnPrimaryDark = Color(0xFF5B1B00);
-const Color _odInversePrimary = Color(0xFFA83900);
-const Color _odSurface = Color(0xFF131312);
-const Color _odOnSurface = Color(0xFFE5E2E0);
-const Color _odSurfaceDim = Color(0xFF131312);
-const Color _odSurfaceBright = Color(0xFF3A3938);
-const Color _odSurfaceContainerLowest = Color(0xFF0E0E0D);
-const Color _odSurfaceLow = Color(0xFF1C1C1A);
-const Color _odSurfaceContainer = Color(0xFF20201E);
-const Color _odSurfaceHigh = Color(0xFF2A2A29);
-const Color _odSurfaceHighest = Color(0xFF353533);
-const Color _odOnSurfaceVariant = Color(0xFFE4BEB1);
-const Color _odOutline = Color(0xFFAB897E);
-const Color _odSecondary = Color(0xFFC8C6C4);
-const Color _odOnSecondary = Color(0xFF31302F);
-const Color _odSecondaryContainer = Color(0xFF474745);
-const Color _odOnSecondaryContainer = Color(0xFFB7B5B3);
-const Color _odTertiary = Color(0xFFA0C9FF);
-const Color _odOnTertiary = Color(0xFF00325A);
-const Color _odTertiaryContainer = Color(0xFF0095FC);
-const Color _odOnTertiaryContainer = Color(0xFF002C50);
+const Color _odOnPrimaryDark = Color(0xFF0040BD);
+const Color _odInversePrimary = Color(0xFF0F7CF9);
+const Color _odSurface = Color(0xFF10090D);
+const Color _odOnSurface = Color(0xFFE6E0E9);
+const Color _odSurfaceDim = Color(0xFF10090D);
+const Color _odSurfaceBright = Color(0xFF362F33);
+const Color _odSurfaceContainerLowest = Color(0xFF0B0509);
+const Color _odSurfaceLow = Color(0xFF1D1418);
+const Color _odSurfaceContainer = Color(0xFF211A1E);
+const Color _odSurfaceHigh = Color(0xFF2B2329);
+const Color _odSurfaceHighest = Color(0xFF362F33);
+const Color _odOnSurfaceVariant = Color(0xFFCAC4D0);
+const Color _odOutline = Color(0xFF938F99);
+const Color _odSecondary = Color(0xFF036BE1);
+const Color _odOnSecondary = Color(0xFFFFFFFF);
+const Color _odSecondaryContainer = Color(0xFF0043B9);
+const Color _odOnSecondaryContainer = Color(0xFFFFFFFF);
+const Color _odTertiary = Color(0xFF006AE9);
+const Color _odOnTertiary = Color(0xFFFFFFFF);
+const Color _odTertiaryContainer = Color(0xFF0042C1);
+const Color _odOnTertiaryContainer = Color(0xFFFFFFFF);
 const Color _odError = Color(0xFFFFB4AB);
-const Color _odOnError = Color(0xFF690005);
+const Color _odOnError = Color(0xFF000000);
 const Color _odErrorContainer = Color(0xFF93000A);
 const Color _odOnErrorContainer = Color(0xFFFFDAD6);
-const Color _odInverseSurface = Color(0xFFE5E2E0);
-const Color _odInverseOnSurface = Color(0xFF31302F);
-const Color _odTrackInactive = Color(0xFF2C2C2E);
-const Color _odMuted = Color(0xFFA1A19A);
-const Color _odScrim = Color(0xB70D0D0C); // rgba(13,13,12,0.72)
+const Color _odInverseSurface = Color(0xFFE6E0E9);
+const Color _odInverseOnSurface = Color(0xFF313033);
+const Color _odTrackInactive = Color(0xFF362F33);
+const Color _odMuted = Color(0xFF938F99);
+const Color _odScrim = Color(0xB710090D); // rgba(16,9,13,0.72)
 
 final ThemeData fashionistaDarkTheme = ThemeData(
   useMaterial3: true,
@@ -434,8 +452,8 @@ final ThemeData fashionistaDarkTheme = ThemeData(
     surfaceContainerHighest: _odSurfaceHighest,
     onSurfaceVariant: _odOnSurfaceVariant,
     outline: _odOutline,
-    outlineVariant: Color(0xFF353637),
-    surfaceTint: _odPrimaryPeach,
+    outlineVariant: _odBorder,
+    surfaceTint: _odPrimary,
     inverseSurface: _odInverseSurface,
     onInverseSurface: _odInverseOnSurface,
     shadow: Color(0xFF000000),
@@ -534,7 +552,7 @@ final ThemeData fashionistaDarkTheme = ThemeData(
       height: 1.33,
       color: _odOnSurfaceVariant,
     ),
-  ),
+  ).apply(fontSizeFactor: ScreenUtil().scaleText),
   dividerColor: _odBorder,
   dividerTheme: const DividerThemeData(
     color: _odBorder,
@@ -546,22 +564,26 @@ final ThemeData fashionistaDarkTheme = ThemeData(
     elevation: 0,
     margin: EdgeInsets.zero,
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppConstants.radiusLG),
       side: const BorderSide(color: _odBorder),
     ),
   ),
   dialogTheme: DialogThemeData(
     backgroundColor: _odCard,
     surfaceTintColor: Colors.transparent,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(AppConstants.radiusLG),
+    ),
   ),
-  bottomSheetTheme: const BottomSheetThemeData(
+  bottomSheetTheme: BottomSheetThemeData(
     backgroundColor: _odCard,
     modalBackgroundColor: _odCard,
     modalBarrierColor: _odScrim,
     surfaceTintColor: Colors.transparent,
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      borderRadius: BorderRadius.vertical(
+        top: Radius.circular(AppConstants.radiusLG),
+      ),
     ),
   ),
   inputDecorationTheme: InputDecorationTheme(
@@ -570,7 +592,10 @@ final ThemeData fashionistaDarkTheme = ThemeData(
     isDense: true,
     hintStyle: const TextStyle(fontSize: 14, color: _odMuted),
     errorStyle: const TextStyle(fontSize: 12, color: _odError),
-    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    contentPadding: EdgeInsets.symmetric(
+      horizontal: AppConstants.spacingMD,
+      vertical: 12,
+    ),
     // enabledBorder: OutlineInputBorder(
     //   borderRadius: BorderRadius.circular(8),
     //   borderSide: const BorderSide(color: _odBorder),
@@ -580,7 +605,7 @@ final ThemeData fashionistaDarkTheme = ThemeData(
     //   borderSide: const BorderSide(color: _odPrimary, width: 1.5),
     // ),
     border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(AppConstants.radiusSM),
       borderSide: const BorderSide(color: _odBorder),
     ),
     labelStyle: const TextStyle(fontSize: 14, color: _odMuted),
@@ -598,10 +623,18 @@ final ThemeData fashionistaDarkTheme = ThemeData(
       disabledBackgroundColor: _odPrimaryPressed.withValues(alpha: 0.4),
       foregroundColor: Colors.white,
       disabledForegroundColor: Colors.white.withValues(alpha: 0.6),
-      minimumSize: const Size(0, 48),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+      minimumSize: Size(0, AppConstants.buttonHeight),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppConstants.spacingLG,
+        vertical: 12,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppConstants.radiusSM),
+      ),
+      textStyle: TextStyle(
+        fontSize: AppConstants.fontSizeTitleMedium,
+        fontWeight: FontWeight.w600,
+      ),
     ),
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
@@ -709,49 +742,44 @@ final ThemeData fashionistaDarkTheme = ThemeData(
 extension FashionistaThemeRole on BuildContext {
   bool get isDarkTheme => Theme.of(this).brightness == Brightness.dark;
 
-  /// Screen canvas (light #F8F9FA, dark #0D0D0C).
+  /// Screen canvas (light #FFFBFE, dark #10090D).
   Color get canvasBackground => Theme.of(this).scaffoldBackgroundColor;
 
-  /// Elevated card / input surface (light white, dark #1A1A19).
+  /// Elevated card / input surface (light #F7F2FA, dark #1D1418).
   Color get cardSurface =>
       Theme.of(this).cardTheme.color ?? const Color(0xFFFFFFFF);
 
-  /// Hairline borders & dividers (light #E2E8F0, dark #2D2D2A).
+  /// Hairline borders & dividers (light #CAC4D0, dark #49454F).
   Color get hairline => Theme.of(this).colorScheme.outlineVariant;
 
-  /// Stronger inactive-control border (light #CBD5E1, dark #353533).
-  Color get softBorder =>
-      isDarkTheme ? const Color(0xFF353533) : const Color(0xFFCBD5E1);
+  /// Stronger inactive-control border (light #79747E, dark #938F99).
+  Color get softBorder => Theme.of(this).colorScheme.outline;
 
-  /// Primary text (light #1A1C1E, dark #E5E2E0).
+  /// Primary text (light #1C1B1F, dark #E6E0E9).
   Color get onCanvasText => Theme.of(this).colorScheme.onSurface;
 
-  /// Muted / secondary text (light #6C757D, dark #A1A19A).
-  Color get mutedText =>
-      isDarkTheme ? const Color(0xFFA1A19A) : const Color(0xFF6C757D);
+  /// Muted / secondary text (light #49454F, dark #CAC4D0).
+  Color get mutedText => Theme.of(this).colorScheme.onSurfaceVariant;
 
-  /// Body / description text (light #374151, dark #A1A19A).
-  Color get descriptionText =>
-      isDarkTheme ? const Color(0xFFA1A19A) : const Color(0xFF374151);
+  /// Body / description text (light #49454F, dark #CAC4D0).
+  Color get descriptionText => Theme.of(this).colorScheme.onSurfaceVariant;
 
-  /// Row label / icon tile color (light #64748B, dark #94A3B8).
-  Color get secondaryLabel =>
-      isDarkTheme ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+  /// Row label / icon tile color (light #79747E, dark #938F99).
+  Color get secondaryLabel => Theme.of(this).colorScheme.outline;
 
-  /// Neutral icon tile background (light #F1F5F9, dark #262624).
-  Color get iconSubstrate =>
-      isDarkTheme ? const Color(0xFF262624) : const Color(0xFFF1F5F9);
+  /// Neutral icon tile background (light #ECE6F0, dark #2B2329).
+  Color get iconSubstrate => Theme.of(this).colorScheme.surfaceContainerHigh;
 
-  /// Tonal / secondary button background (light #F3F4F6, dark #262624).
-  Color get secondaryButtonBg =>
-      isDarkTheme ? const Color(0xFF262624) : const Color(0xFFF3F4F6);
+  /// Tonal / secondary button background (light #F3EDF7, dark #2B2329).
+  Color get secondaryButtonBg => isDarkTheme
+      ? Theme.of(this).colorScheme.surfaceContainerHigh
+      : Theme.of(this).colorScheme.surfaceContainer;
 
-  /// Faint placeholder text (light #94A3B8, dark #8A8A83).
-  Color get placeholderText =>
-      isDarkTheme ? const Color(0xFF8A8A83) : const Color(0xFF94A3B8);
+  /// Faint placeholder text (light #79747E, dark #938F99).
+  Color get placeholderText => Theme.of(this).colorScheme.outline;
 
   /// Signature brand accent, constant across both themes.
-  Color get accent => const Color(0xFFFF5A00);
+  Color get accent => const Color(0xFF0F7CF9);
 }
 
 class AppTheme {
@@ -760,8 +788,8 @@ class AppTheme {
   static Color lightGrey = const Color(0xFFE0E0E0);
   static Color darkGrey = const Color(0xFF6E6E6E);
   static Color charcoal = const Color(0xFF1C1C1C);
-  static Color appIconColor = const Color(0xFFF55B02);
-  static Color appIconColorTint = const Color(0xFFf77b34);
+  static Color appIconColor = const Color(0xFF0F7CF9);
+  static Color appIconColorTint = const Color(0xFF4BB8FF);
 
   static TextStyle titleStyle = const TextStyle(
     fontSize: 20,
