@@ -57,13 +57,13 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                   centerTitle: true,
                   title: const SizedBox.shrink(),
                   actions: [
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 8),
                     CustomPinnedClientIconButton(client: client),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 8),
                     CustomIconButtonRounded(
-                      size: 18,
+                      size: 20,
                       iconData: Icons.delete_outline,
-                      backgroundColor: context.canvasBackground,
+                      //backgroundColor: context.canvasBackground,
                       onPressed: () async {
                         final canDelete = await showDialog<bool>(
                           context: context,
@@ -98,11 +98,11 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                         }
                       },
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 8),
                     CustomIconButtonRounded(
-                      size: 18,
+                      size: 20,
                       iconData: Icons.edit_outlined,
-                      backgroundColor: context.canvasBackground,
+                      //backgroundColor: context.canvasBackground,
                       onPressed: () async {
                         await Navigator.push(
                           context,

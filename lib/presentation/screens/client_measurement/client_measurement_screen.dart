@@ -90,35 +90,41 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
                         children: [
                           Icon(
                             Icons.search,
-                            size: 16,
+                            size: 20,
                             color: context.mutedText,
                           ),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 8),
                           Expanded(
-                            child: TextField(
-                              key: const ValueKey("searchField"),
-                              controller: _searchController,
-                              focusNode: _searchFocusNode,
-                              decoration: InputDecoration(
-                                hintText: 'Search measurements...',
-                                hintStyle: TextStyle(
-                                  fontSize: 14,
-                                  color: context.placeholderText,
+                            child: SizedBox(
+                              height: 48,
+                              child: TextField(
+                                key: const ValueKey("searchField"),
+                                controller: _searchController,
+                                focusNode: _searchFocusNode,
+                                decoration: InputDecoration(
+                                  hintText: 'Search measurements...',
+                                  hintStyle: TextStyle(
+                                    fontSize: 15,
+                                    color: context.placeholderText,
+                                  ),
+                                  border: InputBorder.none,
+                                  isDense: false,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 0,
+                                    vertical: 10,
+                                  ),
                                 ),
-                                border: InputBorder.none,
-                                isDense: true,
-                                contentPadding: EdgeInsets.zero,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: context.onCanvasText,
+                                ),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _isSearching = value.isNotEmpty;
+                                    _searchText = value;
+                                  });
+                                },
                               ),
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: context.onCanvasText,
-                              ),
-                              onChanged: (value) {
-                                setState(() {
-                                  _isSearching = value.isNotEmpty;
-                                  _searchText = value;
-                                });
-                              },
                             ),
                           ),
                         ],
@@ -206,9 +212,8 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
                           context,
                           MaterialPageRoute(
                             builder: (_) => BlocProvider.value(
-                              value:
-                                  context
-                                      .read<ClientBloc>(), // reuse existing cubit
+                              value: context
+                                  .read<ClientBloc>(), // reuse existing cubit
                               child: AddClientMeasurementScreen(
                                 clientMeasurement: ClientMeasurement.empty(),
                                 client: client,
@@ -230,10 +235,7 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
     );
   }
 
-  Widget _buildMeasurementRow(
-    Client client,
-    ClientMeasurement measurement,
-  ) {
+  Widget _buildMeasurementRow(Client client, ClientMeasurement measurement) {
     return MeasurementInfoCardWidget(
       client: client,
       measurement: measurement,
@@ -264,27 +266,23 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
             showDialog(
               context: context,
               barrierDismissible: false, // Prevent dismissing
-              builder: (_) => const Center(
-                child: CircularProgressIndicator(),
-              ),
+              builder: (_) => const Center(child: CircularProgressIndicator()),
             );
           }
 
-          final List<ClientMeasurement> measurements =
-              List.from(client.measurements);
+          final List<ClientMeasurement> measurements = List.from(
+            client.measurements,
+          );
 
           final index = measurements.indexWhere(
             (m) =>
-                m.bodyPart.toLowerCase() ==
-                measurement.bodyPart.toLowerCase(),
+                m.bodyPart.toLowerCase() == measurement.bodyPart.toLowerCase(),
           );
           measurements.removeAt(index);
 
           final updatedClient = client.copyWith(measurements: measurements);
 
-          context
-              .read<ClientBloc>()
-              .add(UpdateClient(updatedClient));
+          context.read<ClientBloc>().add(UpdateClient(updatedClient));
 
           _deleteMeasurement(updatedClient);
         }
@@ -294,8 +292,7 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
           context,
           MaterialPageRoute(
             builder: (_) => BlocProvider.value(
-              value:
-                  context.read<ClientBloc>(), // reuse existing cubit
+              value: context.read<ClientBloc>(), // reuse existing cubit
               child: AddClientMeasurementScreen(
                 clientMeasurement: measurement,
                 client: client,

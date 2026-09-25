@@ -1,4 +1,5 @@
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc_event.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc_state.dart';
@@ -18,7 +19,8 @@ class DiscoverTrendsPage extends StatefulWidget {
   State<DiscoverTrendsPage> createState() => _DiscoverTrendsPageState();
 }
 
-class _DiscoverTrendsPageState extends State<DiscoverTrendsPage> with TickerProviderStateMixin<DiscoverTrendsPage> {
+class _DiscoverTrendsPageState extends State<DiscoverTrendsPage>
+    with TickerProviderStateMixin<DiscoverTrendsPage> {
   late AnimationController _hideFabAnimation;
 
   final GlobalKey<RefreshIndicatorState> _refreshKey =
@@ -27,7 +29,10 @@ class _DiscoverTrendsPageState extends State<DiscoverTrendsPage> with TickerProv
   @override
   void initState() {
     super.initState();
-    _hideFabAnimation = AnimationController(vsync: this, duration: kThemeAnimationDuration);
+    _hideFabAnimation = AnimationController(
+      vsync: this,
+      duration: kThemeAnimationDuration,
+    );
     context.read<TrendBloc>().add(const LoadTrendsCacheFirst(limit: 10));
     _hideFabAnimation.forward();
   }
@@ -59,8 +64,10 @@ class _DiscoverTrendsPageState extends State<DiscoverTrendsPage> with TickerProv
                       valueListenable: sl<HiveTrendService>().itemListener(),
                       builder: (context, box, _) {
                         final trends = box.values.toList()
-                          ..sort((a, b) => b.createdAt!.compareTo(a.createdAt!));
-      
+                          ..sort(
+                            (a, b) => b.createdAt!.compareTo(a.createdAt!),
+                          );
+
                         if (trends.isEmpty) {
                           // if (state is TrendLoading) {
                           //   return const SliverToBoxAdapter(
@@ -71,7 +78,7 @@ class _DiscoverTrendsPageState extends State<DiscoverTrendsPage> with TickerProv
                             child: Center(child: Text("No trends found")),
                           );
                         }
-      
+
                         return TrendsStaggeredView(items: trends);
                       },
                     );
@@ -85,6 +92,8 @@ class _DiscoverTrendsPageState extends State<DiscoverTrendsPage> with TickerProv
           scale: _hideFabAnimation,
           alignment: Alignment.bottomRight,
           child: FloatingActionButton(
+            backgroundColor: context.accent,
+            foregroundColor: Colors.white,
             onPressed: () => context.push('/trends-new'),
             shape: const CircleBorder(),
             child: const Icon(Icons.add),
@@ -112,7 +121,7 @@ class _DiscoverTrendsPageState extends State<DiscoverTrendsPage> with TickerProv
             }
             break;
           case ScrollDirection.reverse:
-           if (userScroll.metrics.maxScrollExtent !=
+            if (userScroll.metrics.maxScrollExtent !=
                 userScroll.metrics.minScrollExtent) {
               _hideFabAnimation.reverse();
             }

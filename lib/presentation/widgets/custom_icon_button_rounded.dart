@@ -20,7 +20,7 @@ class CustomIconButtonRounded extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: backgroundColor ??
-          context.iconSubstrate, // neutral icon tile background
+          context.hairline, // neutral icon tile background
       shape: const CircleBorder(),
       child: InkWell(
         borderRadius: BorderRadius.circular(50), // ripple matches shape

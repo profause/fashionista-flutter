@@ -69,7 +69,7 @@ class _CustomPinnedClientIconButtonState
               isPinned ? Icons.push_pin : Icons.push_pin_outlined,
               key: ValueKey(isPinned), // important for switcher
               //color: isPinned ? Colors.red : Colors.grey,
-              size: 18,
+              size: 20,
             ),
           ),
         );
