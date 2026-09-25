@@ -52,7 +52,7 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
       // 👈 helper from 'sliver_tools' package, or just return a Column of slivers
       children: [
         SliverAppBar(
-          backgroundColor: colorScheme.surface,
+          backgroundColor: context.canvasBackground,
           pinned: true, // keeps the searchbar visible when collapsed
           floating: true, // allows it to appear/disappear as you scroll
           snap: true, // snaps into view when scrolling up
@@ -163,7 +163,7 @@ class _ClosetItemsPageState extends State<ClosetItemsPage> with RouteAware {
                         child: Icon(
                           Icons.add,
                           size: 20,
-                          color: context.onCanvasText,
+                          color: colorScheme.onPrimary,
                         ),
                       ),
                     ),

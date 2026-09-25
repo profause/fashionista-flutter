@@ -52,7 +52,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
           floating: true, // allows it to appear/disappear as you scroll
           snap: true, // snaps into view when scrolling up
           stretch: true,
-          expandedHeight: 72,
+          //expandedHeight: 72,
           toolbarHeight: 0,
           flexibleSpace: FlexibleSpaceBar(
             background: Padding(

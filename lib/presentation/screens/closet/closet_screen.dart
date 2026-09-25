@@ -5,7 +5,6 @@ import 'package:fashionista/data/models/closet/bloc/closet_item_bloc_state.dart'
 import 'package:fashionista/data/models/closet/bloc/closet_outfit_bloc.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_outfit_bloc_event.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_outfit_bloc_state.dart';
-import 'package:fashionista/data/models/closet/outfit_model.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/presentation/screens/closet/closet_items_page.dart';
@@ -14,7 +13,6 @@ import 'package:fashionista/presentation/screens/closet/outfits_page.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
 class ClosetScreen extends StatefulWidget {
   const ClosetScreen({super.key});
@@ -44,7 +42,7 @@ class _ClosetScreenState extends State<ClosetScreen>
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: context.canvasBackground,
       body: NestedScrollView(
         physics: const ClampingScrollPhysics(),
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {

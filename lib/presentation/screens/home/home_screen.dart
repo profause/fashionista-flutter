@@ -74,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
             actions: [
               Hero(
-                tag: 'add-post',
+                tag: 'settings',
                 child: IconButton(
                   icon: Icon(Icons.settings, color: context.onCanvasText),
                   onPressed: () {
@@ -135,7 +135,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           // 2. Twitter/X-style pinned TabBar
           // -------------------------------
           SliverPersistentHeader(
-            pinned: true,
+            pinned: false,
             delegate: _TabBarDelegate(
               TabBar(
                 tabAlignment: TabAlignment.start,
