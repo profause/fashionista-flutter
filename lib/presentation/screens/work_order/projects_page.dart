@@ -6,6 +6,7 @@ import 'package:fashionista/presentation/screens/work_order/widgets/pinned_work_
 import 'package:fashionista/presentation/screens/work_order/widgets/work_order_info_card_widget.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hive/hive.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
@@ -33,6 +34,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return MultiSliver(
       // 👈 helper from 'sliver_tools' package, or just return a Column of slivers
       children: [
@@ -52,6 +54,30 @@ class _ProjectsPageState extends State<ProjectsPage> {
                   Expanded(child: _buildSearchField()),
                   const SizedBox(width: 12),
                   _buildFilterButton(),
+                  const SizedBox(width: 12),
+                  SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: Material(
+                      color: colorScheme.primary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        side: BorderSide(color: context.hairline),
+                      ),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(10),
+                        onTap: () => {
+                          //herheher
+                          context.push('/workorders/add'),
+                        },
+                        child: Icon(
+                          Icons.add,
+                          size: 20,
+                          color: colorScheme.onPrimary,
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),

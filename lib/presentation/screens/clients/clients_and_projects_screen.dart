@@ -22,7 +22,7 @@ class ClientsAndProjectsScreen extends StatefulWidget {
 
 class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
     with SingleTickerProviderStateMixin {
-  static const double expandedHeight = 96;
+  static const double expandedHeight = 168;
 
   late final TabController _tabController;
   final GlobalKey<_ClientsAndProjectsScreenState> clientsAndProjectsKey =
@@ -60,13 +60,14 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       backgroundColor: context.canvasBackground,
       body: NestedScrollView(
         physics: const ClampingScrollPhysics(),
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
           return <Widget>[
-            /// Profile AppBar
             SliverOverlapAbsorber(
               handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
               sliver: SliverAppBar(
@@ -75,7 +76,7 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
                 toolbarHeight: 0,
                 expandedHeight: expandedHeight,
                 backgroundColor: context.canvasBackground,
-                foregroundColor: context.accent,
+                foregroundColor: context.onCanvasText,
                 elevation: 0,
                 flexibleSpace: LayoutBuilder(
                   builder: (context, constraints) {
@@ -83,33 +84,32 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
                         ((constraints.maxHeight - kToolbarHeight) /
                                 (expandedHeight - kToolbarHeight))
                             .clamp(0.0, 1.0); // scroll progress 0..1
+
+                    final avatarSize = 56 + (68 - 56) * percent;
                     return FlexibleSpaceBar(
                       collapseMode: CollapseMode.parallax,
                       background: SafeArea(
-                        bottom: false,
                         child: Column(
                           children: [
-                            Expanded(
-                              child: Center(
-                                child: Opacity(
-                                  opacity:
-                                      percent, // ✅ fade name out as it collapses
-                                  child: Text(
-                                    "Clients & Projects",
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: -0.3,
-                                      color: context.onCanvasText,
-                                    ),
-                                  ),
-                                ),
+                            const SizedBox(height: 8),
+                            Center(
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  Icon(Icons.people, size: avatarSize),
+                                ],
                               ),
                             ),
-                            Divider(
-                              height: 1,
-                              thickness: 1,
-                              color: context.hairline.withValues(alpha: 0.8),
+                            const SizedBox(height: 4),
+                            Opacity(
+                              opacity:
+                                  percent, // ✅ fade name out as it collapses
+                              child: Text(
+                                "Clients",
+                                style: textTheme.titleMedium!.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -117,69 +117,97 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
                     );
                   },
                 ),
-
                 bottom: TabBar(
                   controller: _tabController,
                   labelColor: context.onCanvasText,
                   unselectedLabelColor: context.mutedText,
-                  labelStyle: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  unselectedLabelStyle: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                  ),
                   indicatorColor: context.accent,
                   dividerColor: context.hairline,
-                  dividerHeight: 1,
-                  indicatorSize: TabBarIndicatorSize.label,
-                  indicatorWeight: 2.5,
-                  indicatorPadding: const EdgeInsets.only(bottom: 4),
                   physics: const BouncingScrollPhysics(),
-                  indicator: UnderlineTabIndicator(
-                    borderRadius: BorderRadius.circular(999),
-                    borderSide: BorderSide(
-                      width: 2.5,
-                      color: context.accent,
-                    ),
-                  ),
+                  dividerHeight: 1,
+                  indicatorWeight: 2,
+                  indicatorSize: TabBarIndicatorSize.label,
+                  indicatorPadding: const EdgeInsets.only(left: 8, right: 8),
                   tabs: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 4,
+                    Container(
+                      margin: const EdgeInsets.symmetric(
+                        vertical: 8,
                         horizontal: 8,
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Text("Clients"),
-                          const SizedBox(width: 6),
-                          BlocSelector<ClientBloc, ClientBlocState, int>(
-                            selector: (state) =>
-                                state.clientsCount, // ✅ always available
+                          Text(
+                            "Clients",
+                            style: textTheme.bodyMedium!.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          BlocSelector<ClientBloc,ClientBlocState,int >(
+                            selector: (state) => state.clientsCount,
                             builder: (context, count) {
-                              return _CountPill(count: count);
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 0,
+                                  horizontal: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: context.accent.withValues(
+                                    alpha: 0.10,
+                                  ),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: Text(
+                                  "$count",
+                                  style: textTheme.labelSmall!.copyWith(
+                                    color: context.accent,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              );
                             },
                           ),
                         ],
                       ),
                     ),
-                    // ✅ Projects tab
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 4,
+                    Container(
+                      margin: const EdgeInsets.symmetric(
+                        vertical: 8,
                         horizontal: 8,
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Text("My Projects"),
-                          const SizedBox(width: 6),
-                          BlocSelector<WorkOrderBloc, WorkOrderBlocState, int>(
+                          Text(
+                            "Projects",
+                            style: textTheme.bodyMedium!.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          BlocSelector<WorkOrderBloc,WorkOrderBlocState,int >(
                             selector: (state) => state.workOrdersCount,
                             builder: (context, count) {
-                              return _CountPill(count: count);
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 0,
+                                  horizontal: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: context.accent.withValues(
+                                    alpha: 0.10,
+                                  ),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: Text(
+                                  "$count",
+                                  style: textTheme.labelSmall!.copyWith(
+                                    color: context.accent,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              );
                             },
                           ),
                         ],
@@ -226,26 +254,6 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
               },
             ),
           ],
-        ),
-      ),
-      floatingActionButton: Hero(
-        tag: 'add-client-button',
-        child: Material(
-          color: context.accent,
-          elevation: 8,
-          shadowColor: const Color(0x59FF5A00),
-          shape: const CircleBorder(),
-          child: InkWell(
-            onTap: () async {
-              _showOptionsBottomsheet(context);
-            },
-            customBorder: const CircleBorder(),
-            child: const SizedBox(
-              width: 56,
-              height: 56,
-              child: Icon(Icons.add, color: Colors.white, size: 26),
-            ),
-          ),
         ),
       ),
     );
@@ -364,6 +372,37 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
     _tabController.dispose();
     router.routerDelegate.removeListener(_onRouteChange);
     super.dispose();
+  }
+
+  Widget _buildSegmentedTabs() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: context.hairline)),
+      ),
+      child: TabBar(
+        labelColor: context.accent,
+        unselectedLabelColor: context.mutedText,
+        indicatorColor: context.accent,
+        dividerColor: context.hairline,
+        dividerHeight: 0,
+        indicatorWeight: 2.5,
+        indicatorSize: TabBarIndicatorSize.label,
+        labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        unselectedLabelStyle: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
+        tabs: const [
+          Tab(icon: Icon(Icons.person_2, size: 20), text: 'Info'),
+          Tab(
+            icon: Icon(Icons.straighten_rounded, size: 20),
+            text: 'Measurements',
+          ),
+          Tab(icon: Icon(Icons.work_history, size: 20), text: 'Orders'),
+        ],
+      ),
+    );
   }
 }
 

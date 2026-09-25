@@ -43,6 +43,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return MultiSliver(
       // 👈 helper from 'sliver_tools' package, or just return a Column of slivers
       children: [
@@ -52,8 +53,8 @@ class _ClientsScreenState extends State<ClientsScreen> {
           floating: true, // allows it to appear/disappear as you scroll
           snap: true, // snaps into view when scrolling up
           stretch: true,
-          //expandedHeight: 72,
-          toolbarHeight: 0,
+          expandedHeight: 18,
+          toolbarHeight: 5,
           flexibleSpace: FlexibleSpaceBar(
             background: Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
@@ -147,6 +148,30 @@ class _ClientsScreenState extends State<ClientsScreen> {
                       ),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: Material(
+                      color: colorScheme.primary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        side: BorderSide(color: context.hairline),
+                      ),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(10),
+                        onTap: () => {
+                          //herheher
+                          context.push('/clients/add'),
+                        },
+                        child: Icon(
+                          Icons.add,
+                          size: 20,
+                          color: colorScheme.onPrimary,
+                        ),
+                      ),
                     ),
                   ),
                 ],

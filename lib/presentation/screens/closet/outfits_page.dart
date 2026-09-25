@@ -22,7 +22,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:dartz/dartz.dart' as dartz;
-import 'package:go_router/go_router.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
 class OutfitsPage extends StatefulWidget {
@@ -65,7 +64,7 @@ class OutfitsPageState extends State<OutfitsPage> {
       // 👈 helper from 'sliver_tools' package, or just return a Column of slivers
       children: [
         SliverAppBar(
-          backgroundColor: colorScheme.surface,
+          backgroundColor: context.canvasBackground,
           pinned: true, // keeps the searchbar visible when collapsed
           floating: true, // allows it to appear/disappear as you scroll
           snap: true, // snaps into view when scrolling up
@@ -162,7 +161,7 @@ class OutfitsPageState extends State<OutfitsPage> {
                         child: Icon(
                           Icons.add,
                           size: 20,
-                          color: context.onCanvasText,
+                          color: colorScheme.onPrimary,
                         ),
                       ),
                     ),
