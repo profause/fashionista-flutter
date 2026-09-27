@@ -9,6 +9,7 @@ import 'package:dartz/dartz.dart' as dartz;
 import 'package:fashionista/core/service_locator/app_config.dart';
 import 'package:fashionista/core/service_locator/app_toast.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/utils/get_image_aspect_ratio.dart';
 import 'package:fashionista/data/models/author/author_model.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
@@ -49,7 +50,6 @@ class _AddWorkOrderScreenState extends State<AddWorkOrderScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
 
     final pages = [
       WorkOrderFlowPage1(onNext: () => nextPage()),
@@ -64,15 +64,16 @@ class _AddWorkOrderScreenState extends State<AddWorkOrderScreen> {
       create: (_) => WorkOrderBloc(),
       child: Scaffold(
         appBar: AppBar(
-          foregroundColor: colorScheme.primary,
-          backgroundColor: colorScheme.onPrimary,
+          foregroundColor: context.onCanvasText,
+          backgroundColor: context.canvasBackground,
           title: Text(
             'Start a new Work Order',
             style: Theme.of(context).textTheme.titleMedium,
           ),
           elevation: 0,
+          shape: Border(bottom: BorderSide(color: context.hairline)),
         ),
-        backgroundColor: colorScheme.surface,
+        backgroundColor: context.canvasBackground,
         body: SafeArea(
           //tag: "getStartedButton",
           child: Column(

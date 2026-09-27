@@ -535,9 +535,9 @@ final ThemeData fashionistaDarkTheme = ThemeData(
       color: _odOnSurfaceVariant,
     ),
   ),
-  dividerColor: _odBorder,
-  dividerTheme: const DividerThemeData(
-    color: _odBorder,
+  dividerColor: _odBorder.withValues(alpha: 0.5),
+  dividerTheme: DividerThemeData(
+    color: _odBorder.withValues(alpha: 0.5),
     thickness: 1,
     space: 1,
   ),
@@ -690,11 +690,11 @@ final ThemeData fashionistaDarkTheme = ThemeData(
     behavior: SnackBarBehavior.floating,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
   ),
-  tabBarTheme: const TabBarThemeData(
+  tabBarTheme: TabBarThemeData(
     labelColor: _odPrimary,
     unselectedLabelColor: _odMuted,
     indicatorColor: _odPrimary,
-    dividerColor: _odBorder,
+    dividerColor: _odBorder.withValues(alpha: 0.5),
   ),
   datePickerTheme: DatePickerThemeData(
     backgroundColor: _odCard,
