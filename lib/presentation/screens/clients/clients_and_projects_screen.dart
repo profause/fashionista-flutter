@@ -60,7 +60,6 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       backgroundColor: context.canvasBackground,
@@ -73,7 +72,7 @@ class _ClientsAndProjectsScreenState extends State<ClientsAndProjectsScreen>
               sliver: SliverAppBar(
                 pinned: true,
                 floating: true,
-                toolbarHeight: 0,
+                toolbarHeight: kToolbarHeight,
                 expandedHeight: expandedHeight,
                 backgroundColor: context.canvasBackground,
                 foregroundColor: context.onCanvasText,

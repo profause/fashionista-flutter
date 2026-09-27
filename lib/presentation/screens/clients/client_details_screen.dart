@@ -21,9 +21,13 @@ class ClientDetailsScreen extends StatefulWidget {
   State<ClientDetailsScreen> createState() => _ClientDetailsScreenState();
 }
 
-class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
+class _ClientDetailsScreenState extends State<ClientDetailsScreen>
+    with SingleTickerProviderStateMixin {
+  static const double expandedHeight = 190;
+  late final TabController _tabController;
   @override
   void initState() {
+    _tabController = TabController(length: 3, vsync: this);
     context.read<ClientBloc>().add(
       LoadClient(widget.clientId, isFromCache: true),
     );
@@ -32,6 +36,8 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return BlocBuilder<ClientBloc, ClientBlocState>(
       buildWhen: (context, state) {
         return state is ClientLoaded || state is ClientUpdated;
@@ -45,94 +51,213 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
             break;
           case ClientLoaded(:final client):
           case ClientUpdated(:final client):
-            return DefaultTabController(
-              length: 3,
-              child: Scaffold(
-                backgroundColor: context.canvasBackground,
-                appBar: AppBar(
-                  backgroundColor: context.canvasBackground,
-                  surfaceTintColor: Colors.transparent,
-                  elevation: 0,
-                  scrolledUnderElevation: 0,
-                  centerTitle: true,
-                  title: const SizedBox.shrink(),
-                  actions: [
-                    const SizedBox(width: 8),
-                    CustomPinnedClientIconButton(client: client),
-                    const SizedBox(width: 8),
-                    CustomIconButtonRounded(
-                      size: 20,
-                      iconData: Icons.delete_outline,
-                      //backgroundColor: context.canvasBackground,
-                      onPressed: () async {
-                        final canDelete = await showDialog<bool>(
-                          context: context,
-                          builder: (ctx) => AlertDialog(
-                            title: const Text('Delete Client'),
-                            content: const Text(
-                              'Are you sure you want to delete this client?',
+            return Scaffold(
+              backgroundColor: context.canvasBackground,
+              body: NestedScrollView(
+                physics: const ClampingScrollPhysics(),
+                headerSliverBuilder:
+                    (BuildContext context, bool innerBoxIsScrolled) {
+                      return <Widget>[
+                        SliverOverlapAbsorber(
+                          handle:
+                              NestedScrollView.sliverOverlapAbsorberHandleFor(
+                                context,
+                              ),
+                          sliver: SliverAppBar(
+                            leading: IconButton(
+                              tooltip: 'Back',
+                              icon: const Icon(Icons.arrow_back),
+                              onPressed: () {
+                                if (context.canPop()) {
+                                  context.pop();
+                                } else {
+                                  context.go('/home');
+                                }
+                              },
                             ),
                             actions: [
-                              TextButton(
-                                onPressed: () =>
-                                    Navigator.of(ctx).pop(false),
-                                child: const Text('Cancel'),
-                              ),
-                              TextButton(
-                                onPressed: () =>
-                                    Navigator.of(ctx).pop(true),
-                                style: TextButton.styleFrom(
-                                  foregroundColor: Colors.red,
-                                ),
-                                child: const Text('Delete'),
-                              ),
-                            ],
-                          ),
-                        );
+                              const SizedBox(width: 8),
+                              CustomPinnedClientIconButton(client: client),
+                              const SizedBox(width: 8),
+                              CustomIconButtonRounded(
+                                size: 20,
+                                iconData: Icons.delete_outline,
+                                //backgroundColor: context.canvasBackground,
+                                onPressed: () async {
+                                  final canDelete = await showDialog<bool>(
+                                    context: context,
+                                    builder: (ctx) => AlertDialog(
+                                      title: const Text('Delete Client'),
+                                      content: const Text(
+                                        'Are you sure you want to delete this client?',
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.of(ctx).pop(false),
+                                          child: const Text('Cancel'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.of(ctx).pop(true),
+                                          style: TextButton.styleFrom(
+                                            foregroundColor: Colors.red,
+                                          ),
+                                          child: const Text('Delete'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
 
-                        if (canDelete == true) {
-                          if (mounted) {
-                            showLoadingDialog(context);
-                          }
-                          await _deleteClient(client);
-                        }
-                      },
-                    ),
-                    const SizedBox(width: 8),
-                    CustomIconButtonRounded(
-                      size: 20,
-                      iconData: Icons.edit_outlined,
-                      //backgroundColor: context.canvasBackground,
-                      onPressed: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => BlocProvider.value(
-                              value: context.read<ClientBloc>(),
-                              child: EditClientScreen(
-                                client: client,
+                                  if (canDelete == true) {
+                                    if (mounted) {
+                                      showLoadingDialog(context);
+                                    }
+                                    await _deleteClient(client);
+                                  }
+                                },
                               ),
+                              const SizedBox(width: 8),
+                              CustomIconButtonRounded(
+                                size: 20,
+                                iconData: Icons.edit_outlined,
+                                //backgroundColor: context.canvasBackground,
+                                onPressed: () async {
+                                  await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => BlocProvider.value(
+                                        value: context.read<ClientBloc>(),
+                                        child: EditClientScreen(client: client),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              const SizedBox(width: 16),
+                            ],
+                            pinned: true,
+                            floating: true,
+                            //toolbarHeight: 56,
+                            expandedHeight: expandedHeight,
+                            backgroundColor: context.canvasBackground,
+                            foregroundColor: context.onCanvasText,
+                            elevation: 0,
+                            flexibleSpace: LayoutBuilder(
+                              builder: (context, constraints) {
+                                final percent =
+                                    ((constraints.maxHeight - kToolbarHeight) /
+                                            (expandedHeight - kToolbarHeight))
+                                        .clamp(
+                                          0.0,
+                                          1.0,
+                                        ); // scroll progress 0..1
+
+                                final avatarSize = 56 + (68 - 56) * percent;
+                                return FlexibleSpaceBar(
+                                  collapseMode: CollapseMode.parallax,
+                                  background: SafeArea(
+                                    child: Column(
+                                      children: [
+                                        const SizedBox(height: 8),
+                                        _buildProfileHeader(client, avatarSize),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            bottom: TabBar(
+                              controller: _tabController,
+                              labelColor: context.onCanvasText,
+                              unselectedLabelColor: context.mutedText,
+                              indicatorColor: context.accent,
+                              dividerColor: context.hairline,
+                              physics: const BouncingScrollPhysics(),
+                              dividerHeight: 1,
+                              indicatorWeight: 2,
+                              indicatorSize: TabBarIndicatorSize.label,
+                              indicatorPadding: const EdgeInsets.only(
+                                left: 8,
+                                right: 8,
+                              ),
+                              tabs: [
+                                Tab(
+                                  icon: Icon(Icons.person_2, size: 20),
+                                  text: 'Info',
+                                ),
+                                Tab(
+                                  icon: Icon(
+                                    Icons.straighten_rounded,
+                                    size: 20,
+                                  ),
+                                  text: 'Measurements',
+                                ),
+                                Tab(
+                                  icon: Icon(Icons.work_history, size: 20),
+                                  text: 'Orders',
+                                ),
+                              ],
                             ),
                           ),
+                        ),
+                      ];
+                    },
+                body: TabBarView(
+                  controller: _tabController, // ✅ connect the same controller
+                  children: [
+                    Builder(
+                      builder: (context) {
+                        return CustomScrollView(
+                          // Let this scroll work with NestedScrollView
+                          key: PageStorageKey("client"),
+                          slivers: [
+                            SliverOverlapInjector(
+                              handle:
+                                  NestedScrollView.sliverOverlapAbsorberHandleFor(
+                                    context,
+                                  ),
+                            ),
+                            ClientProfilePage(client: client),
+                          ],
                         );
                       },
                     ),
-                    const SizedBox(width: 12),
-                  ],
-                ),
-                body: Column(
-                  children: [
-                    _buildProfileHeader(client),
-                    _buildSegmentedTabs(),
-                    const SizedBox(height: 12),
-                    Expanded(
-                      child: TabBarView(
-                        children: [
-                          ClientProfilePage(client: client),
-                          ClientMeasurementScreen(client: client),
-                          ClientProjectPage(client: client),
-                        ],
-                      ),
+
+                    Builder(
+                      builder: (context) {
+                        return CustomScrollView(
+                          // Let this scroll work with NestedScrollView
+                          key: PageStorageKey("client"),
+                          slivers: [
+                            SliverOverlapInjector(
+                              handle:
+                                  NestedScrollView.sliverOverlapAbsorberHandleFor(
+                                    context,
+                                  ),
+                            ),
+                            ClientMeasurementScreen(client: client),
+                          ],
+                        );
+                      },
+                    ),
+
+                    Builder(
+                      builder: (context) {
+                        return CustomScrollView(
+                          // Let this scroll work with NestedScrollView
+                          key: PageStorageKey("client"),
+                          slivers: [
+                            SliverOverlapInjector(
+                              handle:
+                                  NestedScrollView.sliverOverlapAbsorberHandleFor(
+                                    context,
+                                  ),
+                            ),
+                            ClientProjectPage(client: client),
+                          ],
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -144,7 +269,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
     );
   }
 
-  Widget _buildProfileHeader(Client client) {
+  Widget _buildProfileHeader(Client client, double avatarSize) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Center(
@@ -157,16 +282,9 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: context.iconSubstrate,
-                border: Border.all(
-                  color: context.canvasBackground,
-                  width: 3,
-                ),
+                border: Border.all(color: context.canvasBackground, width: 3),
               ),
-              child: Icon(
-                Icons.person,
-                size: 48,
-                color: context.mutedText,
-              ),
+              child: Icon(Icons.person, size: 48, color: context.mutedText),
             ),
             Positioned(
               bottom: 2,
@@ -177,10 +295,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: context.accent,
-                  border: Border.all(
-                    color: context.canvasBackground,
-                    width: 2,
-                  ),
+                  border: Border.all(color: context.canvasBackground, width: 2),
                 ),
                 child: const Icon(
                   Icons.camera_alt,
@@ -209,17 +324,17 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
         dividerHeight: 0,
         indicatorWeight: 2.5,
         indicatorSize: TabBarIndicatorSize.label,
-        labelStyle: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-        ),
+        labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
         unselectedLabelStyle: const TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w500,
         ),
         tabs: const [
           Tab(icon: Icon(Icons.person_2, size: 20), text: 'Info'),
-          Tab(icon: Icon(Icons.straighten_rounded, size: 20), text: 'Measurements'),
+          Tab(
+            icon: Icon(Icons.straighten_rounded, size: 20),
+            text: 'Measurements',
+          ),
           Tab(icon: Icon(Icons.work_history, size: 20), text: 'Orders'),
         ],
       ),

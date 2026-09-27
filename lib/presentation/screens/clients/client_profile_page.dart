@@ -5,6 +5,7 @@ import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:sliver_tools/sliver_tools.dart';
 
 class ClientProfilePage extends StatefulWidget {
   final Client client;
@@ -23,78 +24,81 @@ class _ClientProfilePageState extends State<ClientProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ClientBloc, ClientBlocState>(
-      buildWhen: (context, state) {
-        return state is ClientLoaded || state is ClientUpdated;
-      },
-      builder: (context, state) {
-        switch (state) {
-          case ClientDeleted():
-            if (mounted) {
-              Navigator.pop(context);
-            }
-            break;
-          case ClientLoaded(:final client):
-          case ClientUpdated(:final client):
-            return Scaffold(
-              backgroundColor: context.canvasBackground,
-              body: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: context.cardSurface,
-                      borderRadius: BorderRadius.circular(16),
-                      //border: Border.all(color: context.hairline),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x0D000000),
-                          blurRadius: 3,
-                          offset: Offset(0, 1),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        _ProfileDetailRow(
-                          icon: Icons.person,
-                          label: 'Full Name',
-                          value: client.fullName,
-                        ),
-                        const _RowDivider(),
-                        _ProfileDetailRow(
-                          icon: Icons.phone,
-                          label: 'Mobile Number',
-                          value: client.mobileNumber,
-                        ),
-                        const _RowDivider(),
-                        _ProfileDetailRow(
-                          icon: _genderIcon(client.gender),
-                          label: 'Gender',
-                          value: client.gender,
-                        ),
-                        const _RowDivider(),
-                        _ProfileDetailRow(
-                          icon: Icons.calendar_month,
-                          label: 'Registration Date',
-                          value: DateFormat(
-                            'MMM dd, yyyy',
-                          ).format(client.createdDate!),
-                        ),
-                      ],
+    return MultiSliver(
+      children: [
+        BlocBuilder<ClientBloc, ClientBlocState>(
+          buildWhen: (context, state) {
+            return state is ClientLoaded || state is ClientUpdated;
+          },
+          builder: (context, state) {
+            switch (state) {
+              case ClientDeleted():
+                if (mounted) {
+                  Navigator.pop(context);
+                }
+                return const SliverToBoxAdapter(child: SizedBox.shrink());
+              case ClientLoaded(:final client):
+              case ClientUpdated(:final client):
+                return SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+                  sliver: SliverToBoxAdapter(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: context.cardSurface,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x0D000000),
+                            blurRadius: 3,
+                            offset: Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          _ProfileDetailRow(
+                            icon: Icons.person,
+                            label: 'Full Name',
+                            value: client.fullName,
+                          ),
+                          const _RowDivider(),
+                          _ProfileDetailRow(
+                            icon: Icons.phone,
+                            label: 'Mobile Number',
+                            value: client.mobileNumber,
+                          ),
+                          const _RowDivider(),
+                          _ProfileDetailRow(
+                            icon: _genderIcon(client.gender),
+                            label: 'Gender',
+                            value: client.gender,
+                          ),
+                          const _RowDivider(),
+                          _ProfileDetailRow(
+                            icon: Icons.calendar_month,
+                            label: 'Registration Date',
+                            value: DateFormat(
+                              'MMM dd, yyyy',
+                            ).format(client.createdDate!),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ],
-              ),
-            );
-          case ClientError(:final message):
-            return Center(child: Text(message));
-          default:
-            return const Center(child: Text('Unknown state'));
-        }
-        return const SizedBox.shrink();
-      },
+                );
+              case ClientError(:final message):
+                return SliverToBoxAdapter(
+                  child: Center(child: Text(message)),
+                );
+              default:
+                return const SliverToBoxAdapter(
+                  child: Center(child: Text('Unknown state')),
+                );
+            }
+          },
+        ),
+      ],
     );
   }
 }

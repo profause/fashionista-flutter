@@ -11,6 +11,7 @@ import 'package:fashionista/presentation/screens/client_measurement/measurement_
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sliver_tools/sliver_tools.dart';
 
 class ClientMeasurementScreen extends StatefulWidget {
   final Client client;
@@ -22,7 +23,6 @@ class ClientMeasurementScreen extends StatefulWidget {
 }
 
 class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
-  bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   String _searchText = "";
@@ -41,119 +41,155 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ClientBloc, ClientBlocState>(
-      buildWhen: (context, state) {
-        return state is ClientLoaded || state is ClientUpdated;
-      },
-      builder: (context, state) {
-        switch (state) {
-          case ClientDeleted():
-            if (mounted) {
-              Navigator.pop(context);
-            }
-            break;
-          case ClientLoaded(:final client):
-          case ClientUpdated(:final client):
-            final filteredMeasurements = _searchText.isEmpty
-                ? client.measurements
-                : client.measurements.where((m) {
-                    final bodyPart = m.bodyPart.toLowerCase();
-                    return bodyPart.contains(_searchText.toLowerCase());
-                  }).toList();
-            return Scaffold(
-              backgroundColor: context.canvasBackground,
-              body: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-                    child: Container(
-                      height: 40,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: context.cardSurface,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: _searchFocusNode.hasFocus
-                              ? context.accent.withValues(alpha: 0.7)
-                              : context.hairline,
-                        ),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x0D000000),
-                            blurRadius: 3,
-                            offset: Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.search,
-                            size: 20,
-                            color: context.mutedText,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: SizedBox(
-                              height: 48,
-                              child: TextField(
-                                key: const ValueKey("searchField"),
-                                controller: _searchController,
-                                focusNode: _searchFocusNode,
-                                decoration: InputDecoration(
-                                  hintText: 'Search measurements...',
-                                  hintStyle: TextStyle(
-                                    fontSize: 15,
-                                    color: context.placeholderText,
-                                  ),
-                                  border: InputBorder.none,
-                                  isDense: false,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 0,
-                                    vertical: 10,
-                                  ),
+    final colorScheme = Theme.of(context).colorScheme;
+    return MultiSliver(
+      children: [
+        BlocBuilder<ClientBloc, ClientBlocState>(
+          buildWhen: (context, state) {
+            return state is ClientLoaded || state is ClientUpdated;
+          },
+          builder: (context, state) {
+            switch (state) {
+              case ClientDeleted():
+                if (mounted) {
+                  Navigator.pop(context);
+                }
+                return const SliverToBoxAdapter(child: SizedBox.shrink());
+              case ClientLoaded(:final client):
+              case ClientUpdated(:final client):
+                final filteredMeasurements = _searchText.isEmpty
+                    ? client.measurements
+                    : client.measurements.where((measurement) {
+                        return measurement.bodyPart.toLowerCase().contains(
+                          _searchText.toLowerCase(),
+                        );
+                      }).toList();
+
+                return MultiSliver(
+                  children: [
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                height: 40,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
                                 ),
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  color: context.onCanvasText,
+                                decoration: BoxDecoration(
+                                  color: context.cardSurface,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: _searchFocusNode.hasFocus
+                                        ? context.accent.withValues(alpha: 0.7)
+                                        : context.hairline,
+                                  ),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Color(0x0D000000),
+                                      blurRadius: 3,
+                                      offset: Offset(0, 1),
+                                    ),
+                                  ],
                                 ),
-                                onChanged: (value) {
-                                  setState(() {
-                                    _isSearching = value.isNotEmpty;
-                                    _searchText = value;
-                                  });
-                                },
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.search,
+                                      size: 20,
+                                      color: context.mutedText,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: TextField(
+                                        key: const ValueKey('searchField'),
+                                        controller: _searchController,
+                                        focusNode: _searchFocusNode,
+                                        decoration: InputDecoration(
+                                          hintText: 'Search measurements...',
+                                          hintStyle: TextStyle(
+                                            fontSize: 15,
+                                            color: context.placeholderText,
+                                          ),
+                                          border: InputBorder.none,
+                                          isDense: false,
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                horizontal: 0,
+                                                vertical: 10,
+                                              ),
+                                        ),
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          color: context.onCanvasText,
+                                        ),
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _searchText = value;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 8),
+                            IconButton.filled(
+                              iconSize: 20,
+                              style: IconButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              tooltip: 'Add measurement',
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => BlocProvider.value(
+                                      value: context.read<ClientBloc>(),
+                                      child: AddClientMeasurementScreen(
+                                        clientMeasurement:
+                                            ClientMeasurement.empty(),
+                                        client: client,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                              icon: Icon(
+                                Icons.add,
+                                color: colorScheme.onPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  Expanded(
-                    child: ListView(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                      children: [
-                        if (filteredMeasurements.isEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 40),
-                            child: Center(
-                              child: Text(
-                                'No measurements found',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: context.mutedText,
-                                ),
-                              ),
+                    if (filteredMeasurements.isEmpty)
+                      SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: Center(
+                          child: Text(
+                            'No measurements found',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: context.mutedText,
                             ),
-                          )
-                        else
-                          Container(
+                          ),
+                        ),
+                      )
+                    else
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                        sliver: SliverToBoxAdapter(
+                          child: Container(
                             decoration: BoxDecoration(
                               color: context.cardSurface,
                               borderRadius: BorderRadius.circular(16),
-                              //border: Border.all(color: context.hairline),
                               boxShadow: const [
                                 BoxShadow(
                                   color: Color(0x0D000000),
@@ -165,73 +201,36 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
                             child: Column(
                               children: [
                                 for (
-                                  var i = 0;
-                                  i < filteredMeasurements.length;
-                                  i++
+                                  var index = 0;
+                                  index < filteredMeasurements.length;
+                                  index++
                                 ) ...[
-                                  if (i > 0)
+                                  if (index > 0)
                                     Container(
                                       height: 1,
                                       color: context.hairline,
                                     ),
                                   _buildMeasurementRow(
                                     client,
-                                    filteredMeasurements[i],
+                                    filteredMeasurements[index],
                                   ),
                                 ],
                               ],
                             ),
                           ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              floatingActionButton: Hero(
-                tag: 'add-measurement-button',
-                child: Material(
-                  color: context.accent,
-                  elevation: 0,
-                  shape: const CircleBorder(),
-                  child: Container(
-                    width: 56,
-                    height: 56,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Color(0x61FF5A00),
-                          blurRadius: 18,
-                          offset: Offset(0, 6),
                         ),
-                      ],
-                    ),
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => BlocProvider.value(
-                              value: context
-                                  .read<ClientBloc>(), // reuse existing cubit
-                              child: AddClientMeasurementScreen(
-                                clientMeasurement: ClientMeasurement.empty(),
-                                client: client,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                      customBorder: const CircleBorder(),
-                      child: const Icon(Icons.add, color: Colors.white),
-                    ),
-                  ),
-                ),
-              ),
-            );
-        }
-        return const Center(child: CircularProgressIndicator());
-      },
+                      ),
+                  ],
+                );
+              default:
+                return const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(child: CircularProgressIndicator()),
+                );
+            }
+          },
+        ),
+      ],
     );
   }
 

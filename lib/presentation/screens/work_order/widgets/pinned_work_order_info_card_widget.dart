@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/settings/bloc/settings_bloc.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc_event.dart';
@@ -55,12 +56,21 @@ class _PinnedWorkOrderInfoCardWidgetState
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+    final description = widget.workOrderInfo.description ?? '';
+    final displayedDescription = description.length > 20
+        ? '${description.substring(0, 17)}...'
+        : description;
+    final clientName = widget.workOrderInfo.client!.name ?? '';
+
+    final displayedClientName = clientName.length > 20
+        ? '${clientName.substring(0, 15)}...'
+        : clientName;
     //final featuredMedia = workOrderInfo.featuredMedia!.first;
     return SizedBox(
       width: 285,
       child: Container(
         decoration: BoxDecoration(
-          color: colorScheme.onPrimary,
+          color: context.cardSurface,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
@@ -71,7 +81,7 @@ class _PinnedWorkOrderInfoCardWidgetState
           ],
         ),
         child: Material(
-          color: colorScheme.onPrimary,
+          color: context.cardSurface,
           borderRadius: BorderRadius.circular(12),
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
@@ -145,7 +155,7 @@ class _PinnedWorkOrderInfoCardWidgetState
                     ],
                   ),
                   Text(
-                    widget.workOrderInfo.description ?? '',
+                    displayedDescription,
                     style: textTheme.bodyMedium,
                     maxLines: 2, // 👈 show only 2 lines (adjust as needed)
                     overflow: TextOverflow.ellipsis, // 👈 adds "..."
@@ -160,7 +170,8 @@ class _PinnedWorkOrderInfoCardWidgetState
                           CustomIconRounded(icon: Icons.person, size: 12),
                           const SizedBox(width: 4),
                           Text(
-                            widget.workOrderInfo.client!.name!,
+                            displayedClientName,
+                            maxLines: 1,
                             style: textTheme.labelMedium,
                             overflow: TextOverflow.ellipsis,
                           ),
