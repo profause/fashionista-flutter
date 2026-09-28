@@ -8,6 +8,7 @@ import 'package:fashionista/data/models/clients/bloc/client_event.dart';
 import 'package:fashionista/data/models/clients/client_measurement_model.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
+import 'package:fashionista/presentation/screens/client_measurement/widgets/body_part_autocomplete_form_field_widget.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -109,19 +110,12 @@ class _AddClientMeasurementScreenState
                 decoration: BoxDecoration(
                   color: context.cardSurface,
                   borderRadius: BorderRadius.circular(16),
-                  //border: Border.all(color: context.hairline),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x0D000000),
-                      blurRadius: 3,
-                      offset: Offset(0, 1),
-                    ),
-                  ],
+                  border: Border.all(color: context.hairline),
                 ),
                 child: Column(
                   children: [
                     _buildBodyPartField(),
-                    Container(height: 1, color: context.hairline),
+                    Divider(color: context.hairline),
                     _buildMeasuredValueField(),
                   ],
                 ),
@@ -147,18 +141,17 @@ class _AddClientMeasurementScreenState
                     return; // Stop here if invalid
                   }
 
-                  final updatedMeasurement = widget.clientMeasurement
-                      .copyWith(
-                        uid: widget.clientMeasurement.uid,
-                        bodyPart: _bodyPartController.text.trim(),
-                        measuredValue: double.parse(
-                          _measuredValueController.text.trim(),
-                        ),
-                        notes: _noteController.text.trim(),
-                        measuringUnit: _measuringUnitController.text.trim(),
-                        updatedDate: DateTime.now(),
-                        tags: _tagsController.text.trim(),
-                      );
+                  final updatedMeasurement = widget.clientMeasurement.copyWith(
+                    uid: widget.clientMeasurement.uid,
+                    bodyPart: _bodyPartController.text.trim(),
+                    measuredValue: double.parse(
+                      _measuredValueController.text.trim(),
+                    ),
+                    notes: _noteController.text.trim(),
+                    measuringUnit: _measuringUnitController.text.trim(),
+                    updatedDate: DateTime.now(),
+                    tags: _tagsController.text.trim(),
+                  );
                   final List<ClientMeasurement> measurements = List.from(
                     widget.client.measurements,
                   );
@@ -201,40 +194,19 @@ class _AddClientMeasurementScreenState
         child: Row(
           children: [
             Expanded(
-              child: TextFormField(
-                focusNode: _bodyPartFocusNode,
-                controller: _bodyPartController,
-                validator: (value) {
-                  if (!RegExp(
-                    r'^([A-Za-z_][A-Za-z0-9_]\w+)?',
-                  ).hasMatch(value!)) {
-                    return 'Enter the body part being measured';
-                  }
-                  return null;
-                },
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  color: context.onCanvasText,
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: context.cardSurface,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                decoration: InputDecoration(
-                  hintText: 'e.g. Chest',
-                  hintStyle: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                    color: context.placeholderText,
-                  ),
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: EdgeInsets.zero,
+                child: BodyPartAutocompleteFormFieldWidget(
+                  controller: _bodyPartController,
+                  gender: widget.client.gender,
                 ),
               ),
             ),
-            Icon(
-              Icons.expand_more,
-              size: 20,
-              color: context.mutedText,
-            ),
+            Icon(Icons.expand_more, size: 20, color: context.mutedText),
           ],
         ),
       ),
@@ -379,9 +351,7 @@ class _AddClientMeasurementScreenState
             maxLines: 4,
             minLines: 2,
             validator: (value) {
-              if (!RegExp(
-                r'^([A-Za-z_][A-Za-z0-9_]\w+)?',
-              ).hasMatch(value!)) {
+              if (!RegExp(r'^([A-Za-z_][A-Za-z0-9_]\w+)?').hasMatch(value!)) {
                 return 'Enter a short note';
               }
               return null;
@@ -537,20 +507,14 @@ class _UnitSegment extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (selected) ...[
-                Icon(
-                  Icons.check,
-                  size: 16,
-                  color: Colors.white,
-                ),
+                Icon(Icons.check, size: 16, color: Colors.white),
                 const SizedBox(width: 6),
               ],
               Text(
                 label,
                 style: TextStyle(
                   fontSize: 14,
-                  fontWeight: selected
-                      ? FontWeight.w600
-                      : FontWeight.w400,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
                   color: selected ? Colors.white : context.mutedText,
                 ),
               ),

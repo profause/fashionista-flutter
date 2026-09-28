@@ -21,16 +21,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return Scaffold(
           backgroundColor: context.canvasBackground,
           appBar: AppBar(
-            automaticallyImplyLeading: false,
+            automaticallyImplyLeading: true,
             foregroundColor: context.onCanvasText,
             elevation: 0,
             scrolledUnderElevation: 0,
             centerTitle: true,
-            leading: const SizedBox(
-              width: 32,
-              height: 32,
-              child: _NavBackButton(),
-            ),
             title: Text(
               'Settings',
               style: TextStyle(

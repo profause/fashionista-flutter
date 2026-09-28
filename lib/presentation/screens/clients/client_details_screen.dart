@@ -9,6 +9,7 @@ import 'package:fashionista/presentation/screens/clients/client_project_page.dar
 import 'package:fashionista/presentation/screens/clients/edit_client_screen.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/custom_pinned_client_icon_button.dart';
+import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -23,7 +24,7 @@ class ClientDetailsScreen extends StatefulWidget {
 
 class _ClientDetailsScreenState extends State<ClientDetailsScreen>
     with SingleTickerProviderStateMixin {
-  static const double expandedHeight = 190;
+  static const double expandedHeight = 230;
   late final TabController _tabController;
   @override
   void initState() {
@@ -36,8 +37,8 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    //final colorScheme = Theme.of(context).colorScheme;
+    //final textTheme = Theme.of(context).textTheme;
     return BlocBuilder<ClientBloc, ClientBlocState>(
       buildWhen: (context, state) {
         return state is ClientLoaded || state is ClientUpdated;
@@ -64,23 +65,11 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
                                 context,
                               ),
                           sliver: SliverAppBar(
-                            leading: IconButton(
-                              tooltip: 'Back',
-                              icon: const Icon(Icons.arrow_back),
-                              onPressed: () {
-                                if (context.canPop()) {
-                                  context.pop();
-                                } else {
-                                  context.go('/home');
-                                }
-                              },
-                            ),
                             actions: [
-                              const SizedBox(width: 8),
                               CustomPinnedClientIconButton(client: client),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 12),
                               CustomIconButtonRounded(
-                                size: 20,
+                                size: 18,
                                 iconData: Icons.delete_outline,
                                 //backgroundColor: context.canvasBackground,
                                 onPressed: () async {
@@ -117,9 +106,9 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
                                   }
                                 },
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 12),
                               CustomIconButtonRounded(
-                                size: 20,
+                                size: 18,
                                 iconData: Icons.edit_outlined,
                                 //backgroundColor: context.canvasBackground,
                                 onPressed: () async {
@@ -138,10 +127,10 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
                             ],
                             pinned: true,
                             floating: true,
-                            //toolbarHeight: 56,
+                            //toolbarHeight: kToolbarHeight,
                             expandedHeight: expandedHeight,
                             backgroundColor: context.canvasBackground,
-                            foregroundColor: context.onCanvasText,
+                            //foregroundColor: context.onCanvasText,
                             elevation: 0,
                             flexibleSpace: LayoutBuilder(
                               builder: (context, constraints) {
@@ -159,7 +148,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
                                   background: SafeArea(
                                     child: Column(
                                       children: [
-                                        const SizedBox(height: 8),
+                                        const SizedBox(height: 32),
                                         _buildProfileHeader(client, avatarSize),
                                       ],
                                     ),
@@ -177,10 +166,6 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
                               dividerHeight: 1,
                               indicatorWeight: 2,
                               indicatorSize: TabBarIndicatorSize.label,
-                              indicatorPadding: const EdgeInsets.only(
-                                left: 8,
-                                right: 8,
-                              ),
                               tabs: [
                                 Tab(
                                   icon: Icon(Icons.person_2, size: 20),
@@ -191,7 +176,14 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
                                     Icons.straighten_rounded,
                                     size: 20,
                                   ),
-                                  text: 'Measurements',
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      'Measurements',
+                                      maxLines: 1,
+                                      softWrap: false,
+                                    ),
+                                  ),
                                 ),
                                 Tab(
                                   icon: Icon(Icons.work_history, size: 20),
@@ -276,15 +268,10 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            Container(
-              width: 96,
-              height: 96,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: context.iconSubstrate,
-                border: Border.all(color: context.canvasBackground, width: 3),
-              ),
-              child: Icon(Icons.person, size: 48, color: context.mutedText),
+            DefaultProfileAvatar(
+              name: null,
+              size: avatarSize * 1.3,
+              uid: client.uid,
             ),
             Positioned(
               bottom: 2,
