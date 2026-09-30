@@ -96,35 +96,35 @@ class _SplashScreenState extends State<SplashScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            FadeTransition(
-              opacity: _fadeAnimation,
-              child: SlideTransition(
-                position: _slideAnimation,
-                child: ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: Container(
-                    width: 120,
-                    height: 120,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppTheme.appIconColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: RoundedImage(
-                        imageUrl: AppImages.appLogo,
-                        isAsset: true,
-                        borderRadius: 30,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
+            // FadeTransition(
+            //   opacity: _fadeAnimation,
+            //   child: SlideTransition(
+            //     position: _slideAnimation,
+            //     child: ScaleTransition(
+            //       scale: _scaleAnimation,
+            //       child: Container(
+            //         width: 120,
+            //         height: 120,
+            //         padding: const EdgeInsets.all(12),
+            //         decoration: BoxDecoration(
+            //           color: AppTheme.appIconColor.withValues(alpha: 0.1),
+            //           borderRadius: BorderRadius.circular(30),
+            //         ),
+            //         child: Container(
+            //           decoration: BoxDecoration(
+            //             borderRadius: BorderRadius.circular(20),
+            //           ),
+            //           child: RoundedImage(
+            //             imageUrl: AppImages.appLogo,
+            //             isAsset: true,
+            //             borderRadius: 30,
+            //           ),
+            //         ),
+            //       ),
+            //     ),
+            //   ),
+            // ),
+            // const SizedBox(height: 24),
             AnimatedTitle(),
             // FadeTransition(
             //   opacity: _fadeAnimation,
