@@ -21,6 +21,7 @@ abstract class ClientsRepository {
     required String userId,
     required String clientId,
     bool isDefault = false,
+    required String designId,
   });
   Future<Either<String, void>> setDefaultClientForUser({
     required String userId,

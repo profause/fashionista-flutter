@@ -26,6 +26,8 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
     with SingleTickerProviderStateMixin {
   static const double expandedHeight = 230;
   late final TabController _tabController;
+  bool _isDeletingClient = false;
+
   @override
   void initState() {
     _tabController = TabController(length: 3, vsync: this);
@@ -39,7 +41,24 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
   Widget build(BuildContext context) {
     //final colorScheme = Theme.of(context).colorScheme;
     //final textTheme = Theme.of(context).textTheme;
-    return BlocBuilder<ClientBloc, ClientBlocState>(
+    return BlocConsumer<ClientBloc, ClientBlocState>(
+      listenWhen: (previous, current) =>
+          _isDeletingClient &&
+          (current is ClientDeleted || current is ClientError),
+      listener: (context, state) {
+        if (!_isDeletingClient || !mounted) return;
+
+        _isDeletingClient = false;
+        dismissLoadingDialog(context);
+
+        if (state is ClientDeleted) {
+          context.pop();
+        } else if (state is ClientError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
+        }
+      },
       buildWhen: (context, state) {
         return state is ClientLoaded || state is ClientUpdated;
       },
@@ -98,12 +117,12 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
                                     ),
                                   );
 
-                                  if (canDelete == true) {
-                                    if (mounted) {
-                                      showLoadingDialog(context);
-                                    }
-                                    await _deleteClient(client);
+                                  if (canDelete != true || !context.mounted) {
+                                    return;
                                   }
+
+                                  showLoadingDialog(context);
+                                  await _deleteClient(client);
                                 },
                               ),
                               const SizedBox(width: 12),
@@ -329,10 +348,10 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
   }
 
   Future<void> _deleteClient(Client client) async {
+    if (_isDeletingClient) return;
+
+    _isDeletingClient = true;
     context.read<ClientBloc>().add(DeleteClient(client.uid));
-    if (!mounted) return;
-    dismissLoadingDialog(context);
-    context.pop();
   }
 
   void showLoadingDialog(BuildContext context) {

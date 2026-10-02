@@ -93,6 +93,7 @@ void main() {
       final json = relationship.toJson();
       expect(json['client_id'], 'client_999');
       expect(json['is_default'], isTrue);
+      expect(json.containsKey('design_id'), isFalse);
 
       final restored = ClientMeasurementRelationship.fromJson(json);
       expect(restored, relationship);

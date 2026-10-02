@@ -269,21 +269,16 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
             );
           }
 
-          final List<ClientMeasurement> measurements = List.from(
-            client.measurements,
-          );
+          final updatedMeasurements = client.measurements
+              .where((m) => m.uid != measurement.uid)
+              .toList();
+          final updatedClient = client.copyWith(measurements: updatedMeasurements);
 
-          final index = measurements.indexWhere(
-            (m) =>
-                m.bodyPart.toLowerCase() == measurement.bodyPart.toLowerCase(),
-          );
-          measurements.removeAt(index);
+          if (mounted) {
+            context.read<ClientBloc>().add(UpdateClient(updatedClient));
+          }
 
-          final updatedClient = client.copyWith(measurements: measurements);
-
-          context.read<ClientBloc>().add(UpdateClient(updatedClient));
-
-          _deleteMeasurement(updatedClient);
+          await _deleteMeasurement(client, measurement);
         }
       },
       onEdit: () {
@@ -303,12 +298,13 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
     );
   }
 
-  Future<void> _deleteMeasurement(Client client) async {
+  Future<void> _deleteMeasurement(Client client, ClientMeasurement measurement) async {
     try {
       //_buttonLoadingStateCubit.setLoading(true);
 
-      final result = await sl<FirebaseClientsService>().updateClientMeasurement(
-        client,
+      final result = await sl<FirebaseClientsService>().deleteClientMeasurementFromFirestore(
+        client.uid,
+        measurement,
       );
 
       result.fold(

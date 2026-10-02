@@ -409,6 +409,8 @@ class _AddClientScreenState extends State<AddClientScreen> {
             await sl<FirebaseClientsService>().linkClientToUser(
               userId: r.uid!,
               clientId: uid,
+              isDefault: false,
+              designId: createdBy, // Assuming the designer's ID is the same as the creator's ID
             );
 
             await sl<FirebaseNotificationService>().createNotification(

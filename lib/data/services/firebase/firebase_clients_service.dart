@@ -37,6 +37,7 @@ abstract class FirebaseClientsService {
     required String userId,
     required String clientId,
     bool isDefault = false,
+    required String designId,
   });
   Future<Either<String, void>> setDefaultClientForUser({
     required String userId,
@@ -96,10 +97,24 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
   Future<Either> addClientToFirestore(Client client) async {
     try {
       final firestore = FirebaseFirestore.instance;
-      await firestore
-          .collection('clients')
-          .doc(client.uid)
-          .set(_clientPayloadForFirestore(client), SetOptions(merge: true));
+      final clientRef = firestore.collection('clients').doc(client.uid);
+      final batch = firestore.batch();
+
+      batch.set(
+        clientRef,
+        _clientPayloadForFirestore(client),
+        SetOptions(merge: true),
+      );
+
+      for (final measurement in client.measurements) {
+        batch.set(
+          _measurementsCollection(client.uid).doc(measurement.uid),
+          measurement.toFirestoreMap(clientId: client.uid),
+          SetOptions(merge: true),
+        );
+      }
+
+      await batch.commit();
       return Right(client);
     } on FirebaseException catch (e) {
       return Left(e.message);
@@ -245,6 +260,9 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
   Future<Either<String, String>> deleteClientById(String uid) async {
     try {
       final firestore = FirebaseFirestore.instance;
+      final clientDoc = await firestore.collection('clients').doc(uid).get();
+      final ownerUserId = clientDoc.data()?['created_by'] as String?;
+
       final measurementsSnapshot = await firestore
           .collection('clients')
           .doc(uid)
@@ -253,6 +271,22 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
 
       for (final measurement in measurementsSnapshot.docs) {
         await measurement.reference.delete();
+      }
+
+      final relationshipSnapshot = await FirebaseFirestore.instance
+          .collectionGroup('clients')
+          .where('client_id', isEqualTo: uid)
+          .get();
+
+      for (final relationship in relationshipSnapshot.docs) {
+        await relationship.reference.delete();
+      }
+
+      if (ownerUserId != null && ownerUserId.isNotEmpty) {
+        await unlinkClientFromUser(
+          userId: ownerUserId,
+          clientId: uid,
+        );
       }
 
       await firestore.collection('clients').doc(uid).delete();
@@ -401,6 +435,7 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
     required String userId,
     required String clientId,
     bool isDefault = false,
+    required String designId,
   }) async {
     try {
       final docRef = _clientRelationshipCollection(userId).doc(clientId);
@@ -522,28 +557,26 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
   @override
   Future<Either> updateClientMeasurement(Client client) async {
     try {
-      final currentMeasurementsResult = await findMeasurementsByClientId(
-        client.uid,
-      );
-      final currentMeasurements = currentMeasurementsResult.fold(
-        (_) => <ClientMeasurement>[],
-        (measurements) => measurements,
-      );
-
-      final currentIds = currentMeasurements.map((item) => item.uid).toSet();
-      final incomingIds = client.measurements.map((item) => item.uid).toSet();
-
       for (final measurement in client.measurements) {
+        final measurementId = measurement.uid.trim();
+        final safeMeasurement = measurementId.isEmpty
+            ? ClientMeasurement.empty().copyWith(
+                bodyPart: measurement.bodyPart,
+                measuringUnit: measurement.measuringUnit,
+                notes: measurement.notes,
+                previousValues: measurement.previousValues,
+                tags: measurement.tags,
+                measuredValue: measurement.measuredValue,
+                updatedDate: measurement.updatedDate,
+              )
+            : measurement;
+
         await _measurementsCollection(client.uid)
-            .doc(measurement.uid)
+            .doc(safeMeasurement.uid)
             .set(
-              measurement.toFirestoreMap(clientId: client.uid),
+              safeMeasurement.toFirestoreMap(clientId: client.uid),
               SetOptions(merge: true),
             );
-      }
-
-      for (final measurementId in currentIds.difference(incomingIds)) {
-        await _measurementsCollection(client.uid).doc(measurementId).delete();
       }
 
       return Right('measurement updated successfully');
