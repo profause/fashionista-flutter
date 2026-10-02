@@ -56,6 +56,54 @@ class ClientMeasurement extends Equatable {
 
   Map<String, dynamic> toJson() => _$ClientMeasurementToJson(this);
 
+  Map<String, dynamic> toFirestoreMap({required String clientId}) {
+    return <String, dynamic>{
+      'uid': uid,
+      'client_id': clientId,
+      'body_part': bodyPart,
+      'measured_value': measuredValue,
+      'measuring_unit': measuringUnit,
+      'tags': tags ?? '',
+      'previous_value': previousValues.map((e) => e).toList(),
+      if (updatedDate != null) 'updated_date': updatedDate!.toIso8601String(),
+      if (notes != null && notes!.isNotEmpty) 'notes': notes,
+    };
+  }
+
+  factory ClientMeasurement.fromFirestoreMap(Map<String, dynamic> json) {
+    final rawPreviousValue = json['previous_value'] ?? json['previous_values'];
+    final previousValues = rawPreviousValue == null
+        ? <double>[]
+        : (rawPreviousValue as List)
+              .map((e) => double.tryParse(e.toString()) ?? 0.0)
+              .toList();
+    final updatedDateValue = json['updated_date']?.toString();
+
+    return ClientMeasurement(
+      uid: (json['uid'] ?? '').toString(),
+      bodyPart: (json['body_part'] ?? '').toString(),
+      measuredValue:
+          double.tryParse(json['measured_value']?.toString() ?? '0') ?? 0,
+      measuringUnit: (json['measuring_unit'] ?? '').toString(),
+      updatedDate: updatedDateValue == null
+          ? null
+          : DateTime.tryParse(updatedDateValue),
+      notes: json['notes']?.toString(),
+      previousValues: previousValues,
+      tags: _deserializeTags(json['tags']),
+    );
+  }
+
+  static String _deserializeTags(dynamic value) {
+    if (value is List) {
+      return value.map((tag) => tag.toString()).join('|');
+    }
+    if (value == null) {
+      return '';
+    }
+    return value.toString();
+  }
+
   // static DateTime _fromTimestamp(dynamic ts) {
   //   if (ts is Timestamp) return ts.toDate();
   //   if (ts is DateTime) return ts;
@@ -90,7 +138,7 @@ class ClientMeasurement extends Equatable {
   factory ClientMeasurement.empty() {
     final uid = Uuid().v4();
     return ClientMeasurement(
-      uid:  uid,
+      uid: uid,
       bodyPart: '',
       measuredValue: 0,
       measuringUnit: '',

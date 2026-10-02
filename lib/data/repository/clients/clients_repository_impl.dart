@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/data/models/clients/client_measurement_relationship.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
 import 'package:fashionista/domain/repository/clients/clients_repository.dart';
@@ -48,5 +49,52 @@ class ClientsRepositoryImpl implements ClientsRepository {
   @override
   Future<Either> pinOrUnpinClient(String clientId) {
     return sl<FirebaseClientsService>().pinOrUnpinClient(clientId);
+  }
+
+  @override
+  Future<Either<String, List<ClientMeasurementRelationship>>>
+      findClientRelationshipsForUser(String userId) {
+    return sl<FirebaseClientsService>().findClientRelationshipsForUser(userId);
+  }
+
+  @override
+  Future<Either<String, ClientMeasurementRelationship?>>
+      findDefaultClientRelationship(String userId) {
+    return sl<FirebaseClientsService>().findDefaultClientRelationship(userId);
+  }
+
+  @override
+  Future<Either<String, void>> linkClientToUser({
+    required String userId,
+    required String clientId,
+    bool isDefault = false,
+  }) {
+    return sl<FirebaseClientsService>().linkClientToUser(
+      userId: userId,
+      clientId: clientId,
+      isDefault: isDefault,
+    );
+  }
+
+  @override
+  Future<Either<String, void>> setDefaultClientForUser({
+    required String userId,
+    required String clientId,
+  }) {
+    return sl<FirebaseClientsService>().setDefaultClientForUser(
+      userId: userId,
+      clientId: clientId,
+    );
+  }
+
+  @override
+  Future<Either<String, void>> unlinkClientFromUser({
+    required String userId,
+    required String clientId,
+  }) {
+    return sl<FirebaseClientsService>().unlinkClientFromUser(
+      userId: userId,
+      clientId: clientId,
+    );
   }
 }

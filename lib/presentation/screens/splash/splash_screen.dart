@@ -1,5 +1,3 @@
-import 'package:fashionista/core/assets/app_images.dart';
-import 'package:fashionista/core/assets/rounded_image.dart';
 import 'package:fashionista/core/auth/auth_provider_cubit.dart';
 import 'package:fashionista/core/onboarding/onboarding_cubit.dart';
 import 'package:fashionista/core/theme/app.theme.dart';

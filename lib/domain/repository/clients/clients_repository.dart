@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:fashionista/data/models/clients/client_measurement_relationship.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
 
 abstract class ClientsRepository {
@@ -12,4 +13,21 @@ abstract class ClientsRepository {
   Future<bool> isPinnedClient(String clientId);
   Future<Either> pinOrUnpinClient(String clientId);
   Future<Either> fetchPinnedClients(List<String> clientIds);
+  Future<Either<String, List<ClientMeasurementRelationship>>>
+      findClientRelationshipsForUser(String userId);
+  Future<Either<String, ClientMeasurementRelationship?>>
+      findDefaultClientRelationship(String userId);
+  Future<Either<String, void>> linkClientToUser({
+    required String userId,
+    required String clientId,
+    bool isDefault = false,
+  });
+  Future<Either<String, void>> setDefaultClientForUser({
+    required String userId,
+    required String clientId,
+  });
+  Future<Either<String, void>> unlinkClientFromUser({
+    required String userId,
+    required String clientId,
+  });
 }

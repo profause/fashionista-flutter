@@ -53,25 +53,19 @@ class _NotificationScreenState extends State<NotificationScreen> {
         return Scaffold(
           backgroundColor: context.canvasBackground,
           appBar: AppBar(
-            automaticallyImplyLeading: false,
+            automaticallyImplyLeading: true,
             backgroundColor: context.canvasBackground,
             foregroundColor: context.onCanvasText,
             elevation: 0,
             scrolledUnderElevation: 0,
             centerTitle: true,
-            leading: const SizedBox(
-              width: 40,
-              height: 40,
-              child: _BackButton(),
-            ),
+            // leading: const SizedBox(
+            //   width: 40,
+            //   height: 40,
+            //   child: _BackButton(),
+            // ),
             title: Text(
               'Notifications',
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                color: context.onCanvasText,
-                letterSpacing: -0.3,
-              ),
             ),
             actions: [
               Center(

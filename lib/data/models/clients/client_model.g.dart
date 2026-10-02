@@ -81,9 +81,9 @@ Client _$ClientFromJson(Map<String, dynamic> json) => Client(
       createdDate: json['created_date'] == null
           ? null
           : DateTime.parse(json['created_date'] as String),
-      measurements: (json['measurements'] as List<dynamic>)
-          .map((e) => ClientMeasurement.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      measurements: json['measurements'] == null
+          ? []
+          : Client._measurementsFromJson(json['measurements']),
       updatedAt: (json['updated_at'] as num?)?.toInt(),
       isPinned: json['is_pinned'] as bool?,
     );

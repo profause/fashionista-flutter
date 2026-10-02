@@ -10,6 +10,7 @@ import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:fashionista/data/models/notification/notification_model.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
+import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_notification_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_user_service.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
@@ -403,6 +404,11 @@ class _AddClientScreenState extends State<AddClientScreen> {
               to: r.uid,
               author: authorUser,
               status: 'new',
+            );
+
+            await sl<FirebaseClientsService>().linkClientToUser(
+              userId: r.uid!,
+              clientId: uid,
             );
 
             await sl<FirebaseNotificationService>().createNotification(

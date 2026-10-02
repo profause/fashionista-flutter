@@ -63,6 +63,6 @@ class AppToast {
   /// ⚪ Neutral toast
   static void normal(BuildContext context, String message) {
     final colorScheme = Theme.of(context).colorScheme;
-    _show(context, message, colorScheme.surfaceVariant, colorScheme.onSurface);
+    _show(context, message, colorScheme.surfaceContainerHighest, colorScheme.onSurface);
   }
 }

@@ -89,11 +89,12 @@ class MeasurementInfoCardWidget extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           CustomContextMenuWidget(
-            items: const [
+            items:  [
               ContextMenuItem(
                 value: 'edit',
                 label: 'Edit',
                 icon: Icons.edit,
+                iconColor: context.onCanvasText,
               ),
               ContextMenuItem(
                 value: 'delete',

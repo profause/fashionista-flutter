@@ -1,3 +1,4 @@
+import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:flutter/material.dart';
 
 class ContextMenuItem {
@@ -33,7 +34,7 @@ class CustomContextMenuWidget extends StatelessWidget {
     //final textTheme = Theme.of(context).textTheme;
     final result = await showMenu<String>(
       context: context,
-      color: colorScheme.onPrimary,
+      color: context.canvasBackground,
       position: RelativeRect.fromLTRB(
         position.dx,
         position.dy,

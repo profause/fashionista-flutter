@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:fashionista/data/models/clients/client_measurement_model.dart';
+import 'package:fashionista/data/models/clients/client_measurement_relationship.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -20,6 +21,31 @@ abstract class FirebaseClientsService {
   Future<bool> isPinnedClient(String uid);
   Future<Either> pinOrUnpinClient(String uid);
   Future<Either> fetchPinnedClients();
+  Future<Either<String, List<ClientMeasurement>>> findMeasurementsByClientId(
+    String clientId,
+  );
+  Future<Either<String, ClientMeasurement>> findMeasurementById(
+    String clientId,
+    String measurementId,
+  );
+  Future<Either<String, bool>> migrateLegacyMeasurements(String clientId);
+  Future<Either<String, List<ClientMeasurementRelationship>>>
+      findClientRelationshipsForUser(String userId);
+  Future<Either<String, ClientMeasurementRelationship?>>
+      findDefaultClientRelationship(String userId);
+  Future<Either<String, void>> linkClientToUser({
+    required String userId,
+    required String clientId,
+    bool isDefault = false,
+  });
+  Future<Either<String, void>> setDefaultClientForUser({
+    required String userId,
+    required String clientId,
+  });
+  Future<Either<String, void>> unlinkClientFromUser({
+    required String userId,
+    required String clientId,
+  });
 
   Future<Either> updateClientMeasurementToFirestore(
     Client client,
@@ -34,14 +60,46 @@ abstract class FirebaseClientsService {
 }
 
 class FirebaseClientsServiceImpl implements FirebaseClientsService {
+  CollectionReference<Map<String, dynamic>> _measurementsCollection(
+    String clientId,
+  ) {
+    return FirebaseFirestore.instance
+        .collection('clients')
+        .doc(clientId)
+        .collection('measurements');
+  }
+
+  CollectionReference<Map<String, dynamic>> _clientRelationshipCollection(
+    String userId,
+  ) {
+    return FirebaseFirestore.instance
+        .collection('client_measurements')
+        .doc(userId)
+        .collection('clients');
+  }
+
+  Future<Client> _hydrateClientMeasurements(Client client) async {
+    final measurementsResult = await findMeasurementsByClientId(client.uid);
+    return measurementsResult.fold(
+      (_) => client,
+      (measurements) => client.copyWith(measurements: measurements),
+    );
+  }
+
+  Map<String, dynamic> _clientPayloadForFirestore(Client client) {
+    final payload = client.toJson();
+    payload.remove('measurements');
+    return payload;
+  }
+
   @override
   Future<Either> addClientToFirestore(Client client) async {
     try {
       final firestore = FirebaseFirestore.instance;
-      firestore
+      await firestore
           .collection('clients')
           .doc(client.uid)
-          .set(client.toJson(), SetOptions(merge: true));
+          .set(_clientPayloadForFirestore(client), SetOptions(merge: true));
       return Right(client);
     } on FirebaseException catch (e) {
       return Left(e.message);
@@ -60,12 +118,12 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
           .orderBy('created_date', descending: true)
           .get();
 
-      final clients = querySnapshot.docs.map((doc) {
-        final d = Client.fromJson(doc.data());
-        return d;
-      }).toList();
+      final clients = <Client>[];
+      for (final doc in querySnapshot.docs) {
+        final client = Client.fromJson(doc.data());
+        clients.add(await _hydrateClientMeasurements(client));
+      }
 
-      // Map each document to a client
       return Right(clients);
     } on FirebaseException catch (e) {
       return Left(e.message ?? 'An unknown Firebase error occurred');
@@ -86,12 +144,12 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
           .orderBy('created_date', descending: true)
           .get();
 
-      final clients = querySnapshot.docs.map((doc) {
-        final d = Client.fromJson(doc.data());
-        return d;
-      }).toList();
+      final clients = <Client>[];
+      for (final doc in querySnapshot.docs) {
+        final client = Client.fromJson(doc.data());
+        clients.add(await _hydrateClientMeasurements(client));
+      }
 
-      // Map each document to a client
       return Right(clients);
     } on FirebaseException catch (e) {
       return Left(e.message ?? 'An unknown Firebase error occurred');
@@ -104,10 +162,10 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
   Future<Either> updateClientToFirestore(Client client) async {
     try {
       final firestore = FirebaseFirestore.instance;
-      firestore
+      await firestore
           .collection('clients')
           .doc(client.uid)
-          .set(client.toJson(), SetOptions(merge: true));
+          .set(_clientPayloadForFirestore(client), SetOptions(merge: true));
       return Right(client);
     } on FirebaseException catch (e) {
       return Left(e.message);
@@ -118,10 +176,13 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
   Future<Either> findClientById(String uid) async {
     try {
       final firestore = FirebaseFirestore.instance;
-      DocumentReference docRef = firestore.collection('clients').doc(uid);
-      DocumentSnapshot doc = await docRef.get();
-      Client client = Client.fromJson(doc.data() as Map<String, dynamic>);
-      return Right(client);
+      final docRef = firestore.collection('clients').doc(uid);
+      final doc = await docRef.get();
+      if (!doc.exists || doc.data() == null) {
+        return Left('Client not found');
+      }
+      final client = Client.fromJson(doc.data()!);
+      return Right(await _hydrateClientMeasurements(client));
     } on FirebaseException catch (e) {
       return Left(e.message);
     }
@@ -143,7 +204,8 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
       final clients = <Client>[];
       for (final doc in querySnapshot.docs) {
         try {
-          clients.add(Client.fromJson(doc.data()));
+          final client = Client.fromJson(doc.data());
+          clients.add(await _hydrateClientMeasurements(client));
         } catch (e) {
           debugPrint('Skipping malformed client doc ${doc.id}: $e');
         }
@@ -183,15 +245,244 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
   Future<Either<String, String>> deleteClientById(String uid) async {
     try {
       final firestore = FirebaseFirestore.instance;
+      final measurementsSnapshot = await firestore
+          .collection('clients')
+          .doc(uid)
+          .collection('measurements')
+          .get();
 
-      // Delete the document with the given uid
+      for (final measurement in measurementsSnapshot.docs) {
+        await measurement.reference.delete();
+      }
+
       await firestore.collection('clients').doc(uid).delete();
 
-      return const Right('successfully deleted client'); // success without data
+      return const Right('successfully deleted client');
     } on FirebaseException catch (e) {
       return Left(e.message ?? 'Unknown Firestore error');
     } catch (e) {
       return Left(e.toString());
+    }
+  }
+
+  @override
+  Future<Either<String, List<ClientMeasurement>>> findMeasurementsByClientId(
+    String clientId,
+  ) async {
+    try {
+      final snapshot = await _measurementsCollection(clientId).get();
+      final measurements = snapshot.docs
+          .map(
+            (doc) => ClientMeasurement.fromFirestoreMap({
+              ...doc.data(),
+              'uid': doc.id,
+            }),
+          )
+          .toList();
+      return Right(measurements);
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'An unknown Firebase error occurred');
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  @override
+  Future<Either<String, ClientMeasurement>> findMeasurementById(
+    String clientId,
+    String measurementId,
+  ) async {
+    try {
+      final doc = await _measurementsCollection(
+        clientId,
+      ).doc(measurementId).get();
+      if (!doc.exists || doc.data() == null) {
+        return Left('Measurement not found');
+      }
+
+      final measurement = ClientMeasurement.fromFirestoreMap({
+        ...doc.data()!,
+        'uid': doc.id,
+      });
+      return Right(measurement);
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'An unknown Firebase error occurred');
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  @override
+  Future<Either<String, bool>> migrateLegacyMeasurements(
+    String clientId,
+  ) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final clientDoc = await firestore
+          .collection('clients')
+          .doc(clientId)
+          .get();
+      if (!clientDoc.exists || clientDoc.data() == null) {
+        return Left('Client not found');
+      }
+
+      final legacyMeasurements = clientDoc.data()!['measurements'];
+      if (legacyMeasurements == null ||
+          legacyMeasurements is! List ||
+          legacyMeasurements.isEmpty) {
+        return const Right(false);
+      }
+
+      for (final measurementData in legacyMeasurements) {
+        if (measurementData is! Map<String, dynamic>) {
+          continue;
+        }
+
+        final measurement = ClientMeasurement.fromJson(measurementData);
+        await _measurementsCollection(clientId)
+            .doc(measurement.uid)
+            .set(
+              measurement.toFirestoreMap(clientId: clientId),
+              SetOptions(merge: true),
+            );
+      }
+
+      return const Right(true);
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'An unknown Firebase error occurred');
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  @override
+  Future<Either<String, List<ClientMeasurementRelationship>>>
+      findClientRelationshipsForUser(String userId) async {
+    try {
+      final snapshot = await _clientRelationshipCollection(userId).get();
+      final relationships = snapshot.docs
+          .map(
+            (doc) => ClientMeasurementRelationship.fromJson(doc.data()),
+          )
+          .toList();
+      return Right(relationships);
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'Unable to fetch client relationships');
+    } catch (e) {
+      return Left('Unable to fetch client relationships: $e');
+    }
+  }
+
+  @override
+  Future<Either<String, ClientMeasurementRelationship?>>
+      findDefaultClientRelationship(String userId) async {
+    try {
+      final snapshot = await _clientRelationshipCollection(userId)
+          .where('is_default', isEqualTo: true)
+          .limit(1)
+          .get();
+
+      if (snapshot.docs.isEmpty) {
+        return const Right(null);
+      }
+
+      return Right(
+        ClientMeasurementRelationship.fromJson(snapshot.docs.first.data()),
+      );
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'Unable to fetch the default client');
+    } catch (e) {
+      return Left('Unable to fetch the default client: $e');
+    }
+  }
+
+  @override
+  Future<Either<String, void>> linkClientToUser({
+    required String userId,
+    required String clientId,
+    bool isDefault = false,
+  }) async {
+    try {
+      final docRef = _clientRelationshipCollection(userId).doc(clientId);
+      final snapshot = await docRef.get();
+      final nextIsDefault = snapshot.exists
+          ? (snapshot.data()?['is_default'] == true || isDefault)
+          : isDefault;
+
+      await docRef.set(
+        {
+          'client_id': clientId,
+          'is_default': nextIsDefault,
+        },
+        SetOptions(merge: true),
+      );
+      return const Right(null);
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'Unable to link client to user');
+    } catch (e) {
+      return Left('Unable to link client to user: $e');
+    }
+  }
+
+  @override
+  Future<Either<String, void>> setDefaultClientForUser({
+    required String userId,
+    required String clientId,
+  }) async {
+    try {
+      final relationshipRef = _clientRelationshipCollection(userId).doc(clientId);
+      final snapshot = await relationshipRef.get();
+      if (!snapshot.exists) {
+        return const Left('Client is not linked to this user');
+      }
+
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
+        final allRelationships = await _clientRelationshipCollection(userId).get();
+
+        for (final doc in allRelationships.docs) {
+          if (doc.id != clientId && doc.data()['is_default'] == true) {
+            transaction.update(doc.reference, {'is_default': false});
+          }
+        }
+
+        transaction.update(relationshipRef, {'is_default': true});
+      });
+
+      return const Right(null);
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'Unable to update the default client');
+    } catch (e) {
+      return Left('Unable to update the default client: $e');
+    }
+  }
+
+  @override
+  Future<Either<String, void>> unlinkClientFromUser({
+    required String userId,
+    required String clientId,
+  }) async {
+    try {
+      final docRef = _clientRelationshipCollection(userId).doc(clientId);
+      final snapshot = await docRef.get();
+      if (!snapshot.exists) {
+        return const Right(null);
+      }
+
+      final isDefault = snapshot.data()?['is_default'] == true;
+      await docRef.delete();
+
+      if (isDefault) {
+        final remaining = await _clientRelationshipCollection(userId).limit(1).get();
+        if (remaining.docs.isNotEmpty) {
+          await remaining.docs.first.reference.update({'is_default': true});
+        }
+      }
+
+      return const Right(null);
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'Unable to unlink client from user');
+    } catch (e) {
+      return Left('Unable to unlink client from user: $e');
     }
   }
 
@@ -201,11 +492,13 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
     ClientMeasurement clientMeasurement,
   ) async {
     try {
-      final firestore = FirebaseFirestore.instance;
-      await firestore.collection('clients').doc(client.uid).update({
-        "measurements": FieldValue.arrayUnion(client.measurements),
-      });
-      return Right(client);
+      await _measurementsCollection(client.uid)
+          .doc(clientMeasurement.uid)
+          .set(
+            clientMeasurement.toFirestoreMap(clientId: client.uid),
+            SetOptions(merge: true),
+          );
+      return Right(clientMeasurement);
     } on FirebaseException catch (e) {
       return Left(e.message);
     }
@@ -217,10 +510,9 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
     ClientMeasurement clientMeasurement,
   ) async {
     try {
-      final firestore = FirebaseFirestore.instance;
-      await firestore.collection('clients').doc(clientId).update({
-        "measurements": FieldValue.arrayRemove([clientMeasurement]),
-      });
+      await _measurementsCollection(
+        clientId,
+      ).doc(clientMeasurement.uid).delete();
       return Right('measurement deleted successfully');
     } on FirebaseException catch (e) {
       return Left(e.message);
@@ -230,33 +522,31 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
   @override
   Future<Either> updateClientMeasurement(Client client) async {
     try {
-      final docRef = FirebaseFirestore.instance
-          .collection('clients')
-          .doc(client.uid);
+      final currentMeasurementsResult = await findMeasurementsByClientId(
+        client.uid,
+      );
+      final currentMeasurements = currentMeasurementsResult.fold(
+        (_) => <ClientMeasurement>[],
+        (measurements) => measurements,
+      );
 
-      // Get current measurements
-      final snapshot = await docRef.get();
-      final data = snapshot.data();
-      if (data == null) return Left('No data found');
+      final currentIds = currentMeasurements.map((item) => item.uid).toSet();
+      final incomingIds = client.measurements.map((item) => item.uid).toSet();
 
-      final clientT = Client.fromJson(data);
-      List measurementsToRemove = clientT.measurements
-          .map((m) => m.toJson())
-          .toList();
+      for (final measurement in client.measurements) {
+        await _measurementsCollection(client.uid)
+            .doc(measurement.uid)
+            .set(
+              measurement.toFirestoreMap(clientId: client.uid),
+              SetOptions(merge: true),
+            );
+      }
 
-      List measurementsToAdd = client.measurements
-          .map((m) => m.toJson())
-          .toList();
+      for (final measurementId in currentIds.difference(incomingIds)) {
+        await _measurementsCollection(client.uid).doc(measurementId).delete();
+      }
 
-      await docRef.update({
-        "measurements": FieldValue.arrayRemove(measurementsToRemove),
-      });
-
-      await docRef.update({
-        "measurements": FieldValue.arrayUnion(measurementsToAdd),
-      });
-
-      return Right('measurement deleted successfully');
+      return Right('measurement updated successfully');
     } on FirebaseException catch (e) {
       return Left(e.message);
     }
@@ -278,12 +568,12 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
           .orderBy('created_date', descending: true)
           .get();
 
-      final clients = querySnapshot.docs.map((doc) {
-        final d = Client.fromJson(doc.data());
-        return d;
-      }).toList();
+      final clients = <Client>[];
+      for (final doc in querySnapshot.docs) {
+        final client = Client.fromJson(doc.data());
+        clients.add(await _hydrateClientMeasurements(client));
+      }
 
-      // Map each document to a client
       return Right(clients);
     } on FirebaseException catch (e) {
       return Left(e.message ?? 'An unknown Firebase error occurred');

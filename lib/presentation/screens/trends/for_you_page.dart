@@ -205,7 +205,7 @@ class _ForYouPageState extends State<ForYouPage> {
           Expanded(
             child: QuickActionTileWidget(
               label: 'My Measurements',
-              onTap: () => context.go('/profile'),
+              onTap: () => context.push('/my-measurement'),
             ),
           ),
           const SizedBox(width: 12),

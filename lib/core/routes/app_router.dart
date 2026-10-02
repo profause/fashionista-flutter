@@ -1,4 +1,5 @@
 import 'package:fashionista/presentation/screens/auth/sign_in_screen.dart';
+import 'package:fashionista/presentation/screens/client_measurement/my_measurement_screen.dart';
 import 'package:fashionista/presentation/screens/clients/add_client_screen.dart';
 import 'package:fashionista/presentation/screens/clients/client_details_screen.dart';
 import 'package:fashionista/presentation/screens/clients/clients_and_projects_screen.dart';
@@ -183,6 +184,11 @@ GoRouter appRouter = GoRouter(
       name: 'MyDesignersScreen',
       path: '/my-designers',
       builder: (context, state) => MyDesignersScreen(),
+    ),
+    GoRoute(
+      name: 'MyMeasurementScreen',
+      path: '/my-measurement',
+      builder: (context, state) => MyMeasurementScreen(),
     ),
 
     StatefulShellRoute.indexedStack(

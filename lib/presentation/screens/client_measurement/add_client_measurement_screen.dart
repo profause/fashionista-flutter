@@ -12,7 +12,6 @@ import 'package:fashionista/presentation/screens/client_measurement/widgets/body
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:uuid/uuid.dart';
 
 class AddClientMeasurementScreen extends StatefulWidget {
   final ClientMeasurement clientMeasurement;

@@ -39,6 +39,11 @@ class Client extends Equatable {
   final DateTime? createdDate;
 
   @HiveField(ClientModelHiveType.measurements)
+  @JsonKey(
+    name: 'measurements',
+    defaultValue: <ClientMeasurement>[],
+    fromJson: Client._measurementsFromJson,
+  )
   final List<ClientMeasurement> measurements;
 
   @JsonKey(name: 'updated_at')
@@ -61,6 +66,28 @@ class Client extends Equatable {
     this.updatedAt,
     this.isPinned,
   });
+
+  static List<ClientMeasurement> _measurementsFromJson(dynamic value) {
+    if (value == null) {
+      return const <ClientMeasurement>[];
+    }
+
+    if (value is! List) {
+      return const <ClientMeasurement>[];
+    }
+
+    return value
+        .map((item) {
+          if (item is Map<String, dynamic>) {
+            return ClientMeasurement.fromJson(item);
+          }
+          if (item is Map) {
+            return ClientMeasurement.fromJson(Map<String, dynamic>.from(item));
+          }
+          return ClientMeasurement.empty();
+        })
+        .toList();
+  }
 
   factory Client.fromJson(Map<String, dynamic> json) => _$ClientFromJson(json);
 
