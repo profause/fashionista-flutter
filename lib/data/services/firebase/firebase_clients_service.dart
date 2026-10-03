@@ -1,10 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
+import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/clients/client_measurement_model.dart';
 import 'package:fashionista/data/models/clients/client_measurement_relationship.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
+import 'package:fashionista/data/models/clients/my_measurement_model.dart';
+import 'package:fashionista/data/models/designers/designer_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'firebase_designers_service.dart';
 
 abstract class FirebaseClientsService {
   Future<Either> fetchClientsFromFirestore(String uid);
@@ -30,14 +34,14 @@ abstract class FirebaseClientsService {
   );
   Future<Either<String, bool>> migrateLegacyMeasurements(String clientId);
   Future<Either<String, List<ClientMeasurementRelationship>>>
-      findClientRelationshipsForUser(String userId);
+  findClientRelationshipsForUser(String userId);
   Future<Either<String, ClientMeasurementRelationship?>>
-      findDefaultClientRelationship(String userId);
+  findDefaultClientRelationship(String userId);
   Future<Either<String, void>> linkClientToUser({
     required String userId,
     required String clientId,
     bool isDefault = false,
-    required String designId,
+    required String designerId,
   });
   Future<Either<String, void>> setDefaultClientForUser({
     required String userId,
@@ -58,6 +62,8 @@ abstract class FirebaseClientsService {
   );
 
   Future<Either> updateClientMeasurement(Client clientId);
+
+  Future<Either<String, List<MyMeasurement>>> findMyMeasurements(String userId);
 }
 
 class FirebaseClientsServiceImpl implements FirebaseClientsService {
@@ -283,10 +289,7 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
       }
 
       if (ownerUserId != null && ownerUserId.isNotEmpty) {
-        await unlinkClientFromUser(
-          userId: ownerUserId,
-          clientId: uid,
-        );
+        await unlinkClientFromUser(userId: ownerUserId, clientId: uid);
       }
 
       await firestore.collection('clients').doc(uid).delete();
@@ -391,13 +394,11 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
 
   @override
   Future<Either<String, List<ClientMeasurementRelationship>>>
-      findClientRelationshipsForUser(String userId) async {
+  findClientRelationshipsForUser(String userId) async {
     try {
       final snapshot = await _clientRelationshipCollection(userId).get();
       final relationships = snapshot.docs
-          .map(
-            (doc) => ClientMeasurementRelationship.fromJson(doc.data()),
-          )
+          .map((doc) => ClientMeasurementRelationship.fromJson(doc.data()))
           .toList();
       return Right(relationships);
     } on FirebaseException catch (e) {
@@ -409,12 +410,11 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
 
   @override
   Future<Either<String, ClientMeasurementRelationship?>>
-      findDefaultClientRelationship(String userId) async {
+  findDefaultClientRelationship(String userId) async {
     try {
-      final snapshot = await _clientRelationshipCollection(userId)
-          .where('is_default', isEqualTo: true)
-          .limit(1)
-          .get();
+      final snapshot = await _clientRelationshipCollection(
+        userId,
+      ).where('is_default', isEqualTo: true).limit(1).get();
 
       if (snapshot.docs.isEmpty) {
         return const Right(null);
@@ -435,7 +435,7 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
     required String userId,
     required String clientId,
     bool isDefault = false,
-    required String designId,
+    required String designerId,
   }) async {
     try {
       final docRef = _clientRelationshipCollection(userId).doc(clientId);
@@ -444,13 +444,11 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
           ? (snapshot.data()?['is_default'] == true || isDefault)
           : isDefault;
 
-      await docRef.set(
-        {
-          'client_id': clientId,
-          'is_default': nextIsDefault,
-        },
-        SetOptions(merge: true),
-      );
+      await docRef.set({
+        'client_id': clientId,
+        'is_default': nextIsDefault,
+        'designer_id': designerId,
+      }, SetOptions(merge: true));
       return const Right(null);
     } on FirebaseException catch (e) {
       return Left(e.message ?? 'Unable to link client to user');
@@ -465,14 +463,18 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
     required String clientId,
   }) async {
     try {
-      final relationshipRef = _clientRelationshipCollection(userId).doc(clientId);
+      final relationshipRef = _clientRelationshipCollection(
+        userId,
+      ).doc(clientId);
       final snapshot = await relationshipRef.get();
       if (!snapshot.exists) {
         return const Left('Client is not linked to this user');
       }
 
       await FirebaseFirestore.instance.runTransaction((transaction) async {
-        final allRelationships = await _clientRelationshipCollection(userId).get();
+        final allRelationships = await _clientRelationshipCollection(
+          userId,
+        ).get();
 
         for (final doc in allRelationships.docs) {
           if (doc.id != clientId && doc.data()['is_default'] == true) {
@@ -507,7 +509,9 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
       await docRef.delete();
 
       if (isDefault) {
-        final remaining = await _clientRelationshipCollection(userId).limit(1).get();
+        final remaining = await _clientRelationshipCollection(
+          userId,
+        ).limit(1).get();
         if (remaining.docs.isNotEmpty) {
           await remaining.docs.first.reference.update({'is_default': true});
         }
@@ -678,6 +682,53 @@ class FirebaseClientsServiceImpl implements FirebaseClientsService {
 
       //await importTrends(sampleTrendsData);
       return Right(clientsCount ?? 0);
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'An unknown Firebase error occurred');
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  @override
+  Future<Either<String, List<MyMeasurement>>> findMyMeasurements(
+    String userId,
+  ) async {
+    try {
+      final relationships = (await findClientRelationshipsForUser(userId))
+          .fold(
+            (failure) => throw Exception(failure),
+            (value) => value,
+          );
+      final myMeasurements = <MyMeasurement>[];
+
+      for (final relationship in relationships) {
+        final measurements = (await findMeasurementsByClientId(
+          relationship.clientId,
+        )).fold(
+          (failure) => throw Exception(failure),
+          (value) => value,
+        );
+
+        final designer = relationship.designerId.isEmpty
+            ? Designer.empty()
+            : (await sl<FirebaseDesignersService>().findDesignerById(
+                relationship.designerId,
+              )).fold(
+                (failure) => throw Exception(failure),
+                (value) => value,
+              );
+
+        myMeasurements.add(
+          MyMeasurement(
+            uid: relationship.clientId,
+            designer: designer,
+            measurements: measurements,
+            isDefault: relationship.isDefault,
+          ),
+        );
+      }
+
+      return Right(myMeasurements);
     } on FirebaseException catch (e) {
       return Left(e.message ?? 'An unknown Firebase error occurred');
     } catch (e) {

@@ -68,13 +68,13 @@ class ClientsRepositoryImpl implements ClientsRepository {
     required String userId,
     required String clientId,
     bool isDefault = false,
-    required String designId,
+    required String designerId,
   }) {
     return sl<FirebaseClientsService>().linkClientToUser(
       userId: userId,
       clientId: clientId,
       isDefault: isDefault,
-      designId: designId,
+      designerId: designerId,
     );
   }
 

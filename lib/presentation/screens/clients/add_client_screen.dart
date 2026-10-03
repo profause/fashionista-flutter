@@ -410,7 +410,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
               userId: r.uid!,
               clientId: uid,
               isDefault: false,
-              designId: createdBy, // Assuming the designer's ID is the same as the creator's ID
+              designerId: createdBy,
             );
 
             await sl<FirebaseNotificationService>().createNotification(

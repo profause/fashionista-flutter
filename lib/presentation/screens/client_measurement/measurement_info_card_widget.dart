@@ -10,6 +10,7 @@ class MeasurementInfoCardWidget extends StatelessWidget {
   final ClientMeasurement measurement;
   final void Function() onDelete;
   final void Function() onEdit;
+  final bool showActions;
 
   const MeasurementInfoCardWidget({
     super.key,
@@ -17,6 +18,7 @@ class MeasurementInfoCardWidget extends StatelessWidget {
     required this.measurement,
     required this.onDelete,
     required this.onEdit,
+    this.showActions = true,
   });
 
   @override
@@ -87,37 +89,37 @@ class MeasurementInfoCardWidget extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(width: 12),
-          CustomContextMenuWidget(
-            items:  [
-              ContextMenuItem(
-                value: 'edit',
-                label: 'Edit',
-                icon: Icons.edit,
-                iconColor: context.onCanvasText,
+          if (showActions) ...[
+            const SizedBox(width: 12),
+            CustomContextMenuWidget(
+              items: [
+                ContextMenuItem(
+                  value: 'edit',
+                  label: 'Edit',
+                  icon: Icons.edit,
+                  iconColor: context.onCanvasText,
+                ),
+                ContextMenuItem(
+                  value: 'delete',
+                  label: 'Delete',
+                  icon: Icons.delete,
+                  isDestructive: true,
+                ),
+              ],
+              onSelected: (value) {
+                if (value == 'edit') {
+                  onEdit();
+                } else if (value == 'delete') {
+                  onDelete();
+                }
+              },
+              child: Icon(
+                Icons.more_vert,
+                size: 18,
+                color: context.mutedText,
               ),
-              ContextMenuItem(
-                value: 'delete',
-                label: 'Delete',
-                icon: Icons.delete,
-                isDestructive: true,
-              ),
-            ],
-            onSelected: (value) {
-              if (value == 'edit') {
-                onEdit();
-              } else if (value == 'share') {
-                //print("Share clicked");
-              } else if (value == 'delete') {
-                onDelete();
-              }
-            },
-            child: Icon(
-              Icons.more_vert,
-              size: 18,
-              color: context.mutedText,
             ),
-          ),
+          ],
         ],
       ),
     );
