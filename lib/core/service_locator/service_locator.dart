@@ -12,6 +12,7 @@ import 'package:fashionista/data/services/firebase/firebase_closet_service.dart'
 import 'package:fashionista/data/services/firebase/firebase_design_collection_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_designers_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_fashion_interest_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_global_search_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_notification_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_trends_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_user_service.dart';
@@ -204,6 +205,9 @@ Future<void> initialiseDependencies() async {
   sl.registerSingleton<ClosetRepository>(ClosetRepositoryImpl());
   sl.registerSingleton<FirebaseFashionInterestService>(
     FirebaseFashionInterestServiceImpl(),
+  );
+  sl.registerSingleton<FirebaseGlobalSearchService>(
+    FirebaseGlobalSearchService(),
   );
 
   sl.registerSingleton<HiveWorkOrderService>(HiveWorkOrderService());
