@@ -10,6 +10,7 @@ import 'package:fashionista/presentation/screens/closet/closet_screen.dart';
 import 'package:fashionista/presentation/screens/designers/designer_details_screen.dart';
 import 'package:fashionista/presentation/screens/designers/designers_screen.dart';
 import 'package:fashionista/presentation/screens/designers/my_designers_screen.dart';
+import 'package:fashionista/presentation/screens/global_search/global_search_screen.dart';
 import 'package:fashionista/presentation/screens/home/home_screen.dart';
 import 'package:fashionista/presentation/screens/main/main_screen.dart';
 import 'package:fashionista/presentation/screens/notification/notification_screen.dart';
@@ -189,6 +190,12 @@ GoRouter appRouter = GoRouter(
       name: 'MyMeasurementScreen',
       path: '/my-measurement',
       builder: (context, state) => MyMeasurementScreen(),
+    ),
+
+    GoRoute(
+      name: 'GlobalSearchScreen',
+      path: '/global-search',
+      builder: (context, state) => GlobalSearchScreen(),
     ),
 
     StatefulShellRoute.indexedStack(

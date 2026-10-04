@@ -6,6 +6,7 @@ import 'package:fashionista/presentation/screens/trends/for_you_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 class HomeScreen extends StatefulWidget {
   final String? route;
@@ -74,11 +75,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
             actions: [
               Hero(
-                tag: 'settings',
+                tag: 'search',
                 child: IconButton(
-                  icon: Icon(Icons.settings, color: context.onCanvasText),
+                  icon: Icon(
+                    HugeIcons.strokeRoundedSearch02,
+                    size: 22,
+                    color: context.onCanvasText,
+                  ),
                   onPressed: () {
-                    context.push('/settings');
+                    context.push('/global-search');
                   },
                 ),
               ),

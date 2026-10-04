@@ -95,36 +95,7 @@ class _DesignerInfoCardWidgetState extends State<DesignerInfoCardWidget> {
                   left: 16,
                   child: Hero(
                     tag: designer.uid,
-                    child: Material(
-                      color: context.cardSurface,
-                      borderOnForeground: true,
-                      borderRadius: BorderRadius.circular(_avatarRadius),
-                      child: Padding(
-                        padding: const EdgeInsets.all(4),
-                        child: ClipOval(
-                          child: designer.profileImage != null &&
-                                  designer.profileImage!.isNotEmpty
-                              ? CachedNetworkImage(
-                                  imageUrl: designer.profileImage!,
-                                  width: _avatarRadius * 2,
-                                  height: _avatarRadius * 2,
-                                  fit: BoxFit.cover,
-                                  errorListener: (_) {},
-                                  errorWidget: (_, _, _) =>
-                                      DefaultProfileAvatar(
-                                    name: null,
-                                    size: _avatarRadius * 2,
-                                    uid: designer.uid,
-                                  ),
-                                )
-                              : DefaultProfileAvatar(
-                                  name: null,
-                                  size: _avatarRadius * 2,
-                                  uid: designer.uid,
-                                ),
-                        ),
-                      ),
-                    ),
+                    child: buildProfileAvatar(_avatarRadius, designer),
                   ),
                 ),
                 Positioned(
@@ -176,7 +147,11 @@ class _DesignerInfoCardWidgetState extends State<DesignerInfoCardWidget> {
                       ),
                       const SizedBox(width: 8),
                       if (designer.averageRating != null) ...[
-                        Icon(Icons.star, color: Colors.amber.shade500, size: 18),
+                        Icon(
+                          Icons.star,
+                          color: Colors.amber.shade500,
+                          size: 18,
+                        ),
                         const SizedBox(width: 2),
                         Text(
                           designer.averageRating!.toStringAsFixed(1),
@@ -199,7 +174,11 @@ class _DesignerInfoCardWidgetState extends State<DesignerInfoCardWidget> {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      Icon(Icons.storefront, size: 16, color: context.mutedText),
+                      Icon(
+                        Icons.storefront,
+                        size: 16,
+                        color: context.mutedText,
+                      ),
                       const SizedBox(width: 6),
                       Flexible(
                         child: Text(
@@ -215,13 +194,15 @@ class _DesignerInfoCardWidgetState extends State<DesignerInfoCardWidget> {
                       if (designer.location.isNotEmpty) ...[
                         Text(
                           '  •  ',
-                          style: textTheme.labelSmall!
-                              .copyWith(color: context.hairline),
+                          style: textTheme.labelSmall!.copyWith(
+                            color: context.hairline,
+                          ),
                         ),
                         Text(
                           designer.location,
-                          style: textTheme.labelSmall!
-                              .copyWith(color: context.mutedText),
+                          style: textTheme.labelSmall!.copyWith(
+                            color: context.mutedText,
+                          ),
                         ),
                       ],
                     ],
@@ -241,9 +222,7 @@ class _DesignerInfoCardWidgetState extends State<DesignerInfoCardWidget> {
                     width: double.infinity,
                     padding: const EdgeInsets.only(top: 12),
                     decoration: BoxDecoration(
-                      border: Border(
-                        top: BorderSide(color: context.hairline),
-                      ),
+                      border: Border(top: BorderSide(color: context.hairline)),
                     ),
                     child: Row(
                       children: [
@@ -258,8 +237,9 @@ class _DesignerInfoCardWidgetState extends State<DesignerInfoCardWidget> {
                                 borderRadius: BorderRadius.circular(12),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: context.accent
-                                        .withValues(alpha: 0.30),
+                                    color: context.accent.withValues(
+                                      alpha: 0.30,
+                                    ),
                                     blurRadius: 8,
                                     offset: const Offset(0, 3),
                                   ),
@@ -314,6 +294,37 @@ class _DesignerInfoCardWidgetState extends State<DesignerInfoCardWidget> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget buildProfileAvatar(double radius, Designer designer) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Material(
+          color: colorScheme.surface,
+          borderOnForeground: true,
+          borderRadius: BorderRadius.circular(60),
+          child: Padding(
+            padding: const EdgeInsets.all(4.0),
+            child: designer.profileImage != ''
+                ? CircleAvatar(
+                    radius: radius,
+                    backgroundColor: colorScheme.surfaceContainerLow,
+                    backgroundImage: CachedNetworkImageProvider(
+                      designer.profileImage!,
+                      errorListener: (error) {},
+                    ),
+                  )
+                : DefaultProfileAvatar(
+                    name: null,
+                    size: radius * 1.8,
+                    uid: designer.uid,
+                  ),
+          ),
+        ),
+      ],
     );
   }
 }
