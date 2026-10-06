@@ -1,5 +1,10 @@
+import 'dart:convert';
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
+import 'package:fashionista/core/service_locator/hive_service.dart';
+import 'package:fashionista/data/models/designers/designer_model.dart';
 
 enum GlobalSearchCategory {
   all,
@@ -18,6 +23,7 @@ class GlobalSearchResult {
   final String title;
   final String subtitle;
   final String? route;
+  final Designer? designer;
 
   const GlobalSearchResult({
     required this.id,
@@ -25,12 +31,101 @@ class GlobalSearchResult {
     required this.title,
     required this.subtitle,
     this.route,
+    this.designer,
   });
 
   String get searchableText => '$title $subtitle'.toLowerCase();
+
+  Map<String, dynamic> toCacheJson() => {
+    'id': id,
+    'category': category.name,
+    'title': title,
+    'subtitle': subtitle,
+    'route': route,
+    if (designer != null) 'designer': designer!.toJson(),
+  };
+
+  factory GlobalSearchResult.fromCacheJson(Map<String, dynamic> json) {
+    final designerData = json['designer'];
+    return GlobalSearchResult(
+      id: json['id']?.toString() ?? '',
+      category: GlobalSearchCategory.values.byName(
+        json['category']?.toString() ?? GlobalSearchCategory.all.name,
+      ),
+      title: json['title']?.toString() ?? '',
+      subtitle: json['subtitle']?.toString() ?? '',
+      route: json['route']?.toString(),
+      designer: designerData is Map
+          ? Designer.fromJson(Map<String, dynamic>.from(designerData))
+          : null,
+    );
+  }
 }
 
 class FirebaseGlobalSearchService {
+  static const int cachedResultLimit = 12;
+
+  Future<List<GlobalSearchResult>> loadCachedResults(String userId) async {
+    final cachedJson = HiveService().globalSearchBox.get(userId);
+    if (cachedJson == null || cachedJson.isEmpty) return [];
+
+    try {
+      final decoded = jsonDecode(cachedJson) as List<dynamic>;
+      return decoded
+          .whereType<Map>()
+          .map(
+            (item) => GlobalSearchResult.fromCacheJson(
+              Map<String, dynamic>.from(item),
+            ),
+          )
+          .toList();
+    } catch (_) {
+      await HiveService().globalSearchBox.delete(userId);
+      return [];
+    }
+  }
+
+  Future<void> cacheResults(
+    String userId,
+    List<GlobalSearchResult> results,
+  ) async {
+    if (results.isEmpty) return;
+    final cachedResults = results.take(cachedResultLimit).toList();
+    await HiveService().globalSearchBox.put(
+      userId,
+      jsonEncode(cachedResults.map((result) => result.toCacheJson()).toList()),
+    );
+  }
+
+  List<GlobalSearchResult> pickRandomSuggestions(
+    List<GlobalSearchResult> index, {
+    int count = 10,
+  }) {
+    final random = Random();
+    final byCategory = <GlobalSearchCategory, List<GlobalSearchResult>>{};
+    for (final category in GlobalSearchCategory.values.where(
+      (category) => category != GlobalSearchCategory.all,
+    )) {
+      final candidates = index
+          .where((result) => result.category == category)
+          .toList()
+        ..shuffle(random);
+      if (candidates.isNotEmpty) byCategory[category] = candidates;
+    }
+
+    final categories = byCategory.keys.toList()..shuffle(random);
+    final suggestions = <GlobalSearchResult>[];
+    while (suggestions.length < count && categories.isNotEmpty) {
+      for (final category in List<GlobalSearchCategory>.from(categories)) {
+        if (suggestions.length >= count) break;
+        final candidates = byCategory[category]!;
+        suggestions.add(candidates.removeLast());
+        if (candidates.isEmpty) categories.remove(category);
+      }
+    }
+    return suggestions;
+  }
+
   Future<Either<String, List<GlobalSearchResult>>> loadIndex(
     String userId,
   ) async {
@@ -123,6 +218,7 @@ class FirebaseGlobalSearchService {
         final data = doc.data();
         final businessName = _value(data['business_name']);
         final name = _value(data['name']);
+        final designer = Designer.fromJson(data).copyWith(uid: doc.id);
         results.add(
           GlobalSearchResult(
             id: doc.id,
@@ -130,6 +226,7 @@ class FirebaseGlobalSearchService {
             title: businessName.isNotEmpty ? businessName : name,
             subtitle: businessName.isNotEmpty ? name : _value(data['location']),
             route: '/designers/${doc.id}',
+            designer: designer,
           ),
         );
       }
