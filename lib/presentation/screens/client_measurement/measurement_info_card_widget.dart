@@ -71,10 +71,7 @@ class MeasurementInfoCardWidget extends StatelessWidget {
                       measurement.measuringUnit == 'cm'
                           ? '${cmToInches(measurement.measuredValue).toStringAsFixed(2)} inches'
                           : '${measurement.measuredValue.toStringAsFixed(2)} inches',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: context.mutedText,
-                      ),
+                      style: TextStyle(fontSize: 12, color: context.mutedText),
                     ),
                   ],
                 ),
@@ -120,11 +117,7 @@ class MeasurementInfoCardWidget extends StatelessWidget {
                   onDelete();
                 }
               },
-              child: Icon(
-                Icons.more_vert,
-                size: 18,
-                color: context.mutedText,
-              ),
+              child: Icon(Icons.more_vert, size: 18, color: context.mutedText),
             ),
           ],
         ],
@@ -154,8 +147,7 @@ class MeasurementInfoCardWidget extends StatelessWidget {
             .where((tag) => tag.isNotEmpty)
             .toList();
         final notes = measurement.notes?.trim() ?? '';
-        final updatedDate =
-            measurement.updatedDate ?? DateTime.now();
+        final updatedDate = measurement.updatedDate ?? DateTime.now();
 
         return SafeArea(
           top: false,
@@ -192,6 +184,32 @@ class MeasurementInfoCardWidget extends StatelessWidget {
                           ),
                         ),
                       ),
+                      if (showActions) ...[
+                        _sheetActionButton(
+                          ctx,
+                          icon: Icons.edit_outlined,
+                          tooltip: 'Edit',
+                          onPressed: () {
+                            Navigator.of(ctx).pop();
+                            onEdit();
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        _sheetActionButton(
+                          ctx,
+                          icon: Icons.delete_outline,
+                          tooltip: 'Delete',
+                          color: Colors.red,
+                          onPressed: () {
+                            Navigator.of(ctx).pop();
+                            onDelete();
+                          },
+                        ),
+                      ],
+                    ],
+                  ),
+                  Row(
+                    children: [
                       Icon(
                         Icons.calendar_month,
                         size: 14,
@@ -277,7 +295,11 @@ class MeasurementInfoCardWidget extends StatelessWidget {
                   else
                     Column(
                       children: [
-                        for (var i = 0; i < measurement.previousValues.length; i++)
+                        for (
+                          var i = 0;
+                          i < measurement.previousValues.length;
+                          i++
+                        )
                           Padding(
                             padding: EdgeInsets.only(
                               bottom: i == measurement.previousValues.length - 1
@@ -343,6 +365,31 @@ class MeasurementInfoCardWidget extends StatelessWidget {
     );
   }
 
+  Widget _sheetActionButton(
+    BuildContext context, {
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onPressed,
+    Color? color,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: context.canvasBackground,
+        shape: BoxShape.circle,
+        border: Border.all(color: context.hairline),
+      ),
+      child: IconButton(
+        onPressed: onPressed,
+        tooltip: tooltip,
+        iconSize: 18,
+        visualDensity: VisualDensity.compact,
+        constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+        padding: EdgeInsets.zero,
+        icon: Icon(icon, color: color ?? context.onCanvasText),
+      ),
+    );
+  }
+
   Widget _emptyText(BuildContext context, String text) {
     return Text(
       text,
@@ -380,10 +427,7 @@ class MeasurementInfoCardWidget extends StatelessWidget {
           ),
           Text(
             secondary,
-            style: TextStyle(
-              fontSize: 13,
-              color: context.mutedText,
-            ),
+            style: TextStyle(fontSize: 13, color: context.mutedText),
           ),
         ],
       ),

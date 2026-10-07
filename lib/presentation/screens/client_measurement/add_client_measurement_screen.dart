@@ -140,17 +140,10 @@ class _AddClientMeasurementScreenState
                     return; // Stop here if invalid
                   }
 
-                  final updatedMeasurement = widget.clientMeasurement.copyWith(
-                    uid: widget.clientMeasurement.uid,
-                    bodyPart: _bodyPartController.text.trim(),
-                    measuredValue: double.parse(
-                      _measuredValueController.text.trim(),
-                    ),
-                    notes: _noteController.text.trim(),
-                    measuringUnit: _measuringUnitController.text.trim(),
-                    updatedDate: DateTime.now(),
-                    tags: _tagsController.text.trim(),
-                  );
+                  final newMeasuredValue =
+                      double.tryParse(_measuredValueController.text.trim()) ??
+                      0;
+
                   final List<ClientMeasurement> measurements = List.from(
                     widget.client.measurements,
                   );
@@ -159,7 +152,37 @@ class _AddClientMeasurementScreenState
                   final index = measurements.indexWhere(
                     (m) =>
                         m.bodyPart.toLowerCase() ==
-                        updatedMeasurement.bodyPart.toLowerCase(),
+                        _bodyPartController.text.trim().toLowerCase(),
+                  );
+
+                  // The measurement currently stored for this body part (if
+                  // any) becomes the "previous" measurement when the value
+                  // changes. Falls back to the edited measurement.
+                  final existing = index != -1
+                      ? measurements[index]
+                      : widget.clientMeasurement;
+
+                  // Keep the history, dropping any zero values.
+                  final previousValues = List<double>.from(
+                    existing.previousValues,
+                  ).where((value) => value > 0).toList();
+
+                  final oldMeasuredValue = existing.measuredValue;
+                  if (oldMeasuredValue > 0 &&
+                      oldMeasuredValue != newMeasuredValue &&
+                      !previousValues.contains(oldMeasuredValue)) {
+                    previousValues.add(oldMeasuredValue);
+                  }
+
+                  final updatedMeasurement = existing.copyWith(
+                    uid: existing.uid,
+                    bodyPart: _bodyPartController.text.trim(),
+                    measuredValue: newMeasuredValue,
+                    notes: _noteController.text.trim(),
+                    measuringUnit: _measuringUnitController.text.trim(),
+                    updatedDate: DateTime.now(),
+                    tags: _tagsController.text.trim(),
+                    previousValues: previousValues,
                   );
 
                   if (index != -1) {
