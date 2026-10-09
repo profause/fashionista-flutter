@@ -12,6 +12,10 @@ abstract class FirebaseTrendsService {
   Future<Either<String, List<TrendFeedModel>>> fetchTrendsWithFilter(int limit);
   Future<Either<String, List<TrendFeedModel>>> fetchTrendsCreatedBy(int limit,
       String createdBy);
+  Future<Either<String, List<TrendFeedModel>>> fetchTrendsByTag(
+    String tag, {
+    int limit,
+  });
   Future<Either> addTrendToFirestore(TrendFeedModel trend);
   Future<Either> updateTrendToFirestore(TrendFeedModel trend);
   Future<Either> deleteTrendById(String uid);
@@ -176,6 +180,52 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
       );
 
       //await importTrends(sampleTrendsData);
+      return Right(trends);
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'An unknown Firebase error occurred');
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  @override
+  Future<Either<String, List<TrendFeedModel>>> fetchTrendsByTag(
+    String tag, {
+    int limit = 100,
+  }) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final normalizedTag = tag.trim().toLowerCase();
+
+      if (normalizedTag.isEmpty) {
+        return const Right(<TrendFeedModel>[]);
+      }
+
+      final querySnapshot = await firestore
+          .collection('trends')
+          .orderBy('created_at', descending: true)
+          .limit(limit)
+          .get();
+
+      // `tags` is stored as a comma separated string, so match client-side.
+      final matchingDocs = querySnapshot.docs.where((doc) {
+        final rawTags = (doc.data()['tags'] ?? '').toString().toLowerCase();
+        return rawTags.split(',').any((t) => t.trim() == normalizedTag);
+      });
+
+      final trends = await Future.wait(
+        matchingDocs.map((doc) async {
+          bool isLiked = await isLikedTrend(doc.reference.id);
+          bool isFollowed = await isFollowedTrend(doc.reference.id);
+          final d = TrendFeedModel.fromJson(doc.data());
+          return d.copyWith(
+            uid: doc.reference.id,
+            isLiked: isLiked,
+            isFollowed: isFollowed,
+          );
+        }),
+      );
+
       return Right(trends);
     } on FirebaseException catch (e) {
       return Left(e.message ?? 'An unknown Firebase error occurred');

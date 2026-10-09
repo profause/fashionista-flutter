@@ -355,20 +355,32 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
         spacing: 8,
         runSpacing: 8,
         children: tags.map((tag) {
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: context.secondaryButtonBg,
+          return Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => context.push(
+                '/interest-details?q=${Uri.encodeComponent(tag)}',
+              ),
               borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: context.hairline),
-            ),
-            child: Text(
-              '#$tag',
-              style: textTheme.labelSmall?.copyWith(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0,
-                color: context.onCanvasText,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: context.secondaryButtonBg,
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: context.hairline),
+                ),
+                child: Text(
+                  '#$tag',
+                  style: textTheme.labelSmall?.copyWith(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0,
+                    color: context.onCanvasText,
+                  ),
+                ),
               ),
             ),
           );

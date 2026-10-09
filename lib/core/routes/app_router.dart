@@ -201,7 +201,9 @@ GoRouter appRouter = GoRouter(
     GoRoute(
       name: 'InterestDetailsScreen',
       path: '/interest-details',
-      builder: (context, state) => InterestDetailsScreen(),
+      builder: (context, state) => InterestDetailsScreen(
+        initialQuery: state.uri.queryParameters['q'],
+      ),
     ),
 
     StatefulShellRoute.indexedStack(

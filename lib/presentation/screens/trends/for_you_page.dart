@@ -89,15 +89,9 @@ class _ForYouPageState extends State<ForYouPage> {
             child: _buildGetStartedSection(context, textTheme),
           ),
           SliverToBoxAdapter(child: _buildQuickActionsSection(context)),
-          SliverToBoxAdapter(
-            child: _buildInterestsSection(context, textTheme),
-          ),
-          SliverToBoxAdapter(
-            child: _buildDesignersSection(context, textTheme),
-          ),
-          SliverToBoxAdapter(
-            child: _buildMyPostsSection(context, textTheme),
-          ),
+          SliverToBoxAdapter(child: _buildInterestsSection(context, textTheme)),
+          SliverToBoxAdapter(child: _buildDesignersSection(context, textTheme)),
+          SliverToBoxAdapter(child: _buildMyPostsSection(context, textTheme)),
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],
       ),
@@ -282,10 +276,7 @@ class _ForYouPageState extends State<ForYouPage> {
               }
 
               if (selectedInterests.isEmpty) {
-                return Text(
-                  "No interests found",
-                  style: textTheme.bodyMedium,
-                );
+                return Text("No interests found", style: textTheme.bodyMedium);
               }
 
               final List<String> userInterests =
@@ -296,8 +287,7 @@ class _ForYouPageState extends State<ForYouPage> {
                 runSpacing: 8,
                 children: selectedInterests.map((item) {
                   final bool isSelected = userInterests.any(
-                    (interest) =>
-                        interest.toLowerCase() == item.toLowerCase(),
+                    (interest) => interest.toLowerCase() == item.toLowerCase(),
                   );
                   return _interestPill(context, textTheme, item, isSelected);
                 }).toList(),
@@ -315,29 +305,37 @@ class _ForYouPageState extends State<ForYouPage> {
     String label,
     bool isSelected,
   ) {
-    return Container(
-      height: 32,
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      decoration: BoxDecoration(
-        color: isSelected ? context.accent : context.secondaryButtonBg,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () =>
+            context.push('/interest-details?q=${Uri.encodeComponent(label)}'),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: isSelected ? Colors.transparent : context.hairline,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: textTheme.labelSmall!.copyWith(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              letterSpacing: 0,
-              color: isSelected ? Colors.white : context.onCanvasText,
+        child: Container(
+          height: 32,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            color: isSelected ? context.accent : context.secondaryButtonBg,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: isSelected ? Colors.transparent : context.hairline,
             ),
           ),
-        ],
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: textTheme.labelSmall!.copyWith(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0,
+                  color: isSelected ? Colors.white : context.onCanvasText,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -444,10 +442,7 @@ class _ForYouPageState extends State<ForYouPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'My Posts',
-            style: textTheme.titleSmall!.copyWith(fontSize: 15),
-          ),
+          Text('My Posts', style: textTheme.titleSmall!.copyWith(fontSize: 15)),
           const SizedBox(height: 12),
           BlocBuilder<TrendBloc, TrendBlocState>(
             buildWhen: (context, state) {
@@ -545,10 +540,7 @@ class _ForYouPageState extends State<ForYouPage> {
                 height: 22,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    color: context.canvasBackground,
-                    width: 2,
-                  ),
+                  border: Border.all(color: context.canvasBackground, width: 2),
                 ),
                 child: ClipOval(
                   child: (visible[i].profileImage ?? '').isEmpty

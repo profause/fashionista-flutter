@@ -289,6 +289,7 @@ class _InterestChip extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
+        onDoubleTap: () => context.push('/interest-details?q=${Uri.encodeComponent(interest.name)}'),
         borderRadius: BorderRadius.circular(18),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
