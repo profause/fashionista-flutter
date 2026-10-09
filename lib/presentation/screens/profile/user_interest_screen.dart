@@ -2,12 +2,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/widgets/bloc/getstarted_stats_cubit.dart';
+import 'package:fashionista/data/models/fashion_interests/fashion_interest_model.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
+import 'package:fashionista/data/services/firebase/firebase_fashion_interest_service.dart';
 import 'package:fashionista/domain/usecases/profile/update_user_profile_usecase.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 class UserInterestScreen extends StatefulWidget {
   final String? fromWhere;
@@ -24,24 +27,13 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
   final int maxSelection = 8;
 
   /// Fetch interests grouped by category
-  Future<Map<String, List<String>>> fetchInterests() async {
-    final querySnapshot = await FirebaseFirestore.instance
-        .collection('fashion_interests')
-        .orderBy('category')
-        .get();
+  Future<Map<String, List<FashionInterestModel>>> fetchInterests() async {
+    final result = await sl<FirebaseFashionInterestService>()
+        .fetchFashionInterests();
 
-    final Map<String, List<String>> grouped = {};
-
-    for (var doc in querySnapshot.docs) {
-      final data = doc.data();
-      final category = data['category'] as String;
-      final name = data['name'] as String;
-
-      grouped.putIfAbsent(category, () => []);
-      grouped[category]!.add(name);
-    }
-
-    return grouped;
+    return result.fold((error) => throw Exception(error), (interests) {
+      return interests;
+    });
   }
 
   void _toggleInterest(String interest, bool isSelected) {
@@ -81,21 +73,15 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
     return Scaffold(
       backgroundColor: context.canvasBackground,
       appBar: AppBar(
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: true,
         backgroundColor: context.canvasBackground,
         foregroundColor: context.onCanvasText,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
-        leading: const SizedBox(
-          width: 40,
-          height: 40,
-          child: _BackButton(),
-        ),
         title: Text(
           'Select Your Interests',
           style: TextStyle(
-            fontSize: 17,
             fontWeight: FontWeight.w700,
             color: context.onCanvasText,
             letterSpacing: -0.3,
@@ -124,7 +110,7 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
           child: ColoredBox(color: context.hairline),
         ),
       ),
-      body: FutureBuilder<Map<String, List<String>>>(
+      body: FutureBuilder<Map<String, List<FashionInterestModel>>>(
         future: fetchInterests(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -158,16 +144,14 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
           );
         },
       ),
-      bottomNavigationBar: _InterestCtaButton(
-        onPressed: _saveInterests,
-      ),
+      bottomNavigationBar: _InterestCtaButton(onPressed: _saveInterests),
     );
   }
 
   Widget _buildCategorySection(
     int index,
     String category,
-    List<String> interests,
+    List<FashionInterestModel> interests,
   ) {
     return Column(
       key: ValueKey(category),
@@ -195,11 +179,11 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
             return ValueListenableBuilder<Set<String>>(
               valueListenable: selectedInterestsNotifier,
               builder: (context, selectedInterests, _) {
-                final isSelected = selectedInterests.contains(interest);
+                final isSelected = selectedInterests.contains(interest.name);
                 return _InterestChip(
-                  label: interest,
+                  interest: interest,
                   selected: isSelected,
-                  onTap: () => _toggleInterest(interest, !isSelected),
+                  onTap: () => _toggleInterest(interest.name, !isSelected),
                 );
               },
             );
@@ -289,12 +273,12 @@ class _UserInterestScreenState extends State<UserInterestScreen> {
 }
 
 class _InterestChip extends StatelessWidget {
-  final String label;
+  final FashionInterestModel interest;
   final bool selected;
   final VoidCallback onTap;
 
   const _InterestChip({
-    required this.label,
+    required this.interest,
     required this.selected,
     required this.onTap,
   });
@@ -314,9 +298,7 @@ class _InterestChip extends StatelessWidget {
           decoration: BoxDecoration(
             color: selected ? context.accent : context.cardSurface,
             borderRadius: BorderRadius.circular(18),
-            border: selected
-                ? null
-                : Border.all(color: context.hairline),
+            border: selected ? null : Border.all(color: context.hairline),
             boxShadow: selected
                 ? [
                     BoxShadow(
@@ -331,23 +313,30 @@ class _InterestChip extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (selected) ...[
-                Icon(
-                  Icons.check,
-                  size: 14,
-                  color: Colors.white,
-                ),
+                Icon(Icons.check, size: 14, color: Colors.white),
                 const SizedBox(width: 6),
               ],
               Text(
-                label,
+                interest.name,
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                  color: selected
-                      ? Colors.white
-                      : context.mutedText,
+                  color: selected ? Colors.white : context.mutedText,
                 ),
               ),
+              if (interest.numberOfPosts > 0) ...[
+                const SizedBox(width: 6),
+                Text(
+                  '· ${NumberFormat.compact().format(interest.numberOfPosts)}',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: selected
+                        ? Colors.white.withValues(alpha: 0.85)
+                        : context.placeholderText,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -425,24 +414,6 @@ class _InterestCtaButton extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _BackButton extends StatelessWidget {
-  const _BackButton();
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      icon: Icon(Icons.chevron_left, size: 24, color: context.onCanvasText),
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(),
-      onPressed: () {
-        if (Navigator.of(context).canPop()) {
-          Navigator.of(context).pop();
-        }
-      },
     );
   }
 }

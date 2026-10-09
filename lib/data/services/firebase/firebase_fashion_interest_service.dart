@@ -1,33 +1,34 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
+import 'package:fashionista/data/models/fashion_interests/fashion_interest_model.dart';
 
 abstract class FirebaseFashionInterestService {
-  Future<Either<String, Map<String, List<String>>>> fetchFashionInterests();
+  Future<Either<String, Map<String, List<FashionInterestModel>>>>
+  fetchFashionInterests();
 }
 
 class FirebaseFashionInterestServiceImpl
     implements FirebaseFashionInterestService {
   @override
-  Future<Either<String, Map<String, List<String>>>>
+  Future<Either<String, Map<String, List<FashionInterestModel>>>>
   fetchFashionInterests() async {
     try {
       final firestore = FirebaseFirestore.instance;
 
       final querySnapshot = await firestore
           .collection('fashion_interests')
+          .orderBy('category')
           .get();
 
-      final Map<String, List<String>> fashionInterests = {};
+      final Map<String, List<FashionInterestModel>> fashionInterests = {};
 
       for (final doc in querySnapshot.docs) {
-        final data = doc.data();
-        final category = data['category'] as String?;
-        final name = data['name'] as String?;
+        final interest = FashionInterestModel.fromFirestore(doc.data());
 
-        if (category != null && name != null) {
-          fashionInterests.putIfAbsent(category, () => []);
-          fashionInterests[category]!.add(name);
-        }
+        if (interest.category.isEmpty && interest.name.isEmpty) continue;
+
+        fashionInterests.putIfAbsent(interest.category, () => []);
+        fashionInterests[interest.category]!.add(interest);
       }
 
       return Right(fashionInterests);
