@@ -174,6 +174,55 @@ class _DesignerProfilePageState extends State<DesignerProfilePage> {
                 ),
                 const SizedBox(height: 12),
 
+                //booking and availability card
+                _SectionCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            'Booking & Availability',
+                            style: textTheme.titleSmall,
+                          ),
+                          const Spacer(),
+                          TextButton(
+                            onPressed: () {
+                              final uri = Uri(path: '/designer-bookings');
+                              context.push(uri.toString());
+                            },
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: const Size(0, 32),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: Text(
+                              'View all',
+                              style: textTheme.labelSmall!.copyWith(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                letterSpacing: 0,
+                                color: context.accent,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Booking status: ${true ? 'Available' : 'Not available'}',
+                        style: textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Next available date: ${'2026-12-12' ?? 'N/A'}',
+                        style: textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+
                 /// Socials card
                 _SectionCard(
                   child: Column(

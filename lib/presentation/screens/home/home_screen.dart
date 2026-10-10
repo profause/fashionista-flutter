@@ -77,11 +77,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               Hero(
                 tag: 'search',
                 child: IconButton(
-                  icon: Icon(
-                    HugeIcons.strokeRoundedSearch02,
-                    size: 22,
-                    color: context.onCanvasText,
-                  ),
+                  icon: Icon(Icons.search, color: context.onCanvasText),
                   onPressed: () {
                     context.push('/global-search');
                   },
@@ -105,9 +101,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     icon: Stack(
                       children: [
                         Padding(
-                          padding: const EdgeInsets.only(right: 12.0),
+                          padding: const EdgeInsets.only(
+                            right: 12.0,
+                            left: 0.0,
+                          ),
                           child: Icon(
-                            Icons.notifications,
+                            Icons.notifications_none,
                             color: context.onCanvasText,
                           ),
                         ),
