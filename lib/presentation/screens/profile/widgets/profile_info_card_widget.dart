@@ -53,7 +53,7 @@ class _ProfileInfoRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final IconData? icon = item.icon;
 
-    return Padding(
+    final row = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Row(
         children: [
@@ -110,6 +110,13 @@ class _ProfileInfoRow extends StatelessWidget {
         ],
       ),
     );
+
+    if (item.onTap == null) return row;
+
+    return Material(
+      type: MaterialType.transparency,
+      child: InkWell(onTap: item.onTap, child: row),
+    );
   }
 }
 
@@ -118,10 +125,12 @@ class ProfileInfoItem {
   final String value;
   final IconData? icon;
   final Widget? suffix;
+  final VoidCallback? onTap;
 
   const ProfileInfoItem({
     this.icon,
     this.suffix,
+    this.onTap,
     required this.title,
     required this.value,
   });

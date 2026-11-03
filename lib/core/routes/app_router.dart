@@ -8,6 +8,7 @@ import 'package:fashionista/presentation/screens/closet/add_or_edit_outfit_plan_
 import 'package:fashionista/presentation/screens/closet/add_or_edit_outfit_screen.dart';
 import 'package:fashionista/presentation/screens/closet/closet_screen.dart';
 import 'package:fashionista/presentation/screens/designers/designer_details_screen.dart';
+import 'package:fashionista/presentation/screens/designers/designer_services_screen.dart';
 import 'package:fashionista/presentation/screens/designers/designers_screen.dart';
 import 'package:fashionista/presentation/screens/designers/my_designers_screen.dart';
 import 'package:fashionista/presentation/screens/global_search/global_search_screen.dart';
@@ -186,6 +187,13 @@ GoRouter appRouter = GoRouter(
       name: 'MyDesignersScreen',
       path: '/my-designers',
       builder: (context, state) => MyDesignersScreen(),
+    ),
+    GoRoute(
+      name: 'DesignerServicesScreen',
+      path: '/designer-services',
+      builder: (context, state) => DesignerServicesScreen(
+        designerId: state.uri.queryParameters['designerId'],
+      ),
     ),
     GoRoute(
       name: 'MyMeasurementScreen',

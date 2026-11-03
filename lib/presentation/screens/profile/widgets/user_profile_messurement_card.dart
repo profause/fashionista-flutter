@@ -100,18 +100,23 @@ class _UserProfileMessurementCardState
     _debounce?.cancel();
 
     _debounce = Timer(const Duration(milliseconds: 500), () async {
+      if (!mounted) return;
       loadingFashionDesigners = true;
 
       final result = await sl<FirebaseClientsService>()
           .findClientByMobileNumber(_userBloc.state.mobileNumber);
 
+      if (!mounted) return;
+
       await result.fold(
         (failure) async {
           debugPrint("Client fetch failed: $failure");
+          if (!mounted) return;
           loadingFashionDesigners = false;
         },
         (clients) async {
           if (clients.isEmpty) {
+            if (!mounted) return;
             myDesignersNotifier.value = [];
             loadingFashionDesigners = false;
             return;
@@ -125,6 +130,8 @@ class _UserProfileMessurementCardState
               (id) => sl<FirebaseDesignersService>().findDesignerById(id),
             ),
           );
+
+          if (!mounted) return;
 
           final designers = designerResults
               .where((r) => r.isRight())

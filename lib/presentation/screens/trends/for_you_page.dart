@@ -577,6 +577,7 @@ class _ForYouPageState extends State<ForYouPage> {
     _loadInterestsDebounce = Timer(
       const Duration(milliseconds: 1500),
       () async {
+        if (!mounted) return;
         final userInterests = _userBloc.state.interests;
         final userInterestCount = userInterests!.length;
         //here
@@ -588,6 +589,8 @@ class _ForYouPageState extends State<ForYouPage> {
             .orderBy('category')
             .limit(5)
             .get();
+
+        if (!mounted) return;
 
         final interests = userInterestCount > 4
             ? userInterests
@@ -604,8 +607,13 @@ class _ForYouPageState extends State<ForYouPage> {
   Future<void> _loadFashionDesigners() async {
     _debounce?.cancel(); // cancel previous timer
     _debounce = Timer(const Duration(milliseconds: 1500), () async {
+      if (!mounted) return;
+      final cubit = context.read<GetstartedStatsCubit>();
+
       final result = await sl<FirebaseDesignersService>()
           .findDesignersWithFilter(6, 'created_date');
+
+      if (!mounted) return;
 
       await result.fold((failure) async {}, (designers) {
         designersNotifier.value = designers;
@@ -613,7 +621,6 @@ class _ForYouPageState extends State<ForYouPage> {
             .where((d) => d.isFavourite!)
             .toList()
             .length;
-        final cubit = context.read<GetstartedStatsCubit>();
         cubit.updateFollowings(following);
         loadingFashionDesigners = false;
       });
@@ -621,13 +628,17 @@ class _ForYouPageState extends State<ForYouPage> {
       final resultC = await sl<FirebaseClientsService>()
           .findClientByMobileNumber(_userBloc.state.mobileNumber);
 
+      if (!mounted) return;
+
       await resultC.fold(
         (failure) async {
           debugPrint("Client fetch failed: $failure");
+          if (!mounted) return;
           loadingFashionDesigners = false;
         },
         (clients) async {
           if (clients.isEmpty) {
+            if (!mounted) return;
             myDesignersNotifier.value = [];
             loadingFashionDesigners = false;
             return;
@@ -641,6 +652,8 @@ class _ForYouPageState extends State<ForYouPage> {
               (id) => sl<FirebaseDesignersService>().findDesignerById(id),
             ),
           );
+
+          if (!mounted) return;
 
           final designers = designerResults
               .where((r) => r.isRight())

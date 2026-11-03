@@ -93,19 +93,6 @@ class _DesignerProfilePageState extends State<DesignerProfilePage> {
                       value: designer.businessName.isEmpty
                           ? 'No business name'
                           : designer.businessName,
-                      suffix: CustomIconButtonRounded(
-                        iconData: Icons.arrow_right,
-                        size: 24,
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  EditDesignerProfileScreen(designer: designer),
-                            ),
-                          );
-                        },
-                      ),
                     ),
                   ],
                 ),
@@ -116,19 +103,6 @@ class _DesignerProfilePageState extends State<DesignerProfilePage> {
                       icon: Icons.phone_android_outlined,
                       title: 'Mobile number',
                       value: designer.mobileNumber,
-                      suffix: CustomIconButtonRounded(
-                        iconData: Icons.arrow_right,
-                        size: 24,
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  EditDesignerProfileScreen(designer: designer),
-                            ),
-                          );
-                        },
-                      ),
                     ),
                     ProfileInfoItem(
                       icon: Icons.map_outlined,
@@ -136,19 +110,24 @@ class _DesignerProfilePageState extends State<DesignerProfilePage> {
                       value: designer.location.isEmpty
                           ? 'No location'
                           : designer.location,
-                      suffix: CustomIconButtonRounded(
-                        iconData: Icons.edit_location,
-                        size: 24,
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  EditDesignerProfileScreen(designer: designer),
-                            ),
-                          );
-                        },
-                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                ProfileInfoCardWidget(
+                  items: [
+                    ProfileInfoItem(
+                      icon: Icons.design_services_outlined,
+                      title: 'Services',
+                      value: 'Manage the services you offer',
+                      onTap: () {
+                        context.push(
+                          Uri(
+                            path: '/designer-services',
+                            queryParameters: {'designerId': designer.uid},
+                          ).toString(),
+                        );
+                      },
                     ),
                   ],
                 ),

@@ -10,6 +10,7 @@ import 'package:fashionista/data/services/firebase/firebase_auth_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_closet_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_design_collection_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_designer_services_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_designers_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_fashion_interest_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_global_search_service.dart';
@@ -133,6 +134,9 @@ Future<void> initialiseDependencies() async {
 
   sl.registerSingleton<FirebaseDesignCollectionService>(
     FirebaseDesignCollectionServiceImpl(),
+  );
+  sl.registerSingleton<FirebaseDesignerServicesService>(
+    FirebaseDesignerServicesServiceImpl(),
   );
   sl.registerSingleton<DesignCollectionRepository>(
     DesignCollectionRepositoryImpl(),
