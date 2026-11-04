@@ -14,6 +14,7 @@ import 'package:fashionista/data/services/firebase/firebase_booking_service.dart
 import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_closet_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_design_collection_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_device_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_designer_services_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_designers_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_fashion_interest_service.dart';
@@ -293,4 +294,7 @@ Future<void> initialiseDependencies() async {
   sl.registerSingleton<FetchScheduleConflictsUsecase>(
     FetchScheduleConflictsUsecase(),
   );
+
+  // ---- Push notification devices -----------------------------------------
+  sl.registerSingleton<FirebaseDeviceService>(FirebaseDeviceServiceImpl());
 }

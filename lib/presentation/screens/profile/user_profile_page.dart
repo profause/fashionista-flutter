@@ -1,4 +1,5 @@
 import 'package:fashionista/core/auth/auth_provider_cubit.dart';
+import 'package:fashionista/core/service_locator/push_notification_service.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
@@ -199,8 +200,9 @@ class UserProfilePage extends StatelessWidget {
       context.read<UserBloc>().clear();
       context.read<AuthProviderCubit>().setAuthState('', '', '', false);
 
-      // ✅ show loading safely
-      //await _showLoadingDialog(context);
+      // Deactivate this device before the credential disappears: the device
+      // document can only be written by its owner.
+      await PushNotificationService.onSignOut();
 
       await sl<SignOutUsecase>().call('');
       await sl<HiveDesignersService>().clearCache();

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/presentation/screens/trends/discover_trends_page.dart';
+import 'package:fashionista/presentation/widgets/notification_badge.dart';
 import 'package:fashionista/presentation/screens/trends/for_you_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -86,46 +87,32 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
                     .collection('notifications')
-                    .where(
-                      'to',
-                      isEqualTo: userBloc.state.uid,
-                    ) // optional if user-based
+                    .where('to', isEqualTo: userBloc.state.uid)
                     .where('status', isEqualTo: 'new')
-                    .limit(1)
-                    .snapshots(), // 🔥 live updates
+                    // Bounded so the badge can show a count without pulling an
+                    // unbounded history; 100+ renders as "99+".
+                    .limit(100)
+                    .snapshots(),
                 builder: (context, snapshot) {
-                  final hasNew =
-                      snapshot.hasData && snapshot.data!.docs.isNotEmpty;
+                  final unread = snapshot.data?.docs.length ?? 0;
 
                   return IconButton(
                     icon: Stack(
+                      clipBehavior: Clip.none,
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.only(
-                            right: 12.0,
-                            left: 0.0,
-                          ),
-                          child: Icon(
-                            Icons.notifications_none,
-                            color: context.onCanvasText,
-                          ),
+                        Icon(
+                          Icons.notifications_none,
+                          color: context.onCanvasText,
                         ),
-                        if (hasNew) // ✅ only show dot when there are new notifications
+                        if (unread > 0)
                           Positioned(
-                            top: 0,
-                            right: 12,
-                            child: Container(
-                              width: 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                color: context.accent,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
+                            top: -4,
+                            right: -6,
+                            child: NotificationBadge(count: unread),
                           ),
                       ],
                     ),
-
+                    tooltip: 'Notifications',
                     onPressed: () {
                       context.push('/notifications');
                     },

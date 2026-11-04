@@ -20,6 +20,8 @@ class NotificationBloc
     on<LoadNotificationsByFrom>(_onLoadNotificationsByFrom);
     on<ClearNotification>(_onClearNotification);
     on<NotificationsCounter>(_onCountNotifications);
+    on<LoadNotificationsPage>(_onLoadPage);
+    on<MarkAllNotificationsRead>(_onMarkAllRead);
   }
 
   Future<void> _onLoadNotification(
@@ -43,8 +45,13 @@ class NotificationBloc
     UpdateNotification event,
     Emitter<NotificationBlocState> emit,
   ) async {
+    final notification = event.notification;
+    final toWrite = notification.status == 'read' && notification.readAt == null
+        ? notification.copyWith(readAt: DateTime.now().toUtc())
+        : notification;
+
     final result = await sl<FirebaseNotificationService>().updateNotification(
-      event.notification,
+      toWrite,
     );
 
     await result.fold(
@@ -52,7 +59,7 @@ class NotificationBloc
         emit(NotificationError(failure.toString()));
       },
       (notification) async {
-        await sl<HiveNotificationService>().updateItem(event.notification);
+        await sl<HiveNotificationService>().updateItem(toWrite);
         emit(NotificationLoaded(notification)); // ✅ safe emit
       },
     );
@@ -144,10 +151,26 @@ class NotificationBloc
     NotificationsCounter event,
     Emitter<NotificationBlocState> emit,
   ) async {
-    String uid = event.uid;
-    final cachedItems = await sl<HiveNotificationService>().getItems(uid);
+    final uid = event.uid.isEmpty
+        ? FirebaseAuth.instance.currentUser?.uid ?? ''
+        : event.uid;
 
-    emit(NotificationsCounted(cachedItems.length));
+    if (uid.isEmpty) {
+      emit(const NotificationsCounted(0));
+      return;
+    }
+
+    final result = await sl<FirebaseNotificationService>().getUnreadCount(uid);
+
+    // Fall back to the cache when offline so the badge is not misleading.
+    final cachedUnread = result.fold(
+      (_) async => (await sl<HiveNotificationService>().getItems(uid))
+          .where((item) => item.status == 'new')
+          .length,
+      (count) async => count,
+    );
+
+    emit(NotificationsCounted(await cachedUnread));
   }
 
   Future<void> _onLoadNotificationsCacheFirstThenNetwork(
@@ -199,5 +222,54 @@ class NotificationBloc
   Future<void> close() {
     // _hiveSubscription?.cancel(); // 👈 clean up
     return super.close();
+  }
+
+  Future<void> _onLoadPage(
+    LoadNotificationsPage event,
+    Emitter<NotificationBlocState> emit,
+  ) async {
+    if (event.beforeCreatedAt == null) emit(const NotificationLoading());
+
+    final result = await sl<FirebaseNotificationService>()
+        .findNotificationsPage(
+          event.uid,
+          limit: event.limit,
+          beforeCreatedAt: event.beforeCreatedAt,
+        );
+
+    result.fold(
+      (failure) => emit(NotificationError(failure.toString())),
+      (page) {
+        if (page.isEmpty) {
+          if (event.beforeCreatedAt == null) {
+            emit(const NotificationsEmpty());
+          } else {
+            emit(NotificationsLoaded(const [], hasMore: false));
+          }
+          return;
+        }
+
+        emit(
+          NotificationsLoaded(
+            page,
+            hasMore: page.length >= event.limit,
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _onMarkAllRead(
+    MarkAllNotificationsRead event,
+    Emitter<NotificationBlocState> emit,
+  ) async {
+    final result = await sl<FirebaseNotificationService>().markAllAsRead(
+      event.uid,
+    );
+
+    result.fold(
+      (failure) => emit(NotificationError(failure.toString())),
+      (affected) => emit(NotificationsMarkedRead(affected)),
+    );
   }
 }

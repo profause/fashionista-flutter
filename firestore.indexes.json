@@ -4,33 +4,136 @@
       "collectionGroup": "bookings",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "designer_id", "order": "ASCENDING" },
-        { "fieldPath": "start_at", "order": "DESCENDING" }
+        {
+          "fieldPath": "designer_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "start_at",
+          "order": "DESCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "bookings",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "user_id", "order": "ASCENDING" },
-        { "fieldPath": "start_at", "order": "DESCENDING" }
+        {
+          "fieldPath": "user_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "start_at",
+          "order": "DESCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "bookings",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "designer_id", "order": "ASCENDING" },
-        { "fieldPath": "start_at", "order": "ASCENDING" }
+        {
+          "fieldPath": "designer_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "start_at",
+          "order": "ASCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "bookings",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "designer_id", "order": "ASCENDING" },
-        { "fieldPath": "day_of_week", "order": "ASCENDING" },
-        { "fieldPath": "start_at", "order": "ASCENDING" }
+        {
+          "fieldPath": "designer_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "day_of_week",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "start_at",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "notifications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "to",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "created_at",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "notifications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "to",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "notifications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "to",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "created_at",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "devices",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "is_active",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "devices",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "fcm_token",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "clients",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "client_id",
+          "order": "ASCENDING"
+        }
       ]
     }
   ],

@@ -122,3 +122,5 @@ app.*.symbols
 ios/Runner/GoogleService-Info.plist
 android/app/google-service.json
 .DS_Store
+ios/.DS_Store
+.DS_Store

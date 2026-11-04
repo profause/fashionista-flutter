@@ -9,6 +9,7 @@ import 'package:fashionista/presentation/screens/notification/widgets/notificati
 import 'package:fashionista/presentation/screens/notification/widgets/notification_info_widget.dart';
 import 'package:fashionista/presentation/screens/notification/widgets/notification_work_order_request_widget.dart';
 import 'package:fashionista/presentation/screens/notification/widgets/notification_work_order_status_widget.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
@@ -34,13 +35,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   void _markAllAsRead(List<NotificationModel> notifications) {
-    for (final notification in notifications) {
-      if (notification.status == 'new') {
-        context.read<NotificationBloc>().add(
-          UpdateNotification(notification.copyWith(status: 'read')),
-        );
-      }
-    }
+    final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+    if (uid.isEmpty) return;
+
+    // One batched Firestore write instead of one call per notification.
+    context.read<NotificationBloc>().add(MarkAllNotificationsRead(uid));
   }
 
   @override

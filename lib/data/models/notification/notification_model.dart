@@ -1,4 +1,5 @@
 import 'package:fashionista/core/models/hive/notification_model_hive_type.dart';
+import 'package:fashionista/core/utils/firestore_timestamp_converter.dart';
 import 'package:fashionista/data/models/author/author_model.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:fashionista/core/models/hive/hive_type.dart' as hive;
@@ -33,6 +34,23 @@ class NotificationModel extends Equatable {
   @HiveField(NotificationModelHiveType.status)
   final String? status;
 
+  /// Fine-grained event (`appointment_confirmed`, `order_status_updated`, ...).
+  /// `type` stays the coarse category the inbox renders.
+  @HiveField(NotificationModelHiveType.event)
+  @JsonKey(name: 'event')
+  final String? event;
+
+  /// When the recipient read the notification. `null` while unread.
+  @HiveField(NotificationModelHiveType.readAt)
+  @FirestoreTimestampConverter()
+  @JsonKey(name: 'read_at')
+  final DateTime? readAt;
+
+  /// Structured routing data (booking id, designer id, audience, ...).
+  @HiveField(NotificationModelHiveType.data)
+  @JsonKey(name: 'data')
+  final Map<String, String>? data;
+
   final String? from;
   @HiveField(NotificationModelHiveType.from)
   final String to;
@@ -47,6 +65,9 @@ class NotificationModel extends Equatable {
     this.author,
     this.createdAt = 0,
     this.status,
+    this.event,
+    this.readAt,
+    this.data,
     this.from,
     required this.to,
   });
@@ -67,6 +88,9 @@ class NotificationModel extends Equatable {
     author,
     createdAt,
     status,
+    event,
+    readAt,
+    data,
     from,
     to,
   ];
@@ -81,6 +105,9 @@ class NotificationModel extends Equatable {
     AuthorModel? author,
     int? createdAt,
     String? status,
+    String? event,
+    DateTime? readAt,
+    Map<String, String>? data,
     String? from,
     String? to,
   }) {
@@ -94,6 +121,9 @@ class NotificationModel extends Equatable {
       author: author ?? this.author,
       createdAt: createdAt ?? this.createdAt,
       status: status ?? this.status,
+      event: event ?? this.event,
+      readAt: readAt ?? this.readAt,
+      data: data ?? this.data,
       from: from ?? this.from,
       to: to ?? this.to,
     );
@@ -110,6 +140,9 @@ class NotificationModel extends Equatable {
       author: null,
       createdAt: 0,
       status: '',
+      event: '',
+      readAt: null,
+      data: const {},
       from: '',
       to: '',
     );

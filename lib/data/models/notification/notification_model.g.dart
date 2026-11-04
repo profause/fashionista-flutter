@@ -26,6 +26,9 @@ class NotificationModelAdapter extends TypeAdapter<NotificationModel> {
       author: fields[7] as AuthorModel?,
       createdAt: fields[4] as int,
       status: fields[3] as String?,
+      event: fields[11] as String?,
+      readAt: fields[12] as DateTime?,
+      data: (fields[13] as Map?)?.cast<String, String>(),
       to: fields[5] as String,
     );
   }
@@ -33,7 +36,7 @@ class NotificationModelAdapter extends TypeAdapter<NotificationModel> {
   @override
   void write(BinaryWriter writer, NotificationModel obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(13)
       ..writeByte(0)
       ..write(obj.uid)
       ..writeByte(10)
@@ -52,6 +55,12 @@ class NotificationModelAdapter extends TypeAdapter<NotificationModel> {
       ..write(obj.createdAt)
       ..writeByte(3)
       ..write(obj.status)
+      ..writeByte(11)
+      ..write(obj.event)
+      ..writeByte(12)
+      ..write(obj.readAt)
+      ..writeByte(13)
+      ..write(obj.data)
       ..writeByte(5)
       ..write(obj.to);
   }
@@ -84,6 +93,11 @@ NotificationModel _$NotificationModelFromJson(Map<String, dynamic> json) =>
           : AuthorModel.fromJson(json['author'] as Map<String, dynamic>),
       createdAt: (json['created_at'] as num?)?.toInt() ?? 0,
       status: json['status'] as String?,
+      event: json['event'] as String?,
+      readAt: const FirestoreTimestampConverter().fromJson(json['read_at']),
+      data: (json['data'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, e as String),
+      ),
       from: json['from'] as String?,
       to: json['to'] as String,
     );
@@ -99,6 +113,9 @@ Map<String, dynamic> _$NotificationModelToJson(NotificationModel instance) =>
       'author': instance.author?.toJson(),
       'created_at': instance.createdAt,
       'status': instance.status,
+      'event': instance.event,
+      'read_at': const FirestoreTimestampConverter().toJson(instance.readAt),
+      'data': instance.data,
       'from': instance.from,
       'to': instance.to,
     };

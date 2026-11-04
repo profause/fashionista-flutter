@@ -584,6 +584,7 @@ class FirebaseBookingServiceImpl implements FirebaseBookingService {
         // Writes.
         transaction.update(bookingRef, {
           'status': status.value,
+          'last_status_actor': actorUserId,
           'updated_at': Timestamp.fromDate(now),
         });
 

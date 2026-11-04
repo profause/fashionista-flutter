@@ -10,5 +10,7 @@ class NotificationModelHiveType {
   static const int notificationType = 8;
   static const int refType = 9;
   static const int refId = 10;
-
+  static const int event = 11;
+  static const int readAt = 12;
+  static const int data = 13;
 }

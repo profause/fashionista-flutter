@@ -1,74 +1,161 @@
 rules_version = '2';
 
 // ---------------------------------------------------------------------------
-// Fashionista — booking module rules.
+// Fashionista — complete Firestore rules.
 //
-// !! READ BEFORE DEPLOYING !!
+// This file is now the single source of truth. It replaces the previous
+// console-only wildcard:
 //
-// This repository did not previously version-control Firestore rules; the rest
-// of the project's rules live in the Firebase console. This file only declares
-// the paths added by the availability/booking module. Deploying it standalone
-// would leave every other collection denied.
+//   match /{document=**} { allow read, write: if request.auth.uid != null; }
 //
-// Merge these `match` blocks into the console rule set before running:
-//   firebase deploy --only firestore
+// which let any signed-in user read and write every collection.
 //
-// Known limitation (no Cloud Functions allowed):
-// Slot integrity is enforced by the Flutter client's Firestore transaction on a
-// deterministic `slot_reservations/{designerId}_{yyyyMMdd}_{HHmm}` document.
-// These rules stop clients from writing another user's reservation or forging
-// booking ownership, but they cannot re-derive slot availability from the
-// designer's schedule. A modified client can therefore still create a booking
-// document directly; treat slot uniqueness as an anti-race measure, not as a
-// trusted server-side guarantee.
+// Design:
+//   * Discovery content (designers, trends, users, collections, services,
+//     reviews) stays readable by signed-in users — the product needs it.
+//   * Writes are restricted to the creator/owner.
+//   * Sensitive data (notifications, devices, bookings, slot reservations,
+//     clients, measurements) is participant-scoped.
+//   * Reference data with no owner (fashion_interests) is read-only.
+//
+// Any collection NOT listed here is denied. If a feature starts writing a new
+// collection, add a block for it.
+//
+// Known limitation (no backend enforced booking workflow): slot integrity is
+// enforced by the Flutter client's transaction on a deterministic
+// `slot_reservations/{designerId}_{yyyyMMdd}_{HHmm}` document. These rules stop
+// clients writing another user's reservation or forging booking ownership, but
+// they cannot re-derive slot availability from a designer's schedule. A
+// modified client can still create a booking document directly; treat slot
+// uniqueness as an anti-race measure, not a trusted guarantee.
 // ---------------------------------------------------------------------------
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ---- Helpers ---------------------------------------------------------
     function signedIn() {
       return request.auth != null;
     }
 
-    function isDesignerOf(designerId) {
-      return signedIn() && request.auth.uid == designerId;
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
     }
 
     function statusIn(allowed) {
       return request.resource.data.status in allowed;
     }
 
-    // ---------------------------------------------------------------------
-    // Availability (readable by any signed-in user so clients can see slots;
-    // writable only by the owning designer).
-    // ---------------------------------------------------------------------
+    function ownsClient(clientId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/clients/$(clientId))
+        && get(/databases/$(database)/documents/clients/$(clientId))
+             .data.created_by == request.auth.uid;
+    }
+
+    function isLinkedUser(clientId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/client_measurements/$(request.auth.uid)/clients/$(clientId));
+    }
+
+    // A designer may create/update a document they own.
+    function createsAsSelf() {
+      return signedIn() && request.resource.data.created_by == request.auth.uid;
+    }
+
+    function updatesOwnedDocument() {
+      return signedIn() && resource.data.created_by == request.auth.uid;
+    }
+
+    // ---- Users -----------------------------------------------------------
+    match /users/{userId} {
+      // Profiles are discoverable (search, designer fallback).
+      allow read: if signedIn();
+      allow create, update, delete: if isSelf(userId);
+
+      // Personal shortcuts and settings: owner only.
+      match /favourite_designers/{designerId} {
+        allow read, write: if isSelf(userId);
+      }
+
+      match /bookmarked_design_collections/{collectionId} {
+        allow read, write: if isSelf(userId);
+      }
+
+      match /pinned_clients/{clientId} {
+        allow read, write: if isSelf(userId);
+      }
+
+      // Push registration. Owner only; Cloud Functions read via Admin SDK.
+      match /devices/{deviceId} {
+        allow read: if isSelf(userId);
+
+        allow create: if isSelf(userId)
+          && request.resource.data.fcm_token is string
+          && request.resource.data.fcm_token.size() > 0
+          && request.resource.data.platform in ['android', 'ios']
+          && request.resource.data.is_active is bool;
+
+        allow update: if isSelf(userId)
+          && request.resource.data.fcm_token is string
+          && request.resource.data.platform in ['android', 'ios']
+          && request.resource.data.is_active is bool;
+
+        allow delete: if isSelf(userId);
+      }
+
+      match /settings/notifications {
+        allow read, write: if isSelf(userId);
+      }
+    }
+
+    // ---- Designers -------------------------------------------------------
     match /designers/{designerId} {
-      // Only the timezone may be added to a designer document from this module.
-      allow update: if isDesignerOf(designerId)
-        && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['timezone']);
+      allow read: if signedIn();
+      allow create, update, delete: if isSelf(designerId);
 
       match /availability/{dayOfWeek} {
         allow read: if signedIn();
-        allow write: if isDesignerOf(designerId)
+        allow write: if isSelf(designerId)
           && request.resource.data.day_of_week is int
           && request.resource.data.is_available is bool
           && request.resource.data.sessions is list;
-        allow delete: if isDesignerOf(designerId);
+        allow delete: if isSelf(designerId);
       }
 
       match /availability_exceptions/{dateKey} {
         allow read: if signedIn();
-        allow write: if isDesignerOf(designerId)
+        allow write: if isSelf(designerId)
           && request.resource.data.type in ['unavailable', 'custom']
           && request.resource.data.sessions is list;
-        allow delete: if isDesignerOf(designerId);
+        allow delete: if isSelf(designerId);
       }
     }
 
-    // ---------------------------------------------------------------------
-    // Bookings
-    // ---------------------------------------------------------------------
+    // ---- Clients (designer-scoped customer records) ----------------------
+    match /clients/{clientId} {
+      allow read: if ownsClient(clientId) || isLinkedUser(clientId);
+
+      allow create: if signedIn()
+        && request.resource.data.created_by == request.auth.uid
+        && request.resource.data.uid == clientId;
+
+      allow update, delete: if ownsClient(clientId);
+
+      match /measurements/{measurementId} {
+        // Designers edit them; the linked user may read their own.
+        allow read: if ownsClient(clientId) || isLinkedUser(clientId);
+        allow write, delete: if ownsClient(clientId);
+      }
+    }
+
+    // ---- User ↔ client linkage ------------------------------------------
+    match /client_measurements/{userId}/clients/{clientId} {
+      allow read: if isSelf(userId);
+      allow create, update, delete: if isSelf(userId);
+    }
+
+    // ---- Bookings --------------------------------------------------------
     match /bookings/{bookingId} {
       allow read: if signedIn()
         && (resource.data.user_id == request.auth.uid
@@ -107,13 +194,9 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // ---------------------------------------------------------------------
-    // Slot reservations
-    //
-    // Read is open to signed-in users because the booking transaction reads the
-    // document before deciding whether the slot is still claimable.
-    // ---------------------------------------------------------------------
+    // ---- Slot reservations ----------------------------------------------
     match /slot_reservations/{reservationId} {
+      // The booking transaction must read the lock before writing.
       allow read: if signedIn();
 
       allow create: if signedIn()
@@ -125,42 +208,135 @@ service cloud.firestore {
       allow update: if signedIn()
         && (
           resource.data.user_id == request.auth.uid
-          || isDesignerOf(resource.data.designer_id)
+          || isSelf(resource.data.designer_id)
         )
         && request.resource.data.status in ['reserved', 'released'];
 
       allow delete: if false;
     }
 
-    // ---------------------------------------------------------------------
-    // Notifications
-    //
-    // Bookings notify the designer from the client's device (no Cloud
-    // Functions), so this module adds a create rule scoped to booking
-    // notifications. Other notification types are governed by the existing
-    // console rules and are unaffected: multiple match blocks OR together.
-    // ---------------------------------------------------------------------
+    // ---- Notifications ---------------------------------------------------
     match /notifications/{notificationId} {
+      // Recipients only. Cloud Functions use the Admin SDK (bypasses rules).
+      allow read: if signedIn() && resource.data.to == request.auth.uid;
+
+      // Only the read state may change, and only by the recipient.
+      allow update: if signedIn()
+        && resource.data.to == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['status', 'read_at']);
+
+      // Legacy inbox records are still created by the app for client, order and
+      // trend events. The sender must be the caller and the recipient real.
       allow create: if signedIn()
         && request.resource.data.from == request.auth.uid
         && request.resource.data.to is string
-        && request.resource.data.to != ''
-        && request.resource.data.ref_type == 'booking'
-        && request.resource.data.type == 'booking';
+        && request.resource.data.to != '';
+
+      allow delete: if false;
     }
 
-    // ---------------------------------------------------------------------
-    // Client records auto-created for a first-time booking.
-    // ---------------------------------------------------------------------
-    match /clients/{clientId} {
+    // Delivery markers: Cloud Functions only.
+    match /notification_deliveries/{markerId} {
+      allow read, write: if false;
+    }
+
+    // ---- Work orders -----------------------------------------------------
+    match /work_orders/{workOrderId} {
+      // Clients and designers both open order details; participants are not
+      // reliably expressible without extra reads, so reads stay signed-in.
+      allow read: if signedIn();
+      allow create: if createsAsSelf();
+      allow update, delete: if updatesOwnedDocument();
+    }
+
+    match /work_order_status_progress/{progressId} {
+      allow read: if signedIn();
+      allow create: if createsAsSelf();
+      allow update, delete: if updatesOwnedDocument();
+    }
+
+    // ---- Trends ----------------------------------------------------------
+    match /trends/{trendId} {
+      allow read: if signedIn();
+      allow create: if createsAsSelf();
+      allow update, delete: if updatesOwnedDocument();
+
+      // CommentModel documents identify the author as `author.uid`
+      // (there is no `created_by` field).
+      match /comments/{commentId} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+          && request.resource.data.author.uid == request.auth.uid;
+        allow update, delete: if signedIn()
+          && resource.data.author.uid == request.auth.uid;
+      }
+
+      // Doc id is the acting user id.
+      match /likes/{userId} {
+        allow read: if signedIn();
+        allow write: if isSelf(userId);
+      }
+
+      match /followers/{userId} {
+        allow read: if signedIn();
+        allow write: if isSelf(userId);
+      }
+    }
+
+    // ---- Closet (document id is the owner uid) ---------------------------
+    match /closets/{userId} {
+      allow read, write: if isSelf(userId);
+
+      match /closet_items/{itemId} {
+        allow read, write: if isSelf(userId);
+      }
+
+      match /outfits/{outfitId} {
+        allow read, write: if isSelf(userId);
+      }
+
+      match /outfit_plans/{planId} {
+        allow read, write: if isSelf(userId);
+      }
+    }
+
+    // ---- Design collections ---------------------------------------------
+    match /design_collections/{collectionId} {
+      allow read: if signedIn();
+      allow create: if createsAsSelf();
+      allow update, delete: if updatesOwnedDocument();
+    }
+
+    // ---- Designer content ------------------------------------------------
+    match /designer_services/{serviceId} {
+      allow read: if signedIn();
+      allow create: if createsAsSelf();
+      allow update, delete: if updatesOwnedDocument();
+    }
+
+    match /designer_reviews/{reviewId} {
+      allow read: if signedIn();
+      // The author lives on the embedded comment, not on the review.
       allow create: if signedIn()
-        && request.resource.data.created_by is string
-        && request.resource.data.uid == clientId;
+        && request.resource.data.comment.author.uid == request.auth.uid;
+      allow update, delete: if signedIn()
+        && resource.data.comment.author.uid == request.auth.uid;
     }
 
-    match /client_measurements/{userId}/clients/{clientId} {
-      allow read: if signedIn() && request.auth.uid == userId;
-      allow create: if signedIn() && request.auth.uid == userId;
+    // Feedback documents are serialized CommentModel payloads.
+    match /designer_feedback/{feedbackId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.author.uid == request.auth.uid;
+      allow update, delete: if signedIn()
+        && resource.data.author.uid == request.auth.uid;
+    }
+
+    // ---- Reference data (seeded from the console) ------------------------
+    match /fashion_interests/{interestId} {
+      allow read: if signedIn();
+      allow write: if false;
     }
   }
 }

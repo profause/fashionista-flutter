@@ -36,5 +36,16 @@ NotificationModel buildBookingNotification({
     status: 'new',
     from: userId,
     to: designerId,
+    event: 'appointment_requested',
+    // Routing data for the push/inbox tap.
+    data: {
+      'type': 'booking',
+      'event': 'appointment_requested',
+      'ref_id': bookingId,
+      'ref_type': 'booking',
+      'audience': 'designer',
+      'designer_id': designerId,
+      'user_id': userId,
+    },
   );
 }

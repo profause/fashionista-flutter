@@ -66,3 +66,28 @@ class DeleteNotification extends NotificationBlocEvent {
 class ClearNotification extends NotificationBlocEvent {
   const ClearNotification();
 }
+
+/// Marks every unread notification of [uid] as read.
+class MarkAllNotificationsRead extends NotificationBlocEvent {
+  final String uid;
+  const MarkAllNotificationsRead(this.uid);
+
+  @override
+  List<Object?> get props => [uid];
+}
+
+/// Loads one page of the inbox, newest first.
+class LoadNotificationsPage extends NotificationBlocEvent {
+  final String uid;
+  final int limit;
+  final int? beforeCreatedAt;
+
+  const LoadNotificationsPage(
+    this.uid, {
+    this.limit = 20,
+    this.beforeCreatedAt,
+  });
+
+  @override
+  List<Object?> get props => [uid, limit, beforeCreatedAt];
+}

@@ -7,6 +7,7 @@ import 'package:fashionista/core/config/app_remote_config.dart';
 import 'package:fashionista/core/onboarding/onboarding_cubit.dart';
 import 'package:fashionista/core/service_locator/hive_service.dart';
 import 'package:fashionista/core/service_locator/local_notification_service.dart';
+import 'package:fashionista/core/service_locator/push_notification_service.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/theme_cubit.dart';
 import 'package:fashionista/core/widgets/bloc/button_loading_state_cubit.dart';
@@ -38,6 +39,7 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'firebase_options.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -60,6 +62,13 @@ Future<void> main() async {
 
   await _configureLocalTimeZone();
   await LocalNotificationService.init();
+
+  // Background messages must be routed to a top-level handler before the app
+  // starts, otherwise terminated-state pushes are dropped.
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+  // Never block startup on permission prompts or token registration.
+  unawaited(PushNotificationService.initialize());
 
   await AppRemoteConfig.instance.initialize();
 

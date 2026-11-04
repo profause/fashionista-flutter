@@ -13,6 +13,19 @@ abstract class FirebaseNotificationService {
   Future<Either<String, List<NotificationModel>>>
   findNotificationsFromFirestore(String uid);
   Future<Either<String, int>> getCount(String uid);
+
+  /// Unread-only counter used by the badge.
+  Future<Either<String, int>> getUnreadCount(String uid);
+
+  /// Marks every unread notification of [uid] as read in one go.
+  Future<Either<String, int>> markAllAsRead(String uid);
+
+  /// One page of the inbox, newest first.
+  Future<Either<String, List<NotificationModel>>> findNotificationsPage(
+    String uid, {
+    int limit = 20,
+    int? beforeCreatedAt,
+  });
 }
 
 class FirebaseNotificationServiceImpl implements FirebaseNotificationService {
@@ -54,6 +67,7 @@ class FirebaseNotificationServiceImpl implements FirebaseNotificationService {
           .collection('notifications')
           .where('to', isEqualTo: uid)
           .orderBy('created_at', descending: true)
+          .limit(100)
           .get();
 
       final notifications = querySnapshot.docs.map((doc) {
@@ -139,13 +153,96 @@ class FirebaseNotificationServiceImpl implements FirebaseNotificationService {
   Future<Either> updateNotification(NotificationModel notification) async {
     try {
       final firestore = FirebaseFirestore.instance;
-      firestore
+      await firestore
           .collection('notifications')
           .doc(notification.uid)
           .set(notification.toJson(), SetOptions(merge: true));
       return Right(notification);
     } on FirebaseException catch (e) {
       return Left(e.message);
+    }
+  }
+
+  @override
+  Future<Either<String, int>> getUnreadCount(String uid) async {
+    if (uid.isEmpty) return const Right(0);
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('notifications')
+          .where('to', isEqualTo: uid)
+          .where('status', isEqualTo: 'new')
+          .count()
+          .get();
+      return Right(snapshot.count ?? 0);
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'Unable to count notifications');
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  @override
+  Future<Either<String, int>> markAllAsRead(String uid) async {
+    if (uid.isEmpty) return const Right(0);
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final snapshot = await firestore
+          .collection('notifications')
+          .where('to', isEqualTo: uid)
+          .where('status', isEqualTo: 'new')
+          .get();
+
+      if (snapshot.docs.isEmpty) return const Right(0);
+
+      // Firestore batches cap at 500 writes.
+      for (var start = 0; start < snapshot.docs.length; start += 500) {
+        final batch = firestore.batch();
+        final chunk = snapshot.docs.skip(start).take(500);
+        for (final doc in chunk) {
+          batch.update(doc.reference, {
+            'status': 'read',
+            'read_at': Timestamp.fromDate(DateTime.now().toUtc()),
+          });
+        }
+        await batch.commit();
+      }
+
+      return Right(snapshot.docs.length);
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'Unable to mark notifications as read');
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  @override
+  Future<Either<String, List<NotificationModel>>> findNotificationsPage(
+    String uid, {
+    int limit = 20,
+    int? beforeCreatedAt,
+  }) async {
+    if (uid.isEmpty) return const Right(<NotificationModel>[]);
+    try {
+      Query<Map<String, dynamic>> query = FirebaseFirestore.instance
+          .collection('notifications')
+          .where('to', isEqualTo: uid)
+          .orderBy('created_at', descending: true)
+          .limit(limit);
+
+      if (beforeCreatedAt != null) {
+        query = query.where('created_at', isLessThan: beforeCreatedAt);
+      }
+
+      final snapshot = await query.get();
+      return Right(
+        snapshot.docs
+            .map((doc) => NotificationModel.fromJson(doc.data()))
+            .toList(),
+      );
+    } on FirebaseException catch (e) {
+      return Left(e.message ?? 'Unable to load notifications');
+    } catch (e) {
+      return Left(e.toString());
     }
   }
 }

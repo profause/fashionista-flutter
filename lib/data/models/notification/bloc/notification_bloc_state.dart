@@ -35,11 +35,37 @@ class NotificationUpdated extends NotificationBlocState {
 class NotificationsLoaded extends NotificationBlocState {
   final List<NotificationModel> notifications;
   final bool fromCache;
-  const NotificationsLoaded(this.notifications, {this.fromCache = false})
-    : super(notificationCount: notifications.length);
+
+  /// `true` when another page may exist.
+  final bool hasMore;
+
+  NotificationsLoaded(
+    this.notifications, {
+    this.fromCache = false,
+    this.hasMore = false,
+    int? unreadCount,
+  }) : super(
+         notificationCount:
+             unreadCount ??
+             notifications.where((n) => n.status == 'new').length,
+       );
 
   @override
-  List<Object?> get props => [notifications, fromCache, notificationCount];
+  List<Object?> get props => [
+    notifications,
+    fromCache,
+    hasMore,
+    notificationCount,
+  ];
+}
+
+/// Result of a mark-all-read action.
+class NotificationsMarkedRead extends NotificationBlocState {
+  final int affected;
+  const NotificationsMarkedRead(this.affected) : super(notificationCount: 0);
+
+  @override
+  List<Object?> get props => [affected];
 }
 
 class NotificationsCounted extends NotificationBlocState {
