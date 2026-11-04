@@ -8,9 +8,11 @@ import 'package:fashionista/data/models/availability/availability_exception_mode
 import 'package:fashionista/data/models/availability/designer_availability_model.dart';
 import 'package:fashionista/data/models/bookings/booking_client_model.dart';
 import 'package:fashionista/data/models/bookings/booking_model.dart';
+import 'package:fashionista/data/models/bookings/booking_notification.dart';
 import 'package:fashionista/data/models/bookings/booking_status.dart';
 import 'package:fashionista/data/models/bookings/create_booking_request.dart';
 import 'package:fashionista/data/models/bookings/slot_reservation_model.dart';
+import 'package:uuid/uuid.dart';
 
 abstract class FirebaseBookingService {
   Future<Either<String, List<Booking>>> findBookingsForDesigner(
@@ -328,6 +330,12 @@ class FirebaseBookingServiceImpl implements FirebaseBookingService {
         ),
       );
 
+      // Generated outside the transaction so a retry reuses the same id.
+      final notificationId = const Uuid().v4();
+      final notificationRef = _firestore
+          .collection('notifications')
+          .doc(notificationId);
+
       final availabilityRef = _firestore
           .collection('designers')
           .doc(request.designerId)
@@ -501,6 +509,22 @@ class FirebaseBookingServiceImpl implements FirebaseBookingService {
             'is_default': false,
           });
         }
+
+        // Notify the designer. Written inside the transaction so a booking and
+        // its notification can never disagree about existing.
+        transaction.set(
+          notificationRef,
+          buildBookingNotification(
+            notificationId: notificationId,
+            bookingId: bookingId,
+            designerId: request.designerId,
+            userId: request.userId,
+            client: clientSnapshot,
+            date: request.date,
+            startTime: request.startTime,
+            createdAt: now,
+          ).toJson(),
+        );
 
         return newBooking;
       });

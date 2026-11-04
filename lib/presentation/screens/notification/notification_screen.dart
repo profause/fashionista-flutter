@@ -5,6 +5,7 @@ import 'package:fashionista/data/models/notification/bloc/notification_bloc_even
 import 'package:fashionista/data/models/notification/notification_model.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/services/hive/hive_notification_service.dart';
+import 'package:fashionista/presentation/screens/notification/widgets/notification_booking_widget.dart';
 import 'package:fashionista/presentation/screens/notification/widgets/notification_info_widget.dart';
 import 'package:fashionista/presentation/screens/notification/widgets/notification_work_order_request_widget.dart';
 import 'package:fashionista/presentation/screens/notification/widgets/notification_work_order_status_widget.dart';
@@ -131,6 +132,24 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       );
                       context.read<NotificationBloc>().add(
                         UpdateNotification(updateNotification),
+                      );
+                    },
+                  );
+                case "booking":
+                  return NotificationBookingWidget(
+                    key: ValueKey(index),
+                    notification: notification,
+                    onDelete: () {
+                      context.read<NotificationBloc>().add(
+                        DeleteNotification(notification.uid!),
+                      );
+                    },
+                    onTap: () {
+                      if (notification.status != 'new') return;
+                      context.read<NotificationBloc>().add(
+                        UpdateNotification(
+                          notification.copyWith(status: 'read'),
+                        ),
                       );
                     },
                   );

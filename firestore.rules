@@ -133,6 +133,23 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------------------
+    // Notifications
+    //
+    // Bookings notify the designer from the client's device (no Cloud
+    // Functions), so this module adds a create rule scoped to booking
+    // notifications. Other notification types are governed by the existing
+    // console rules and are unaffected: multiple match blocks OR together.
+    // ---------------------------------------------------------------------
+    match /notifications/{notificationId} {
+      allow create: if signedIn()
+        && request.resource.data.from == request.auth.uid
+        && request.resource.data.to is string
+        && request.resource.data.to != ''
+        && request.resource.data.ref_type == 'booking'
+        && request.resource.data.type == 'booking';
+    }
+
+    // ---------------------------------------------------------------------
     // Client records auto-created for a first-time booking.
     // ---------------------------------------------------------------------
     match /clients/{clientId} {

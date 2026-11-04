@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fashionista/core/utils/scheduling/reservation_key.dart';
 import 'package:fashionista/data/models/bookings/booking_client_model.dart';
 import 'package:fashionista/data/models/bookings/booking_model.dart';
+import 'package:fashionista/data/models/bookings/booking_notification.dart';
+import 'package:fashionista/data/models/notification/notification_model.dart';
 import 'package:fashionista/data/models/bookings/booking_status.dart';
 import 'package:fashionista/data/models/bookings/slot_reservation_model.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -206,6 +208,83 @@ void main() {
     });
   });
 
+  group('buildBookingNotification', () {
+    NotificationModel build() {
+      return buildBookingNotification(
+        notificationId: 'notif_1',
+        bookingId: 'booking_1',
+        designerId: 'designer_1',
+        userId: 'user_1',
+        client: const BookingClient(
+          id: 'client_1',
+          name: 'Ama Mensah',
+          avatar: 'https://cdn.example.com/ama.jpg',
+          mobileNumber: '+233201234567',
+        ),
+        date: '2026-11-16',
+        startTime: '08:30',
+        createdAt: DateTime.utc(2026, 11, 1, 9),
+      );
+    }
+
+    test('targets the designer and is authored by the client', () {
+      final notification = build();
+
+      expect(notification.to, 'designer_1');
+      expect(notification.from, 'user_1');
+      expect(notification.uid, 'notif_1');
+      expect(notification.refId, 'booking_1');
+      expect(notification.refType, 'booking');
+      expect(notification.type, 'booking');
+      expect(notification.status, 'new');
+    });
+
+    test('describes who booked and when', () {
+      final notification = build();
+
+      expect(notification.title, 'New appointment request');
+      expect(notification.description, contains('Ama Mensah'));
+      expect(notification.description, contains('2026-11-16'));
+      expect(notification.description, contains('8:30 AM'));
+    });
+
+    test('carries the client snapshot as the author', () {
+      final author = build().author!;
+
+      expect(author.uid, 'user_1');
+      expect(author.name, 'Ama Mensah');
+      expect(author.avatar, 'https://cdn.example.com/ama.jpg');
+      expect(author.mobileNumber, '+233201234567');
+    });
+
+    test('serializes with epoch millis and snake_case keys', () {
+      final json = build().toJson();
+
+      expect(
+        json['created_at'],
+        DateTime.utc(2026, 11, 1, 9).millisecondsSinceEpoch,
+      );
+      expect(json['ref_type'], 'booking');
+      expect(json['to'], 'designer_1');
+      expect(json['from'], 'user_1');
+    });
+
+    test('falls back to "Client" when the name is empty', () {
+      final notification = buildBookingNotification(
+        notificationId: 'n',
+        bookingId: 'b',
+        designerId: 'd',
+        userId: 'u',
+        client: const BookingClient(id: 'c'),
+        date: '2026-11-16',
+        startTime: '08:00',
+        createdAt: DateTime.utc(2026, 11, 1),
+      );
+
+      expect(notification.description, startsWith('Client requested'));
+    });
+  });
+
   group('SlotReservation', () {
     test('is active while reserved and before expiry', () {
       final reservation = SlotReservation(
@@ -216,10 +295,7 @@ void main() {
         expiresAt: DateTime.utc(2026, 11, 16, 10),
       );
 
-      expect(
-        reservation.isActiveAt(DateTime.utc(2026, 11, 16, 9, 59)),
-        isTrue,
-      );
+      expect(reservation.isActiveAt(DateTime.utc(2026, 11, 16, 9, 59)), isTrue);
     });
 
     test('is reclaimable after expiry', () {
@@ -242,10 +318,7 @@ void main() {
         expiresAt: DateTime.utc(2026, 11, 16, 23),
       );
 
-      expect(
-        reservation.isActiveAt(DateTime.utc(2026, 11, 16, 9)),
-        isFalse,
-      );
+      expect(reservation.isActiveAt(DateTime.utc(2026, 11, 16, 9)), isFalse);
     });
   });
 }

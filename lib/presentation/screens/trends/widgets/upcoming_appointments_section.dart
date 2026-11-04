@@ -239,7 +239,7 @@ class _AppointmentCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         onTap: onTap,
         child: Container(
-          width: 236,
+          width: 245,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: context.cardSurface,

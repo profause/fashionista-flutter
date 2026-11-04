@@ -644,6 +644,18 @@ the snapshot are enriched read-only (max 25 per load) via `_attachClients`; the 
 query deliberately skips this. Rendered by `BookingClientTile` on the designer appointment card
 and the booking detail sheet. `firestore.rules` now requires `client.id == client_id` on create.
 
+### Booking notifications (2026-11-04)
+
+Creating a booking writes a `notifications/{id}` document **inside the booking transaction**, so a
+booking and its notification can never disagree. Payload is built by the pure
+`buildBookingNotification()` in `lib/data/models/bookings/booking_notification.dart`
+(`ref_type: 'booking'`, `type: 'booking'`, `from` = client, `to` = designer, author = client
+snapshot). The notification screen routes `type: 'booking'` taps to `/designer-bookings`.
+`firestore.rules` adds a scoped create rule for booking notifications only.
+Rendered by a dedicated `NotificationBookingWidget`
+(`lib/presentation/screens/notification/widgets/notification_booking_widget.dart`) that shows the
+client's avatar, name and phone plus a "View appointments" action, instead of the generic info card.
+
 ### Known limitations
 
 1. **Client transactions are not a security boundary.** Without Cloud Functions the server
