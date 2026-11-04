@@ -2,6 +2,7 @@ import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/utils/scheduling/slot_generator.dart';
 import 'package:fashionista/core/utils/scheduling/time_of_day_x.dart';
 import 'package:fashionista/data/models/availability/designer_availability_model.dart';
+import 'package:fashionista/presentation/widgets/round_toggle.dart';
 import 'package:flutter/material.dart';
 
 /// One weekday row on the manage-availability screen.
@@ -62,11 +63,7 @@ class DayAvailabilityCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Switch(
-                    value: enabled,
-                    activeThumbColor: context.accent,
-                    onChanged: onToggle,
-                  ),
+                  RoundToggle(value: enabled, onChanged: onToggle),
                 ],
               ),
               if (enabled) ...[

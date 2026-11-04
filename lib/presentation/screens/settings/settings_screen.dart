@@ -1,6 +1,7 @@
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/settings/bloc/settings_bloc.dart';
 import 'package:fashionista/data/models/settings/models/settings_model.dart';
+import 'package:fashionista/presentation/widgets/round_toggle.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -94,7 +95,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     SettingsRow(
                       title: 'Auto play videos',
                       subtitle: 'Play videos automatically when scrolling',
-                      trailing: _RoundToggle(
+                      trailing: RoundToggle(
                         value: settings.autoPlayVideos ?? false,
                         onChanged: (value) {
                           final updatedSettings = settings.copyWith(
@@ -459,43 +460,3 @@ class _Chevron extends StatelessWidget {
   }
 }
 
-class _RoundToggle extends StatelessWidget {
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  const _RoundToggle({required this.value, required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => onChanged(!value),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
-        width: 44,
-        height: 24,
-        padding: const EdgeInsets.all(2),
-        alignment: value ? Alignment.centerRight : Alignment.centerLeft,
-        decoration: BoxDecoration(
-          color: value ? context.accent : context.softBorder,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Container(
-          width: 20,
-          height: 20,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Color(0x33000000),
-                blurRadius: 2,
-                offset: Offset(0, 0.5),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}

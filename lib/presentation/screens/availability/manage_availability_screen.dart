@@ -199,7 +199,6 @@ class _ManageAvailabilityScreenState extends State<ManageAvailabilityScreen> {
           style: textTheme.titleMedium,
         ),
         elevation: 0,
-        shape: Border(bottom: BorderSide(color: context.hairline)),
       ),
       body: BlocConsumer<AvailabilityBloc, AvailabilityState>(
         listenWhen: (previous, current) =>

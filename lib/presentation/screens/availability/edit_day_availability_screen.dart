@@ -324,7 +324,6 @@ class _EditDayAvailabilityScreenState extends State<EditDayAvailabilityScreen> {
           backgroundColor: context.canvasBackground,
           title: Text(widget.day.dayName, style: textTheme.titleMedium),
           elevation: 0,
-          shape: Border(bottom: BorderSide(color: context.hairline)),
           actions: [
             PopupMenuButton<String>(
               color: context.cardSurface,
@@ -361,7 +360,7 @@ class _EditDayAvailabilityScreenState extends State<EditDayAvailabilityScreen> {
                 child: SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   value: _isAvailable,
-                  activeThumbColor: context.accent,
+                  activeThumbColor: Colors.white,
                   title: Text(
                     'Available on ${widget.day.dayName}',
                     style: textTheme.bodyMedium?.copyWith(
