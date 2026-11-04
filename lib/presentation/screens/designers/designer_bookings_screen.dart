@@ -6,6 +6,7 @@ import 'package:fashionista/data/models/bookings/booking_status.dart';
 import 'package:fashionista/data/models/bookings/bloc/booking_bloc.dart';
 import 'package:fashionista/data/models/bookings/bloc/booking_event.dart';
 import 'package:fashionista/data/models/bookings/bloc/booking_state.dart';
+import 'package:fashionista/presentation/screens/bookings/widgets/booking_client_tile.dart';
 import 'package:fashionista/presentation/screens/bookings/widgets/booking_details_sheet.dart';
 import 'package:fashionista/presentation/screens/bookings/widgets/booking_status_chip.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
@@ -91,7 +92,9 @@ class _DesignerBookingsScreenState extends State<DesignerBookingsScreen> {
             );
           }
 
-          if (state is! BookingsLoaded || state.ownerId != _designerId) {
+          if (state is! BookingsLoaded ||
+              state.ownerId != _designerId ||
+              !state.isDesignerView) {
             return const Center(child: CircularProgressIndicator());
           }
 
@@ -241,17 +244,11 @@ class _BookingTile extends StatelessWidget {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        booking.notes?.isNotEmpty == true
-                            ? booking.notes!
-                            : 'No notes',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: textTheme.bodySmall?.copyWith(
-                          fontSize: 11,
-                          color: context.secondaryLabel,
-                        ),
+                      const SizedBox(height: 6),
+                      BookingClientTile(
+                        client: booking.client,
+                        fallbackId: booking.userId,
+                        avatarSize: 30,
                       ),
                     ],
                   ),

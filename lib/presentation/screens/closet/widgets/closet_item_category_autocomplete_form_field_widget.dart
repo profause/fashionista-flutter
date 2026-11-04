@@ -107,22 +107,25 @@ class _ClosetItemCategoryAutocompleteFormFieldWidgetState
                 itemCount: options.length,
                 itemBuilder: (context, index) {
                   final option = options.elementAt(index);
-                  return ListTile(
-                    leading: Icon(
-                      option["icon"] as IconData,
-                      color: context.accent,
-                    ),
-                    title: Text(
-                      option["label"],
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: context.onCanvasText,
+                  return Material(
+                    type: MaterialType.transparency,
+                    child: ListTile(
+                      leading: Icon(
+                        option["icon"] as IconData,
+                        color: context.accent,
                       ),
+                      title: Text(
+                        option["label"],
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: context.onCanvasText,
+                        ),
+                      ),
+                      onTap: () {
+                        widget.controller.text = option["label"] as String;
+                        onSelected(option);
+                      },
                     ),
-                    onTap: () {
-                      widget.controller.text = option["label"] as String;
-                      onSelected(option);
-                    },
                   );
                 },
               ),

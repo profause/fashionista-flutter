@@ -90,7 +90,9 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
             );
           }
 
-          if (state is! BookingsLoaded || state.ownerId != _userId) {
+          if (state is! BookingsLoaded ||
+              state.ownerId != _userId ||
+              state.isDesignerView) {
             return const Center(child: CircularProgressIndicator());
           }
 

@@ -116,16 +116,19 @@ class _CustomAutocompleteFormFieldWidgetState
                 itemCount: options.length,
                 itemBuilder: (context, index) {
                   final option = options.elementAt(index);
-                  return ListTile(
-                    leading: Icon(
-                      option["icon"] as IconData,
-                      color: colorScheme.primary,
+                  return Material(
+                    type: MaterialType.transparency,
+                    child: ListTile(
+                      leading: Icon(
+                        option["icon"] as IconData,
+                        color: colorScheme.primary,
+                      ),
+                      title: Text(option["label"], style: textTheme.bodyMedium),
+                      onTap: () {
+                        widget.controller.text = option["label"] as String;
+                        onSelected(option);
+                      },
                     ),
-                    title: Text(option["label"], style: textTheme.bodyMedium),
-                    onTap: () {
-                      widget.controller.text = option["label"] as String;
-                      onSelected(option);
-                    },
                   );
                 },
               ),

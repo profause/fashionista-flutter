@@ -86,6 +86,7 @@ class Booking extends Equatable {
     this.timezone = '',
     this.durationMinutes = 0,
     this.status = BookingStatus.pending,
+    this.client,
     this.notes,
     this.createdAt,
     this.updatedAt,

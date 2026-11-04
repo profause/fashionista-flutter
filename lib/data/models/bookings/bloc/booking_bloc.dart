@@ -32,7 +32,11 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
     result.fold(
       (failure) => emit(BookingError(failure)),
       (bookings) => emit(
-        BookingsLoaded(bookings: bookings, ownerId: event.designerId),
+        BookingsLoaded(
+          bookings: bookings,
+          ownerId: event.designerId,
+          isDesignerView: true,
+        ),
       ),
     );
   }
@@ -47,7 +51,11 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
     result.fold(
       (failure) => emit(BookingError(failure)),
       (bookings) => emit(
-        BookingsLoaded(bookings: bookings, ownerId: event.userId),
+        BookingsLoaded(
+          bookings: bookings,
+          ownerId: event.userId,
+          isDesignerView: false,
+        ),
       ),
     );
   }

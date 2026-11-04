@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fashionista/core/utils/scheduling/reservation_key.dart';
+import 'package:fashionista/data/models/bookings/booking_client_model.dart';
 import 'package:fashionista/data/models/bookings/booking_model.dart';
 import 'package:fashionista/data/models/bookings/booking_status.dart';
 import 'package:fashionista/data/models/bookings/slot_reservation_model.dart';
@@ -122,6 +123,86 @@ void main() {
 
       expect(restored.startAt, isNotNull);
       expect(restored.status, BookingStatus.noShow);
+    });
+  });
+
+  group('BookingClient snapshot', () {
+    test('round-trips id, name, avatar and mobile number', () {
+      final booking = Booking(
+        uid: 'booking_1',
+        designerId: 'designer_1',
+        userId: 'user_1',
+        clientId: 'client_1',
+        date: '2026-11-16',
+        dayOfWeek: DateTime.monday,
+        startTime: '08:30',
+        endTime: '09:00',
+        client: const BookingClient(
+          id: 'client_1',
+          name: 'Ama Mensah',
+          avatar: 'https://cdn.example.com/ama.jpg',
+          mobileNumber: '+233201234567',
+        ),
+      );
+
+      final restored = Booking.fromJson(booking.toJson());
+
+      expect(restored.client, isNotNull);
+      expect(restored.client!.id, 'client_1');
+      expect(restored.client!.name, 'Ama Mensah');
+      expect(restored.client!.avatar, 'https://cdn.example.com/ama.jpg');
+      expect(restored.client!.mobileNumber, '+233201234567');
+      expect(restored.client!.displayName, 'Ama Mensah');
+      expect(restored.client!.hasAvatar, isTrue);
+    });
+
+    test('serializes under the "client" key', () {
+      final booking = Booking(
+        designerId: 'designer_1',
+        userId: 'user_1',
+        date: '2026-11-16',
+        dayOfWeek: 1,
+        startTime: '08:30',
+        endTime: '09:00',
+        client: const BookingClient(id: 'c1', name: 'Kofi'),
+      );
+
+      final json = booking.toJson();
+      expect(json['client'], isA<Map<String, dynamic>>());
+      expect((json['client'] as Map)['id'], 'c1');
+      expect((json['client'] as Map)['name'], 'Kofi');
+    });
+
+    test('falls back gracefully when the snapshot is missing', () {
+      final restored = Booking.fromJson({
+        'designer_id': 'designer_1',
+        'user_id': 'user_1',
+        'date': '2026-11-16',
+        'day_of_week': 1,
+        'start_time': '08:30',
+        'end_time': '09:00',
+      });
+
+      expect(restored.client, isNull);
+      expect(const BookingClient().displayName, 'Client');
+      expect(const BookingClient().hasAvatar, isFalse);
+    });
+
+    test('is included in equality', () {
+      Booking base(BookingClient client) => Booking(
+        designerId: 'designer_1',
+        userId: 'user_1',
+        date: '2026-11-16',
+        dayOfWeek: 1,
+        startTime: '08:30',
+        endTime: '09:00',
+        client: client,
+      );
+
+      expect(
+        base(const BookingClient(name: 'A')),
+        isNot(base(const BookingClient(name: 'B'))),
+      );
     });
   });
 

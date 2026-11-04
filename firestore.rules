@@ -81,7 +81,9 @@ service cloud.firestore {
         && request.resource.data.designer_id is string
         && request.resource.data.date is string
         && request.resource.data.start_at is timestamp
-        && request.resource.data.end_at is timestamp;
+        && request.resource.data.end_at is timestamp
+        && request.resource.data.client is map
+        && request.resource.data.client.id == request.resource.data.client_id;
 
       allow update: if signedIn()
         && (

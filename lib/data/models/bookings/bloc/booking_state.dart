@@ -25,10 +25,19 @@ class BookingsLoaded extends BookingState {
   final List<Booking> bookings;
   final String ownerId;
 
-  const BookingsLoaded({required this.bookings, required this.ownerId});
+  /// `true` when the list came from the designer query, `false` for the
+  /// client query. Needed because a user can be both a client and a designer,
+  /// and both loads carry the same [ownerId].
+  final bool isDesignerView;
+
+  const BookingsLoaded({
+    required this.bookings,
+    required this.ownerId,
+    this.isDesignerView = false,
+  });
 
   @override
-  List<Object?> get props => [bookings, ownerId];
+  List<Object?> get props => [bookings, ownerId, isDesignerView];
 }
 
 class AvailableSlotsLoading extends BookingState {

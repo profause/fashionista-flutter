@@ -105,8 +105,10 @@ class _DiscoverTrendsPageState extends State<DiscoverTrendsPage>
 
   @override
   void dispose() {
-    super.dispose();
+    // The controller must be disposed before the ticker provider mixin,
+    // otherwise the still-running ticker is reported as a leak.
     _hideFabAnimation.dispose();
+    super.dispose();
   }
 
   bool _handleScrollNotification(ScrollNotification notification) {

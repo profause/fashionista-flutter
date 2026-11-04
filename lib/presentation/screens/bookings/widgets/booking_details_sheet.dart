@@ -5,6 +5,7 @@ import 'package:fashionista/data/models/bookings/booking_model.dart';
 import 'package:fashionista/data/models/bookings/booking_status.dart';
 import 'package:fashionista/data/models/bookings/bloc/booking_bloc.dart';
 import 'package:fashionista/data/models/bookings/bloc/booking_event.dart';
+import 'package:fashionista/presentation/screens/bookings/widgets/booking_client_tile.dart';
 import 'package:fashionista/presentation/screens/bookings/widgets/booking_status_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -140,6 +141,45 @@ class BookingDetailsSheet extends StatelessWidget {
                     ),
                   ),
                 ],
+              ),
+            ],
+            if (actorIsDesigner) ...[
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: context.iconSubstrate,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Client',
+                      style: textTheme.bodySmall?.copyWith(
+                        fontSize: 10,
+                        letterSpacing: 0.4,
+                        color: context.secondaryLabel,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    BookingClientTile(
+                      client: booking.client,
+                      fallbackId: booking.userId,
+                      avatarSize: 40,
+                    ),
+                    if ((booking.client?.id ?? booking.clientId).isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        'Client ID: ${booking.client?.id.isNotEmpty == true ? booking.client!.id : booking.clientId}',
+                        style: textTheme.bodySmall?.copyWith(
+                          fontSize: 10,
+                          color: context.secondaryLabel,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ],
             if (booking.notes != null && booking.notes!.isNotEmpty) ...[

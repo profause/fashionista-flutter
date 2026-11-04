@@ -18,6 +18,7 @@ import 'package:fashionista/presentation/screens/trends/widgets/get_started_prog
 import 'package:fashionista/presentation/screens/trends/widgets/interest_shimmer_widget.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/my_post_feed_card_widget.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/quick_action_tile_widget.dart';
+import 'package:fashionista/presentation/screens/trends/widgets/upcoming_appointments_section.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -89,6 +90,7 @@ class _ForYouPageState extends State<ForYouPage> {
             child: _buildGetStartedSection(context, textTheme),
           ),
           SliverToBoxAdapter(child: _buildQuickActionsSection(context)),
+          SliverToBoxAdapter(child: _buildUpcomingAppointmentsSection()),
           SliverToBoxAdapter(child: _buildInterestsSection(context, textTheme)),
           SliverToBoxAdapter(child: _buildDesignersSection(context, textTheme)),
           SliverToBoxAdapter(child: _buildMyPostsSection(context, textTheme)),
@@ -187,6 +189,30 @@ class _ForYouPageState extends State<ForYouPage> {
           ),
         ],
       ),
+    );
+  }
+
+
+  /// Next appointments, hidden entirely when there are none.
+  ///
+  /// Clients see the appointments they booked; designers see the requests made
+  /// to them. The signed-in role comes from the user's `account_type`.
+  Widget _buildUpcomingAppointmentsSection() {
+    final userId =
+        FirebaseAuth.instance.currentUser?.uid ?? _userBloc.state.uid ?? '';
+
+    if (userId.isEmpty) return const SizedBox.shrink();
+
+    final isDesigner =
+        _userBloc.state.accountType.trim().toLowerCase() == 'designer';
+
+    return UpcomingAppointmentsSection(
+      // Rebuild the row when a different account signs in or the role differs.
+      key: ValueKey('$userId-${isDesigner ? 'designer' : 'client'}'),
+      userId: userId,
+      perspective: isDesigner
+          ? AppointmentPerspective.designer
+          : AppointmentPerspective.client,
     );
   }
 

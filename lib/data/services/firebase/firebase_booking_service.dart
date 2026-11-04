@@ -86,7 +86,7 @@ class FirebaseBookingServiceImpl implements FirebaseBookingService {
           .where('designer_id', isEqualTo: designerId)
           .orderBy('start_at', descending: true)
           .get();
-      return Right(snapshot.docs.map(_bookingFromDoc).toList());
+      return Right(await _attachClients(snapshot.docs.map(_bookingFromDoc)));
     } on FirebaseException catch (e) {
       return Left(e.message ?? 'Unable to load bookings');
     } catch (e) {
@@ -100,7 +100,10 @@ class FirebaseBookingServiceImpl implements FirebaseBookingService {
         .where('designer_id', isEqualTo: designerId)
         .orderBy('start_at', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs.map(_bookingFromDoc).toList());
+        .asyncMap(
+          (snapshot) async =>
+              _attachClients(snapshot.docs.map(_bookingFromDoc)),
+        );
   }
 
   @override
@@ -146,12 +149,57 @@ class FirebaseBookingServiceImpl implements FirebaseBookingService {
           .where('start_at', isLessThan: Timestamp.fromDate(nextDayStart))
           .get();
 
+      // Slot availability only needs start times, so no client enrichment here.
       return Right(snapshot.docs.map(_bookingFromDoc).toList());
     } on FirebaseException catch (e) {
       return Left(e.message ?? 'Unable to load booked slots');
     } catch (e) {
       return Left('Unable to load booked slots: $e');
     }
+  }
+
+  /// Fills in [Booking.client] for bookings written before the snapshot was
+  /// stored on the document.
+  ///
+  /// Read-only: nothing is written back, so a rename of the client record is
+  /// reflected for legacy bookings and frozen for new ones.
+  Future<List<Booking>> _attachClients(Iterable<Booking> bookings) async {
+    final list = bookings.toList();
+    final missing = list
+        .where((booking) => booking.client == null && booking.clientId.isNotEmpty)
+        .map((booking) => booking.clientId)
+        .toSet()
+        .take(_clientBackfillLimit)
+        .toList();
+
+    if (missing.isEmpty) return list;
+
+    final snapshots = await Future.wait(
+      missing.map(
+        (clientId) => _firestore.collection('clients').doc(clientId).get(),
+      ),
+    );
+
+    final byId = <String, BookingClient>{};
+    for (final snapshot in snapshots) {
+      if (!snapshot.exists) continue;
+      final data = snapshot.data() ?? const <String, dynamic>{};
+      byId[snapshot.id] = BookingClient(
+        id: snapshot.id,
+        name: _firstNonEmpty([data['full_name'], data['name']]),
+        avatar: _firstNonEmpty([data['image_url'], data['avatar']]),
+        mobileNumber: _firstNonEmpty([data['mobile_number']]),
+      );
+    }
+
+    if (byId.isEmpty) return list;
+
+    return [
+      for (final booking in list)
+        booking.client == null && byId.containsKey(booking.clientId)
+            ? booking.copyWith(client: byId[booking.clientId])
+            : booking,
+    ];
   }
 
   @override
@@ -650,6 +698,9 @@ class FirebaseBookingServiceImpl implements FirebaseBookingService {
     return 'c_${designerId}_$userId';
   }
 }
+
+/// Maximum number of legacy bookings enriched per list load.
+const int _clientBackfillLimit = 25;
 
 /// Returns the first non-empty trimmed string from [values].
 String _firstNonEmpty(List<Object?> values) {

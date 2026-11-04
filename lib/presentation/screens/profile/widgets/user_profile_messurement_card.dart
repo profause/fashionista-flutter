@@ -47,43 +47,46 @@ class _UserProfileMessurementCardState
           borderRadius: BorderRadius.circular(16),
           //border: Border.all(color: context.hairline),
         ),
-        child: ListTile(
-          title: Text('My Measurements'),
-          trailing: ValueListenableBuilder<List<Designer>>(
-            key: ValueKey(_userBloc.state.uid),
-            valueListenable: myDesignersNotifier,
-            builder: (context, designers, _) {
-              if (designers.isEmpty && !loadingFashionDesigners) {
-                return Text("No designers found", style: textTheme.bodyMedium);
-              }
-              if (designers.isEmpty && loadingFashionDesigners) {
+        child: Material(
+          type: MaterialType.transparency,
+          child: ListTile(
+            title: Text('My Measurements'),
+            trailing: ValueListenableBuilder<List<Designer>>(
+              key: ValueKey(_userBloc.state.uid),
+              valueListenable: myDesignersNotifier,
+              builder: (context, designers, _) {
+                if (designers.isEmpty && !loadingFashionDesigners) {
+                  return Text("No designers found", style: textTheme.bodyMedium);
+                }
+                if (designers.isEmpty && loadingFashionDesigners) {
+                  return SizedBox(
+                    height: 18,
+                    width: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  );
+                }
                 return SizedBox(
-                  height: 18,
-                  width: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                );
-              }
-              return SizedBox(
-                height: 60,
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: SizedBox(
-                    width: designers.length * 24.0 + 24, // dynamic width
-                    child: Stack(
-                      children: [
-                        for (int i = 0; i < designers.length; i++)
-                          Positioned(
-                            left: i * 24.0,
-                            child: buildDesignerAvatar(designers[i]),
-                          ),
-                      ],
+                  height: 60,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: SizedBox(
+                      width: designers.length * 24.0 + 24, // dynamic width
+                      child: Stack(
+                        children: [
+                          for (int i = 0; i < designers.length; i++)
+                            Positioned(
+                              left: i * 24.0,
+                              child: buildDesignerAvatar(designers[i]),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
+            onTap: () => context.push('/my-designers'),
           ),
-          onTap: () => context.push('/my-designers'),
         ),
       ),
     );

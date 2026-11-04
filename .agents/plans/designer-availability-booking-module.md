@@ -635,6 +635,15 @@ test/scheduling/timezone_test.dart
   (slot generation, validation, exceptions, timezones/DST, reservation keys, status mapping, model round-trip).
 - `dart run build_runner build --delete-conflicting-outputs` → generated files committed.
 
+### Client snapshot on bookings (2026-11-04)
+
+`bookings/{id}.client` stores `{id, name, avatar, mobile_number}` so appointment cards render
+the client without extra reads. Written inside the booking transaction from the
+designer-scoped `clients` record, falling back to the `users` profile. Legacy bookings without
+the snapshot are enriched read-only (max 25 per load) via `_attachClients`; the slot-availability
+query deliberately skips this. Rendered by `BookingClientTile` on the designer appointment card
+and the booking detail sheet. `firestore.rules` now requires `client.id == client_id` on create.
+
 ### Known limitations
 
 1. **Client transactions are not a security boundary.** Without Cloud Functions the server

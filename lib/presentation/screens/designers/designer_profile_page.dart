@@ -224,7 +224,8 @@ class _DesignerProfilePageState extends State<DesignerProfilePage> {
                           }
 
                           final bookings = bookingState is BookingsLoaded &&
-                                  bookingState.ownerId == designer.uid
+                                  bookingState.ownerId == designer.uid &&
+                                  bookingState.isDesignerView
                               ? bookingState.bookings
                                   .where((booking) => booking.status.isUpcoming)
                                   .toList()

@@ -356,31 +356,34 @@ class _EditDayAvailabilityScreenState extends State<EditDayAvailabilityScreen> {
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: context.hairline),
               ),
-              child: SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                value: _isAvailable,
-                activeThumbColor: context.accent,
-                title: Text(
-                  'Available on ${widget.day.dayName}',
-                  style: textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
+              child: Material(
+                type: MaterialType.transparency,
+                child: SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  value: _isAvailable,
+                  activeThumbColor: context.accent,
+                  title: Text(
+                    'Available on ${widget.day.dayName}',
+                    style: textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                subtitle: Text(
-                  _isAvailable
-                      ? 'Clients can book generated slots on this day.'
-                      : 'No appointments can be booked on this day.',
-                  style: textTheme.bodySmall?.copyWith(
-                    fontSize: 11,
-                    color: context.secondaryLabel,
+                  subtitle: Text(
+                    _isAvailable
+                        ? 'Clients can book generated slots on this day.'
+                        : 'No appointments can be booked on this day.',
+                    style: textTheme.bodySmall?.copyWith(
+                      fontSize: 11,
+                      color: context.secondaryLabel,
+                    ),
                   ),
+                  onChanged: (value) {
+                    setState(() {
+                      _isAvailable = value;
+                      _problems = const [];
+                    });
+                  },
                 ),
-                onChanged: (value) {
-                  setState(() {
-                    _isAvailable = value;
-                    _problems = const [];
-                  });
-                },
               ),
             ),
             const SizedBox(height: 16),
