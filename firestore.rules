@@ -1,0 +1,147 @@
+rules_version = '2';
+
+// ---------------------------------------------------------------------------
+// Fashionista — booking module rules.
+//
+// !! READ BEFORE DEPLOYING !!
+//
+// This repository did not previously version-control Firestore rules; the rest
+// of the project's rules live in the Firebase console. This file only declares
+// the paths added by the availability/booking module. Deploying it standalone
+// would leave every other collection denied.
+//
+// Merge these `match` blocks into the console rule set before running:
+//   firebase deploy --only firestore
+//
+// Known limitation (no Cloud Functions allowed):
+// Slot integrity is enforced by the Flutter client's Firestore transaction on a
+// deterministic `slot_reservations/{designerId}_{yyyyMMdd}_{HHmm}` document.
+// These rules stop clients from writing another user's reservation or forging
+// booking ownership, but they cannot re-derive slot availability from the
+// designer's schedule. A modified client can therefore still create a booking
+// document directly; treat slot uniqueness as an anti-race measure, not as a
+// trusted server-side guarantee.
+// ---------------------------------------------------------------------------
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isDesignerOf(designerId) {
+      return signedIn() && request.auth.uid == designerId;
+    }
+
+    function statusIn(allowed) {
+      return request.resource.data.status in allowed;
+    }
+
+    // ---------------------------------------------------------------------
+    // Availability (readable by any signed-in user so clients can see slots;
+    // writable only by the owning designer).
+    // ---------------------------------------------------------------------
+    match /designers/{designerId} {
+      // Only the timezone may be added to a designer document from this module.
+      allow update: if isDesignerOf(designerId)
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['timezone']);
+
+      match /availability/{dayOfWeek} {
+        allow read: if signedIn();
+        allow write: if isDesignerOf(designerId)
+          && request.resource.data.day_of_week is int
+          && request.resource.data.is_available is bool
+          && request.resource.data.sessions is list;
+        allow delete: if isDesignerOf(designerId);
+      }
+
+      match /availability_exceptions/{dateKey} {
+        allow read: if signedIn();
+        allow write: if isDesignerOf(designerId)
+          && request.resource.data.type in ['unavailable', 'custom']
+          && request.resource.data.sessions is list;
+        allow delete: if isDesignerOf(designerId);
+      }
+    }
+
+    // ---------------------------------------------------------------------
+    // Bookings
+    // ---------------------------------------------------------------------
+    match /bookings/{bookingId} {
+      allow read: if signedIn()
+        && (resource.data.user_id == request.auth.uid
+            || resource.data.designer_id == request.auth.uid);
+
+      // A client may only create their own pending request.
+      allow create: if signedIn()
+        && request.resource.data.user_id == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.designer_id is string
+        && request.resource.data.date is string
+        && request.resource.data.start_at is timestamp
+        && request.resource.data.end_at is timestamp;
+
+      allow update: if signedIn()
+        && (
+          // Designer manages their own bookings and cannot change ownership.
+          (
+            resource.data.designer_id == request.auth.uid
+            && request.resource.data.designer_id == resource.data.designer_id
+            && request.resource.data.user_id == resource.data.user_id
+            && statusIn(['confirmed', 'declined', 'cancelled', 'completed', 'no_show'])
+          )
+          ||
+          // Client may only cancel their own booking.
+          (
+            resource.data.user_id == request.auth.uid
+            && request.resource.data.status == 'cancelled'
+            && resource.data.status in ['pending', 'confirmed']
+            && request.resource.data.designer_id == resource.data.designer_id
+          )
+        );
+
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    // Slot reservations
+    //
+    // Read is open to signed-in users because the booking transaction reads the
+    // document before deciding whether the slot is still claimable.
+    // ---------------------------------------------------------------------
+    match /slot_reservations/{reservationId} {
+      allow read: if signedIn();
+
+      allow create: if signedIn()
+        && request.resource.data.user_id == request.auth.uid
+        && request.resource.data.designer_id is string
+        && request.resource.data.booking_id is string
+        && request.resource.data.status == 'reserved';
+
+      allow update: if signedIn()
+        && (
+          resource.data.user_id == request.auth.uid
+          || isDesignerOf(resource.data.designer_id)
+        )
+        && request.resource.data.status in ['reserved', 'released'];
+
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    // Client records auto-created for a first-time booking.
+    // ---------------------------------------------------------------------
+    match /clients/{clientId} {
+      allow create: if signedIn()
+        && request.resource.data.created_by is string
+        && request.resource.data.uid == clientId;
+    }
+
+    match /client_measurements/{userId}/clients/{clientId} {
+      allow read: if signedIn() && request.auth.uid == userId;
+      allow create: if signedIn() && request.auth.uid == userId;
+    }
+  }
+}

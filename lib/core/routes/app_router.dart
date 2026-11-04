@@ -1,4 +1,7 @@
 import 'package:fashionista/presentation/screens/auth/sign_in_screen.dart';
+import 'package:fashionista/presentation/screens/availability/manage_availability_screen.dart';
+import 'package:fashionista/presentation/screens/bookings/book_appointment_screen.dart';
+import 'package:fashionista/presentation/screens/bookings/my_bookings_screen.dart';
 import 'package:fashionista/presentation/screens/client_measurement/my_measurement_screen.dart';
 import 'package:fashionista/presentation/screens/clients/add_client_screen.dart';
 import 'package:fashionista/presentation/screens/clients/client_details_screen.dart';
@@ -7,6 +10,7 @@ import 'package:fashionista/presentation/screens/closet/add_or_edit_closet_items
 import 'package:fashionista/presentation/screens/closet/add_or_edit_outfit_plan_screen.dart';
 import 'package:fashionista/presentation/screens/closet/add_or_edit_outfit_screen.dart';
 import 'package:fashionista/presentation/screens/closet/closet_screen.dart';
+import 'package:fashionista/presentation/screens/designers/designer_bookings_screen.dart';
 import 'package:fashionista/presentation/screens/designers/designer_details_screen.dart';
 import 'package:fashionista/presentation/screens/designers/designer_services_screen.dart';
 import 'package:fashionista/presentation/screens/designers/designers_screen.dart';
@@ -199,6 +203,34 @@ GoRouter appRouter = GoRouter(
       name: 'MyMeasurementScreen',
       path: '/my-measurement',
       builder: (context, state) => MyMeasurementScreen(),
+    ),
+
+    GoRoute(
+      name: 'ManageAvailabilityScreen',
+      path: '/designer-availability',
+      builder: (context, state) => ManageAvailabilityScreen(
+        designerId: state.uri.queryParameters['designerId'],
+      ),
+    ),
+    GoRoute(
+      name: 'DesignerBookingsScreen',
+      path: '/designer-bookings',
+      builder: (context, state) => DesignerBookingsScreen(
+        designerId: state.uri.queryParameters['designerId'],
+      ),
+    ),
+    GoRoute(
+      name: 'BookAppointmentScreen',
+      path: '/designer-book/:id',
+      builder: (context, state) => BookAppointmentScreen(
+        designerId: state.pathParameters['id']!,
+        designerName: state.uri.queryParameters['name'],
+      ),
+    ),
+    GoRoute(
+      name: 'MyBookingsScreen',
+      path: '/my-bookings',
+      builder: (context, state) => MyBookingsScreen(),
     ),
 
     GoRoute(

@@ -4,9 +4,11 @@ import 'package:fashionista/data/models/designers/bloc/designer_event.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_state.dart';
 import 'package:fashionista/data/models/designers/designer_model.dart';
 import 'package:fashionista/data/models/designers/social_handle_model.dart';
+import 'package:fashionista/presentation/screens/bookings/book_appointment_screen.dart';
 import 'package:fashionista/presentation/screens/designers/widgets/featured_images_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_card_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -51,6 +53,32 @@ class _DesignerDetailsProfilePageState
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       children: [
         const SizedBox(height: 8),
+        if (FirebaseAuth.instance.currentUser?.uid != designer.uid)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: FilledButton.icon(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => BookAppointmentScreen(
+                      designerId: designer.uid,
+                      designerName: designer.name,
+                    ),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.event_available_outlined, size: 18),
+              label: const Text('Book appointment'),
+              style: FilledButton.styleFrom(
+                backgroundColor: context.accent,
+                foregroundColor: Colors.white,
+                minimumSize: const Size.fromHeight(46),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
         ProfileInfoCardWidget(
           items: [
             ProfileInfoItem(

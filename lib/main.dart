@@ -17,6 +17,8 @@ import 'package:fashionista/data/models/closet/bloc/closet_item_bloc.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_outfit_bloc.dart';
 import 'package:fashionista/data/models/closet/bloc/closet_outfit_plan_bloc.dart';
 import 'package:fashionista/data/models/designers/bloc/design_collection_bloc.dart';
+import 'package:fashionista/data/models/availability/bloc/availability_bloc.dart';
+import 'package:fashionista/data/models/bookings/bloc/booking_bloc.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_bloc.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_feedback_bloc.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_review_bloc.dart';
@@ -99,6 +101,8 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => SettingsBloc()),
         BlocProvider(create: (_) => ClientBloc()),
         BlocProvider(create: (_) => DesignerBloc()),
+        BlocProvider(create: (_) => AvailabilityBloc()),
+        BlocProvider(create: (_) => BookingBloc()),
         BlocProvider(create: (_) => DesignCollectionBloc()),
         BlocProvider(create: (_) => TrendBloc()),
         BlocProvider(create: (_) => TrendCommentBloc()),

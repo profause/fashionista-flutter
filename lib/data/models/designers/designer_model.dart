@@ -72,6 +72,12 @@ class Designer extends Equatable {
   @HiveField(DesignerModelHiveType.createdDate)
   final DateTime? createdDate;
 
+  /// IANA timezone name (e.g. `Africa/Accra`). Nullable so designer
+  /// documents written before this field existed remain valid.
+  @JsonKey(name: 'timezone')
+  @HiveField(DesignerModelHiveType.timezone)
+  final String? timezone;
+
   const Designer({
     required this.uid,
     required this.name,
@@ -90,6 +96,7 @@ class Designer extends Equatable {
     this.averageRating,
     this.reviewCount,
     this.totalRating,
+    this.timezone,
   });
 
   factory Designer.fromJson(Map<String, dynamic> json) =>
@@ -115,6 +122,7 @@ class Designer extends Equatable {
     double? averageRating,
     int? reviewCount,
     int? totalRating,
+    String? timezone,
   }) {
     return Designer(
       uid: uid ?? this.uid,
@@ -134,6 +142,7 @@ class Designer extends Equatable {
       averageRating: averageRating ?? this.averageRating,
       reviewCount: reviewCount ?? this.reviewCount,
       totalRating: totalRating ?? this.totalRating,
+      timezone: timezone ?? this.timezone,
     );
   }
 
@@ -178,5 +187,6 @@ class Designer extends Equatable {
     averageRating,
     reviewCount,
     totalRating,
+    timezone,
   ];
 }

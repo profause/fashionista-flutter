@@ -16,4 +16,5 @@ class DesignerModelHiveType {
   static const int averageRating = 14;
   static const int reviewCount = 15;
   static const int totalRating = 16;
+  static const int timezone = 17;
 }

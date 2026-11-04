@@ -1,4 +1,10 @@
 import 'package:fashionista/core/theme/app.theme.dart';
+import 'package:fashionista/core/utils/scheduling/time_of_day_x.dart';
+import 'package:fashionista/data/models/bookings/booking_model.dart';
+import 'package:fashionista/data/models/bookings/booking_status.dart';
+import 'package:fashionista/data/models/bookings/bloc/booking_bloc.dart';
+import 'package:fashionista/data/models/bookings/bloc/booking_event.dart';
+import 'package:fashionista/data/models/bookings/bloc/booking_state.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_bloc.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_event.dart';
 import 'package:fashionista/data/models/designers/bloc/designer_state.dart';
@@ -26,6 +32,7 @@ class _DesignerProfilePageState extends State<DesignerProfilePage> {
   void initState() {
     super.initState();
     context.read<DesignerBloc>().add(LoadDesigner(widget.designerUid));
+    context.read<BookingBloc>().add(LoadDesignerBookings(widget.designerUid));
   }
 
   @override
@@ -129,6 +136,19 @@ class _DesignerProfilePageState extends State<DesignerProfilePage> {
                         );
                       },
                     ),
+                    ProfileInfoItem(
+                      icon: Icons.event_available_outlined,
+                      title: 'Availability',
+                      value: 'Set your weekly hours and appointment length',
+                      onTap: () {
+                        context.push(
+                          Uri(
+                            path: '/designer-availability',
+                            queryParameters: {'designerId': designer.uid},
+                          ).toString(),
+                        );
+                      },
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -188,14 +208,58 @@ class _DesignerProfilePageState extends State<DesignerProfilePage> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        'Booking status: ${true ? 'Available' : 'Not available'}',
-                        style: textTheme.bodyMedium,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Next available date: ${'2026-12-12' ?? 'N/A'}',
-                        style: textTheme.bodyMedium,
+                      BlocBuilder<BookingBloc, BookingState>(
+                        builder: (context, bookingState) {
+                          if (bookingState is BookingsLoading) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 6),
+                              child: SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            );
+                          }
+
+                          final bookings = bookingState is BookingsLoaded &&
+                                  bookingState.ownerId == designer.uid
+                              ? bookingState.bookings
+                                  .where((booking) => booking.status.isUpcoming)
+                                  .toList()
+                              : const <Booking>[];
+
+                          if (bookings.isEmpty) {
+                            return Text(
+                              'No upcoming appointments',
+                              style: textTheme.bodyMedium,
+                            );
+                          }
+
+                          bookings.sort(
+                            (a, b) => (a.startAt ?? DateTime(0)).compareTo(
+                              b.startAt ?? DateTime(0),
+                            ),
+                          );
+                          final next = bookings.first;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${bookings.length} upcoming appointment'
+                                '${bookings.length == 1 ? '' : 's'}',
+                                style: textTheme.bodyMedium,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Next: ${next.date} · '
+                                '${TimeOfDayX.toDisplay(next.startTime)}',
+                                style: textTheme.bodyMedium,
+                              ),
+                            ],
+                          );
+                        },
                       ),
                     ],
                   ),

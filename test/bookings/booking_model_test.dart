@@ -1,0 +1,170 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fashionista/core/utils/scheduling/reservation_key.dart';
+import 'package:fashionista/data/models/bookings/booking_model.dart';
+import 'package:fashionista/data/models/bookings/booking_status.dart';
+import 'package:fashionista/data/models/bookings/slot_reservation_model.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  group('BookingStatus', () {
+    test('uses snake_case wire values', () {
+      expect(BookingStatus.noShow.value, 'no_show');
+      expect(BookingStatus.pending.value, 'pending');
+      expect(BookingStatus.confirmed.value, 'confirmed');
+    });
+
+    test('parses wire values back to the enum', () {
+      expect(BookingStatusX.fromValue('no_show'), BookingStatus.noShow);
+      expect(BookingStatusX.fromValue('noShow'), BookingStatus.noShow);
+      expect(BookingStatusX.fromValue('confirmed'), BookingStatus.confirmed);
+      expect(BookingStatusX.fromValue(null), BookingStatus.pending);
+    });
+
+    test('knows which statuses hold a slot', () {
+      expect(BookingStatus.pending.holdsSlot, isTrue);
+      expect(BookingStatus.confirmed.holdsSlot, isTrue);
+      expect(BookingStatus.declined.holdsSlot, isFalse);
+      expect(BookingStatus.cancelled.holdsSlot, isFalse);
+      expect(BookingStatus.completed.holdsSlot, isFalse);
+      expect(BookingStatus.noShow.holdsSlot, isFalse);
+    });
+  });
+
+  group('ReservationKey', () {
+    test('is deterministic for the same designer, date and time', () {
+      final first = ReservationKey.forSlot(
+        designerId: 'designer_123',
+        date: '2026-11-16',
+        startTime: '08:30',
+      );
+      final second = ReservationKey.forSlot(
+        designerId: 'designer_123',
+        date: '2026-11-16',
+        startTime: '08:30',
+      );
+
+      expect(first, second);
+      expect(first, 'designer_123_20261116_0830');
+    });
+
+    test('differs across slots and designers', () {
+      final eight = ReservationKey.forSlot(
+        designerId: 'designer_123',
+        date: '2026-11-16',
+        startTime: '08:00',
+      );
+      final eightThirty = ReservationKey.forSlot(
+        designerId: 'designer_123',
+        date: '2026-11-16',
+        startTime: '08:30',
+      );
+      final otherDesigner = ReservationKey.forSlot(
+        designerId: 'designer_999',
+        date: '2026-11-16',
+        startTime: '08:00',
+      );
+
+      expect(eight, isNot(eightThirty));
+      expect(eight, isNot(otherDesigner));
+    });
+  });
+
+  group('Booking serialization', () {
+    Booking booking() => Booking(
+      uid: 'booking_1',
+      designerId: 'designer_1',
+      userId: 'user_1',
+      clientId: 'client_1',
+      date: '2026-11-16',
+      dayOfWeek: DateTime.monday,
+      startAt: DateTime.utc(2026, 11, 16, 8, 30),
+      endAt: DateTime.utc(2026, 11, 16, 9, 0),
+      startTime: '08:30',
+      endTime: '09:00',
+      timezone: 'Africa/Accra',
+      durationMinutes: 30,
+      status: BookingStatus.pending,
+      notes: 'Wedding outfit',
+    );
+
+    test('serializes times as Firestore timestamps', () {
+      final json = booking().toJson();
+
+      expect(json['start_at'], isA<Timestamp>());
+      expect(json['end_at'], isA<Timestamp>());
+      expect(json['designer_id'], 'designer_1');
+      expect(json['day_of_week'], DateTime.monday);
+      expect(json['status'], 'pending');
+    });
+
+    test('round-trips through Firestore timestamps', () {
+      final json = booking().toJson();
+      final restored = Booking.fromJson(json);
+
+      expect(restored.startAt, DateTime.utc(2026, 11, 16, 8, 30));
+      expect(restored.endAt, DateTime.utc(2026, 11, 16, 9, 0));
+      expect(restored.startTime, '08:30');
+      expect(restored.durationMinutes, 30);
+      expect(restored.status, BookingStatus.pending);
+    });
+
+    test('reads legacy epoch integers', () {
+      final restored = Booking.fromJson({
+        'designer_id': 'designer_1',
+        'user_id': 'user_1',
+        'date': '2026-11-16',
+        'day_of_week': 1,
+        'start_time': '08:30',
+        'end_time': '09:00',
+        'start_at': DateTime.utc(2026, 11, 16, 8, 30).millisecondsSinceEpoch,
+        'status': 'no_show',
+      });
+
+      expect(restored.startAt, isNotNull);
+      expect(restored.status, BookingStatus.noShow);
+    });
+  });
+
+  group('SlotReservation', () {
+    test('is active while reserved and before expiry', () {
+      final reservation = SlotReservation(
+        designerId: 'designer_1',
+        userId: 'user_1',
+        bookingId: 'booking_1',
+        status: SlotReservationStatus.reserved,
+        expiresAt: DateTime.utc(2026, 11, 16, 10),
+      );
+
+      expect(
+        reservation.isActiveAt(DateTime.utc(2026, 11, 16, 9, 59)),
+        isTrue,
+      );
+    });
+
+    test('is reclaimable after expiry', () {
+      final reservation = SlotReservation(
+        designerId: 'designer_1',
+        status: SlotReservationStatus.reserved,
+        expiresAt: DateTime.utc(2026, 11, 16, 10),
+      );
+
+      expect(
+        reservation.isActiveAt(DateTime.utc(2026, 11, 16, 10, 1)),
+        isFalse,
+      );
+    });
+
+    test('released reservations are never active', () {
+      final reservation = SlotReservation(
+        designerId: 'designer_1',
+        status: SlotReservationStatus.released,
+        expiresAt: DateTime.utc(2026, 11, 16, 23),
+      );
+
+      expect(
+        reservation.isActiveAt(DateTime.utc(2026, 11, 16, 9)),
+        isFalse,
+      );
+    });
+  });
+}

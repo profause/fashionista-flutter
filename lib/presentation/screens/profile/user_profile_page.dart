@@ -124,6 +124,19 @@ class UserProfilePage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
+          ProfileInfoCardWidget(
+            items: [
+              ProfileInfoItem(
+                icon: Icons.event_note_outlined,
+                title: 'My bookings',
+                value: 'Appointments you have requested',
+                onTap: () {
+                  context.push('/my-bookings');
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
           UserProfileMessurementCard(key: ValueKey(user.uid)),
           // sign out
           const SizedBox(height: 12),

@@ -1,4 +1,6 @@
 import 'package:fashionista/data/repository/auth/auth_repository_impl.dart';
+import 'package:fashionista/data/repository/availability/availability_repository_impl.dart';
+import 'package:fashionista/data/repository/bookings/booking_repository_impl.dart';
 import 'package:fashionista/data/repository/clients/clients_repository_impl.dart';
 import 'package:fashionista/data/repository/closet/closet_repository_impl.dart';
 import 'package:fashionista/data/repository/design_collection/design_collection_repository_impl.dart';
@@ -7,6 +9,8 @@ import 'package:fashionista/data/repository/profile/user_repository_impl.dart';
 import 'package:fashionista/data/repository/trends/trend_feed_repository_impl.dart';
 import 'package:fashionista/data/repository/work_order/work_order_repository_impl.dart';
 import 'package:fashionista/data/services/firebase/firebase_auth_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_availability_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_booking_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_closet_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_design_collection_service.dart';
@@ -30,6 +34,8 @@ import 'package:fashionista/data/services/hive/hive_trend_service.dart';
 import 'package:fashionista/data/services/hive/hive_work_order_service.dart';
 import 'package:fashionista/data/services/hive/hive_work_order_status_progress_service.dart';
 import 'package:fashionista/domain/repository/auth/auth_repository.dart';
+import 'package:fashionista/domain/repository/availability/availability_repository.dart';
+import 'package:fashionista/domain/repository/bookings/booking_repository.dart';
 import 'package:fashionista/domain/repository/clients/clients_repository.dart';
 import 'package:fashionista/domain/repository/closet/closet_repository.dart';
 import 'package:fashionista/domain/repository/design_collection/design_collection_repository.dart';
@@ -56,6 +62,19 @@ import 'package:fashionista/domain/usecases/design_collection/find_design_collec
 import 'package:fashionista/domain/usecases/design_collection/find_design_collections_usecase.dart';
 import 'package:fashionista/domain/usecases/design_collection/is_bookmarked_usecase.dart';
 import 'package:fashionista/domain/usecases/design_collection/update_design_collection_usecase.dart';
+import 'package:fashionista/domain/usecases/availability/delete_availability_exception_usecase.dart';
+import 'package:fashionista/domain/usecases/availability/fetch_availability_exceptions_usecase.dart';
+import 'package:fashionista/domain/usecases/availability/fetch_designer_timezone_usecase.dart';
+import 'package:fashionista/domain/usecases/availability/fetch_weekly_availability_usecase.dart';
+import 'package:fashionista/domain/usecases/availability/save_availability_exception_usecase.dart';
+import 'package:fashionista/domain/usecases/availability/save_day_availability_usecase.dart';
+import 'package:fashionista/domain/usecases/availability/save_designer_timezone_usecase.dart';
+import 'package:fashionista/domain/usecases/bookings/create_booking_usecase.dart';
+import 'package:fashionista/domain/usecases/bookings/fetch_bookings_for_designer_usecase.dart';
+import 'package:fashionista/domain/usecases/bookings/fetch_bookings_for_user_usecase.dart';
+import 'package:fashionista/domain/usecases/bookings/fetch_schedule_conflicts_usecase.dart';
+import 'package:fashionista/domain/usecases/bookings/get_available_slots_usecase.dart';
+import 'package:fashionista/domain/usecases/bookings/update_booking_status_usecase.dart';
 import 'package:fashionista/domain/usecases/designers/add_designer_usecase.dart';
 import 'package:fashionista/domain/usecases/designers/add_or_remove_favourite_usecase.dart';
 import 'package:fashionista/domain/usecases/designers/delete_designer_usecase.dart';
@@ -233,5 +252,45 @@ Future<void> initialiseDependencies() async {
   
     sl.registerSingleton<HiveNotificationService>(
     HiveNotificationService(),
+  );
+
+  // ---- Availability & bookings -------------------------------------------
+  sl.registerSingleton<FirebaseAvailabilityService>(
+    FirebaseAvailabilityServiceImpl(),
+  );
+  sl.registerSingleton<AvailabilityRepository>(AvailabilityRepositoryImpl());
+  sl.registerSingleton<FetchWeeklyAvailabilityUsecase>(
+    FetchWeeklyAvailabilityUsecase(),
+  );
+  sl.registerSingleton<SaveDayAvailabilityUsecase>(SaveDayAvailabilityUsecase());
+  sl.registerSingleton<FetchAvailabilityExceptionsUsecase>(
+    FetchAvailabilityExceptionsUsecase(),
+  );
+  sl.registerSingleton<SaveAvailabilityExceptionUsecase>(
+    SaveAvailabilityExceptionUsecase(),
+  );
+  sl.registerSingleton<DeleteAvailabilityExceptionUsecase>(
+    DeleteAvailabilityExceptionUsecase(),
+  );
+  sl.registerSingleton<FetchDesignerTimezoneUsecase>(
+    FetchDesignerTimezoneUsecase(),
+  );
+  sl.registerSingleton<SaveDesignerTimezoneUsecase>(
+    SaveDesignerTimezoneUsecase(),
+  );
+
+  sl.registerSingleton<FirebaseBookingService>(FirebaseBookingServiceImpl());
+  sl.registerSingleton<BookingRepository>(BookingRepositoryImpl());
+  sl.registerSingleton<GetAvailableSlotsUsecase>(GetAvailableSlotsUsecase());
+  sl.registerSingleton<CreateBookingUsecase>(CreateBookingUsecase());
+  sl.registerSingleton<UpdateBookingStatusUsecase>(UpdateBookingStatusUsecase());
+  sl.registerSingleton<FetchBookingsForDesignerUsecase>(
+    FetchBookingsForDesignerUsecase(),
+  );
+  sl.registerSingleton<FetchBookingsForUserUsecase>(
+    FetchBookingsForUserUsecase(),
+  );
+  sl.registerSingleton<FetchScheduleConflictsUsecase>(
+    FetchScheduleConflictsUsecase(),
   );
 }
