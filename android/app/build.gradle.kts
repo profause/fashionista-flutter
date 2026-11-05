@@ -13,7 +13,7 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.1.0"))
     implementation("androidx.multidex:multidex:2.0.1")
     implementation("com.google.firebase:firebase-analytics")
-
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
     // 👇 Required for desugaring
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 
@@ -26,7 +26,7 @@ dependencies {
 android {
     namespace = "com.profause.fashionista.android"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "27.0.12077973"
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -37,9 +37,13 @@ android {
             isCoreLibraryDesugaringEnabled = true
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+kotlin {
+    compilerOptions {
+        jvmTarget.set(
+            org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
+        )
     }
+}
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).

@@ -80,16 +80,17 @@ class _DesignerBookingsScreenState extends State<DesignerBookingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       backgroundColor: context.canvasBackground,
       appBar: AppBar(
-        foregroundColor: context.onCanvasText,
+        automaticallyImplyLeading: true,
         backgroundColor: context.canvasBackground,
-        title: Text('Appointments', style: textTheme.titleMedium),
+        foregroundColor: context.onCanvasText,
         elevation: 0,
-        shape: Border(bottom: BorderSide(color: context.hairline)),
+        scrolledUnderElevation: 0,
+        title: Text('Appointments'),
+        centerTitle: true,
         actions: [
           IconButton(
             onPressed: _openSortSheet,

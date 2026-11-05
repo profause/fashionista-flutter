@@ -1,5 +1,6 @@
 import { setGlobalOptions } from 'firebase-functions/v2';
 import { onDocumentCreated, onDocumentUpdated, onDocumentWritten } from 'firebase-functions/v2/firestore';
+import { onCall } from 'firebase-functions/v2/https';
 import { initializeApp } from 'firebase-admin/app';
 
 import { onBookingCreated, onBookingUpdated } from './triggers/booking.triggers';
@@ -9,6 +10,8 @@ import {
   onWorkOrderUpdated,
 } from './triggers/work-order.triggers';
 import { onMeasurementWritten } from './triggers/measurement.triggers';
+import { onDesignerReviewWritten } from './triggers/rating.triggers';
+import { onTrendWritten, onInterestCountRebuildRequest } from './triggers/trend.triggers';
 
 initializeApp();
 
@@ -56,3 +59,22 @@ export const measurementWritten = onDocumentWritten(
     await onMeasurementWritten(event);
   }
 );
+
+export const designerRatingChanged = onDocumentWritten(
+  'designer_reviews/{reviewId}',
+  async (event) => {
+    await onDesignerReviewWritten(event);
+  }
+);
+
+export const updateFashionInterestPostCounts = onDocumentWritten(
+  'trends/{trendId}',
+  async (event) => {
+    await onTrendWritten(event);
+  }
+);
+
+// Admin-only recovery operation; see trend.triggers.ts.
+export const reconcileFashionInterestPostCounts = onCall(async (request) => {
+  return onInterestCountRebuildRequest(request);
+});

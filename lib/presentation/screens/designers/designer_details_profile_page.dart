@@ -143,16 +143,6 @@ class _DesignerDetailsProfilePageState
           const SizedBox(height: 16),
           _TagsCard(designer: designer),
         ],
-        const SizedBox(height: 16),
-        _BookConsultationCard(
-          onBookNow: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Consultation booking is coming soon'),
-              ),
-            );
-          },
-        ),
       ],
     );
   }
