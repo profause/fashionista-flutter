@@ -239,6 +239,28 @@ void main() {
       expect(notification.status, 'new');
     });
 
+    test('describes who booked and when', () {
+      final notification = build();
+
+      expect(notification.title, 'New appointment request');
+      expect(notification.description, contains('Ama Mensah'));
+      expect(notification.description, contains('2026-11-16'));
+      expect(notification.description, contains('8:30 AM'));
+    });
+
+    // Regression: the client and the server must agree on the document id,
+    // otherwise both write a notification and the designer sees it twice.
+    test('derives the id the server uses for its idempotency key', () {
+      expect(
+        buildBookingNotificationId('booking_1'),
+        'booking__requested__booking_1',
+      );
+      expect(
+        buildBookingNotificationId('abc123XYZ'),
+        'booking__requested__abc123XYZ',
+      );
+    });
+
     test('carries the client snapshot as the author', () {
       final author = build().author!;
 

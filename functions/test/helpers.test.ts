@@ -88,6 +88,7 @@ describe('preferences', () => {
       orders: false,
       measurements: true,
       reminders: true,
+      social: true,
     });
   });
 });

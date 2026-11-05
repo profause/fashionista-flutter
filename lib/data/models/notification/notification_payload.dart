@@ -86,6 +86,14 @@ class NotificationPayload extends Equatable {
       refType == 'measurement' ||
       event.startsWith('measurement');
 
+  /// A like (or other interaction) on the user's own trend.
+  bool get isTrend =>
+      type == 'trend' || refType == 'trend' || event.startsWith('trend_');
+
+  /// A review left on the user's designer profile.
+  bool get isReview =>
+      type == 'review' || refType == 'designer_review' || refType == 'review';
+
   bool get isForDesigner => audience == 'designer';
 
   @override

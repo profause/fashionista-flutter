@@ -53,6 +53,18 @@ class NotificationRouter {
       return const NotificationDestination('/my-measurement');
     }
 
+    if (payload.isTrend) {
+      if (payload.refId.isEmpty) return NotificationDestination.inbox;
+      return NotificationDestination('/trends/${payload.refId}');
+    }
+
+    if (payload.isReview) {
+      // The review itself lives on the designer's profile, which is addressed
+      // by the designer id — not the review document id.
+      if (payload.designerId.isEmpty) return NotificationDestination.inbox;
+      return NotificationDestination('/designers/${payload.designerId}');
+    }
+
     return NotificationDestination.inbox;
   }
 }

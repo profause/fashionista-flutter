@@ -127,6 +127,54 @@ void main() {
       expect(destination.path, '/my-measurement');
     });
 
+    test('trend like opens the liked trend', () {
+      final destination = NotificationRouter.resolve({
+        'type': 'trend',
+        'event': 'trend_liked',
+        'ref_id': 'trend_7',
+        'ref_type': 'trend',
+        'audience': 'user',
+      });
+
+      expect(destination.path, '/trends/trend_7');
+      expect(destination.isFallback, isFalse);
+    });
+
+    test('trend like without an id falls back to inbox', () {
+      final destination = NotificationRouter.resolve({
+        'type': 'trend',
+        'event': 'trend_liked',
+      });
+
+      expect(destination.path, '/notifications');
+      expect(destination.isFallback, isTrue);
+    });
+
+    test('designer review opens the designer profile', () {
+      final destination = NotificationRouter.resolve({
+        'type': 'review',
+        'event': 'review_received',
+        'ref_id': 'review_9',
+        'ref_type': 'designer_review',
+        'designer_id': 'designer_3',
+        'audience': 'designer',
+      });
+
+      expect(destination.path, '/designers/designer_3');
+      expect(destination.isFallback, isFalse);
+    });
+
+    test('designer review without a designer id falls back to inbox', () {
+      final destination = NotificationRouter.resolve({
+        'type': 'review',
+        'event': 'review_received',
+        'ref_id': 'review_9',
+      });
+
+      expect(destination.path, '/notifications');
+      expect(destination.isFallback, isTrue);
+    });
+
     test('unknown type falls back to the inbox', () {
       final destination = NotificationRouter.resolve({'type': 'unknown'});
 

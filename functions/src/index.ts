@@ -12,6 +12,8 @@ import {
 import { onMeasurementWritten } from './triggers/measurement.triggers';
 import { onDesignerReviewWritten } from './triggers/rating.triggers';
 import { onTrendWritten, onInterestCountRebuildRequest } from './triggers/trend.triggers';
+import { onTrendLikeCreated } from './triggers/trend-like.triggers';
+import { onDesignerReviewCreated } from './triggers/review.triggers';
 
 initializeApp();
 
@@ -78,3 +80,17 @@ export const updateFashionInterestPostCounts = onDocumentWritten(
 export const reconcileFashionInterestPostCounts = onCall(async (request) => {
   return onInterestCountRebuildRequest(request);
 });
+
+export const trendLiked = onDocumentCreated(
+  'trends/{trendId}/likes/{userId}',
+  async (event) => {
+    await onTrendLikeCreated(event);
+  }
+);
+
+export const designerReviewCreated = onDocumentCreated(
+  'designer_reviews/{reviewId}',
+  async (event) => {
+    await onDesignerReviewCreated(event);
+  }
+);

@@ -6,10 +6,17 @@ export type NotificationType =
   | 'booking'
   | 'work_order_status_progress'
   | 'measurement'
+  | 'trend'
+  | 'review'
   | 'info';
 
-/** Who the notification is for; drives routing on the device. */
-export type NotificationAudience = 'designer' | 'client';
+/**
+ * Who the notification is for; drives routing on the device.
+ *
+ * `user` is used for social events (trend likes) whose recipient is neither a
+ * client nor a designer in the booking sense.
+ */
+export type NotificationAudience = 'designer' | 'client' | 'user';
 
 export interface NotificationPayload {
   recipientUserId: string;
@@ -33,6 +40,8 @@ export interface NotificationPreferences {
   orders: boolean;
   measurements: boolean;
   reminders: boolean;
+  /** Likes and other interaction on the user's own posts. */
+  social: boolean;
 }
 
 export const DEFAULT_PREFERENCES: NotificationPreferences = {
@@ -40,6 +49,7 @@ export const DEFAULT_PREFERENCES: NotificationPreferences = {
   orders: true,
   measurements: true,
   reminders: true,
+  social: true,
 };
 
 export interface DeviceToken {
@@ -92,6 +102,9 @@ export function preferenceKeyFor(
       return 'orders';
     case 'measurement':
       return 'measurements';
+    case 'trend':
+    case 'review':
+      return 'social';
     default:
       return 'appointments';
   }

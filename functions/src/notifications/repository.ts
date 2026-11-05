@@ -165,4 +165,52 @@ export class NotificationRepository implements NotificationStore {
     const userIndex = segments.indexOf('client_measurements') + 1;
     return segments[userIndex] ?? null;
   }
+
+  /**
+   * Author of a trend.
+   *
+   * `created_by` is the author uid on every trend the app writes; the embedded
+   * `author.uid` snapshot is the fallback for older documents. The nested
+   * `author.name` is returned too so a deleted profile still yields a readable
+   * notification body.
+   */
+  async getTrendAuthor(
+    trendId: string
+  ): Promise<{ userId: string; name: string } | null> {
+    if (!trendId) return null;
+
+    const snapshot = await this.db.collection('trends').doc(trendId).get();
+    if (!snapshot.exists) return null;
+
+    const data = snapshot.data() ?? {};
+    const author = (data.author ?? {}) as Record<string, unknown>;
+    const userId = text(data.created_by) || text(author.uid);
+    if (!userId) return null;
+
+    return { userId, name: text(author.name) };
+  }
+
+    /** Display name for a user, empty when the profile is missing. */
+  async getUserDisplayName(userId: string): Promise<string> {
+    if (!userId) return '';
+
+    const snapshot = await this.db.collection('users').doc(userId).get();
+    if (!snapshot.exists) return '';
+
+    const data = snapshot.data() ?? {};
+    return text(data.name) || text(data.full_name) || text(data.username);
+  }
+
+  /** True when `designers/{designerId}` exists, so reviews cannot push to
+   * arbitrary accounts by pointing `ref_id` at any uid. */
+  async designerExists(designerId: string): Promise<boolean> {
+    if (!designerId) return false;
+
+    const snapshot = await this.db.collection('designers').doc(designerId).get();
+    return snapshot.exists;
+  }
+}
+
+function text(value: unknown): string {
+  return value === undefined || value === null ? '' : String(value).trim();
 }

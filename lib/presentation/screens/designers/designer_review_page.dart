@@ -410,6 +410,8 @@ class _DesignerReviewPageState extends State<DesignerReviewPage> {
                                             ),
                                         border: InputBorder.none,
                                         isDense: true,
+                                        filled: false,
+                                        fillColor: Colors.transparent,
                                         counterText: '',
                                         contentPadding:
                                             const EdgeInsets.symmetric(
