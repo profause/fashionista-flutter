@@ -52,16 +52,15 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       backgroundColor: context.canvasBackground,
       appBar: AppBar(
         foregroundColor: context.onCanvasText,
         backgroundColor: context.canvasBackground,
-        title: Text('My bookings', style: textTheme.titleMedium),
+        title: Text('My bookings'),
+        centerTitle: true,
         elevation: 0,
-        shape: Border(bottom: BorderSide(color: context.hairline)),
       ),
       body: BlocConsumer<BookingBloc, BookingState>(
         listenWhen: (previous, current) =>

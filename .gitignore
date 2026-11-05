@@ -124,3 +124,7 @@ android/app/google-service.json
 .DS_Store
 ios/.DS_Store
 .DS_Store
+android/app/release/app-release.apk
+android/app/release/output-metadata.json
+android/app/release/baselineProfiles/1/app-release.dm
+android/app/release/baselineProfiles/0/app-release.dm
