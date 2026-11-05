@@ -56,7 +56,7 @@ export async function onBookingCreated(
     recipientUserId: designerId,
     title: 'New appointment request',
     body: `${clientName} requested ${describeSlot(booking)}`,
-    type: 'booking',
+    type: 'appointment',
     event: 'appointment_requested',
     idempotencyKey: buildIdempotencyKey([
       'booking',
@@ -110,7 +110,7 @@ export async function onBookingUpdated(
       body: confirmed
         ? `Your appointment on ${slot} has been confirmed.`
         : `Your appointment on ${slot} was declined.`,
-      type: 'booking',
+      type: 'appointment',
       event: confirmed ? 'appointment_confirmed' : 'appointment_declined',
       idempotencyKey: buildIdempotencyKey([
         'booking',
@@ -137,7 +137,7 @@ export async function onBookingUpdated(
       body: cancelledByClient
         ? `An appointment on ${slot} was cancelled.`
         : `Your appointment on ${slot} was cancelled by the designer.`,
-      type: 'booking',
+      type: 'appointment',
       event: 'appointment_cancelled',
       idempotencyKey: buildIdempotencyKey([
         'booking',

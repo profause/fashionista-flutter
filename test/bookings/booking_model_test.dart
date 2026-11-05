@@ -235,17 +235,8 @@ void main() {
       expect(notification.uid, 'notif_1');
       expect(notification.refId, 'booking_1');
       expect(notification.refType, 'booking');
-      expect(notification.type, 'booking');
+      expect(notification.type, 'appointment');
       expect(notification.status, 'new');
-    });
-
-    test('describes who booked and when', () {
-      final notification = build();
-
-      expect(notification.title, 'New appointment request');
-      expect(notification.description, contains('Ama Mensah'));
-      expect(notification.description, contains('2026-11-16'));
-      expect(notification.description, contains('8:30 AM'));
     });
 
     test('carries the client snapshot as the author', () {

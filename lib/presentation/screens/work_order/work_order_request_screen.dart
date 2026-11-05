@@ -63,16 +63,6 @@ class _WorkOrderRequestScreenState extends State<WorkOrderRequestScreen> {
         backgroundColor: darkCanvas,
         elevation: 0,
         scrolledUnderElevation: 0,
-        leading: IconButton(
-          onPressed: () => context.pop(),
-          icon: Icon(
-            Icons.chevron_left_rounded,
-            size: 26,
-            color: context.onCanvasText,
-          ),
-          splashRadius: 20,
-          tooltip: 'Back',
-        ),
         title: Text(
           'Work Order Request',
           style: textTheme.titleMedium!.copyWith(

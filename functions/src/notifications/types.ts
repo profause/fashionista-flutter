@@ -2,6 +2,7 @@ import { Firestore } from 'firebase-admin/firestore';
 
 /** Coarse category the Flutter inbox uses to choose a widget. */
 export type NotificationType =
+  | 'appointment'
   | 'booking'
   | 'work_order_status_progress'
   | 'measurement'
@@ -83,6 +84,8 @@ export function preferenceKeyFor(
   type: NotificationType
 ): keyof NotificationPreferences {
   switch (type) {
+    // `booking` is the legacy value still present on already-sent records.
+    case 'appointment':
     case 'booking':
       return 'appointments';
     case 'work_order_status_progress':

@@ -134,6 +134,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       );
                     },
                   );
+                case "appointment":
+                // `booking` is the legacy value on already-stored records.
                 case "booking":
                   return NotificationBookingWidget(
                     key: ValueKey(index),

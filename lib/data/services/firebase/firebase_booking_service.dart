@@ -12,7 +12,6 @@ import 'package:fashionista/data/models/bookings/booking_notification.dart';
 import 'package:fashionista/data/models/bookings/booking_status.dart';
 import 'package:fashionista/data/models/bookings/create_booking_request.dart';
 import 'package:fashionista/data/models/bookings/slot_reservation_model.dart';
-import 'package:uuid/uuid.dart';
 
 abstract class FirebaseBookingService {
   Future<Either<String, List<Booking>>> findBookingsForDesigner(
@@ -330,8 +329,9 @@ class FirebaseBookingServiceImpl implements FirebaseBookingService {
         ),
       );
 
-      // Generated outside the transaction so a retry reuses the same id.
-      final notificationId = const Uuid().v4();
+      // Same id the server derives from its idempotency key, so the inbox
+      // record is not inserted twice (see buildBookingNotificationId).
+      final notificationId = buildBookingNotificationId(bookingRef.id);
       final notificationRef = _firestore
           .collection('notifications')
           .doc(notificationId);

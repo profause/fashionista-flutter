@@ -3,6 +3,18 @@ import 'package:fashionista/data/models/author/author_model.dart';
 import 'package:fashionista/data/models/bookings/booking_client_model.dart';
 import 'package:fashionista/data/models/notification/notification_model.dart';
 
+/// Document id for the notification a designer receives when a client books.
+///
+/// Must produce exactly what the server derives from
+/// `buildIdempotencyKey(['booking', 'requested', bookingId])` in
+/// `functions/src/triggers/booking.triggers.ts` — `booking__requested__{id}`.
+///
+/// The two sides writing to the same id is what keeps a booking down to one
+/// inbox entry: the server's `createHistoryIfAbsent` finds the document the
+/// client transaction already created and skips inserting a second copy.
+String buildBookingNotificationId(String bookingId) =>
+    'booking__requested__$bookingId';
+
 /// Builds the notification a designer receives when a client books a slot.
 ///
 /// Kept as a pure function so the payload contract is unit tested and the
@@ -25,7 +37,7 @@ NotificationModel buildBookingNotification({
     description:
         '${client.displayName} requested $date at '
         '${TimeOfDayX.toDisplay(startTime)}',
-    type: 'booking',
+    type: 'appointment',
     author: AuthorModel(
       uid: userId,
       name: client.name,
@@ -39,7 +51,7 @@ NotificationModel buildBookingNotification({
     event: 'appointment_requested',
     // Routing data for the push/inbox tap.
     data: {
-      'type': 'booking',
+      'type': 'appointment',
       'event': 'appointment_requested',
       'ref_id': bookingId,
       'ref_type': 'booking',

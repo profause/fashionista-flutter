@@ -68,6 +68,8 @@ class NotificationPayload extends Equatable {
   }
 
   bool get isAppointment =>
+      type == 'appointment' ||
+      // Legacy value on notifications sent before the rename.
       type == 'booking' ||
       refType == 'booking' ||
       event.startsWith('appointment');
