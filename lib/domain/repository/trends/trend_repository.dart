@@ -2,10 +2,14 @@ import 'package:dartz/dartz.dart';
 import 'package:fashionista/data/models/comment/comment_model.dart';
 import 'package:fashionista/data/models/social_interactions/social_interaction_model.dart';
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
+import 'package:fashionista/data/models/trends/trend_feed_page.dart';
 
 abstract class TrendRepository {
   Future<Either> findTrendsCreatedBy(String createdBy);
-  Future<Either<String, List<TrendFeedModel>>> fetchTrends();
+  Future<Either<String, TrendFeedPage>> fetchTrendsPage({
+    int limit,
+    Object? cursor,
+  });
   Future<Either> addTrendToFirestore(TrendFeedModel trend);
   Future<Either> updateTrendToFirestore(TrendFeedModel trend);
   Future<Either> deleteTrendById(String uid);

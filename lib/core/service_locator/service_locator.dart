@@ -99,7 +99,7 @@ import 'package:fashionista/domain/usecases/trends/delete_trend_comment_usecase.
 import 'package:fashionista/domain/usecases/trends/delete_trend_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/find_trend_by_id_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/find_trend_comments_usecase.dart';
-import 'package:fashionista/domain/usecases/trends/find_trends_usecase.dart';
+import 'package:fashionista/domain/usecases/trends/find_trend_feed_page_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/follow_or_unfollow_trend_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/is_followed_trend_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/is_liked_trend_usecase.dart';
@@ -208,7 +208,7 @@ Future<void> initialiseDependencies() async {
 
   sl.registerSingleton<FirebaseTrendsService>(FirebaseTrendsServiceImpl());
 
-  sl.registerSingleton<FindTrendsUsecase>(FindTrendsUsecase());
+  sl.registerSingleton<FindTrendFeedPageUsecase>(FindTrendFeedPageUsecase());
   sl.registerSingleton<IsLikedTrendUsecase>(IsLikedTrendUsecase());
 
   sl.registerSingleton<IsFollowedTrendUsecase>(IsFollowedTrendUsecase());

@@ -3,13 +3,16 @@ import 'package:dartz/dartz.dart';
 import 'package:fashionista/data/models/comment/comment_model.dart';
 import 'package:fashionista/data/models/social_interactions/social_interaction_model.dart';
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
+import 'package:fashionista/data/models/trends/trend_feed_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 abstract class FirebaseTrendsService {
   Future<Either> findTrendsCreatedBy(String createdBy);
-  Future<Either<String, List<TrendFeedModel>>> fetchTrends(int limit);
-  Future<Either<String, List<TrendFeedModel>>> fetchTrendsWithFilter(int limit);
+  Future<Either<String, TrendFeedPage>> fetchTrendsPage({
+    int limit,
+    Object? cursor,
+  });
   Future<Either<String, List<TrendFeedModel>>> fetchTrendsCreatedBy(int limit,
       String createdBy);
   Future<Either<String, List<TrendFeedModel>>> fetchTrendsByTag(
@@ -82,67 +85,41 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
   }
 
   @override
-  Future<Either<String, List<TrendFeedModel>>> fetchTrends(int limit) async {
+  Future<Either<String, TrendFeedPage>> fetchTrendsPage({
+    int limit = 20,
+    Object? cursor,
+  }) async {
     try {
-      final firestore = FirebaseFirestore.instance;
-      final querySnapshot = await firestore
+      Query<Map<String, dynamic>> query = FirebaseFirestore.instance
           .collection('trends')
-          //.where('created_by', isEqualTo: createdBy)
-          .orderBy('created_at', descending: true)
-          .get();
-      //Await all async maps
+          .orderBy('created_at', descending: true);
 
-      final trends = await Future.wait(
-        querySnapshot.docs.map((doc) async {
-          bool isLiked = await isLikedTrend(doc.reference.id);
-          bool isFollowed = await isFollowedTrend(doc.reference.id);
-          final d = TrendFeedModel.fromJson(doc.data());
-          return d.copyWith(
-            uid: doc.reference.id,
-            isLiked: isLiked,
-            isFollowed: isFollowed,
-          );
-        }),
+      if (cursor is DocumentSnapshot<Map<String, dynamic>>) {
+        query = query.startAfterDocument(cursor);
+      }
+
+      // One extra document tells us whether another page exists without a
+      // second round trip.
+      final snapshot = await query.limit(limit + 1).get();
+      final docs = snapshot.docs;
+      final hasMore = docs.length > limit;
+      final pageDocs = hasMore ? docs.sublist(0, limit) : docs;
+
+      final trends = pageDocs
+          .map(
+            (doc) => TrendFeedModel.fromJson(
+              doc.data(),
+            ).copyWith(uid: doc.id),
+          )
+          .toList(growable: false);
+
+      return Right(
+        TrendFeedPage(
+          trends: trends,
+          cursor: pageDocs.isEmpty ? null : pageDocs.last,
+          hasMore: hasMore,
+        ),
       );
-      //await importTrends(sampleTrendsData);
-      return Right(trends);
-    } on FirebaseException catch (e) {
-      return Left(e.message ?? 'An unknown Firebase error occurred');
-    } catch (e) {
-      return Left(e.toString());
-    }
-  }
-
-  @override
-  Future<Either<String, List<TrendFeedModel>>> fetchTrendsWithFilter(
-    int limit,
-  ) async {
-    try {
-      final firestore = FirebaseFirestore.instance;
-      final querySnapshot = await firestore
-          .collection('trends')
-          //.where('created_by', isEqualTo: createdBy)
-          .orderBy('created_at', descending: true)
-          .limit(limit)
-          .get();
-
-      //Await all async maps
-
-      final trends = await Future.wait(
-        querySnapshot.docs.map((doc) async {
-          bool isLiked = await isLikedTrend(doc.reference.id);
-          bool isFollowed = await isFollowedTrend(doc.reference.id);
-          final d = TrendFeedModel.fromJson(doc.data());
-          return d.copyWith(
-            uid: doc.reference.id,
-            isLiked: isLiked,
-            isFollowed: isFollowed,
-          );
-        }),
-      );
-
-      //await importTrends(sampleTrendsData);
-      return Right(trends);
     } on FirebaseException catch (e) {
       return Left(e.message ?? 'An unknown Firebase error occurred');
     } catch (e) {

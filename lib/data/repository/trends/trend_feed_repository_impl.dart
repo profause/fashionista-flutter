@@ -4,6 +4,7 @@ import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/comment/comment_model.dart';
 import 'package:fashionista/data/models/social_interactions/social_interaction_model.dart';
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
+import 'package:fashionista/data/models/trends/trend_feed_page.dart';
 import 'package:fashionista/data/services/firebase/firebase_trends_service.dart';
 import 'package:fashionista/domain/repository/trends/trend_repository.dart';
 
@@ -29,8 +30,14 @@ class TrendRepositoryImpl extends TrendRepository {
   }
 
   @override
-  Future<Either<String, List<TrendFeedModel>>> fetchTrends() {
-    return sl<FirebaseTrendsService>().fetchTrends(10);
+  Future<Either<String, TrendFeedPage>> fetchTrendsPage({
+    int limit = 20,
+    Object? cursor,
+  }) {
+    return sl<FirebaseTrendsService>().fetchTrendsPage(
+      limit: limit,
+      cursor: cursor,
+    );
   }
 
   @override

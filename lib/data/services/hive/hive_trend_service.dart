@@ -7,6 +7,61 @@ class HiveTrendService {
   //late final Box trendsBox;
   final hive = HiveService();
 
+  /// Upper bound on cached trends. The feed appends every page it loads, so
+  /// without a cap the box (and the sort over it) grows for the life of the
+  /// install. Pruning only ever runs before a fresh load, never mid-scroll.
+  static const int maxCachedItems = 500;
+
+  /// Feed ordering: newest first, ties broken by uid.
+  ///
+  /// Mirrors Firestore's `created_at DESC` + implicit `__name__ ASC`, so a page
+  /// fetched with a cursor lands where the local sort expects it.
+  static int _compareFeedOrder(TrendFeedModel a, TrendFeedModel b) {
+    final byDate = (b.createdAt ?? 0).compareTo(a.createdAt ?? 0);
+    if (byDate != 0) return byDate;
+    return (a.uid ?? '').compareTo(b.uid ?? '');
+  }
+
+  /// The whole cache in feed order.
+  List<TrendFeedModel> getSortedItems() {
+    try {
+      final items = hive.trendsBox.values.toList();
+      items.sort(_compareFeedOrder);
+      return items;
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+    return [];
+  }
+
+  /// Emits once per cache mutation, so a bloc can re-project the feed.
+  Stream<void> itemChanges() {
+    return hive.trendsBox.watch().map((_) {});
+  }
+
+  /// Drops the oldest trends beyond [maxCachedItems].
+  ///
+  /// The signed-in user's own posts are never pruned: the For You tab reads
+  /// them from this same box.
+  Future<void> pruneCache({String? keepAuthorUid}) async {
+    try {
+      final sorted = getSortedItems();
+      if (sorted.length <= maxCachedItems) return;
+
+      final doomed = sorted
+          .skip(maxCachedItems)
+          .where((item) => item.createdBy != keepAuthorUid)
+          .map((item) => item.uid)
+          .whereType<String>()
+          .toList(growable: false);
+
+      if (doomed.isEmpty) return;
+      await hive.trendsBox.deleteAll(doomed);
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
   Future<List<TrendFeedModel>> getItems(String key) async {
     try {
       final data = hive.trendsBox.values;

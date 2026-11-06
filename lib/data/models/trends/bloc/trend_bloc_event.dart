@@ -40,31 +40,6 @@ class UpdateCachedTrend extends TrendBlocEvent {
   List<Object?> get props => [trend];
 }
 
-class LoadTrends extends TrendBlocEvent {
-  final String uid;
-  const LoadTrends(this.uid);
-
-  @override
-  List<Object?> get props => [uid];
-}
-
-class LoadTrendsCacheFirstThenNetwork extends TrendBlocEvent {
-  final String uid;
-  const LoadTrendsCacheFirstThenNetwork(this.uid);
-
-  @override
-  List<Object?> get props => [uid];
-}
-
-class LoadTrendsCacheFirst extends TrendBlocEvent {
-  final int? limit;
-  const LoadTrendsCacheFirst({this.limit});
-
-  @override
-  List<Object?> get props => [limit];
-}
-
-
 class LoadTrendsCacheForYouPage extends TrendBlocEvent {
   final String uid;
   const LoadTrendsCacheForYouPage(this.uid);

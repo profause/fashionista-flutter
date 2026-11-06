@@ -29,6 +29,7 @@ import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/settings/bloc/settings_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_comment_bloc.dart';
+import 'package:fashionista/data/models/trends/bloc/trend_feed_bloc.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_status_progress_bloc.dart';
 import 'package:flutter/foundation.dart';
@@ -115,6 +116,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => BookingBloc()),
         BlocProvider(create: (_) => DesignCollectionBloc()),
         BlocProvider(create: (_) => TrendBloc()),
+        BlocProvider(create: (_) => TrendFeedBloc()),
         BlocProvider(create: (_) => TrendCommentBloc()),
         BlocProvider(create: (_) => ClosetOutfitBloc()),
         BlocProvider(create: (_) => ClosetItemBloc()),

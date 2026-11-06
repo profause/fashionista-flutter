@@ -6,7 +6,7 @@ import 'package:fashionista/data/models/fashion_interests/fashion_interest_model
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_fashion_interest_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_trends_service.dart';
-import 'package:fashionista/presentation/screens/trends/widgets/trends_staggered_view.dart';
+import 'package:fashionista/presentation/screens/trends/widgets/trend_feed_sliver.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:flutter/material.dart';
 
@@ -228,7 +228,7 @@ class _InterestDetailsScreenState extends State<InterestDetailsScreen> {
           ),
         if (_trends.isNotEmpty) ...[
           SliverToBoxAdapter(child: _sectionTitle(context, 'Trends')),
-          TrendsStaggeredView(items: _trends),
+          TrendFeedSliver(items: _trends),
         ],
         const SliverToBoxAdapter(child: SizedBox(height: 16)),
       ],
