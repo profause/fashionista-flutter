@@ -51,7 +51,7 @@ class NotificationInfoWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   NotificationIconCluster(
-                    icon: Icons.person_add_outlined,
+                    icon: Icons.info_outline,
                     unread: unread,
                   ),
                   const SizedBox(width: 12),
@@ -74,15 +74,15 @@ class NotificationInfoWidget extends StatelessWidget {
                             height: 1.6,
                           ),
                         ),
-                        if (unread) ...[
-                          const SizedBox(height: 12),
-                          NotificationCardButton(
-                            label: 'View Client Profile',
-                            onPressed: () {
-                              onTap?.call();
-                            },
-                          ),
-                        ],
+                        // if (unread) ...[
+                        //   const SizedBox(height: 12),
+                        //   NotificationCardButton(
+                        //     label: 'View Client Profile',
+                        //     onPressed: () {
+                        //       onTap?.call();
+                        //     },
+                        //   ),
+                        // ],
                       ],
                     ),
                   ),

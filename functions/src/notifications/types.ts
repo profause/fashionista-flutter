@@ -8,6 +8,7 @@ export type NotificationType =
   | 'measurement'
   | 'trend'
   | 'review'
+  | 'client'
   | 'info';
 
 /**
@@ -42,6 +43,8 @@ export interface NotificationPreferences {
   reminders: boolean;
   /** Likes and other interaction on the user's own posts. */
   social: boolean;
+  /** A designer linked the user to a client record. */
+  clients: boolean;
 }
 
 export const DEFAULT_PREFERENCES: NotificationPreferences = {
@@ -50,6 +53,7 @@ export const DEFAULT_PREFERENCES: NotificationPreferences = {
   measurements: true,
   reminders: true,
   social: true,
+  clients: true,
 };
 
 export interface DeviceToken {
@@ -105,6 +109,8 @@ export function preferenceKeyFor(
     case 'trend':
     case 'review':
       return 'social';
+    case 'client':
+      return 'clients';
     default:
       return 'appointments';
   }

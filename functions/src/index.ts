@@ -13,6 +13,7 @@ import { onDesignerReviewWritten } from './triggers/rating.triggers';
 import { onTrendWritten, onInterestCountRebuildRequest } from './triggers/trend.triggers';
 import { onTrendLikeCreated } from './triggers/trend-like.triggers';
 import { onDesignerReviewCreated } from './triggers/review.triggers';
+import { onClientLinked } from './triggers/client-link.triggers';
 
 initializeApp();
 
@@ -84,5 +85,12 @@ export const designerReviewCreated = onDocumentCreated(
   'designer_reviews/{reviewId}',
   async (event) => {
     await onDesignerReviewCreated(event);
+  }
+);
+
+export const clientLinked = onDocumentCreated(
+  'client_measurements/{userId}/clients/{clientId}',
+  async (event) => {
+    await onClientLinked(event);
   }
 );

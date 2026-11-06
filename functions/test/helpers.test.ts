@@ -89,6 +89,7 @@ describe('preferences', () => {
       measurements: true,
       reminders: true,
       social: true,
+      clients: true,
     });
   });
 });

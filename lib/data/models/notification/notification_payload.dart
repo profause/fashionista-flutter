@@ -94,6 +94,10 @@ class NotificationPayload extends Equatable {
   bool get isReview =>
       type == 'review' || refType == 'designer_review' || refType == 'review';
 
+  /// A designer linked the user to one of their client records.
+  bool get isClientLinked =>
+      type == 'client' || refType == 'client' || event == 'client_linked';
+
   bool get isForDesigner => audience == 'designer';
 
   @override

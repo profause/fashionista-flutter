@@ -175,6 +175,20 @@ void main() {
       expect(destination.isFallback, isTrue);
     });
 
+    test('client link opens my designers', () {
+      final destination = NotificationRouter.resolve({
+        'type': 'client',
+        'event': 'client_linked',
+        'ref_id': 'client_1',
+        'ref_type': 'client',
+        'designer_id': 'designer_3',
+        'audience': 'client',
+      });
+
+      expect(destination.path, '/my-designers');
+      expect(destination.isFallback, isFalse);
+    });
+
     test('unknown type falls back to the inbox', () {
       final destination = NotificationRouter.resolve({'type': 'unknown'});
 

@@ -65,6 +65,11 @@ class NotificationRouter {
       return NotificationDestination('/designers/${payload.designerId}');
     }
 
+    if (payload.isClientLinked) {
+      // The user was added as a client; their designers live here.
+      return const NotificationDestination('/my-designers');
+    }
+
     return NotificationDestination.inbox;
   }
 }

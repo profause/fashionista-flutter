@@ -2,16 +2,13 @@ import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/widgets/animated_primary_button.dart';
 import 'package:fashionista/core/widgets/bloc/button_loading_state_cubit.dart';
-import 'package:fashionista/data/models/author/author_model.dart';
 import 'package:fashionista/data/models/clients/bloc/client_bloc.dart';
 import 'package:fashionista/data/models/clients/bloc/client_event.dart';
 import 'package:fashionista/data/models/clients/client_measurement_model.dart';
 import 'package:fashionista/data/models/clients/client_model.dart';
-import 'package:fashionista/data/models/notification/notification_model.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
-import 'package:fashionista/data/services/firebase/firebase_notification_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_user_service.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_core/firebase_core.dart';
@@ -392,31 +389,8 @@ class _AddClientScreenState extends State<AddClientScreen> {
               designerId: createdBy,
             );
 
-            //send notification to user who was created as client
-            final authorUser = AuthorModel.empty().copyWith(
-              uid: user.uid,
-              name: user.fullName,
-              avatar: user.profileImage,
-              mobileNumber: user.mobileNumber,
-            );
-
-            final notification = NotificationModel.empty().copyWith(
-              uid: Uuid().v4(),
-              title: 'New Client',
-              description: '${user.fullName} has added you as a client',
-              createdAt: DateTime.now().millisecondsSinceEpoch,
-              type: 'info',
-              refId: uid,
-              refType: "client",
-              from: user.uid,
-              to: r.uid,
-              author: authorUser,
-              status: 'new',
-            );
-
-            await sl<FirebaseNotificationService>().createNotification(
-              notification,
-            );
+            // The `clientLinked` Cloud Function notifies the user from the link
+            // document, so writing the inbox record here would duplicate it.
 
             _buttonLoadingStateCubit.setLoading(false);
             if (mounted) {

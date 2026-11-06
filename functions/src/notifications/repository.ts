@@ -209,6 +209,29 @@ export class NotificationRepository implements NotificationStore {
     const snapshot = await this.db.collection('designers').doc(designerId).get();
     return snapshot.exists;
   }
+
+  /**
+   * Human-readable designer name for a notification body.
+   *
+   * Prefers the user profile the app shows elsewhere, then the designer
+   * document, then the business name. Empty when neither document exists.
+   */
+  async getDesignerDisplayName(designerId: string): Promise<string> {
+    if (!designerId) return '';
+
+    const user = await this.db.collection('users').doc(designerId).get();
+    if (user.exists) {
+      const data = user.data() ?? {};
+      const name = text(data.name) || text(data.full_name);
+      if (name) return name;
+    }
+
+    const designer = await this.db.collection('designers').doc(designerId).get();
+    if (!designer.exists) return '';
+
+    const data = designer.data() ?? {};
+    return text(data.name) || text(data.business_name);
+  }
 }
 
 function text(value: unknown): string {
