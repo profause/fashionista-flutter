@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/notification/bloc/notification_bloc_event.dart';
 import 'package:fashionista/data/models/notification/bloc/notification_bloc_state.dart';
@@ -9,20 +11,36 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class NotificationBloc
     extends Bloc<NotificationBlocEvent, NotificationBlocState> {
-  NotificationBloc() : super(const NotificationInitial()) {
+  NotificationBloc({String? Function()? userIdProvider})
+    : _userIdProvider = userIdProvider ?? _signedInUserId,
+      super(const NotificationInitial()) {
     on<LoadNotification>(_onLoadNotification);
-    on<LoadNotifications>(_onLoadNotifications);
     on<UpdateNotification>(_updateNotification);
     on<DeleteNotification>(_deleteNotification);
-    on<LoadNotificationsCacheFirstThenNetwork>(
-      _onLoadNotificationsCacheFirstThenNetwork,
-    );
     on<LoadNotificationsByFrom>(_onLoadNotificationsByFrom);
     on<ClearNotification>(_onClearNotification);
     on<NotificationsCounter>(_onCountNotifications);
     on<LoadNotificationsPage>(_onLoadPage);
+    on<LoadMoreNotifications>(_onLoadMore);
     on<MarkAllNotificationsRead>(_onMarkAllRead);
   }
+
+  /// Default page size for the inbox feed.
+  static const int defaultPageSize = 20;
+
+  /// Signed-in user, injectable so the bloc is testable without Firebase.
+  final String? Function() _userIdProvider;
+
+  static String? _signedInUserId() => FirebaseAuth.instance.currentUser?.uid;
+
+  /// Cursor of the last loaded row; `null` before the first page.
+  Object? _lastDocument;
+
+  /// Bumped on every fresh load so an older in-flight page cannot overwrite it.
+  int _generation = 0;
+
+  /// Uid the current list belongs to; pages for another user are discarded.
+  String? _pageOwnerUid;
 
   Future<void> _onLoadNotification(
     LoadNotification event,
@@ -60,29 +78,25 @@ class NotificationBloc
       },
       (notification) async {
         await sl<HiveNotificationService>().updateItem(toWrite);
-        emit(NotificationLoaded(notification)); // ✅ safe emit
+
+        // With the feed rendered from bloc state, replacing the list with a
+        // single-item state would blank the screen.
+        final current = state;
+        if (current is NotificationsLoaded) {
+          emit(
+            current.copyWith(
+              notifications: [
+                for (final item in current.notifications)
+                  if (item.uid == toWrite.uid) toWrite else item,
+              ],
+            ),
+          );
+          return;
+        }
+
+        emit(NotificationLoaded(notification));
       },
     );
-  }
-
-  Future<void> _onLoadNotifications(
-    LoadNotifications event,
-    Emitter<NotificationBlocState> emit,
-  ) async {
-    emit(const NotificationLoading());
-
-    final result = await sl<FirebaseNotificationService>()
-        .findNotificationsFromFirestore(event.uid);
-
-    result.fold((failure) => emit(NotificationError(failure.toString())), (
-      notifications,
-    ) {
-      if (notifications.isEmpty) {
-        emit(const NotificationsEmpty());
-      } else {
-        emit(NotificationsLoaded(notifications));
-      }
-    });
   }
 
   Future<void> _deleteNotification(
@@ -100,7 +114,21 @@ class NotificationBloc
         },
         (notification) async {
           await sl<HiveNotificationService>().deleteItem(event.uid);
-          emit(NotificationLoaded(notification)); // ✅ safe emit
+
+          final current = state;
+          if (current is NotificationsLoaded) {
+            emit(
+              current.copyWith(
+                notifications: [
+                  for (final item in current.notifications)
+                    if (item.uid != event.uid) item,
+                ],
+              ),
+            );
+            return;
+          }
+
+          emit(NotificationLoaded(notification));
         },
       );
     } catch (e) {
@@ -113,11 +141,8 @@ class NotificationBloc
     LoadNotificationsByFrom event,
     Emitter<NotificationBlocState> emit,
   ) async {
-    String uid = event.uid;
-    final us = FirebaseAuth.instance.currentUser;
-    if (us != null) {
-      uid = us.uid;
-    }
+    final signedIn = _userIdProvider();
+    final uid = (signedIn == null || signedIn.isEmpty) ? event.uid : signedIn;
     emit(const NotificationLoading());
 
     final cachedItems = await sl<HiveNotificationService>().getItems(uid);
@@ -152,7 +177,7 @@ class NotificationBloc
     Emitter<NotificationBlocState> emit,
   ) async {
     final uid = event.uid.isEmpty
-        ? FirebaseAuth.instance.currentUser?.uid ?? ''
+        ? _userIdProvider() ?? ''
         : event.uid;
 
     if (uid.isEmpty) {
@@ -173,90 +198,144 @@ class NotificationBloc
     emit(NotificationsCounted(await cachedUnread));
   }
 
-  Future<void> _onLoadNotificationsCacheFirstThenNetwork(
-    LoadNotificationsCacheFirstThenNetwork event,
-    Emitter<NotificationBlocState> emit,
-  ) async {
-    String uid = event.uid;
-    final us = FirebaseAuth.instance.currentUser;
-    if (us != null) {
-      uid = us.uid;
-    }
-    emit(const NotificationLoading());
-
-    final cachedItems = await sl<HiveNotificationService>().getItems(uid);
-
-    if (cachedItems.isNotEmpty) {
-      emit(NotificationsLoaded(cachedItems, fromCache: true));
-    }
-
-    final result = await sl<FirebaseNotificationService>()
-        .findNotificationsFromFirestore(uid);
-
-    result.fold(
-      (failure) async {
-        if (cachedItems.isEmpty) {
-          emit(NotificationError(failure.toString()));
-        }
-      },
-      (notifications) async {
-        if (notifications.isEmpty) {
-          if (cachedItems.isEmpty) {
-            emit(const NotificationsEmpty());
-          }
-          return;
-        }
-
-        if (cachedItems.toString() != notifications.toString()) {
-          emit(NotificationsLoaded(notifications, fromCache: false));
-          await sl<HiveNotificationService>().insertItems(notifications,
-          );
-        } else {
-          emit(NotificationsLoaded(cachedItems, fromCache: true));
-        }
-      },
-    );
-  }
-
-  @override
-  Future<void> close() {
-    // _hiveSubscription?.cancel(); // 👈 clean up
-    return super.close();
-  }
-
   Future<void> _onLoadPage(
     LoadNotificationsPage event,
     Emitter<NotificationBlocState> emit,
   ) async {
-    if (event.beforeCreatedAt == null) emit(const NotificationLoading());
+    final uid = event.uid.isEmpty
+        ? _userIdProvider() ?? ''
+        : event.uid;
+    if (uid.isEmpty) {
+      emit(const NotificationsEmpty());
+      return;
+    }
+
+    // A refresh invalidates any page currently in flight.
+    final generation = ++_generation;
+    _pageOwnerUid = uid;
+    _lastDocument = null;
+
+    final current = state is NotificationsLoaded
+        ? state as NotificationsLoaded
+        : null;
+    final isRefresh = event.refresh && current != null;
+
+    // Offline-first paint: show the cached newest page while the network call
+    // runs, instead of an empty spinner.
+    var showingCache = false;
+    if (!isRefresh) {
+      final cached = await sl<HiveNotificationService>().getItems(uid);
+      if (generation != _generation) return;
+      if (cached.isNotEmpty) {
+        final sorted = [...cached]
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        emit(NotificationsLoaded(sorted, fromCache: true));
+        showingCache = true;
+      } else {
+        emit(const NotificationLoading());
+      }
+    }
 
     final result = await sl<FirebaseNotificationService>()
-        .findNotificationsPage(
-          event.uid,
-          limit: event.limit,
-          beforeCreatedAt: event.beforeCreatedAt,
-        );
+        .findNotificationsPage(uid, limit: event.limit);
+
+    if (generation != _generation) return; // superseded by a newer load
 
     result.fold(
-      (failure) => emit(NotificationError(failure.toString())),
+      (failure) {
+        // A failure must never blank a feed that is already on screen.
+        if (showingCache || isRefresh) return;
+        emit(NotificationError(failure.toString()));
+      },
       (page) {
+        _lastDocument = page.cursor;
+
         if (page.isEmpty) {
-          if (event.beforeCreatedAt == null) {
-            emit(const NotificationsEmpty());
-          } else {
-            emit(NotificationsLoaded(const [], hasMore: false));
-          }
+          emit(const NotificationsEmpty());
           return;
         }
 
         emit(
           NotificationsLoaded(
-            page,
-            hasMore: page.length >= event.limit,
+            page.notifications,
+            hasMore: page.hasMore,
+          ),
+        );
+        unawaited(_seedCache(page.notifications));
+      },
+    );
+  }
+
+  /// Appends the next page, keeping everything already on screen.
+  Future<void> _onLoadMore(
+    LoadMoreNotifications event,
+    Emitter<NotificationBlocState> emit,
+  ) async {
+    final current = state;
+    if (current is! NotificationsLoaded) return;
+    if (current.isLoadingMore) return; // rapid scroll guard
+    if (!current.hasMore) return;
+    if (_lastDocument == null) return;
+
+    final uid = _pageOwnerUid ?? _userIdProvider() ?? '';
+    if (uid.isEmpty) return;
+
+    final generation = _generation;
+
+    emit(current.copyWith(isLoadingMore: true, clearLoadMoreError: true));
+
+    final result = await sl<FirebaseNotificationService>()
+        .findNotificationsPage(
+          uid,
+          limit: defaultPageSize,
+          cursor: _lastDocument,
+        );
+
+    // Refresh happened while this page was loading: drop the stale result.
+    if (generation != _generation) return;
+
+    final latest = state;
+    if (latest is! NotificationsLoaded) return;
+
+    result.fold(
+      (failure) => emit(
+        latest.copyWith(
+          isLoadingMore: false,
+          loadMoreError: failure.toString(),
+        ),
+      ),
+      (page) {
+        _lastDocument = page.cursor ?? _lastDocument;
+
+        final seen = latest.notifications
+            .map((notification) => notification.uid)
+            .whereType<String>()
+            .toSet();
+        final appended = page.notifications
+            .where((notification) => !seen.contains(notification.uid))
+            .toList(growable: false);
+
+        emit(
+          latest.copyWith(
+            // Always a new list: Equatable compares list identity, so mutating
+            // in place would not rebuild the screen.
+            notifications: [...latest.notifications, ...appended],
+            hasMore: page.hasMore,
+            isLoadingMore: false,
+            clearLoadMoreError: true,
           ),
         );
       },
     );
+  }
+
+  /// Keeps the offline cache to the newest page (D3 in the plan).
+  Future<void> _seedCache(List<NotificationModel> notifications) async {
+    try {
+      await sl<HiveNotificationService>().insertItems(notifications);
+    } catch (_) {
+      // Cache failures must never break the feed.
+    }
   }
 
   Future<void> _onMarkAllRead(
@@ -269,7 +348,26 @@ class NotificationBloc
 
     result.fold(
       (failure) => emit(NotificationError(failure.toString())),
-      (affected) => emit(NotificationsMarkedRead(affected)),
+      (affected) {
+        final current = state;
+        if (current is! NotificationsLoaded) {
+          emit(NotificationsMarkedRead(affected));
+          return;
+        }
+
+        emit(
+          current.copyWith(
+            notifications: [
+              for (final item in current.notifications)
+                if (item.status == 'new')
+                  item.copyWith(status: 'read', readAt: DateTime.now().toUtc())
+                else
+                  item,
+            ],
+            unreadCount: 0,
+          ),
+        );
+      },
     );
   }
 }

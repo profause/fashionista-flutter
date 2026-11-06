@@ -39,10 +39,18 @@ class NotificationsLoaded extends NotificationBlocState {
   /// `true` when another page may exist.
   final bool hasMore;
 
+  /// A subsequent page is in flight; the list stays on screen.
+  final bool isLoadingMore;
+
+  /// A subsequent page failed; the list stays on screen and offers a retry.
+  final String? loadMoreError;
+
   NotificationsLoaded(
     this.notifications, {
     this.fromCache = false,
     this.hasMore = false,
+    this.isLoadingMore = false,
+    this.loadMoreError,
     int? unreadCount,
   }) : super(
          notificationCount:
@@ -50,11 +58,34 @@ class NotificationsLoaded extends NotificationBlocState {
              notifications.where((n) => n.status == 'new').length,
        );
 
+  NotificationsLoaded copyWith({
+    List<NotificationModel>? notifications,
+    bool? fromCache,
+    bool? hasMore,
+    bool? isLoadingMore,
+    String? loadMoreError,
+    bool clearLoadMoreError = false,
+    int? unreadCount,
+  }) {
+    return NotificationsLoaded(
+      notifications ?? this.notifications,
+      fromCache: fromCache ?? this.fromCache,
+      hasMore: hasMore ?? this.hasMore,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      loadMoreError: clearLoadMoreError
+          ? null
+          : (loadMoreError ?? this.loadMoreError),
+      unreadCount: unreadCount ?? notificationCount,
+    );
+  }
+
   @override
   List<Object?> get props => [
     notifications,
     fromCache,
     hasMore,
+    isLoadingMore,
+    loadMoreError,
     notificationCount,
   ];
 }

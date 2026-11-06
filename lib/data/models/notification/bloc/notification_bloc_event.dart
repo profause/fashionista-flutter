@@ -22,22 +22,6 @@ class UpdateNotification extends NotificationBlocEvent {
   List<Object?> get props => [notification];
 }
 
-class LoadNotifications extends NotificationBlocEvent {
-  final String uid;
-  const LoadNotifications(this.uid);
-
-  @override
-  List<Object?> get props => [uid];
-}
-
-class LoadNotificationsCacheFirstThenNetwork extends NotificationBlocEvent {
-  final String uid;
-  const LoadNotificationsCacheFirstThenNetwork(this.uid);
-
-  @override
-  List<Object?> get props => [uid];
-}
-
 class LoadNotificationsByFrom extends NotificationBlocEvent {
   final String uid;
   const LoadNotificationsByFrom(this.uid);
@@ -76,18 +60,29 @@ class MarkAllNotificationsRead extends NotificationBlocEvent {
   List<Object?> get props => [uid];
 }
 
-/// Loads one page of the inbox, newest first.
+/// Loads the newest page of the inbox, newest first.
+///
+/// Always starts from the top: [refresh] discards the current list and cursor,
+/// which is also what pull-to-refresh uses.
 class LoadNotificationsPage extends NotificationBlocEvent {
   final String uid;
   final int limit;
-  final int? beforeCreatedAt;
+  final bool refresh;
 
   const LoadNotificationsPage(
     this.uid, {
     this.limit = 20,
-    this.beforeCreatedAt,
+    this.refresh = false,
   });
 
   @override
-  List<Object?> get props => [uid, limit, beforeCreatedAt];
+  List<Object?> get props => [uid, limit, refresh];
+}
+
+/// Appends the next page using the cursor of the last loaded row.
+class LoadMoreNotifications extends NotificationBlocEvent {
+  const LoadMoreNotifications();
+
+  @override
+  List<Object?> get props => const [];
 }

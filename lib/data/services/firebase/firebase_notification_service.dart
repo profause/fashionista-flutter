@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:fashionista/data/models/notification/notification_model.dart';
+import 'package:fashionista/data/models/notification/notification_page.dart';
 
 abstract class FirebaseNotificationService {
   Future<Either> createNotification(NotificationModel notification);
@@ -10,8 +11,6 @@ abstract class FirebaseNotificationService {
     String notificationId,
   );
   Future<Either> fetchNotificationsFromFirestore(String uid);
-  Future<Either<String, List<NotificationModel>>>
-  findNotificationsFromFirestore(String uid);
   Future<Either<String, int>> getCount(String uid);
 
   /// Unread-only counter used by the badge.
@@ -21,10 +20,13 @@ abstract class FirebaseNotificationService {
   Future<Either<String, int>> markAllAsRead(String uid);
 
   /// One page of the inbox, newest first.
-  Future<Either<String, List<NotificationModel>>> findNotificationsPage(
+  ///
+  /// [cursor] is the `NotificationPage.cursor` of the previous page; omit it
+  /// for the first page.
+  Future<Either<String, NotificationPage>> findNotificationsPage(
     String uid, {
     int limit = 20,
-    int? beforeCreatedAt,
+    Object? cursor,
   });
 }
 
@@ -106,28 +108,6 @@ class FirebaseNotificationServiceImpl implements FirebaseNotificationService {
   }
 
   @override
-  Future<Either<String, List<NotificationModel>>>
-  findNotificationsFromFirestore(String uid) async {
-    try {
-      final firestore = FirebaseFirestore.instance;
-      final querySnapshot = await firestore
-          .collection('notifications')
-          .where('to', isEqualTo: uid)
-          .orderBy('created_at', descending: true)
-          .get();
-
-      final notifications = querySnapshot.docs.map((doc) {
-        final d = NotificationModel.fromJson(doc.data());
-        return d;
-      }).toList();
-      return Right(notifications);
-    } on FirebaseException catch (e) {
-      return Left(e.message ?? 'An unknown Firebase error occurred');
-    } catch (e) {
-      return Left(e.toString());
-    }
-  }
-
   @override
   Future<Either<String, int>> getCount(String uid) async {
     try {
@@ -216,33 +196,52 @@ class FirebaseNotificationServiceImpl implements FirebaseNotificationService {
   }
 
   @override
-  Future<Either<String, List<NotificationModel>>> findNotificationsPage(
+  Future<Either<String, NotificationPage>> findNotificationsPage(
     String uid, {
     int limit = 20,
-    int? beforeCreatedAt,
+    Object? cursor,
   }) async {
-    if (uid.isEmpty) return const Right(<NotificationModel>[]);
+    if (uid.isEmpty) return const Right(NotificationPage.empty);
+
     try {
+      // One extra document answers "is there another page" exactly, instead of
+      // guessing from a full page and paying for an empty round trip later.
       Query<Map<String, dynamic>> query = FirebaseFirestore.instance
           .collection('notifications')
           .where('to', isEqualTo: uid)
           .orderBy('created_at', descending: true)
-          .limit(limit);
+          .limit(limit + 1);
 
-      if (beforeCreatedAt != null) {
-        query = query.where('created_at', isLessThan: beforeCreatedAt);
+      if (cursor is DocumentSnapshot<Map<String, dynamic>>) {
+        query = query.startAfterDocument(cursor);
       }
 
       final snapshot = await query.get();
+      final hasMore = snapshot.docs.length > limit;
+      final pageDocs = hasMore
+          ? snapshot.docs.sublist(0, limit)
+          : snapshot.docs;
+
       return Right(
-        snapshot.docs
-            .map((doc) => NotificationModel.fromJson(doc.data()))
-            .toList(),
+        NotificationPage(
+          notifications: pageDocs
+              .map(
+                (doc) => NotificationModel.fromJson({
+                  ...doc.data(),
+                  // The document id is authoritative; the stored `uid` field is
+                  // only a mirror and may be missing on legacy records.
+                  'uid': doc.id,
+                }),
+              )
+              .toList(growable: false),
+          cursor: pageDocs.isEmpty ? null : pageDocs.last,
+          hasMore: hasMore,
+        ),
       );
     } on FirebaseException catch (e) {
       return Left(e.message ?? 'Unable to load notifications');
     } catch (e) {
-      return Left(e.toString());
+      return Left('Unable to load notifications: $e');
     }
   }
 }
