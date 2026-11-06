@@ -1,6 +1,7 @@
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/settings/bloc/settings_bloc.dart';
 import 'package:fashionista/data/models/settings/models/settings_model.dart';
+import 'package:fashionista/presentation/screens/settings/widgets/notification_preferences_sheet.dart';
 import 'package:fashionista/presentation/widgets/round_toggle.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -126,8 +127,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   children: [
                     SettingsRow(
                       title: 'Notifications',
-                      subtitle: 'Order updates, style drops, and alerts',
-                      onTap: () => _comingSoon(context),
+                      subtitle: 'Likes, comments, appointments and orders',
+                      onTap: () => showNotificationPreferencesSheet(context),
                       trailing: const _Chevron(),
                     ),
                     SettingsRow(

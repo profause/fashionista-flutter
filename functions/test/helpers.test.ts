@@ -74,24 +74,56 @@ describe('isSelfNotification', () => {
 describe('preferences', () => {
   it('defaults every category to enabled', () => {
     expect(isCategoryEnabled(undefined, 'appointments')).toBe(true);
-    expect(isCategoryEnabled({}, 'orders')).toBe(true);
+    expect(isCategoryEnabled({}, 'trend_like')).toBe(true);
+    expect(isCategoryEnabled({}, 'order_updates')).toBe(true);
   });
 
   it('respects an explicit false', () => {
     expect(isCategoryEnabled({ appointments: false }, 'appointments')).toBe(
       false
     );
+    expect(isCategoryEnabled({ trend_comment: false }, 'trend_comment')).toBe(
+      false
+    );
+  });
+
+  it('honours a legacy key when the new one is absent', () => {
+    expect(isCategoryEnabled({ social: false }, 'trend_like')).toBe(false);
+    expect(isCategoryEnabled({ social: false }, 'trend_comment')).toBe(false);
+    expect(isCategoryEnabled({ social: false }, 'designer_rating')).toBe(false);
+    expect(isCategoryEnabled({ orders: false }, 'order_updates')).toBe(false);
+    expect(isCategoryEnabled({ measurements: false }, 'measurement_updates')).toBe(
+      false
+    );
+    expect(isCategoryEnabled({ reminders: false }, 'appointment_reminder')).toBe(
+      false
+    );
+  });
+
+  it('prefers the new key over the legacy key', () => {
+    expect(isCategoryEnabled({ social: false, trend_like: true }, 'trend_like')).toBe(
+      true
+    );
+    expect(
+      isCategoryEnabled({ trend_like: true }, 'trend_comment')
+    ).toBe(true);
   });
 
   it('fills missing keys with defaults', () => {
-    expect(mergePreferences({ orders: false })).toEqual({
+    expect(mergePreferences({ order_updates: false })).toEqual({
+      trend_like: true,
+      trend_comment: true,
       appointments: true,
-      orders: false,
-      measurements: true,
-      reminders: true,
-      social: true,
+      appointment_reminder: true,
+      designer_rating: true,
+      order_updates: false,
+      measurement_updates: true,
       clients: true,
     });
+  });
+
+  it('ignores legacy keys when merging (they are read separately)', () => {
+    expect(mergePreferences({ social: false }).trend_like).toBe(true);
   });
 });
 

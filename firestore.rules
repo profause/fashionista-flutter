@@ -42,6 +42,35 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == uid;
     }
 
+    // Notification preference validation. Absence is allowed so a partial or
+    // first save (one toggle) is valid; a present field must be a boolean.
+    function isBoolOrAbsent(data, key) {
+      return !(key in data) || data[key] is bool;
+    }
+
+    function validNotificationPreferences(data) {
+      return data.keys().hasOnly([
+          'trend_like',
+          'trend_comment',
+          'appointments',
+          'appointment_reminder',
+          'designer_rating',
+          'order_updates',
+          'measurement_updates',
+          'clients',
+          'updated_at'
+        ])
+        && isBoolOrAbsent(data, 'trend_like')
+        && isBoolOrAbsent(data, 'trend_comment')
+        && isBoolOrAbsent(data, 'appointments')
+        && isBoolOrAbsent(data, 'appointment_reminder')
+        && isBoolOrAbsent(data, 'designer_rating')
+        && isBoolOrAbsent(data, 'order_updates')
+        && isBoolOrAbsent(data, 'measurement_updates')
+        && isBoolOrAbsent(data, 'clients')
+        && (!('updated_at' in data) || data.updated_at is timestamp);
+    }
+
     function statusIn(allowed) {
       return request.resource.data.status in allowed;
     }
@@ -105,7 +134,10 @@ service cloud.firestore {
       }
 
       match /settings/notifications {
-        allow read, write: if isSelf(userId);
+        allow read: if isSelf(userId);
+        allow delete: if isSelf(userId);
+        allow create, update: if isSelf(userId)
+          && validNotificationPreferences(request.resource.data);
       }
     }
 

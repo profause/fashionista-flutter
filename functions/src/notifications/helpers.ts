@@ -1,4 +1,10 @@
-import { NotificationPreferences, DEFAULT_PREFERENCES } from './types';
+import {
+  DEFAULT_PREFERENCES,
+  NotificationPreferences,
+  NotificationPreferenceKey,
+  StoredPreferences,
+  isPreferenceEnabled,
+} from './types';
 
 /** Truncates a token so logs never contain a usable credential. */
 export function redactToken(token: string): string {
@@ -35,20 +41,30 @@ export function isSelfNotification(
   return !!actorId && actorId === recipientUserId;
 }
 
-/** Preference gate; missing documents default to enabled. */
+/**
+ * Preference gate.
+ *
+ * Delegates to {@link isPreferenceEnabled} so a legacy key (`social`, `orders`,
+ * `measurements`, `reminders`) still disables the category it used to cover,
+ * and a missing document or field falls back to the default.
+ */
 export function isCategoryEnabled(
-  preferences: Partial<NotificationPreferences> | undefined,
-  key: keyof NotificationPreferences
+  stored: StoredPreferences | undefined,
+  key: NotificationPreferenceKey
 ): boolean {
-  if (!preferences) return true;
-  const value = preferences[key];
-  return value === undefined ? true : value === true;
+  return isPreferenceEnabled(stored, key);
 }
 
+/** Defaults with the stored values applied; legacy keys are ignored. */
 export function mergePreferences(
-  stored: Partial<NotificationPreferences> | undefined
+  stored: StoredPreferences | undefined
 ): NotificationPreferences {
-  return { ...DEFAULT_PREFERENCES, ...(stored ?? {}) };
+  const merged = { ...DEFAULT_PREFERENCES };
+  for (const key of Object.keys(DEFAULT_PREFERENCES) as NotificationPreferenceKey[]) {
+    const value = stored?.[key];
+    if (typeof value === 'boolean') merged[key] = value;
+  }
+  return merged;
 }
 
 /** Removes undefined values so Firestore does not reject the write. */

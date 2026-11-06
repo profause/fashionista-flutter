@@ -1,5 +1,5 @@
 import { Firestore, Timestamp } from 'firebase-admin/firestore';
-import { DeviceToken, NotificationPreferences } from './types';
+import { DeviceToken, StoredPreferences } from './types';
 
 /**
  * Storage contract used by the dispatcher.
@@ -9,7 +9,7 @@ import { DeviceToken, NotificationPreferences } from './types';
  */
 export interface NotificationStore {
   getActiveDevices(userId: string): Promise<DeviceToken[]>;
-  getPreferences(userId: string): Promise<Partial<NotificationPreferences>>;
+  getPreferences(userId: string): Promise<StoredPreferences>;
   createHistoryIfAbsent(
     userId: string,
     notificationId: string,
@@ -55,7 +55,7 @@ export class NotificationRepository implements NotificationStore {
     return devices;
   }
 
-  async getPreferences(userId: string): Promise<Partial<NotificationPreferences>> {
+  async getPreferences(userId: string): Promise<StoredPreferences> {
     if (!userId) return {};
     const doc = await this.db
       .collection('users')
@@ -63,7 +63,7 @@ export class NotificationRepository implements NotificationStore {
       .collection('settings')
       .doc('notifications')
       .get();
-    return doc.exists ? (doc.data() as Partial<NotificationPreferences>) : {};
+    return doc.exists ? (doc.data() as StoredPreferences) : {};
   }
 
   /**

@@ -46,14 +46,23 @@ export async function deliverNotification(
 
   const repository = store;
 
-  // 1. Preference gate — disabling push must not delete history.
-  const preferences = await repository.getPreferences(payload.recipientUserId);
-  if (!isCategoryEnabled(preferences, preferenceKeyFor(payload.type))) {
-    context.logger.info('Notification suppressed by preferences', {
+  // 1. Preference gate.
+  //
+  // A read failure must not silently allow the push: log it and rethrow so the
+  // platform retries the event. Nothing has been written yet at this point.
+  let pushEnabled: boolean;
+  try {
+    const preferences = await repository.getPreferences(
+      payload.recipientUserId
+    );
+    pushEnabled = isCategoryEnabled(preferences, preferenceKeyFor(payload));
+  } catch (error) {
+    context.logger.error('Failed to read notification preferences', {
       event: payload.event,
       recipient: payload.recipientUserId,
+      error: error instanceof Error ? error.message : String(error),
     });
-    return result;
+    throw error;
   }
 
   // 2. Idempotent history creation.
@@ -88,7 +97,18 @@ export async function deliverNotification(
     });
   }
 
-  // 3. Delivery claim — a retried trigger must not send twice, even when the
+  // 3. A disabled category stops the push, never the inbox record: the in-app
+  //    activity feed is an event log, not a delivery artefact.
+  if (!pushEnabled) {
+    context.logger.info('Push suppressed by preferences', {
+      event: payload.event,
+      recipient: payload.recipientUserId,
+      preference: preferenceKeyFor(payload),
+    });
+    return result;
+  }
+
+  // 4. Delivery claim — a retried trigger must not send twice, even when the
   //    inbox record was written earlier by the app.
   const claimed = await repository.claimDelivery(payload.idempotencyKey);
   if (!claimed) {
@@ -98,7 +118,7 @@ export async function deliverNotification(
     return result;
   }
 
-  // 4. Recipient devices.
+  // 5. Recipient devices.
   const devices = await repository.getActiveDevices(payload.recipientUserId);
   if (devices.length === 0) {
     context.logger.info('No active devices for recipient', {
@@ -161,7 +181,7 @@ export async function deliverNotification(
     }
   }
 
-  // 5. Cleanup so dead devices do not accumulate.
+  // 6. Cleanup so dead devices do not accumulate.
   await repository.deactivateTokens(
     payload.recipientUserId,
     result.invalidTokens

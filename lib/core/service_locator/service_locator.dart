@@ -2,6 +2,7 @@ import 'package:fashionista/data/repository/auth/auth_repository_impl.dart';
 import 'package:fashionista/data/repository/availability/availability_repository_impl.dart';
 import 'package:fashionista/data/repository/bookings/booking_repository_impl.dart';
 import 'package:fashionista/data/repository/clients/clients_repository_impl.dart';
+import 'package:fashionista/data/repository/notifications/notification_preferences_repository_impl.dart';
 import 'package:fashionista/data/repository/closet/closet_repository_impl.dart';
 import 'package:fashionista/data/repository/design_collection/design_collection_repository_impl.dart';
 import 'package:fashionista/data/repository/designers/designers_repository_impl.dart';
@@ -12,6 +13,7 @@ import 'package:fashionista/data/services/firebase/firebase_auth_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_availability_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_booking_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_clients_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_notification_preferences_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_closet_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_design_collection_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_device_service.dart';
@@ -38,6 +40,7 @@ import 'package:fashionista/domain/repository/auth/auth_repository.dart';
 import 'package:fashionista/domain/repository/availability/availability_repository.dart';
 import 'package:fashionista/domain/repository/bookings/booking_repository.dart';
 import 'package:fashionista/domain/repository/clients/clients_repository.dart';
+import 'package:fashionista/domain/repository/notifications/notification_preferences_repository.dart';
 import 'package:fashionista/domain/repository/closet/closet_repository.dart';
 import 'package:fashionista/domain/repository/design_collection/design_collection_repository.dart';
 import 'package:fashionista/domain/repository/designers/designers_repository.dart';
@@ -48,6 +51,8 @@ import 'package:fashionista/domain/usecases/auth/signin_usecase.dart';
 import 'package:fashionista/domain/usecases/auth/signout_usecase.dart';
 import 'package:fashionista/domain/usecases/auth/verify_otp_usecase.dart';
 import 'package:fashionista/domain/usecases/clients/add_client_usecase.dart';
+import 'package:fashionista/domain/usecases/notification_preferences/load_notification_preferences_usecase.dart';
+import 'package:fashionista/domain/usecases/notification_preferences/update_notification_preference_usecase.dart';
 import 'package:fashionista/domain/usecases/clients/delete_client_usecase.dart';
 import 'package:fashionista/domain/usecases/clients/fetch_clients_usecase.dart';
 import 'package:fashionista/domain/usecases/clients/find_client_by_id_usecase.dart';
@@ -297,4 +302,18 @@ Future<void> initialiseDependencies() async {
 
   // ---- Push notification devices -----------------------------------------
   sl.registerSingleton<FirebaseDeviceService>(FirebaseDeviceServiceImpl());
+
+  // ---- Notification preferences -------------------------------------------
+  sl.registerSingleton<FirebaseNotificationPreferencesService>(
+    FirebaseNotificationPreferencesServiceImpl(),
+  );
+  sl.registerSingleton<NotificationPreferencesRepository>(
+    NotificationPreferencesRepositoryImpl(),
+  );
+  sl.registerSingleton<LoadNotificationPreferencesUsecase>(
+    LoadNotificationPreferencesUsecase(),
+  );
+  sl.registerSingleton<UpdateNotificationPreferenceUsecase>(
+    UpdateNotificationPreferenceUsecase(),
+  );
 }

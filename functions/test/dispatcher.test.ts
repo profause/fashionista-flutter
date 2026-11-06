@@ -8,12 +8,13 @@ import {
   DeviceToken,
   NotificationContext,
   NotificationPayload,
-  NotificationPreferences,
+  StoredPreferences,
 } from '../src/notifications/types';
 
 class FakeStore implements NotificationStore {
   devices: DeviceToken[] = [];
-  preferences: Partial<NotificationPreferences> = {};
+  preferences: StoredPreferences = {};
+  failPreferences = false;
   history = new Map<string, HistoryPayload>();
   deliveries = new Set<string>();
   deactivated: string[] = [];
@@ -22,7 +23,8 @@ class FakeStore implements NotificationStore {
     return this.devices;
   }
 
-  async getPreferences(): Promise<Partial<NotificationPreferences>> {
+  async getPreferences(): Promise<StoredPreferences> {
+    if (this.failPreferences) throw new Error('preferences unavailable');
     return this.preferences;
   }
 
@@ -129,7 +131,7 @@ describe('deliverNotification', () => {
     expect(store.history.size).toBe(1);
   });
 
-  it('suppresses a disabled category without touching history', async () => {
+  it('suppresses the push but keeps the inbox history', async () => {
     const store = new FakeStore();
     store.devices = [{ deviceId: 'd1', token: 't1' }];
     store.preferences = { appointments: false };
@@ -138,8 +140,55 @@ describe('deliverNotification', () => {
     const result = await deliverNotification(context, payload(), store);
 
     expect(sends).toHaveLength(0);
-    expect(store.history.size).toBe(0);
     expect(result.attempted).toBe(0);
+    // In-app activity feed is an event log, not a delivery artefact.
+    expect(store.history.size).toBe(1);
+  });
+
+  it('suppresses a disabled category through a legacy key', async () => {
+    const store = new FakeStore();
+    store.devices = [{ deviceId: 'd1', token: 't1' }];
+    store.preferences = { social: false };
+    const { context, sends } = buildContext(() => [{ success: true }]);
+
+    await deliverNotification(
+      context,
+      payload({ type: 'trend', event: 'trend_liked' }),
+      store
+    );
+
+    expect(sends).toHaveLength(0);
+    expect(store.history.size).toBe(1);
+  });
+
+  it('sends when the event-specific key is enabled', async () => {
+    const store = new FakeStore();
+    store.devices = [{ deviceId: 'd1', token: 't1' }];
+    // The old `social` bucket disabled everything; the specific key wins.
+    store.preferences = { social: false, trend_like: true };
+    const { context, sends } = buildContext(() => [{ success: true }]);
+
+    await deliverNotification(
+      context,
+      payload({ type: 'trend', event: 'trend_liked' }),
+      store
+    );
+
+    expect(sends).toHaveLength(1);
+  });
+
+  it('refuses to send when the preference read fails', async () => {
+    const store = new FakeStore();
+    store.devices = [{ deviceId: 'd1', token: 't1' }];
+    store.failPreferences = true;
+    const { context, sends } = buildContext(() => [{ success: true }]);
+
+    await expect(
+      deliverNotification(context, payload(), store)
+    ).rejects.toThrow('preferences unavailable');
+
+    expect(sends).toHaveLength(0);
+    expect(store.history.size).toBe(0);
   });
 
   it('does nothing when the recipient has no active devices', async () => {
