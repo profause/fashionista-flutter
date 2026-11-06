@@ -1,4 +1,5 @@
 import 'package:fashionista/core/auth/auth_provider_cubit.dart';
+import 'package:fashionista/core/service_locator/local_notification_service.dart';
 import 'package:fashionista/core/service_locator/push_notification_service.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
@@ -203,6 +204,8 @@ class UserProfilePage extends StatelessWidget {
       // Deactivate this device before the credential disappears: the device
       // document can only be written by its owner.
       await PushNotificationService.onSignOut();
+      // Scheduled reminders belong to the account that armed them.
+      await LocalNotificationService.cancelAll();
 
       await sl<SignOutUsecase>().call('');
       await sl<HiveDesignersService>().clearCache();

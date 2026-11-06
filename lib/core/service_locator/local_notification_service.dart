@@ -5,6 +5,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
+/// Notification channels the app schedules into.
+enum LocalNotificationChannel {
+  /// Outfit-plan reminders; repeat daily at the chosen time.
+  outfitReminders,
+
+  /// Appointment reminders; fired once, shortly before the appointment.
+  appointments,
+}
+
 /// Thin wrapper around `flutter_local_notifications`.
 ///
 /// Responsibilities:
@@ -23,6 +32,7 @@ class LocalNotificationService {
 
   static const String generalChannelId = 'fashionista_general';
   static const String remindersChannelId = 'outfit_plan_channel';
+  static const String appointmentsChannelId = 'appointment_reminders';
   static const String _defaultIcon = '@mipmap/ic_launcher';
 
   static const AndroidNotificationChannel _generalChannel =
@@ -38,6 +48,14 @@ class LocalNotificationService {
         remindersChannelId,
         'Outfit Plan Reminders',
         description: 'Reminders for your planned outfits',
+        importance: Importance.max,
+      );
+
+  static const AndroidNotificationChannel _appointmentsChannel =
+      AndroidNotificationChannel(
+        appointmentsChannelId,
+        'Appointment Reminders',
+        description: 'A short reminder before an appointment starts',
         importance: Importance.max,
       );
 
@@ -76,6 +94,7 @@ class LocalNotificationService {
         >();
     await androidPlugin?.createNotificationChannel(_generalChannel);
     await androidPlugin?.createNotificationChannel(_remindersChannel);
+    await androidPlugin?.createNotificationChannel(_appointmentsChannel);
 
     final launch = await _notifications.getNotificationAppLaunchDetails();
     if (launch?.didNotificationLaunchApp ?? false) {
@@ -129,6 +148,10 @@ class LocalNotificationService {
     required String title,
     required String body,
     DateTime? scheduledDate,
+    LocalNotificationChannel channel = LocalNotificationChannel.outfitReminders,
+    /// `null` schedules a single delivery; the default repeats daily.
+    DateTimeComponents? matchDateTimeComponents = DateTimeComponents.time,
+    Map<String, dynamic> data = const {},
   }) async {
     final scheduleTime =
         scheduledDate ?? DateTime.now().add(const Duration(minutes: 1));
@@ -138,27 +161,57 @@ class LocalNotificationService {
       title,
       body,
       tz.TZDateTime.from(scheduleTime, tz.local),
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          remindersChannelId,
-          'Outfit Plan Reminders',
-          channelDescription: 'Reminders for your planned outfits',
-          importance: Importance.max,
-          priority: Priority.high,
-        ),
-        iOS: DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-          subtitle: 'Reminders for outfit plans',
-        ),
-      ),
+      _scheduleDetails(channel),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      matchDateTimeComponents: DateTimeComponents.time,
+      matchDateTimeComponents: matchDateTimeComponents,
+      payload: encodePayload(data),
     );
   }
 
+  static NotificationDetails _scheduleDetails(LocalNotificationChannel channel) {
+    switch (channel) {
+      case LocalNotificationChannel.appointments:
+        return const NotificationDetails(
+          android: AndroidNotificationDetails(
+            appointmentsChannelId,
+            'Appointment Reminders',
+            channelDescription: 'A short reminder before an appointment starts',
+            importance: Importance.max,
+            priority: Priority.high,
+          ),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+            subtitle: 'Upcoming appointment',
+          ),
+        );
+      case LocalNotificationChannel.outfitReminders:
+        return const NotificationDetails(
+          android: AndroidNotificationDetails(
+            remindersChannelId,
+            'Outfit Plan Reminders',
+            channelDescription: 'Reminders for your planned outfits',
+            importance: Importance.max,
+            priority: Priority.high,
+          ),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+            subtitle: 'Reminders for outfit plans',
+          ),
+        );
+    }
+  }
+
   static Future<void> cancel(int id) => _notifications.cancel(id);
+
+  /// Removes every scheduled and already-presented notification.
+  ///
+  /// Called on sign-out so one account's appointment reminders can never fire
+  /// for the next account signed in on the same device.
+  static Future<void> cancelAll() => _notifications.cancelAll();
 
   /// Parses a JSON payload string into a string-keyed map.
   static Map<String, dynamic> parsePayload(String? raw) {

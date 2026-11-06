@@ -19,7 +19,7 @@ there is no way to change them.
 | F2 | Schema mismatch — 6 keys exist, the product wants 7 different ones | current: `appointments, orders, measurements, reminders, social, clients` |
 | F3 | `social` gates **three** unrelated events | trend like, trend comment and designer review all map to `social` |
 | F4 | `measurement_updates` has **no producer** — the measurement trigger was removed | `functions/src/triggers/measurement.triggers.ts` deleted 2026-11-06 |
-| F5 | `appointment_reminder` has **no producer** — nothing schedules reminders | no `onSchedule` job emits reminders |
+| F5 | ~~`appointment_reminder` has no producer~~ — **superseded**: local reminders now exist (`AppointmentReminderService`, 5 minutes before a confirmed appointment) | no `onSchedule` job emits reminders (reminders are device-local by design) |
 | F6 | `clients` (client-link push) exists but is not in the product list | `functions/src/triggers/client-link.triggers.ts` |
 | F7 | **No preference document is written today** — zero migration burden | repo-wide grep found no writer |
 | F8 | No preferences UI; the settings row is a placeholder | `lib/presentation/screens/settings/settings_screen.dart:128` → `_comingSoon(context)` |
@@ -69,7 +69,7 @@ is what the dispatcher's own comment already promises.
 
 | # | Decision | Rationale |
 |---|---|---|
-| D1 | **Hide dormant toggles.** `appointment_reminder` and `measurement_updates` stay in the schema (default `true`) but render no row | Neither has a producer (F4, F5). A toggle that does nothing is worse than no toggle |
+| D1 | **Hide dormant toggles.** `appointment_reminder` and `measurement_updates` stay in the schema (default `true`) but render no row | Neither had a producer (F4, F5). A toggle that does nothing is worse than no toggle. `appointment_reminder` is now **visible** because `AppointmentReminderService` produces reminders |
 | D2 | **History survives a disabled preference.** Inbox records are always written; the gate only short-circuits device lookup and the FCM send | Confirms spec §8 and fixes F9. In-app history is an event log, not a push artefact |
 | D3 | Keep `clients` as an 8th key, default `true` | Already shipped and gating `clientLinked`; dropping it would silently change behaviour |
 | D4 | Keep the document at `users/{uid}/settings/notifications` | Already read by the dispatcher and permitted by rules; no reason to move it |
@@ -88,7 +88,8 @@ is what the dispatcher's own comment already promises.
 | Designer activity | Added as a client | `clients` |
 | Fashion updates | Order updates | `order_updates` |
 
-Hidden but present in the model and backend: `appointment_reminder`, `measurement_updates`.
+Hidden but present in the model and backend: `measurement_updates` only — `appointment_reminder`
+became visible when local appointment reminders were added.
 
 ---
 
@@ -116,7 +117,7 @@ separate likes from comments (F3), so the fine-grained `event` participates.
 | Booking created | `appointment` | `appointment_requested` | `appointments` |
 | Booking confirmed / declined | `appointment` | `appointment_confirmed` / `appointment_declined` | `appointments` |
 | Booking cancelled | `appointment` | `appointment_cancelled` | `appointments` |
-| *no producer* | — | — | `appointment_reminder` |
+| *no producer* | — | — | `measurement_updates` |
 | Designer reviewed | `review` | `review_received` | `designer_rating` |
 | Work order created | `work_order_status_progress` | `order_received` | `order_updates` |
 | Work order status / progress | `work_order_status_progress` | `order_status_updated` | `order_updates` |
@@ -178,7 +179,7 @@ users/{userId}/settings/notifications
   "trend_like": true,
   "trend_comment": true,
   "appointments": true,
-  "appointment_reminder": true,     // hidden in UI
+  "appointment_reminder": true,     // gates local reminders, 5 min before
   "designer_rating": true,
   "order_updates": true,
   "measurement_updates": true,      // hidden in UI
@@ -287,7 +288,7 @@ for signed-out users; `.agents/plans/push-notifications-module.md` cross-referen
 
 **Dart** — defaults; serialization round-trip; missing document; missing individual field;
 `withValue`; repository merge persistence; cubit load/error/rollback; rapid-toggle
-convergence; screen renders 6 rows and hides the dormant two.
+convergence; screen renders 7 rows and hides the dormant one.
 
 **Functions** — enabled ⇒ history + send; disabled ⇒ history, no send; missing document ⇒
 defaults; missing field ⇒ its default; explicit `false` respected; read failure ⇒ no send,
@@ -361,3 +362,37 @@ Delivered as planned, with the UI as a bottom sheet (D7).
 | P3.1 | Bottom sheet instead of a route | Requested (D7); matches the image-quality sheet already in the settings screen |
 | Retry affordance | The empty state no longer renders its own Retry when the error banner is visible | Both rendered `Retry`, which is confusing and broke the widget assertion |
 
+
+---
+
+## Follow-up — `appointment_reminder` now has a producer
+
+The dormant `appointment_reminder` toggle is **visible** again because local reminders now exist.
+Unlike the other categories, this one is not server-side: a scheduled local notification only fires
+on the device that created it, so the gate is read on the device.
+
+| Piece | File |
+|---|---|
+| Toggle | `NotificationPreferenceKey.appointmentReminder` (`visible: true`) |
+| Scheduler | `lib/data/services/local/appointment_reminder_service.dart` |
+| Plugin wrapper | `LocalNotificationService.scheduleNotification` gained a channel, an optional one-shot mode and a payload |
+| Trigger | `BookingBloc` — designer confirms/cancels, and every bookings list load reconciles |
+
+Behaviour:
+
+- fires **5 minutes** before `start_at` (`AppointmentReminderService.leadTime`), once, on the
+  `appointment_reminders` channel;
+- a disabled preference **cancels** an already-scheduled reminder rather than leaving it armed;
+- the notification id is an FNV-1a hash of the booking id, so re-confirming replaces the reminder and
+  a cancel can remove one scheduled in an earlier session (`String.hashCode` is not stable across
+  launches);
+- tapping routes through `NotificationPayload` → `/my-bookings`, or `/designer-bookings` for the
+  designer;
+- sign-out calls `LocalNotificationService.cancelAll()` so one account's reminders never fire for the
+  next account on the device;
+- scheduling is best-effort: a denied permission or refused exact-alarm request is logged and never
+  fails the booking action.
+
+Limitation: a client only gets a reminder once their device has seen the confirmed booking, because
+local notifications cannot be scheduled remotely. Guaranteed delivery would need a server job, which
+is deliberate scope left out.

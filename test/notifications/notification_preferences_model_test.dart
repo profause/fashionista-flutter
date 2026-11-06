@@ -20,11 +20,12 @@ void main() {
         'trend_like',
         'trend_comment',
         'appointments',
+        'appointment_reminder',
         'designer_rating',
         'order_updates',
         'clients',
       ]);
-      expect(visible, isNot(contains('appointment_reminder')));
+      // The measurement trigger was removed, so that row stays hidden.
       expect(visible, isNot(contains('measurement_updates')));
     });
 
@@ -164,6 +165,7 @@ void main() {
       );
       expect(NotificationPreferenceSection.appointments.keys, [
         NotificationPreferenceKey.appointments,
+        NotificationPreferenceKey.appointmentReminder,
       ]);
     });
   });

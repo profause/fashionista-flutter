@@ -36,6 +36,14 @@ class BookingsLoaded extends BookingState {
     this.isDesignerView = false,
   });
 
+  /// The booking with [bookingId], or `null` when the list no longer has it.
+  Booking? bookingById(String bookingId) {
+    for (final booking in bookings) {
+      if (booking.uid == bookingId) return booking;
+    }
+    return null;
+  }
+
   @override
   List<Object?> get props => [bookings, ownerId, isDesignerView];
 }

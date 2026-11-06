@@ -84,17 +84,19 @@ void main() {
       expect(find.text('Likes on my trends'), findsOneWidget);
       expect(find.text('Comments on my trends'), findsOneWidget);
       expect(find.text('Appointment updates'), findsOneWidget);
+      expect(find.text('Appointment reminders'), findsOneWidget);
       expect(find.text('Ratings and reviews'), findsOneWidget);
       expect(find.text('Added as a client'), findsOneWidget);
       expect(find.text('Order updates'), findsOneWidget);
 
-      expect(find.byType(RoundToggle), findsNWidgets(6));
+      expect(find.byType(RoundToggle), findsNWidgets(7));
     });
 
     testWidgets('hides the categories that have no producer', (tester) async {
       await pumpSheet(tester);
 
-      expect(find.text('Appointment reminders'), findsNothing);
+      // Reminders now have a producer, so the row is shown.
+      expect(find.text('Appointment reminders'), findsOneWidget);
       expect(find.text('Measurement updates'), findsNothing);
     });
 

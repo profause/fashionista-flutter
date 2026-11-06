@@ -26,14 +26,12 @@ enum NotificationPreferenceKey {
     label: 'Appointment updates',
     description: 'New bookings, confirmations and cancellations',
   ),
-  // No producer yet: the row is hidden until reminders are scheduled.
   appointmentReminder(
     firestoreKey: 'appointment_reminder',
     section: NotificationPreferenceSection.appointments,
     label: 'Appointment reminders',
     description: 'Reminders before an upcoming appointment',
     legacyKey: 'reminders',
-    visible: false,
   ),
   designerRating(
     firestoreKey: 'designer_rating',

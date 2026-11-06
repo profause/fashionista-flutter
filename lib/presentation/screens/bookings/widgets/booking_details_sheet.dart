@@ -168,16 +168,6 @@ class BookingDetailsSheet extends StatelessWidget {
                       fallbackId: booking.userId,
                       avatarSize: 40,
                     ),
-                    if ((booking.client?.id ?? booking.clientId).isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        'Client ID: ${booking.client?.id.isNotEmpty == true ? booking.client!.id : booking.clientId}',
-                        style: textTheme.bodySmall?.copyWith(
-                          fontSize: 10,
-                          color: context.secondaryLabel,
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ),

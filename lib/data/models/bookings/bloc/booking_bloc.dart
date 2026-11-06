@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/data/models/bookings/booking_model.dart';
+import 'package:fashionista/data/services/local/appointment_reminder_service.dart';
 import 'package:fashionista/data/models/bookings/booking_status.dart';
 import 'package:fashionista/data/models/bookings/bloc/booking_event.dart';
 import 'package:fashionista/data/models/bookings/bloc/booking_state.dart';
@@ -31,13 +35,16 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
 
     result.fold(
       (failure) => emit(BookingError(failure)),
-      (bookings) => emit(
-        BookingsLoaded(
-          bookings: bookings,
-          ownerId: event.designerId,
-          isDesignerView: true,
-        ),
-      ),
+      (bookings) {
+        emit(
+          BookingsLoaded(
+            bookings: bookings,
+            ownerId: event.designerId,
+            isDesignerView: true,
+          ),
+        );
+        _syncReminders(bookings, event.designerId);
+      },
     );
   }
 
@@ -50,13 +57,16 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
 
     result.fold(
       (failure) => emit(BookingError(failure)),
-      (bookings) => emit(
-        BookingsLoaded(
-          bookings: bookings,
-          ownerId: event.userId,
-          isDesignerView: false,
-        ),
-      ),
+      (bookings) {
+        emit(
+          BookingsLoaded(
+            bookings: bookings,
+            ownerId: event.userId,
+            isDesignerView: false,
+          ),
+        );
+        _syncReminders(bookings, event.userId);
+      },
     );
   }
 
@@ -104,12 +114,42 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
     );
   }
 
+  /// Schedules or cancels the local reminder for the booking that just moved.
+  Future<void> _syncReminderForStatus(
+    Booking? booking,
+    ChangeBookingStatus event,
+  ) async {
+    final service = sl<AppointmentReminderService>();
+    final bookingId = booking?.uid ?? event.bookingId;
+
+    if (event.status != BookingStatus.confirmed) {
+      await service.cancelFor(bookingId);
+      return;
+    }
+
+    if (booking == null) return;
+    await service.syncBooking(booking, currentUserId: event.actorUserId);
+  }
+
+  /// Reconciles reminders for a freshly loaded list without blocking the UI.
+  void _syncReminders(List<Booking> bookings, String currentUserId) {
+    unawaited(
+      sl<AppointmentReminderService>().syncAll(
+        bookings,
+        currentUserId: currentUserId,
+      ),
+    );
+  }
+
   Future<void> _onChangeStatus(
     ChangeBookingStatus event,
     Emitter<BookingState> emit,
   ) async {
     final previous = state;
     final ownerId = previous is BookingsLoaded ? previous.ownerId : '';
+    final booking = previous is BookingsLoaded
+        ? previous.bookingById(event.bookingId)
+        : null;
 
     emit(const BookingSubmitting());
 
@@ -125,6 +165,9 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
     await result.fold(
       (failure) async => emit(BookingError(failure)),
       (_) async {
+        // The designer confirming is what arms the reminder on this device;
+        // any other transition releases the slot and must drop it.
+        await _syncReminderForStatus(booking, event);
         if (ownerId.isNotEmpty) {
           if (event.actorIsDesigner) {
             add(
