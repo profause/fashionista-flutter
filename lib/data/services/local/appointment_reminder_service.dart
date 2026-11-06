@@ -70,23 +70,33 @@ class AppointmentReminderService {
 
   /// Reads the signed-in user's `appointment_reminder` preference.
   ///
-  /// Fails closed: if the preference cannot be read we do not deliver a
-  /// reminder the user may have switched off.
+  /// Throws when the preference cannot be read, which callers treat as
+  /// "unknown": nothing is scheduled and nothing already scheduled is
+  /// cancelled, so an offline moment cannot wipe the user's reminders.
   static Future<bool> _readPreference() async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId == null || userId.isEmpty) return false;
+    if (userId == null || userId.isEmpty) {
+      throw StateError('No signed-in user');
+    }
 
     final result = await sl<FirebaseNotificationPreferencesService>()
         .fetchPreferences(userId);
 
     return result.fold(
-      (error) {
-        debugPrint('Appointment reminder skipped: $error');
-        return false;
-      },
+      (error) => throw StateError(error.toString()),
       (preferences) =>
           preferences.isEnabled(NotificationPreferenceKey.appointmentReminder),
     );
+  }
+
+  /// `null` when the preference could not be determined.
+  Future<bool?> _enabledOrNull() async {
+    try {
+      return await _remindersEnabled();
+    } catch (error) {
+      debugPrint('Appointment reminder preference unavailable: $error');
+      return null;
+    }
   }
 
   /// Stable id for a booking's reminder.
@@ -122,15 +132,11 @@ class AppointmentReminderService {
       return false;
     }
 
-    final bool enabled;
-    try {
-      enabled = prefEnabled ?? await _remindersEnabled();
-    } catch (error) {
-      // Fail closed: never deliver a reminder the user may have switched off.
-      debugPrint('Appointment reminder preference unavailable: $error');
-      await _safeCancel(id);
-      return false;
-    }
+    final enabled = prefEnabled ?? await _enabledOrNull();
+
+    // Unknown preference (offline): change nothing, so an already-scheduled
+    // reminder survives and no new one is created.
+    if (enabled == null) return false;
 
     if (!enabled) {
       await _safeCancel(id);
@@ -182,23 +188,29 @@ class AppointmentReminderService {
   }) async {
     if (currentUserId.isEmpty) return;
 
+    final list = bookings.toList(growable: false);
+    final upcoming = list
+        .where(
+          (booking) =>
+              _isParticipant(booking, currentUserId) &&
+              _reminderIsUpcoming(booking),
+        )
+        .toList(growable: false);
+
     bool? enabled;
+    if (upcoming.isNotEmpty) {
+      enabled = await _enabledOrNull();
 
-    for (final booking in bookings) {
-      // Only a confirmed, future appointment needs the preference; anything
-      // else is a cancellation and must not trigger a read.
-      final needsReminder =
-          _isParticipant(booking, currentUserId) &&
-          _reminderIsUpcoming(booking);
+      // The preference is unknown, so leave every reminder exactly as it is
+      // instead of cancelling ones the user may still want.
+      if (enabled == null) return;
+    }
 
-      if (needsReminder && enabled == null) {
-        enabled = await _remindersEnabled();
-      }
-
+    for (final booking in list) {
       await syncBooking(
         booking,
         currentUserId: currentUserId,
-        prefEnabled: needsReminder ? enabled : false,
+        prefEnabled: upcoming.contains(booking) ? enabled : false,
       );
     }
   }

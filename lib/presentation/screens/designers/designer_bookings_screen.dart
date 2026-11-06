@@ -80,7 +80,6 @@ class _DesignerBookingsScreenState extends State<DesignerBookingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       backgroundColor: context.canvasBackground,
       appBar: AppBar(
@@ -165,6 +164,13 @@ class _DesignerBookingsScreenState extends State<DesignerBookingsScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
               children: [
+                if (state.fromCache)
+                  _CachedNotice(
+                    hasError: state.refreshError != null,
+                    onRetry: () => context.read<BookingBloc>().add(
+                      LoadDesignerBookings(_designerId, refreshOnly: true),
+                    ),
+                  ),
                 if (upcoming.isNotEmpty) ...[
                   _SectionLabel(label: 'Upcoming (${upcoming.length})'),
                   const SizedBox(height: 8),
@@ -190,6 +196,56 @@ class _DesignerBookingsScreenState extends State<DesignerBookingsScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// Shown while the list is the offline snapshot: appointments read from the
+/// device while Firestore has not answered yet.
+class _CachedNotice extends StatelessWidget {
+  final bool hasError;
+  final VoidCallback onRetry;
+
+  const _CachedNotice({required this.hasError, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: context.cardSurface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: context.hairline),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            hasError ? Icons.cloud_off_outlined : Icons.history,
+            size: 18,
+            color: context.secondaryLabel,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              hasError
+                  ? 'Showing saved appointments — could not refresh.'
+                  : 'Showing saved appointments…',
+              style: TextStyle(fontSize: 12, color: context.secondaryLabel),
+            ),
+          ),
+          if (hasError)
+            TextButton(
+              onPressed: onRetry,
+              style: TextButton.styleFrom(
+                foregroundColor: context.accent,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: const Text('Retry', style: TextStyle(fontSize: 12)),
+            ),
+        ],
       ),
     );
   }

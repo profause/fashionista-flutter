@@ -27,6 +27,7 @@ import 'package:fashionista/data/services/local/appointment_reminder_service.dar
 import 'package:fashionista/data/services/firebase/firebase_user_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_work_order_service.dart';
 import 'package:fashionista/data/services/hive/hive_client_service.dart';
+import 'package:fashionista/data/services/hive/hive_booking_service.dart';
 import 'package:fashionista/data/services/hive/hive_closet_item_service.dart';
 import 'package:fashionista/data/services/hive/hive_design_collection_service.dart';
 import 'package:fashionista/data/services/hive/hive_designer_reviews_service.dart';
@@ -205,6 +206,7 @@ Future<void> initialiseDependencies() async {
 
   sl.registerSingleton<HiveTrendService>(HiveTrendService());
   sl.registerSingleton<AppointmentReminderService>(AppointmentReminderService());
+  sl.registerSingleton<HiveBookingService>(HiveBookingService());
 
   sl.registerSingleton<TrendRepository>(TrendRepositoryImpl());
 

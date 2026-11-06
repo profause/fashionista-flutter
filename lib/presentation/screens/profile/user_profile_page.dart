@@ -6,6 +6,7 @@ import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/services/hive/hive_client_service.dart';
+import 'package:fashionista/data/services/hive/hive_booking_service.dart';
 import 'package:fashionista/data/services/hive/hive_closet_item_service.dart';
 import 'package:fashionista/data/services/hive/hive_design_collection_service.dart';
 import 'package:fashionista/data/services/hive/hive_designers_service.dart';
@@ -210,6 +211,7 @@ class UserProfilePage extends StatelessWidget {
       await sl<SignOutUsecase>().call('');
       await sl<HiveDesignersService>().clearCache();
       await sl<HiveTrendService>().clearCache();
+      await sl<HiveBookingService>().clearCache();
       await sl<HiveTrendCommentService>().clearCache();
       await sl<HiveDesignCollectionService>().clearCache();
       await sl<HiveClosetItemService>().clearCache();

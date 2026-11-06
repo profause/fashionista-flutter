@@ -30,10 +30,19 @@ class BookingsLoaded extends BookingState {
   /// and both loads carry the same [ownerId].
   final bool isDesignerView;
 
+  /// The list was painted from the Hive cache and the network has not answered
+  /// yet, so it may be stale.
+  final bool fromCache;
+
+  /// The refresh after a cached paint failed; the cached list is still shown.
+  final String? refreshError;
+
   const BookingsLoaded({
     required this.bookings,
     required this.ownerId,
     this.isDesignerView = false,
+    this.fromCache = false,
+    this.refreshError,
   });
 
   /// The booking with [bookingId], or `null` when the list no longer has it.
@@ -44,8 +53,31 @@ class BookingsLoaded extends BookingState {
     return null;
   }
 
+  BookingsLoaded copyWith({
+    List<Booking>? bookings,
+    bool? fromCache,
+    String? refreshError,
+    bool clearRefreshError = false,
+  }) {
+    return BookingsLoaded(
+      bookings: bookings ?? this.bookings,
+      ownerId: ownerId,
+      isDesignerView: isDesignerView,
+      fromCache: fromCache ?? this.fromCache,
+      refreshError: clearRefreshError
+          ? null
+          : refreshError ?? this.refreshError,
+    );
+  }
+
   @override
-  List<Object?> get props => [bookings, ownerId, isDesignerView];
+  List<Object?> get props => [
+    bookings,
+    ownerId,
+    isDesignerView,
+    fromCache,
+    refreshError,
+  ];
 }
 
 class AvailableSlotsLoading extends BookingState {

@@ -5,6 +5,7 @@ import 'package:fashionista/data/models/bookings/booking_status.dart';
 import 'package:fashionista/data/models/bookings/bloc/booking_bloc.dart';
 import 'package:fashionista/data/models/bookings/bloc/booking_event.dart';
 import 'package:fashionista/data/models/bookings/bloc/booking_state.dart';
+import 'package:fashionista/data/services/hive/hive_booking_service.dart';
 import 'package:fashionista/data/services/local/appointment_reminder_service.dart';
 import 'package:fashionista/domain/repository/bookings/booking_repository.dart';
 import 'package:fashionista/domain/usecases/bookings/fetch_bookings_for_designer_usecase.dart';
@@ -73,6 +74,19 @@ class FakeBookingRepository implements BookingRepository {
       throw UnimplementedError('${invocation.memberName}');
 }
 
+/// The bloc also reads the offline booking snapshot; this test has no Hive.
+class StubHiveBookingService extends HiveBookingService {
+  @override
+  Future<List<Booking>> getDesignerBookings(String designerId) async =>
+      const [];
+
+  @override
+  Future<void> saveDesignerBookings(
+    String designerId,
+    List<Booking> bookings,
+  ) async {}
+}
+
 void main() {
   late FakeBookingRepository repository;
   late List<({DateTime scheduledDate, int id})> scheduled;
@@ -84,6 +98,7 @@ void main() {
     cancelled = [];
 
     sl.registerSingleton<BookingRepository>(repository);
+    sl.registerSingleton<HiveBookingService>(StubHiveBookingService());
     sl.registerSingleton<FetchBookingsForDesignerUsecase>(
       FetchBookingsForDesignerUsecase(),
     );

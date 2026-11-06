@@ -9,7 +9,6 @@ import 'package:fashionista/data/models/bookings/bloc/booking_state.dart';
 import 'package:fashionista/data/services/firebase/firebase_designers_service.dart';
 import 'package:fashionista/presentation/screens/bookings/widgets/booking_client_tile.dart';
 import 'package:fashionista/presentation/screens/bookings/widgets/booking_details_sheet.dart';
-import 'package:fashionista/presentation/screens/bookings/widgets/booking_status_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';

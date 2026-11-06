@@ -271,6 +271,62 @@ void main() {
     );
   });
 
+  group('unknown preference', () {
+    AppointmentReminderService throwingPreference(
+      List<int> scheduledIds,
+      List<int> cancelledIds,
+    ) {
+      return AppointmentReminderService(
+        now: () => now,
+        remindersEnabled: () async => throw StateError('offline'),
+        schedule:
+            ({
+              required int id,
+              required String title,
+              required String body,
+              required DateTime scheduledDate,
+              required Map<String, dynamic> data,
+            }) async {
+              scheduledIds.add(id);
+            },
+        cancel: (id) async => cancelledIds.add(id),
+      );
+    }
+
+    test(
+      'schedules nothing and cancels nothing when it cannot be read',
+      () async {
+        final scheduledIds = <int>[];
+        final cancelledIds = <int>[];
+        final service = throwingPreference(scheduledIds, cancelledIds);
+
+        final scheduled = await service.syncBooking(
+          booking(),
+          currentUserId: designerId,
+        );
+
+        expect(scheduled, isFalse);
+        expect(scheduledIds, isEmpty);
+        // An offline blip must not wipe a reminder the user already has.
+        expect(cancelledIds, isEmpty);
+      },
+    );
+
+    test('syncAll leaves every reminder untouched', () async {
+      final scheduledIds = <int>[];
+      final cancelledIds = <int>[];
+      final service = throwingPreference(scheduledIds, cancelledIds);
+
+      await service.syncAll([
+        booking(uid: 'b1'),
+        booking(uid: 'b2', status: BookingStatus.cancelled),
+      ], currentUserId: designerId);
+
+      expect(scheduledIds, isEmpty);
+      expect(cancelledIds, isEmpty);
+    });
+  });
+
   group('syncAll', () {
     test(
       'reads the preference once for a list of future appointments',

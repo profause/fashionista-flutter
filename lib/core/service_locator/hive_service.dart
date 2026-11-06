@@ -40,6 +40,9 @@ class HiveService {
   late final Box workOrderStatusProgressBox;
   late final Box designerReviewsBox;
   late final Box<NotificationModel> notificationsBox;
+
+  /// JSON snapshots of booking lists, keyed by owner (`designer_<id>`).
+  late final Box<String> bookingsBox;
   late final Box<String> globalSearchBox;
 
   /// Initialize Hive + boxes (call once at startup)
@@ -78,6 +81,7 @@ class HiveService {
       );
       designerReviewsBox = await Hive.openBox('designer_reviews_cache');
       notificationsBox = await Hive.openBox('notifications_cache');
+      bookingsBox = await Hive.openBox<String>('bookings_cache');
       globalSearchBox = await Hive.openBox<String>('global_search_cache');
 
       debugPrint('✅ Hive initialized');

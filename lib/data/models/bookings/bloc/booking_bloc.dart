@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/bookings/booking_model.dart';
+import 'package:fashionista/data/services/hive/hive_booking_service.dart';
 import 'package:fashionista/data/services/local/appointment_reminder_service.dart';
 import 'package:fashionista/data/models/bookings/booking_status.dart';
 import 'package:fashionista/data/models/bookings/bloc/booking_event.dart';
@@ -28,14 +29,54 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
     LoadDesignerBookings event,
     Emitter<BookingState> emit,
   ) async {
-    if (!event.refreshOnly) emit(const BookingsLoading());
+    final cache = sl<HiveBookingService>();
+
+    final existing = state;
+    final showingCached =
+        existing is BookingsLoaded &&
+        existing.ownerId == event.designerId &&
+        existing.isDesignerView;
+
+    // 1. Paint the offline snapshot first so the list is there immediately.
+    if (!event.refreshOnly && !showingCached) {
+      final cached = await cache.getDesignerBookings(event.designerId);
+
+      if (cached.isEmpty) {
+        emit(const BookingsLoading());
+      } else {
+        emit(
+          BookingsLoaded(
+            bookings: cached,
+            ownerId: event.designerId,
+            isDesignerView: true,
+            fromCache: true,
+          ),
+        );
+      }
+    }
+
+    // 2. Ask Firestore for the current list.
     final result = await sl<FetchBookingsForDesignerUsecase>()(
       event.designerId,
     );
 
-    result.fold(
-      (failure) => emit(BookingError(failure)),
-      (bookings) {
+    final current = state;
+
+    await result.fold(
+      (failure) async {
+        // A failed refresh must not replace a list the user is already reading.
+        if (current is BookingsLoaded &&
+            current.ownerId == event.designerId &&
+            current.isDesignerView) {
+          emit(current.copyWith(fromCache: true, refreshError: failure));
+          return;
+        }
+        emit(BookingError(failure));
+      },
+      (bookings) async {
+        // An empty result is cached too, otherwise cancelled bookings linger.
+        await cache.saveDesignerBookings(event.designerId, bookings);
+
         emit(
           BookingsLoaded(
             bookings: bookings,
@@ -55,28 +96,23 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
     if (!event.refreshOnly) emit(const BookingsLoading());
     final result = await sl<FetchBookingsForUserUsecase>()(event.userId);
 
-    result.fold(
-      (failure) => emit(BookingError(failure)),
-      (bookings) {
-        emit(
-          BookingsLoaded(
-            bookings: bookings,
-            ownerId: event.userId,
-            isDesignerView: false,
-          ),
-        );
-        _syncReminders(bookings, event.userId);
-      },
-    );
+    result.fold((failure) => emit(BookingError(failure)), (bookings) {
+      emit(
+        BookingsLoaded(
+          bookings: bookings,
+          ownerId: event.userId,
+          isDesignerView: false,
+        ),
+      );
+      _syncReminders(bookings, event.userId);
+    });
   }
 
   Future<void> _onLoadAvailableSlots(
     LoadAvailableSlots event,
     Emitter<BookingState> emit,
   ) async {
-    emit(
-      AvailableSlotsLoading(designerId: event.designerId, date: event.date),
-    );
+    emit(AvailableSlotsLoading(designerId: event.designerId, date: event.date));
 
     final timezoneResult = await sl<FetchDesignerTimezoneUsecase>()(
       event.designerId,
@@ -162,27 +198,24 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
       ),
     );
 
-    await result.fold(
-      (failure) async => emit(BookingError(failure)),
-      (_) async {
-        // The designer confirming is what arms the reminder on this device;
-        // any other transition releases the slot and must drop it.
-        await _syncReminderForStatus(booking, event);
-        if (ownerId.isNotEmpty) {
-          if (event.actorIsDesigner) {
-            add(
-              LoadDesignerBookings(ownerId, refreshOnly: true),
-            );
-          } else {
-            add(LoadMyBookings(ownerId, refreshOnly: true));
-          }
+    await result.fold((failure) async => emit(BookingError(failure)), (
+      _,
+    ) async {
+      // The designer confirming is what arms the reminder on this device;
+      // any other transition releases the slot and must drop it.
+      await _syncReminderForStatus(booking, event);
+      if (ownerId.isNotEmpty) {
+        if (event.actorIsDesigner) {
+          add(LoadDesignerBookings(ownerId, refreshOnly: true));
+        } else {
+          add(LoadMyBookings(ownerId, refreshOnly: true));
         }
-        emit(
-          BookingActionSuccess(
-            'Booking marked as ${event.status.label.toLowerCase()}.',
-          ),
-        );
-      },
-    );
+      }
+      emit(
+        BookingActionSuccess(
+          'Booking marked as ${event.status.label.toLowerCase()}.',
+        ),
+      );
+    });
   }
 }
