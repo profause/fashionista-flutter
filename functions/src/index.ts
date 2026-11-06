@@ -14,6 +14,7 @@ import { onTrendWritten, onInterestCountRebuildRequest } from './triggers/trend.
 import { onTrendLikeCreated } from './triggers/trend-like.triggers';
 import { onDesignerReviewCreated } from './triggers/review.triggers';
 import { onClientLinked } from './triggers/client-link.triggers';
+import { onTrendCommentCreated } from './triggers/trend-comment.triggers';
 
 initializeApp();
 
@@ -92,5 +93,12 @@ export const clientLinked = onDocumentCreated(
   'client_measurements/{userId}/clients/{clientId}',
   async (event) => {
     await onClientLinked(event);
+  }
+);
+
+export const trendCommented = onDocumentCreated(
+  'trends/{trendId}/comments/{commentId}',
+  async (event) => {
+    await onTrendCommentCreated(event);
   }
 );

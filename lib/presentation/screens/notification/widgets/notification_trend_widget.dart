@@ -8,23 +8,30 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 
-/// Notification card shown to the author of a trend when someone likes it.
+/// Notification card shown to the author of a trend when someone likes it or
+/// comments on it.
 ///
-/// Sends the user straight to the post that was liked instead of the generic
-/// info card, which cannot offer a destination.
-class NotificationTrendLikeWidget extends StatelessWidget {
+/// Sends the user straight to the post instead of the generic info card, which
+/// cannot offer a destination.
+class NotificationTrendWidget extends StatelessWidget {
   final NotificationModel notification;
   final VoidCallback? onTap;
   final VoidCallback? onDelete;
 
-  const NotificationTrendLikeWidget({
+  const NotificationTrendWidget({
     super.key,
     required this.notification,
     this.onTap,
     this.onDelete,
   });
 
-  /// The liked trend, when the payload carried its id.
+  /// Likes and comments share the `trend` type, so the icon follows the event.
+  IconData get _icon =>
+      notification.event == 'trend_commented'
+          ? Icons.mode_comment_outlined
+          : Icons.favorite_border;
+
+  /// The trend the notification points at, when the payload carried its id.
   String? get _trendRoute {
     final trendId = (notification.refId ?? '').trim();
     if (trendId.isEmpty) return null;
@@ -76,7 +83,7 @@ class NotificationTrendLikeWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   NotificationIconCluster(
-                    icon: Icons.favorite_border,
+                    icon: _icon,
                     unread: unread,
                   ),
                   const SizedBox(width: 12),
@@ -132,7 +139,7 @@ class NotificationTrendLikeWidget extends StatelessWidget {
   }
 }
 
-/// The liker's avatar and name.
+/// The actor's avatar and name.
 class _AuthorLine extends StatelessWidget {
   final String uid;
   final String name;

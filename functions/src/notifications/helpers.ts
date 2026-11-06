@@ -57,3 +57,20 @@ export function compact<T extends Record<string, unknown>>(value: T): T {
     Object.entries(value).filter(([, entry]) => entry !== undefined)
   ) as T;
 }
+
+/**
+ * Collapses whitespace and shortens user text for a push body.
+ *
+ * Multi-line input stays one readable line; long input is cut on a word
+ * boundary and marked with an ellipsis so it never ends mid-word.
+ */
+export function summarizeText(value: string, maxLength = 80): string {
+  const collapsed = value.replace(/\s+/g, ' ').trim();
+  if (collapsed.length <= maxLength) return collapsed;
+
+  const cut = collapsed.slice(0, maxLength);
+  const lastSpace = cut.lastIndexOf(' ');
+  const trimmed = lastSpace > maxLength / 2 ? cut.slice(0, lastSpace) : cut;
+
+  return `${trimmed.trimEnd()}…`;
+}

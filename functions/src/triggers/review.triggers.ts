@@ -4,7 +4,7 @@ import {
 } from 'firebase-functions/v2/firestore';
 import { NotificationRepository } from '../notifications/repository';
 import { deliverNotification } from '../notifications/dispatcher';
-import { buildIdempotencyKey } from '../notifications/helpers';
+import { buildIdempotencyKey, summarizeText } from '../notifications/helpers';
 import { NotificationContext, NotificationPayload } from '../notifications/types';
 import { normalizeRating } from '../ratings/summary';
 
@@ -39,7 +39,7 @@ export function buildDesignerReviewNotification(
 
   const who = authorName.trim() || 'A client';
   const stars = normalizeRating(rating);
-  const snippet = summarize(commentText);
+  const snippet = summarizeText(commentText, MAX_SNIPPET_LENGTH);
   const starsLabel =
     stars === null ? '' : `${stars} star${stars === 1 ? '' : 's'}`;
 
@@ -122,19 +122,6 @@ export async function onDesignerReviewCreated(
   if (!payload) return; // self-review
 
   await deliverNotification(context, payload);
-}
-
-/** Collapses whitespace so a multi-line review stays one readable line. */
-function summarize(value: string): string {
-  const collapsed = value.replace(/\s+/g, ' ').trim();
-  if (collapsed.length <= MAX_SNIPPET_LENGTH) return collapsed;
-
-  // Prefer a word boundary when one is close to the limit.
-  const cut = collapsed.slice(0, MAX_SNIPPET_LENGTH);
-  const lastSpace = cut.lastIndexOf(' ');
-  const trimmed = lastSpace > MAX_SNIPPET_LENGTH / 2 ? cut.slice(0, lastSpace) : cut;
-
-  return `${trimmed.trimEnd()}…`;
 }
 
 function asRecord(value: unknown): Record<string, unknown> {

@@ -1,6 +1,6 @@
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/notification/notification_model.dart';
-import 'package:fashionista/presentation/screens/notification/widgets/notification_trend_like_widget.dart';
+import 'package:fashionista/presentation/screens/notification/widgets/notification_trend_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -22,6 +22,23 @@ NotificationModel trendLike({
     status: status,
     to: 'author_1',
     event: 'trend_liked',
+  );
+}
+
+NotificationModel trendComment({String? refId = 'trend_1'}) {
+  return NotificationModel(
+    uid: 'trend__commented__trend_1__comment_1',
+    refId: refId,
+    refType: 'trend',
+    title: 'New comment on your trend',
+    description: 'Ama Boateng commented: "This is stunning!"',
+    type: 'trend',
+    createdAt: DateTime.now()
+        .subtract(const Duration(minutes: 2))
+        .millisecondsSinceEpoch,
+    status: 'new',
+    to: 'author_1',
+    event: 'trend_commented',
   );
 }
 
@@ -50,10 +67,10 @@ Widget harness(Widget child, {List<String>? pushed}) {
 }
 
 void main() {
-  group('NotificationTrendLikeWidget', () {
+  group('NotificationTrendWidget', () {
     testWidgets('renders the title, body and view action', (tester) async {
       await tester.pumpWidget(
-        harness(NotificationTrendLikeWidget(notification: trendLike())),
+        harness(NotificationTrendWidget(notification: trendLike())),
       );
       await tester.pump(const Duration(milliseconds: 100));
 
@@ -68,7 +85,7 @@ void main() {
 
       await tester.pumpWidget(
         harness(
-          NotificationTrendLikeWidget(
+          NotificationTrendWidget(
             notification: trendLike(),
             onTap: () => tapped = true,
           ),
@@ -90,7 +107,7 @@ void main() {
     ) async {
       await tester.pumpWidget(
         harness(
-          NotificationTrendLikeWidget(notification: trendLike(refId: '')),
+          NotificationTrendWidget(notification: trendLike(refId: '')),
         ),
       );
       await tester.pump(const Duration(milliseconds: 100));
@@ -102,7 +119,7 @@ void main() {
     testWidgets('uses the solid button style once read', (tester) async {
       await tester.pumpWidget(
         harness(
-          NotificationTrendLikeWidget(notification: trendLike(status: 'read')),
+          NotificationTrendWidget(notification: trendLike(status: 'read')),
         ),
       );
       await tester.pump(const Duration(milliseconds: 100));
@@ -116,7 +133,7 @@ void main() {
 
       await tester.pumpWidget(
         harness(
-          NotificationTrendLikeWidget(
+          NotificationTrendWidget(
             notification: trendLike(),
             onDelete: () => deleted = true,
           ),
@@ -132,6 +149,44 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(deleted, isTrue);
+    });
+
+    testWidgets('shows a heart for a like', (tester) async {
+      await tester.pumpWidget(
+        harness(NotificationTrendWidget(notification: trendLike())),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.byIcon(Icons.favorite_border), findsOneWidget);
+      expect(find.byIcon(Icons.mode_comment_outlined), findsNothing);
+    });
+
+    testWidgets('shows a comment icon for a comment', (tester) async {
+      await tester.pumpWidget(
+        harness(NotificationTrendWidget(notification: trendComment())),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.text('New comment on your trend'), findsOneWidget);
+      expect(find.byIcon(Icons.mode_comment_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.favorite_border), findsNothing);
+    });
+
+    testWidgets('a comment notification still opens the trend', (tester) async {
+      final pushed = <String>[];
+
+      await tester.pumpWidget(
+        harness(
+          NotificationTrendWidget(notification: trendComment()),
+          pushed: pushed,
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+
+      await tester.tap(find.text('View trend'));
+      await tester.pumpAndSettle();
+
+      expect(pushed, ['/trends/trend_1']);
     });
   });
 }

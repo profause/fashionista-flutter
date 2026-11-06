@@ -5,6 +5,7 @@ import {
   mergePreferences,
   redactToken,
   statusChanged,
+  summarizeText,
 } from '../src/notifications/helpers';
 
 describe('redactToken', () => {
@@ -91,5 +92,33 @@ describe('preferences', () => {
       social: true,
       clients: true,
     });
+  });
+});
+
+describe('summarizeText', () => {
+  it('leaves short text untouched', () => {
+    expect(summarizeText('Lovely work')).toBe('Lovely work');
+  });
+
+  it('collapses whitespace and newlines', () => {
+    expect(summarizeText('  Love   this\n\nso much  ')).toBe('Love this so much');
+  });
+
+  it('truncates long text on a word boundary with an ellipsis', () => {
+    const result = summarizeText('word '.repeat(40), 30);
+
+    expect(result.endsWith('…')).toBe(true);
+    expect(result.length).toBeLessThanOrEqual(31);
+    expect(result).not.toContain('  ');
+  });
+
+  it('hard-cuts a single very long word', () => {
+    const result = summarizeText('a'.repeat(50), 10);
+
+    expect(result).toBe(`${'a'.repeat(10)}…`);
+  });
+
+  it('returns an empty string for blank input', () => {
+    expect(summarizeText('   \n ')).toBe('');
   });
 });
