@@ -6,6 +6,8 @@ import 'package:fashionista/data/models/notification/notification_model.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/services/hive/hive_notification_service.dart';
 import 'package:fashionista/presentation/screens/notification/widgets/notification_booking_widget.dart';
+import 'package:fashionista/presentation/screens/notification/widgets/notification_review_widget.dart';
+import 'package:fashionista/presentation/screens/notification/widgets/notification_trend_like_widget.dart';
 import 'package:fashionista/presentation/screens/notification/widgets/notification_info_widget.dart';
 import 'package:fashionista/presentation/screens/notification/widgets/notification_work_order_request_widget.dart';
 import 'package:fashionista/presentation/screens/notification/widgets/notification_work_order_status_widget.dart';
@@ -138,6 +140,45 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 // `booking` is the legacy value on already-stored records.
                 case "booking":
                   return NotificationBookingWidget(
+                    key: ValueKey(index),
+                    notification: notification,
+                    onDelete: () {
+                      context.read<NotificationBloc>().add(
+                        DeleteNotification(notification.uid!),
+                      );
+                    },
+                    onTap: () {
+                      if (notification.status != 'new') return;
+                      context.read<NotificationBloc>().add(
+                        UpdateNotification(
+                          notification.copyWith(status: 'read'),
+                        ),
+                      );
+                    },
+                  );
+                case "trend":
+                case "trend_like":
+                  return NotificationTrendLikeWidget(
+                    key: ValueKey(index),
+                    notification: notification,
+                    onDelete: () {
+                      context.read<NotificationBloc>().add(
+                        DeleteNotification(notification.uid!),
+                      );
+                    },
+                    onTap: () {
+                      if (notification.status != 'new') return;
+                      context.read<NotificationBloc>().add(
+                        UpdateNotification(
+                          notification.copyWith(status: 'read'),
+                        ),
+                      );
+                    },
+                  );
+                  //create a new widget for the notification type "review" and handle it here
+                case "review":
+                case "designer_review":
+                  return NotificationReviewWidget(
                     key: ValueKey(index),
                     notification: notification,
                     onDelete: () {

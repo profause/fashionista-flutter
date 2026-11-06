@@ -66,7 +66,11 @@ export function buildDesignerReviewNotification(
     refId: reviewId,
     refType: 'designer_review',
     designerId,
-    data: { user_id: authorId },
+    data: {
+      user_id: authorId,
+      // Drives the star row in the inbox card; absent when no stars were given.
+      ...(stars === null ? {} : { rating: String(stars) }),
+    },
   };
 }
 

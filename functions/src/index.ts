@@ -9,7 +9,6 @@ import {
   onWorkOrderProgressCreated,
   onWorkOrderUpdated,
 } from './triggers/work-order.triggers';
-import { onMeasurementWritten } from './triggers/measurement.triggers';
 import { onDesignerReviewWritten } from './triggers/rating.triggers';
 import { onTrendWritten, onInterestCountRebuildRequest } from './triggers/trend.triggers';
 import { onTrendLikeCreated } from './triggers/trend-like.triggers';
@@ -52,13 +51,6 @@ export const workOrderProgressCreated = onDocumentCreated(
   'work_orders/{workOrderId}/status_progress/{progressId}',
   async (event) => {
     await onWorkOrderProgressCreated(event);
-  }
-);
-
-export const measurementWritten = onDocumentWritten(
-  'clients/{clientId}/measurements/{measurementId}',
-  async (event) => {
-    await onMeasurementWritten(event);
   }
 );
 

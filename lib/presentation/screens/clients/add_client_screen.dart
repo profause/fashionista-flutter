@@ -384,7 +384,15 @@ class _AddClientScreenState extends State<AddClientScreen> {
         },
         (r) async {
           if (r.uid != null) {
-            //send notification to user who created the client
+
+            await sl<FirebaseClientsService>().linkClientToUser(
+              userId: r.uid!,
+              clientId: uid,
+              isDefault: false,
+              designerId: createdBy,
+            );
+
+            //send notification to user who was created as client
             final authorUser = AuthorModel.empty().copyWith(
               uid: user.uid,
               name: user.fullName,
@@ -404,13 +412,6 @@ class _AddClientScreenState extends State<AddClientScreen> {
               to: r.uid,
               author: authorUser,
               status: 'new',
-            );
-
-            await sl<FirebaseClientsService>().linkClientToUser(
-              userId: r.uid!,
-              clientId: uid,
-              isDefault: false,
-              designerId: createdBy,
             );
 
             await sl<FirebaseNotificationService>().createNotification(

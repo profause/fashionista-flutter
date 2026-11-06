@@ -141,4 +141,20 @@ describe('buildDesignerReviewNotification', () => {
 
     expect(payload?.idempotencyKey).toBe('designer__review__review_1');
   });
+
+  it('carries the rating in the payload so the inbox can draw stars', () => {
+    const payload = buildDesignerReviewNotification(input);
+
+    expect(payload?.data).toEqual({ user_id: 'client_1', rating: '5' });
+  });
+
+  it('omits the rating when the review had no stars', () => {
+    const payload = buildDesignerReviewNotification({
+      ...input,
+      rating: 0,
+    });
+
+    expect(payload?.data).toEqual({ user_id: 'client_1' });
+    expect(payload?.data?.rating).toBeUndefined();
+  });
 });

@@ -303,9 +303,17 @@ Sizes: **S** ≤ 4 h · **M** 4–8 h · **L** 1–3 d · **XL** > 3 d.
 |---|---|---|---|---|---|
 | P6.1 | Booking triggers: created → designer; status transitions → the other party, using an actor field | functions + `firebase_booking_service.dart` (`last_status_actor`), remove the client-side booking inbox write | P5.5 | L | No notification when the actor is the recipient; unrelated updates ignored |
 | P6.2 | Work-order triggers: created → designer; status change / `status_progress` with `notify_client == true` → linked client | functions | P5.5 | L | Respects `notify_client`; unlinked client → no send, logged |
-| P6.3 | Measurement trigger: designer updates → linked user only; no values in the body | functions | P5.5, Q2 | M | Unlinked client produces no notification |
+| P6.3 | ~~Measurement trigger: designer updates → linked user only; no values in the body~~ | functions | P5.5, Q2 | M | **Removed 2026-11-06** — `measurementWritten` deleted on request (see note below) |
 | P6.4 | Preference gate (`users/{uid}/settings/notifications`, default enabled) | functions | P5.4 | S | Disabled category → history skipped |
 | P6.5 | Client→user resolution helper (`collectionGroup('clients')` on `client_id`) + index | functions + indexes | P6.2 | M | Resolves booking/work-order client to auth uid |
+
+> **P6.3 removed (2026-11-06).** The `measurementWritten` function
+> (`clients/{clientId}/measurements/{measurementId}`) and its handler file were deleted.
+> Left in place for backwards compatibility with already-stored inbox records:
+> `NotificationType: 'measurement'`, the `measurements` preference key, the
+> `/my-measurement` route case in `NotificationRouter`, and
+> `NotificationRepository.resolveUserIdForClient` (still used by the work-order triggers).
+> No trigger now emits measurement notifications.
 
 ### Phase 7 — Security, tests, devices
 
@@ -366,7 +374,7 @@ explicitly *not* proof of delivery (spec §16).
    the trigger produces none.
 10. Designer confirming/declining notifies the client; the actor never notifies themselves.
 11. Work-order status change notifies the linked client only when `notify_client == true`.
-12. Measurement update notifies only linked users and never includes values in the body.
+12. ~~Measurement update notifies only linked users and never includes values in the body.~~ (removed 2026-11-06, see P6.3)
 13. Invalid tokens are deactivated and do not block delivery to valid devices.
 14. A user cannot read/modify another user's devices or notifications (verified against deployed
     rules).
