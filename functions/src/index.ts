@@ -15,6 +15,10 @@ import { onTrendLikeCreated } from './triggers/trend-like.triggers';
 import { onDesignerReviewCreated } from './triggers/review.triggers';
 import { onClientLinked } from './triggers/client-link.triggers';
 import { onTrendCommentCreated } from './triggers/trend-comment.triggers';
+import {
+  createVideoUploadSignature,
+  deleteCloudinaryAsset,
+} from './video/callables';
 
 initializeApp();
 
@@ -102,3 +106,6 @@ export const trendCommented = onDocumentCreated(
     await onTrendCommentCreated(event);
   }
 );
+
+// ---- Cloudinary video uploads ---------------------------------------------
+export { createVideoUploadSignature, deleteCloudinaryAsset };

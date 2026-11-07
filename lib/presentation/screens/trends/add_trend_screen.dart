@@ -27,6 +27,11 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:fashionista/data/models/trends/bloc/video_upload_cubit.dart';
+import 'package:fashionista/data/models/video/edited_video.dart';
+import 'package:fashionista/presentation/screens/trends/video/video_capture_screen.dart';
+import 'package:fashionista/presentation/screens/trends/video/video_editor_screen.dart';
+import 'package:fashionista/presentation/screens/trends/video/widgets/video_upload_progress.dart';
 import 'package:dartz/dartz.dart' as dartz;
 import 'package:uuid/uuid.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -62,6 +67,11 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
   static const int _maxMedia = 4; // matches the picker limit
 
   final ImagePicker picker = ImagePicker();
+  final VideoUploadCubit _uploadCubit = VideoUploadCubit();
+
+  /// Local clip chosen in the camera/editor flow; replaces the image carousel.
+  EditedVideo? _editedVideo;
+
   List<XFile> pickedImages = [];
   List<double> uploadProgress = [];
   List<XFile> previewImages = [];
@@ -85,6 +95,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
 
   @override
   void dispose() {
+    _uploadCubit.close();
     _descriptionController.dispose();
     _tagsController.dispose();
     previewImages.clear();
@@ -261,6 +272,17 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
             ),
             const Spacer(),
             GestureDetector(
+              onTap: isUploading ? null : _pickVideo,
+              child: Text(
+                'Record video',
+                style: textTheme.labelSmall?.copyWith(
+                  color: context.accent,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            GestureDetector(
               onTap: isUploading ? null : () => pickImages(context),
               child: Text(
                 'Add media',
@@ -273,21 +295,97 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
           ],
         ),
         const SizedBox(height: 10),
-        SizedBox(
-          height: 180,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: previewImages.length + 1,
-            separatorBuilder: (_, _) => const SizedBox(width: 12),
-            itemBuilder: (context, index) {
-              if (index == previewImages.length) {
-                return _addMediaTile(context, textTheme);
-              }
-              return _lookbookTile(context, textTheme, index);
-            },
+        if (_editedVideo != null)
+          _videoTile(context, textTheme, _editedVideo!)
+        else
+          SizedBox(
+            height: 180,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: previewImages.length + 1,
+              separatorBuilder: (_, _) => const SizedBox(width: 12),
+              itemBuilder: (context, index) {
+                if (index == previewImages.length) {
+                  return _addMediaTile(context, textTheme);
+                }
+                return _lookbookTile(context, textTheme, index);
+              },
+            ),
           ),
-        ),
       ],
+    );
+  }
+
+  Widget _videoTile(
+    BuildContext context,
+    TextTheme textTheme,
+    EditedVideo video,
+  ) {
+    return Container(
+      height: 180,
+      decoration: BoxDecoration(
+        color: context.cardSurface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: context.softBorder),
+      ),
+      child: Stack(
+        children: [
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: context.iconSubstrate,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.play_arrow_rounded,
+                    color: context.accent,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Video · ${video.duration.inSeconds}s',
+                  style: textTheme.labelSmall?.copyWith(
+                    color: context.onCanvasText,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  video.sizeLabel,
+                  style: textTheme.labelSmall?.copyWith(
+                    fontSize: 10,
+                    color: context.secondaryLabel,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Positioned(
+            top: 6,
+            right: 6,
+            child: GestureDetector(
+              onTap: isUploading
+                  ? null
+                  : () => setState(() => _editedVideo = null),
+              child: Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: .55),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.close, color: Colors.white, size: 14),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -591,6 +689,87 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
     }
   }
 
+  Future<void> _pickVideo() async {
+    final path = await VideoCaptureScreen.open(context);
+    if (path == null || !mounted) return;
+
+    final edited = await VideoEditorScreen.open(context, path);
+    if (edited == null || !mounted) return;
+
+    setState(() {
+      _editedVideo = edited;
+      // A post is either images or one video; mixing them is rejected here.
+      pickedImages = [];
+      previewImages = [];
+    });
+  }
+
+  Future<void> _publishVideo({
+    required String trendId,
+    required EditedVideo video,
+  }) async {
+    final user = context.read<UserBloc>().state;
+    final createdBy =
+        user.uid ?? firebase_auth.FirebaseAuth.instance.currentUser!.uid;
+
+    final author = AuthorModel.empty().copyWith(
+      uid: createdBy,
+      name: user.fullName,
+      avatar: user.profileImage,
+    );
+
+    Future<void> publish({
+      required String trendId,
+      required FeaturedMediaModel media,
+    }) async {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final trend = TrendFeedModel.empty().copyWith(
+        uid: trendId,
+        createdBy: createdBy,
+        description: _descriptionController.text.trim(),
+        tags: _tagsController.text.trim(),
+        createdAt: now,
+        updatedAt: now,
+        author: author,
+        featuredMedia: [media],
+      );
+
+      final result = await sl<AddTrendUsecase>().call(trend);
+      await result.fold(
+        (failure) async => throw Exception('$failure'),
+        (_) async {
+          if (mounted) {
+            context.read<TrendBloc>().add(AddTrend(trend));
+          }
+        },
+      );
+    }
+
+    final upload = _uploadCubit.start(
+      trendId: trendId,
+      videoPath: video.path,
+      hasAudio: video.hasAudio,
+      publish: publish,
+    );
+
+    final published = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => BlocProvider<VideoUploadCubit>.value(
+        value: _uploadCubit,
+        child: const VideoUploadProgress(),
+      ),
+    );
+
+    await upload;
+    if (!mounted) return;
+
+    if (published == true) {
+      // The composer has nothing left to do once the post is live.
+      context.pop();
+    }
+  }
+
   Future<void> _saveTrend() async {
     try {
       UserBloc userBloc = context.read<UserBloc>();
@@ -601,32 +780,34 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
       final description = _descriptionController.text.trim();
       final tags = _tagsController.text.trim();
       final trendId = Uuid().v4();
-      List<FeaturedMediaModel> featuredImages = [];
+
+      // A video post is a single media entry; images are a carousel.
+      final video = _editedVideo;
+      if (video != null) {
+        await _publishVideo(trendId: trendId, video: video);
+        return;
+      }
 
       // Show progress dialog
       showLoadingDialog(context);
       final uploadResult = await uploadImagesToCloudinary(context, trendId);
 
-      uploadResult.fold(
-        (ifLeft) {
-          // _buttonLoadingStateCubit.setLoading(false);
-          if (mounted) {
-            dismissLoadingDialog(context);
-          }
-          //debugPrint(ifLeft);
+      // A failed upload must abort the publish. The previous code returned from
+      // inside the fold closure only, so a failed upload still created a post
+      // with an empty `featured_media` list (T21).
+      final uploaded = uploadResult.fold<List<FeaturedMediaModel>?>(
+        (failure) {
+          if (mounted) dismissLoadingDialog(context);
+          if (!mounted) return null;
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text(ifLeft)));
-          return;
+          ).showSnackBar(SnackBar(content: Text(failure)));
+          return null;
         },
-        (ifRight) {
-          //_buttonLoadingStateCubit.setLoading(false);
-          featuredImages = ifRight;
-          setState(() {
-            //isUploading = false;
-          });
-        },
+        (media) => media,
       );
+      if (uploaded == null) return;
+      final featuredImages = uploaded;
 
       final author = AuthorModel.empty().copyWith(
         uid: createdBy,

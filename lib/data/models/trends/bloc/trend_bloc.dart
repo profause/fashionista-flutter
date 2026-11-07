@@ -1,6 +1,7 @@
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc_event.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc_state.dart';
+import 'package:fashionista/data/services/firebase/firebase_video_upload_service.dart';
 import 'package:fashionista/data/services/hive/hive_trend_service.dart';
 import 'package:fashionista/domain/usecases/trends/add_trend_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/delete_trend_usecase.dart';
@@ -55,6 +56,32 @@ class TrendBloc extends Bloc<TrendBlocEvent, TrendBlocState> {
     Emitter<TrendBlocState> emit,
   ) async {
     try {
+      // Video posts own a Cloudinary asset. Remove it first: if that fails the
+      // document stays, so the user can retry instead of leaving an orphan
+      // (plan §8, milestone 5).
+      final cached = await sl<HiveTrendService>().getItem(event.uid);
+      final videoAssets = cached.featuredMedia
+          .where((media) => media.isVideo)
+          .map((media) => media.uid)
+          .whereType<String>()
+          .where((assetId) => assetId.isNotEmpty)
+          .toList(growable: false);
+
+      for (final assetId in videoAssets) {
+        final deleted = await sl<FirebaseVideoUploadService>().deleteAsset(
+          assetId: assetId,
+          trendId: event.uid,
+        );
+        if (!deleted) {
+          emit(
+            const TrendError(
+              'The video could not be removed. Please try again.',
+            ),
+          );
+          return;
+        }
+      }
+
       var result = await sl<DeleteTrendUsecase>().call(event.uid);
 
       await result.fold(

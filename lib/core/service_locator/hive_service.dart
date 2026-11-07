@@ -43,6 +43,9 @@ class HiveService {
 
   /// JSON snapshots of booking lists, keyed by owner (`designer_<id>`).
   late final Box<String> bookingsBox;
+
+  /// Videos uploaded but not yet published to Firestore.
+  late final Box<String> uploadTasksBox;
   late final Box<String> globalSearchBox;
 
   /// Initialize Hive + boxes (call once at startup)
@@ -82,6 +85,7 @@ class HiveService {
       designerReviewsBox = await Hive.openBox('designer_reviews_cache');
       notificationsBox = await Hive.openBox('notifications_cache');
       bookingsBox = await Hive.openBox<String>('bookings_cache');
+      uploadTasksBox = await Hive.openBox<String>('upload_tasks');
       globalSearchBox = await Hive.openBox<String>('global_search_cache');
 
       debugPrint('✅ Hive initialized');

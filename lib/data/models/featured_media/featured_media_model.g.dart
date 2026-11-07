@@ -22,13 +22,19 @@ class FeaturedMediaModelAdapter extends TypeAdapter<FeaturedMediaModel> {
       aspectRatio: fields[2] as double?,
       thumbnailUrl: fields[3] as String?,
       uid: fields[4] as String?,
+      duration: fields[5] as double?,
+      width: fields[6] as int?,
+      height: fields[7] as int?,
+      hasAudio: fields[8] as bool?,
+      format: fields[9] as String?,
+      fileSize: fields[10] as int?,
     );
   }
 
   @override
   void write(BinaryWriter writer, FeaturedMediaModel obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(11)
       ..writeByte(4)
       ..write(obj.uid)
       ..writeByte(0)
@@ -38,7 +44,19 @@ class FeaturedMediaModelAdapter extends TypeAdapter<FeaturedMediaModel> {
       ..writeByte(2)
       ..write(obj.aspectRatio)
       ..writeByte(3)
-      ..write(obj.thumbnailUrl);
+      ..write(obj.thumbnailUrl)
+      ..writeByte(5)
+      ..write(obj.duration)
+      ..writeByte(6)
+      ..write(obj.width)
+      ..writeByte(7)
+      ..write(obj.height)
+      ..writeByte(8)
+      ..write(obj.hasAudio)
+      ..writeByte(9)
+      ..write(obj.format)
+      ..writeByte(10)
+      ..write(obj.fileSize);
   }
 
   @override
@@ -63,6 +81,12 @@ FeaturedMediaModel _$FeaturedMediaModelFromJson(Map<String, dynamic> json) =>
       aspectRatio: (json['aspect_ratio'] as num?)?.toDouble(),
       thumbnailUrl: json['thumbnail_url'] as String?,
       uid: json['uid'] as String?,
+      duration: (json['duration'] as num?)?.toDouble(),
+      width: (json['width'] as num?)?.toInt(),
+      height: (json['height'] as num?)?.toInt(),
+      hasAudio: json['has_audio'] as bool?,
+      format: json['format'] as String?,
+      fileSize: (json['file_size'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$FeaturedMediaModelToJson(FeaturedMediaModel instance) =>
@@ -72,4 +96,10 @@ Map<String, dynamic> _$FeaturedMediaModelToJson(FeaturedMediaModel instance) =>
       'type': instance.type,
       'aspect_ratio': instance.aspectRatio,
       'thumbnail_url': instance.thumbnailUrl,
+      'duration': instance.duration,
+      'width': instance.width,
+      'height': instance.height,
+      'has_audio': instance.hasAudio,
+      'format': instance.format,
+      'file_size': instance.fileSize,
     };

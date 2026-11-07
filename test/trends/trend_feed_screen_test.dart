@@ -29,7 +29,7 @@ TrendFeedPage page(
 
 List<TrendFeedModel> many(int count, {int from = 0}) => [
   for (var i = from; i < from + count; i++)
-    trend('t$i', createdAt: 10_000 - i),
+    trend('t$i', createdAt: 10000 - i),
 ];
 
 Future<void> pumpScreen(
@@ -198,7 +198,7 @@ void main() {
   testWidgets('pull to refresh reloads the newest page', (tester) async {
     service.queue.add(Right(page(many(3), cursor: 'c1', hasMore: true)));
     service.queue.add(
-      Right(page([trend('fresh', createdAt: 99_999)], cursor: 'c2', hasMore: true)),
+      Right(page([trend('fresh', createdAt: 99999)], cursor: 'c2', hasMore: true)),
     );
 
     await pumpScreen(tester);

@@ -7,7 +7,6 @@ import 'package:fashionista/presentation/screens/trends/for_you_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 class HomeScreen extends StatefulWidget {
   final String? route;

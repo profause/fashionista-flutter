@@ -10,6 +10,8 @@ import 'package:fashionista/core/service_locator/local_notification_service.dart
 import 'package:fashionista/core/service_locator/push_notification_service.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/theme_cubit.dart';
+import 'package:fashionista/data/services/video/native_video_editor_engine.dart';
+import 'package:fashionista/presentation/widgets/video/video_playback_scope.dart';
 import 'package:fashionista/core/widgets/bloc/button_loading_state_cubit.dart';
 import 'package:fashionista/core/widgets/bloc/getstarted_stats_cubit.dart';
 import 'package:fashionista/core/widgets/bloc/previous_screen_state_cubit.dart';
@@ -61,6 +63,9 @@ Future<void> main() async {
 
   //Ensure Hive is ready before app starts
   await HiveService().init();
+
+  // Temporary exports and thumbnails must not accumulate across launches.
+  unawaited(NativeVideoEditorEngine.sweepTempFiles());
 
   await _configureLocalTimeZone();
   await LocalNotificationService.init();
@@ -133,6 +138,10 @@ class MyApp extends StatelessWidget {
 
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
+        // Wraps the Navigator, not just `home:`: pushed routes (interest
+        // details, trend details) also render feed cards, and they would
+        // otherwise have no playback manager in scope.
+        builder: (context, child) => VideoPlaybackScope(child: child!),
         home: const AppStarter(),
       ),
     );

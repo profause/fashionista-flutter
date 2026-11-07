@@ -284,12 +284,12 @@ void main() {
   test('pages that add nothing are walked, then stop', () async {
     // The cache already holds everything the first two pages will return.
     for (var i = 0; i < 40; i++) {
-      hive.store['c$i'] = trend('c$i', createdAt: 10_000 - i);
+      hive.store['c$i'] = trend('c$i', createdAt: 10000 - i);
     }
     service.queue.add(
       Right(
         page(
-          [for (var i = 0; i < 20; i++) trend('c$i', createdAt: 10_000 - i)],
+          [for (var i = 0; i < 20; i++) trend('c$i', createdAt: 10000 - i)],
           cursor: 'cur-1',
           hasMore: true,
         ),
@@ -298,7 +298,7 @@ void main() {
     service.queue.add(
       Right(
         page(
-          [for (var i = 20; i < 40; i++) trend('c$i', createdAt: 10_000 - i)],
+          [for (var i = 20; i < 40; i++) trend('c$i', createdAt: 10000 - i)],
           cursor: 'cur-2',
           hasMore: true,
         ),
@@ -326,13 +326,13 @@ void main() {
 
   test('the duplicate walk is bounded', () async {
     for (var i = 0; i < 200; i++) {
-      hive.store['c$i'] = trend('c$i', createdAt: 10_000 - i);
+      hive.store['c$i'] = trend('c$i', createdAt: 10000 - i);
     }
     for (var i = 0; i < 20; i++) {
       service.queue.add(
         Right(
           page(
-            [for (var j = 0; j < 20; j++) trend('c$j', createdAt: 10_000 - j)],
+            [for (var j = 0; j < 20; j++) trend('c$j', createdAt: 10000 - j)],
             cursor: 'cur-$i',
             hasMore: true,
           ),

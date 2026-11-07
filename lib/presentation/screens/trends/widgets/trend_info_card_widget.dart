@@ -10,7 +10,7 @@ import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
-import 'package:fashionista/presentation/widgets/video_preview_widget.dart';
+import 'package:fashionista/presentation/widgets/video/inline_video_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -187,7 +187,11 @@ class TrendInfoCardWidget extends StatelessWidget {
     }
 
     if (isVideo) {
-      return VideoPreviewWidget(videoUrl: media.url!, onTap: () {});
+      // One decoder at a time is enforced by the playback manager, not here.
+      return InlineVideoTile(
+        media: media,
+        playbackKey: media.uid ?? media.url ?? 'video',
+      );
     }
 
     return CldImageWidget(

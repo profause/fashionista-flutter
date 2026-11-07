@@ -307,24 +307,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 }
 
-class _NavBackButton extends StatelessWidget {
-  const _NavBackButton();
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      icon: Icon(Icons.chevron_left, size: 26, color: context.onCanvasText),
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(),
-      onPressed: () {
-        if (Navigator.of(context).canPop()) {
-          Navigator.of(context).pop();
-        }
-      },
-    );
-  }
-}
-
 class _SectionHeader extends StatelessWidget {
   final String title;
 

@@ -23,7 +23,11 @@ import 'package:fashionista/data/services/firebase/firebase_fashion_interest_ser
 import 'package:fashionista/data/services/firebase/firebase_global_search_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_notification_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_trends_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_video_upload_service.dart';
+import 'package:fashionista/data/services/hive/hive_upload_task_service.dart';
 import 'package:fashionista/data/services/local/appointment_reminder_service.dart';
+import 'package:fashionista/data/services/video/native_video_editor_engine.dart';
+import 'package:fashionista/domain/video/video_engine.dart';
 import 'package:fashionista/data/services/firebase/firebase_user_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_work_order_service.dart';
 import 'package:fashionista/data/services/hive/hive_client_service.dart';
@@ -207,6 +211,9 @@ Future<void> initialiseDependencies() async {
   sl.registerSingleton<HiveTrendService>(HiveTrendService());
   sl.registerSingleton<AppointmentReminderService>(AppointmentReminderService());
   sl.registerSingleton<HiveBookingService>(HiveBookingService());
+  sl.registerSingleton<HiveUploadTaskService>(HiveUploadTaskService());
+  sl.registerSingleton<VideoEngine>(NativeVideoEditorEngine());
+  sl.registerSingleton<FirebaseVideoUploadService>(FirebaseVideoUploadService());
 
   sl.registerSingleton<TrendRepository>(TrendRepositoryImpl());
 

@@ -29,7 +29,7 @@ class SettingsBloc extends HydratedBloc<SettingsEvent, Settings> {
   @override
   Settings? fromJson(Map<String, dynamic> json) {
     try {
-      return Settings.fromJson(json);
+      return Settings.fromJson(json).migrated();
     } catch (_) {
       return Settings.empty();
     }
