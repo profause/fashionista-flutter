@@ -21,7 +21,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   String _searchText = "";
-    String selectedFilter = 'All';
+  String selectedFilter = 'All';
   String? showAs = "list";
 
   @override
@@ -38,48 +38,39 @@ class _ProjectsPageState extends State<ProjectsPage> {
     return MultiSliver(
       // 👈 helper from 'sliver_tools' package, or just return a Column of slivers
       children: [
-        SliverAppBar(
-          backgroundColor: context.canvasBackground,
-          pinned: true, // keeps the searchbar visible when collapsed
-          floating: true, // allows it to appear/disappear as you scroll
-          snap: true, // snaps into view when scrolling up
-          stretch: true,
-          expandedHeight: 18,
-          toolbarHeight: 5,
-          flexibleSpace: FlexibleSpaceBar(
-            background: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
-              child: Row(
-                children: [
-                  Expanded(child: _buildSearchField()),
-                  const SizedBox(width: 12),
-                  _buildFilterButton(),
-                  const SizedBox(width: 12),
-                  SizedBox(
-                    width: 40,
-                    height: 40,
-                    child: Material(
-                      color: colorScheme.primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        side: BorderSide(color: context.hairline),
-                      ),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(10),
-                        onTap: () => {
-                          //herheher
-                          context.push('/workorders/add'),
-                        },
-                        child: Icon(
-                          Icons.add,
-                          size: 20,
-                          color: colorScheme.onPrimary,
-                        ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+            child: Row(
+              children: [
+                Expanded(child: _buildSearchField()),
+                const SizedBox(width: 12),
+                _buildFilterButton(),
+                const SizedBox(width: 12),
+                SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: Material(
+                    color: colorScheme.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      side: BorderSide(color: context.hairline),
+                    ),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(10),
+                      onTap: () => {
+                        //herheher
+                        context.push('/workorders/add'),
+                      },
+                      child: Icon(
+                        Icons.add,
+                        size: 20,
+                        color: colorScheme.onPrimary,
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -120,7 +111,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                 .toList();
 
             final workOrderRequests = filteredWorkOrders
-                .where((c) =>['REQUEST','new'].contains(c.status))
+                .where((c) => ['REQUEST', 'new'].contains(c.status))
                 .toList()
                 .reversed
                 .toList();
@@ -134,7 +125,11 @@ class _ProjectsPageState extends State<ProjectsPage> {
                 if (pinnedWorkOrders.isNotEmpty) ...[
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.only(left: 16, bottom: 8),
+                      padding: const EdgeInsets.only(
+                        left: 16,
+                        bottom: 8,
+                        top: 8,
+                      ),
                       child: Text(
                         "BOOKMARKED (${pinnedWorkOrders.length})",
                         style: TextStyle(
@@ -152,7 +147,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                       height: 110,
                       child: ListView.separated(
                         scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
                         itemBuilder: (context, index) {
                           final workOrder = pinnedWorkOrders[index];
                           return SizedBox(
@@ -175,7 +170,11 @@ class _ProjectsPageState extends State<ProjectsPage> {
                 if (workOrderRequests.isNotEmpty) ...[
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.only(left: 16, bottom: 8, top: 12),
+                      padding: const EdgeInsets.only(
+                        left: 16,
+                        bottom: 8,
+                        top: 8,
+                      ),
                       child: Text(
                         "REQUESTS (${workOrderRequests.length})",
                         style: TextStyle(
@@ -210,7 +209,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                       ),
                     ),
                   ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                  const SliverToBoxAdapter(child: SizedBox(height: 8)),
                 ],
 
                 if (unpinnedWorkOrders.isNotEmpty) ...[
@@ -219,7 +218,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                       padding: const EdgeInsets.only(
                         left: 16,
                         bottom: 8,
-                        top: 12,
+                        top: 8,
                       ),
                       child: Text(
                         "ALL (${unpinnedWorkOrders.length})",
@@ -234,7 +233,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                   ),
                   // ✅ Unpinned work orders (vertical)
                   SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     sliver: SliverList.separated(
                       itemBuilder: (context, index) {
                         final workOrder = unpinnedWorkOrders[index];
@@ -265,59 +264,46 @@ class _ProjectsPageState extends State<ProjectsPage> {
   }
 
   Widget _buildSearchField() {
-    return Container(
-      height: 44,
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      decoration: BoxDecoration(
-        color: context.cardSurface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: _searchFocusNode.hasFocus ? context.accent : context.hairline,
+    return SizedBox(
+      height: 40,
+      child: TextField(
+        controller: _searchController,
+        focusNode: _searchFocusNode,
+        cursorColor: context.accent,
+        style: TextStyle(fontSize: 15, color: context.onCanvasText),
+        decoration: InputDecoration(
+          prefixIcon: const Icon(Icons.search, size: 20),
+          prefixIconColor: context.secondaryLabel,
+          filled: true,
+          fillColor: context.cardSurface,
+          contentPadding: EdgeInsets.zero,
+          isDense: true,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: context.hairline),
+          ),
+          hintText: "Search project...",
+          hintStyle: TextStyle(fontSize: 15, color: context.mutedText),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: context.hairline),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: context.accent.withValues(alpha: 0.7)),
+          ),
         ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x05000000),
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.search, size: 18, color: context.placeholderText),
-          const SizedBox(width: 10),
-          Expanded(
-            child: TextField(
-              controller: _searchController,
-              focusNode: _searchFocusNode,
-              style: TextStyle(
-                fontSize: 15,
-                color: context.onCanvasText,
-              ),
-              decoration: InputDecoration(
-                hintText: "Search projects...",
-                hintStyle: TextStyle(
-                  fontSize: 15,
-                  color: context.placeholderText,
-                ),
-                isDense: true,
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.zero,
-              ),
-              onChanged: (value) {
-                setState(() => _searchText = value);
-              },
-            ),
-          ),
-        ],
+        onChanged: (value) {
+          setState(() => _searchText = value);
+        },
       ),
     );
   }
 
   Widget _buildFilterButton() {
     return SizedBox(
-      width: 44,
-      height: 44,
+      width: 40,
+      height: 40,
       child: OutlinedButton(
         style: OutlinedButton.styleFrom(
           backgroundColor: context.cardSurface,
@@ -326,16 +312,15 @@ class _ProjectsPageState extends State<ProjectsPage> {
             borderRadius: BorderRadius.circular(12),
           ),
           padding: EdgeInsets.zero,
-          minimumSize: const Size(44, 44),
+          minimumSize: const Size(40, 40),
         ),
         onPressed: () {
           _showFilterBottomsheet(
-                          context,
-                          showAs!,
-                          selectedFilter,
-                          (filter) =>
-                              setState(() => selectedFilter = filter),
-                        );
+            context,
+            showAs!,
+            selectedFilter,
+            (filter) => setState(() => selectedFilter = filter),
+          );
         },
         child: Icon(
           Icons.filter_list_outlined,
@@ -379,10 +364,9 @@ class _ProjectsPageState extends State<ProjectsPage> {
                         height: 6,
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color:
-                              Theme.of(context).brightness == Brightness.dark
-                                  ? const Color(0xFF3A3938)
-                                  : const Color(0xFFD1D5DB),
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? const Color(0xFF3A3938)
+                              : const Color(0xFFD1D5DB),
                           borderRadius: BorderRadius.circular(999),
                         ),
                       ),
@@ -545,8 +529,8 @@ class _FilterRadioRow extends StatelessWidget {
                   color: isSelected
                       ? context.accent
                       : (Theme.of(context).brightness == Brightness.dark
-                          ? const Color(0xFF3A3938)
-                          : const Color(0xFFCBD5E1)),
+                            ? const Color(0xFF3A3938)
+                            : const Color(0xFFCBD5E1)),
                 ),
               ),
               child: isSelected

@@ -316,37 +316,6 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
     );
   }
 
-  Widget _buildSegmentedTabs() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: context.hairline)),
-      ),
-      child: TabBar(
-        labelColor: context.accent,
-        unselectedLabelColor: context.mutedText,
-        indicatorColor: context.accent,
-        dividerColor: context.hairline,
-        dividerHeight: 0,
-        indicatorWeight: 2.5,
-        indicatorSize: TabBarIndicatorSize.label,
-        labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-        unselectedLabelStyle: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-        ),
-        tabs: const [
-          Tab(icon: Icon(Icons.person_2, size: 20), text: 'Info'),
-          Tab(
-            icon: Icon(Icons.straighten_rounded, size: 20),
-            text: 'Measurements',
-          ),
-          Tab(icon: Icon(Icons.work_history, size: 20), text: 'Orders'),
-        ],
-      ),
-    );
-  }
-
   Future<void> _deleteClient(Client client) async {
     if (_isDeletingClient) return;
 

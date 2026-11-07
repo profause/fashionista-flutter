@@ -58,116 +58,108 @@ class OutfitsPageState extends State<OutfitsPage> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
     return MultiSliver(
       // 👈 helper from 'sliver_tools' package, or just return a Column of slivers
       children: [
-        SliverAppBar(
-          backgroundColor: context.canvasBackground,
-          pinned: true, // keeps the searchbar visible when collapsed
-          floating: true, // allows it to appear/disappear as you scroll
-          snap: true, // snaps into view when scrolling up
-          stretch: true,
-          expandedHeight: 18,
-          toolbarHeight: 5,
-          flexibleSpace: FlexibleSpaceBar(
-            background: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: SizedBox(
-                      height: 40,
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                          hintText: "Search outfits...",
-                          hintStyle: textTheme.bodyMedium!.copyWith(
-                            color: context.mutedText,
-                          ),
-                          prefixIcon: const Icon(Icons.search, size: 20),
-                          prefixIconColor: context.secondaryLabel,
-                          filled: true,
-                          fillColor: context.cardSurface,
-                          contentPadding: EdgeInsets.zero,
-                          isDense: true,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(color: context.hairline),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(color: context.hairline),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(
-                              color: context.accent.withValues(alpha: 0.7),
-                            ),
-                          ),
-                        ),
-                        onChanged: (value) {
-                          setState(() => _searchText = value);
-                        },
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 40,
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
                     height: 40,
-                    child: Material(
-                      color: context.cardSurface,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        side: BorderSide(color: context.hairline),
+                    child: TextField(
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: context.onCanvasText,
                       ),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(10),
-                        onTap: () => setState(() {
-                          filterByFavourite = !filterByFavourite;
-                        }),
-                        child: Icon(
-                          filterByFavourite
-                              ? Icons.favorite
-                              : Icons.favorite_border,
-                          size: 20,
-                          color: filterByFavourite
-                              ? context.accent
-                              : context.onCanvasText,
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: "Search outfits...",
+                        hintStyle: TextStyle(
+                          fontSize: 15,
+                          color: context.mutedText,
                         ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 40,
-                    height: 40,
-                    child: Material(
-                      color: colorScheme.primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        side: BorderSide(color: context.hairline),
-                      ),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(10),
-                        onTap: () => {
-                          showAddOutfitBottomSheet(
-                            context,
-                            OutfitModel.empty(),
+                        prefixIcon: const Icon(Icons.search, size: 20),
+                        prefixIconColor: context.secondaryLabel,
+                        filled: true,
+                        fillColor: context.cardSurface,
+                        contentPadding: EdgeInsets.zero,
+                        isDense: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: context.hairline),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: context.hairline),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(
+                            color: context.accent.withValues(alpha: 0.7),
                           ),
-                        },
-                        child: Icon(
-                          Icons.add,
-                          size: 20,
-                          color: colorScheme.onPrimary,
                         ),
+                      ),
+                      onChanged: (value) {
+                        setState(() => _searchText = value);
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: Material(
+                    color: context.cardSurface,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      side: BorderSide(color: context.hairline),
+                    ),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(10),
+                      onTap: () => setState(() {
+                        filterByFavourite = !filterByFavourite;
+                      }),
+                      child: Icon(
+                        filterByFavourite
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                        size: 20,
+                        color: filterByFavourite
+                            ? context.accent
+                            : context.onCanvasText,
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: Material(
+                    color: colorScheme.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      side: BorderSide(color: context.hairline),
+                    ),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(10),
+                      onTap: () => {
+                        showAddOutfitBottomSheet(context, OutfitModel.empty()),
+                      },
+                      child: Icon(
+                        Icons.add,
+                        size: 20,
+                        color: colorScheme.onPrimary,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),

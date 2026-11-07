@@ -73,66 +73,55 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
                         child: Row(
                           children: [
                             Expanded(
-                              child: Container(
+                              child: SizedBox(
                                 height: 40,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: context.cardSurface,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: _searchFocusNode.hasFocus
-                                        ? context.accent.withValues(alpha: 0.7)
-                                        : context.hairline,
+                                child: TextField(
+                                  controller: _searchController,
+                                  focusNode: _searchFocusNode,
+                                  cursorColor: context.accent,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    color: context.onCanvasText,
                                   ),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Color(0x0D000000),
-                                      blurRadius: 3,
-                                      offset: Offset(0, 1),
-                                    ),
-                                  ],
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(
+                                  decoration: InputDecoration(
+                                    prefixIcon: const Icon(
                                       Icons.search,
                                       size: 20,
-                                      color: context.mutedText,
                                     ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: TextField(
-                                        key: const ValueKey('searchField'),
-                                        controller: _searchController,
-                                        focusNode: _searchFocusNode,
-                                        decoration: InputDecoration(
-                                          hintText: 'Search measurements...',
-                                          hintStyle: TextStyle(
-                                            fontSize: 15,
-                                            color: context.placeholderText,
-                                          ),
-                                          border: InputBorder.none,
-                                          isDense: false,
-                                          contentPadding:
-                                              const EdgeInsets.symmetric(
-                                                horizontal: 0,
-                                                vertical: 10,
-                                              ),
-                                        ),
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          color: context.onCanvasText,
-                                        ),
-                                        onChanged: (value) {
-                                          setState(() {
-                                            _searchText = value;
-                                          });
-                                        },
+                                    prefixIconColor: context.secondaryLabel,
+                                    filled: true,
+                                    fillColor: context.cardSurface,
+                                    contentPadding: EdgeInsets.zero,
+                                    isDense: true,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      borderSide: BorderSide(
+                                        color: context.hairline,
                                       ),
                                     ),
-                                  ],
+                                    hintText: "Search measurements...",
+                                    hintStyle: TextStyle(
+                                      fontSize: 15,
+                                      color: context.mutedText,
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      borderSide: BorderSide(
+                                        color: context.hairline,
+                                      ),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      borderSide: BorderSide(
+                                        color: context.accent.withValues(
+                                          alpha: 0.7,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  onChanged: (value) {
+                                    setState(() => _searchText = value);
+                                  },
                                 ),
                               ),
                             ),
@@ -272,7 +261,9 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
           final updatedMeasurements = client.measurements
               .where((m) => m.uid != measurement.uid)
               .toList();
-          final updatedClient = client.copyWith(measurements: updatedMeasurements);
+          final updatedClient = client.copyWith(
+            measurements: updatedMeasurements,
+          );
 
           if (mounted) {
             context.read<ClientBloc>().add(UpdateClient(updatedClient));
@@ -298,14 +289,15 @@ class _ClientMeasurementScreenState extends State<ClientMeasurementScreen> {
     );
   }
 
-  Future<void> _deleteMeasurement(Client client, ClientMeasurement measurement) async {
+  Future<void> _deleteMeasurement(
+    Client client,
+    ClientMeasurement measurement,
+  ) async {
     try {
       //_buttonLoadingStateCubit.setLoading(true);
 
-      final result = await sl<FirebaseClientsService>().deleteClientMeasurementFromFirestore(
-        client.uid,
-        measurement,
-      );
+      final result = await sl<FirebaseClientsService>()
+          .deleteClientMeasurementFromFirestore(client.uid, measurement);
 
       result.fold(
         (l) {

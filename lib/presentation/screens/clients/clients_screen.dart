@@ -47,135 +47,114 @@ class _ClientsScreenState extends State<ClientsScreen> {
     return MultiSliver(
       // 👈 helper from 'sliver_tools' package, or just return a Column of slivers
       children: [
-        SliverAppBar(
-          backgroundColor: context.canvasBackground,
-          pinned: true, // keeps the searchbar visible when collapsed
-          floating: true, // allows it to appear/disappear as you scroll
-          snap: true, // snaps into view when scrolling up
-          stretch: true,
-          expandedHeight: 18,
-          toolbarHeight: 5,
-          flexibleSpace: FlexibleSpaceBar(
-            background: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      height: 44,
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      decoration: BoxDecoration(
-                        color: context.cardSurface,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: _searchFocusNode.hasFocus
-                              ? context.accent
-                              : context.hairline,
-                        ),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x05000000),
-                            blurRadius: 8,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.search,
-                            size: 18,
-                            color: context.mutedText,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: TextField(
-                              controller: _searchController,
-                              focusNode: _searchFocusNode,
-                              cursorColor: context.accent,
-                              style: TextStyle(
-                                fontSize: 15,
-                                color: context.onCanvasText,
-                              ),
-                              decoration: InputDecoration(
-                                hintText: "Search clients...",
-                                hintStyle: TextStyle(
-                                  fontSize: 15,
-                                  color: context.mutedText,
-                                ),
-                                isDense: true,
-                                border: InputBorder.none,
-                                contentPadding: EdgeInsets.zero,
-                              ),
-                              onChanged: (value) {
-                                setState(() => _searchText = value);
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: context.cardSurface,
-                      borderRadius: BorderRadius.circular(12),
-                      //border: Border.all(color: context.hairline),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x0D000000),
-                          blurRadius: 2,
-                          offset: Offset(0, 1),
-                        ),
-                      ],
-                    ),
-                    child: IconButton(
-                      onPressed: () {
-                        _showFilterBottomsheet(
-                          context,
-                          showAs!,
-                          selectedFilter,
-                          (filter) => setState(() => selectedFilter = filter),
-                        );
-                      },
-                      icon: Icon(
-                        Icons.filter_list,
-                        color: context.onCanvasText,
-                        size: 20,
-                      ),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  SizedBox(
-                    width: 40,
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+            child: Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
                     height: 40,
-                    child: Material(
-                      color: colorScheme.primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        side: BorderSide(color: context.hairline),
+                    child: TextField(
+                      controller: _searchController,
+                      focusNode: _searchFocusNode,
+                      cursorColor: context.accent,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: context.onCanvasText,
                       ),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(10),
-                        onTap: () => {
-                          //herheher
-                          context.push('/clients/add'),
-                        },
-                        child: Icon(
-                          Icons.add,
-                          size: 20,
-                          color: colorScheme.onPrimary,
+                      decoration: InputDecoration(
+                        prefixIcon: const Icon(Icons.search, size: 20),
+                        prefixIconColor: context.secondaryLabel,
+                        filled: true,
+                        fillColor: context.cardSurface,
+                        contentPadding: EdgeInsets.zero,
+                        isDense: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: context.hairline),
                         ),
+                        hintText: "Search clients...",
+                        hintStyle: TextStyle(
+                          fontSize: 15,
+                          color: context.mutedText,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: context.hairline),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(
+                            color: context.accent.withValues(alpha: 0.7),
+                          ),
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setState(() => _searchText = value);
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: context.cardSurface,
+                    borderRadius: BorderRadius.circular(12),
+                    //border: Border.all(color: context.hairline),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x0D000000),
+                        blurRadius: 2,
+                        offset: Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                  child: IconButton(
+                    onPressed: () {
+                      _showFilterBottomsheet(
+                        context,
+                        showAs!,
+                        selectedFilter,
+                        (filter) => setState(() => selectedFilter = filter),
+                      );
+                    },
+                    icon: Icon(
+                      Icons.filter_list,
+                      color: context.onCanvasText,
+                      size: 20,
+                    ),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: Material(
+                    color: colorScheme.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      side: BorderSide(color: context.hairline),
+                    ),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(10),
+                      onTap: () => {
+                        //herheher
+                        context.push('/clients/add'),
+                      },
+                      child: Icon(
+                        Icons.add,
+                        size: 20,
+                        color: colorScheme.onPrimary,
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -224,8 +203,8 @@ class _ClientsScreenState extends State<ClientsScreen> {
                     child: Padding(
                       padding: const EdgeInsets.only(
                         left: 16,
-                        top: 12,
-                        bottom: 10,
+                        top: 8,
+                        bottom: 8,
                       ),
                       child: _SectionHeader(text: "Pinned Clients"),
                     ),
@@ -267,8 +246,6 @@ class _ClientsScreenState extends State<ClientsScreen> {
                       ),
                     ),
                   ),
-
-                  const SizedBox(height: 12),
                 ],
 
                 if (unpinnedClients.isNotEmpty) ...[
@@ -276,8 +253,8 @@ class _ClientsScreenState extends State<ClientsScreen> {
                     child: Padding(
                       padding: const EdgeInsets.only(
                         left: 16,
-                        top: 12,
-                        bottom: 10,
+                        top: 8,
+                        bottom: 8,
                       ),
                       child: _SectionHeader(text: "All Clients"),
                     ),

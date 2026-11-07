@@ -43,101 +43,80 @@ class _ClientProjectPageState extends State<ClientProjectPage> {
     //final textTheme = Theme.of(context).textTheme;
     return MultiSliver(
       children: [
-        SliverAppBar(
-          backgroundColor: context.canvasBackground,
-          pinned: true, // keeps the searchbar visible when collapsed
-          floating: true, // allows it to appear/disappear as you scroll
-          snap: true, // snaps into view when scrolling up
-          stretch: true,
-          expandedHeight: 18,
-          toolbarHeight: 5,
-          flexibleSpace: FlexibleSpaceBar(
-            background: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      height: 44,
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      decoration: BoxDecoration(
-                        color: context.cardSurface,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: _searchFocusNode.hasFocus
-                              ? context.accent
-                              : context.hairline,
-                        ),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x05000000),
-                            blurRadius: 8,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.search,
-                            size: 18,
-                            color: context.mutedText,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: TextField(
-                              controller: _searchController,
-                              focusNode: _searchFocusNode,
-                              cursorColor: context.accent,
-                              style: TextStyle(
-                                fontSize: 15,
-                                color: context.onCanvasText,
-                              ),
-                              decoration: InputDecoration(
-                                hintText: "Search clients...",
-                                hintStyle: TextStyle(
-                                  fontSize: 15,
-                                  color: context.mutedText,
-                                ),
-                                isDense: true,
-                                border: InputBorder.none,
-                                contentPadding: EdgeInsets.zero,
-                              ),
-                              onChanged: (value) {
-                                setState(() => _searchText = value);
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  SizedBox(
-                    width: 40,
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+            child: Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
                     height: 40,
-                    child: Material(
-                      color: colorScheme.primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        side: BorderSide(color: context.hairline),
+                    child: TextField(
+                      controller: _searchController,
+                      focusNode: _searchFocusNode,
+                      cursorColor: context.accent,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: context.onCanvasText,
                       ),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(10),
-                        onTap: () => {
-                          //herheher
-                          context.push('/workorders/add'),
-                        },
-                        child: Icon(
-                          Icons.add,
-                          size: 20,
-                          color: colorScheme.onPrimary,
+                      decoration: InputDecoration(
+                        prefixIcon: const Icon(Icons.search, size: 20),
+                        prefixIconColor: context.secondaryLabel,
+                        filled: true,
+                        fillColor: context.cardSurface,
+                        contentPadding: EdgeInsets.zero,
+                        isDense: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: context.hairline),
                         ),
+                        hintText: "Search project...",
+                        hintStyle: TextStyle(
+                          fontSize: 15,
+                          color: context.mutedText,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: context.hairline),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(
+                            color: context.accent.withValues(alpha: 0.7),
+                          ),
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setState(() => _searchText = value);
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: Material(
+                    color: colorScheme.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      side: BorderSide(color: context.hairline),
+                    ),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(10),
+                      onTap: () => {
+                        //herheher
+                        context.push('/workorders/add'),
+                      },
+                      child: Icon(
+                        Icons.add,
+                        size: 20,
+                        color: colorScheme.onPrimary,
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -157,7 +136,15 @@ class _ClientProjectPageState extends State<ClientProjectPage> {
                   ),
                 );
               case WorkOrdersLoaded(:final workOrders):
-                final filteredWorkOrders = workOrders;
+                final filteredWorkOrders = _searchText.isEmpty
+                    ? workOrders
+                    : workOrders.where((workOrder) {
+                        final title = workOrder.title.toLowerCase();
+                        final description = workOrder.description!
+                            .toLowerCase();
+                        return title.contains(_searchText.toLowerCase()) ||
+                            description.contains(_searchText.toLowerCase());
+                      }).toList();
 
                 if (filteredWorkOrders.isEmpty) {
                   return SliverFillRemaining(
