@@ -7,6 +7,7 @@ import 'package:fashionista/data/models/video/pending_publish_task.dart';
 import 'package:fashionista/data/models/video/video_upload_models.dart';
 import 'package:fashionista/data/services/firebase/firebase_video_upload_service.dart';
 import 'package:fashionista/data/services/hive/hive_upload_task_service.dart';
+import 'package:fashionista/data/services/hive/hive_video_delete_token_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -17,17 +18,23 @@ typedef TrendVideoPublisher =
       required FeaturedMediaModel media,
     });
 
-/// Orchestrates authorize → upload → publish, with cancel and retry.
+/// Orchestrates upload → publish, with cancel and retry.
+///
+/// Uploads are unsigned (plan §19): there is no authorization round-trip, only
+/// a Cloudinary upload followed by the Firestore write.
 class VideoUploadCubit extends Cubit<VideoUploadState> {
   VideoUploadCubit({
     FirebaseVideoUploadService? service,
     HiveUploadTaskService? pendingTasks,
+    HiveVideoDeleteTokenService? deleteTokens,
   }) : _service = service ?? FirebaseVideoUploadService(),
        _pendingTasks = pendingTasks ?? HiveUploadTaskService(),
+       _deleteTokens = deleteTokens ?? HiveVideoDeleteTokenService(),
        super(const VideoUploadState());
 
   final FirebaseVideoUploadService _service;
   final HiveUploadTaskService _pendingTasks;
+  final HiveVideoDeleteTokenService _deleteTokens;
 
   CancelToken? _cancelToken;
   File? _file;
@@ -45,15 +52,13 @@ class VideoUploadCubit extends Cubit<VideoUploadState> {
     _hasAudio = hasAudio;
     _publish = publish;
 
-    emit(
-      VideoUploadState(phase: VideoUploadPhase.authorizing, trendId: trendId),
-    );
+    emit(VideoUploadState(phase: VideoUploadPhase.uploading, trendId: trendId));
 
     await _run(trendId);
   }
 
   /// Retries from the last failure: re-publishes when only the save failed,
-  /// otherwise re-uploads (re-authorizing first if the signature was rejected).
+  /// otherwise uploads the file again.
   Future<void> retry() async {
     final trendId = state.trendId;
     if (trendId == null) return;
@@ -66,7 +71,7 @@ class VideoUploadCubit extends Cubit<VideoUploadState> {
 
     emit(
       state.copyWith(
-        phase: VideoUploadPhase.authorizing,
+        phase: VideoUploadPhase.uploading,
         progress: 0,
         clearError: true,
         publishFailedOnly: false,
@@ -77,15 +82,15 @@ class VideoUploadCubit extends Cubit<VideoUploadState> {
 
   /// Cancels the transfer and removes a partially uploaded asset.
   Future<void> cancel() async {
-    if (!state.isBusy) return;
+    if (!state.isCancellable) return;
 
     _cancelToken?.cancel('cancelled by user');
     _cancelToken = null;
 
-    final assetId = _uploaded?.assetId;
-    final trendId = state.trendId;
-    if (assetId != null && trendId != null) {
-      await _service.deleteAsset(assetId: assetId, trendId: trendId);
+    final uploaded = _uploaded;
+    if (uploaded != null) {
+      await _discardAsset(uploaded);
+      _uploaded = null;
     }
 
     emit(state.copyWith(phase: VideoUploadPhase.cancelled));
@@ -103,70 +108,66 @@ class VideoUploadCubit extends Cubit<VideoUploadState> {
       return;
     }
 
-    VideoUploadSignature signature;
+    final token = CancelToken();
+    _cancelToken = token;
+
+    CloudinaryVideoAsset asset;
     try {
-      signature = await _service.requestSignature(trendId);
+      asset = await _upload(file, token);
     } on VideoUploadException catch (error) {
+      if (state.phase == VideoUploadPhase.cancelled) return;
       emit(
         state.copyWith(phase: VideoUploadPhase.failed, error: error.message),
       );
       return;
     }
 
-    final token = CancelToken();
-    _cancelToken = token;
-
-    CloudinaryVideoAsset asset;
-    try {
-      asset = await _upload(signature, file, token);
-    } on VideoUploadException catch (error) {
-      if (state.phase == VideoUploadPhase.cancelled) return;
-
-      // A stale signature is recoverable exactly once: ask for a fresh one.
-      if (error.isSignatureProblem) {
-        try {
-          signature = await _service.requestSignature(trendId);
-          asset = await _upload(signature, file, token);
-        } on VideoUploadException catch (retryError) {
-          emit(
-            state.copyWith(
-              phase: VideoUploadPhase.failed,
-              error: retryError.message,
-            ),
-          );
-          return;
-        }
-      } else {
-        emit(
-          state.copyWith(phase: VideoUploadPhase.failed, error: error.message),
-        );
-        return;
-      }
-    }
-
     _uploaded = asset;
     _cancelToken = null;
+
+    // The token is the only client-side way to delete this asset later, so it
+    // is kept before the post exists at all.
+    final deleteToken = asset.deleteToken;
+    if (deleteToken != null) {
+      await _deleteTokens.save(assetId: asset.assetId, token: deleteToken);
+    }
 
     emit(state.copyWith(phase: VideoUploadPhase.saving, progress: 1));
     await _publishMedia(trendId, asset.toMedia(hasAudio: _hasAudio));
   }
 
-  Future<CloudinaryVideoAsset> _upload(
-    VideoUploadSignature signature,
-    File file,
-    CancelToken token,
-  ) {
+  Future<CloudinaryVideoAsset> _upload(File file, CancelToken token) {
     emit(state.copyWith(phase: VideoUploadPhase.uploading, progress: 0));
 
     return _service.upload(
       file: file,
-      signature: signature,
       cancelToken: token,
       onProgress: (sent, total) {
         if (total <= 0 || isClosed) return;
         emit(state.copyWith(progress: (sent / total).clamp(0, 1).toDouble()));
       },
     );
+  }
+
+  /// Removes an asset that never became a post: token first (no backend round
+  /// trip), then the Admin API once the token has expired.
+  Future<void> _discardAsset(CloudinaryVideoAsset asset) async {
+    final token = asset.deleteToken;
+    var deleted = token != null && await _service.deleteByToken(token);
+
+    if (!deleted) {
+      final trendId = state.trendId;
+      if (trendId != null) {
+        deleted = await _service.deleteAsset(
+          assetId: asset.assetId,
+          trendId: trendId,
+        );
+      }
+    }
+
+    if (deleted) {
+      await _deleteTokens.remove(asset.assetId);
+    }
   }
 
   Future<void> _publishMedia(String trendId, FeaturedMediaModel media) async {

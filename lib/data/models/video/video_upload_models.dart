@@ -1,52 +1,41 @@
 import 'package:equatable/equatable.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
 
-/// Parameters Cloudinary needs echoed back, signed by the backend.
-class VideoUploadSignature extends Equatable {
+/// Cloudinary parameters for an *unsigned* video upload.
+///
+/// There is no API key, timestamp or signature any more: the upload is
+/// authorized by the (public) upload preset alone, so nothing here is secret.
+/// See `.agents/plans/trends-video.md` §19.
+class VideoUploadConfig extends Equatable {
   final String cloudName;
-  final String apiKey;
-  final int timestamp;
-  final String signature;
-  final String folder;
-  final String publicId;
+  final String uploadPreset;
 
-  const VideoUploadSignature({
+  /// Base folder every video lives under; the user id is appended per upload so
+  /// assets stay attributable. Mirrors `trendVideoFolder()` in
+  /// `functions/src/cloudinary/folder.ts` and the `CLOUDINARY_BASE_FOLDER` env
+  /// var used by the delete callable.
+  final String baseFolder;
+
+  const VideoUploadConfig({
     required this.cloudName,
-    required this.apiKey,
-    required this.timestamp,
-    required this.signature,
-    required this.folder,
-    required this.publicId,
+    required this.uploadPreset,
+    required this.baseFolder,
   });
 
-  factory VideoUploadSignature.fromMap(Map<dynamic, dynamic> map) {
-    return VideoUploadSignature(
-      cloudName: '${map['cloudName'] ?? ''}',
-      apiKey: '${map['apiKey'] ?? ''}',
-      timestamp: int.tryParse('${map['timestamp'] ?? ''}') ?? 0,
-      signature: '${map['signature'] ?? ''}',
-      folder: '${map['folder'] ?? ''}',
-      publicId: '${map['publicId'] ?? ''}',
-    );
+  bool get isComplete =>
+      cloudName.isNotEmpty && uploadPreset.isNotEmpty && baseFolder.isNotEmpty;
+
+  /// `<baseFolder>/trends/videos/<uid>` — the folder this user's videos are
+  /// written to.
+  String folderFor(String userId) {
+    final base = baseFolder.endsWith('/')
+        ? baseFolder.substring(0, baseFolder.length - 1)
+        : baseFolder;
+    return '$base/trends/videos/$userId';
   }
 
-  bool get isComplete =>
-      cloudName.isNotEmpty &&
-      apiKey.isNotEmpty &&
-      signature.isNotEmpty &&
-      folder.isNotEmpty &&
-      publicId.isNotEmpty &&
-      timestamp > 0;
-
   @override
-  List<Object?> get props => [
-    cloudName,
-    apiKey,
-    timestamp,
-    signature,
-    folder,
-    publicId,
-  ];
+  List<Object?> get props => [cloudName, uploadPreset, baseFolder];
 }
 
 /// The uploaded Cloudinary asset, normalised into what a trend post stores.
@@ -60,6 +49,10 @@ class CloudinaryVideoAsset extends Equatable {
   final int height;
   final int fileSize;
 
+  /// Short-lived (10 min) credential returned by the upload preset. Kept on the
+  /// device only — it grants deletion, so it must never reach Firestore.
+  final String? deleteToken;
+
   const CloudinaryVideoAsset({
     required this.assetId,
     required this.secureUrl,
@@ -68,6 +61,7 @@ class CloudinaryVideoAsset extends Equatable {
     required this.width,
     required this.height,
     required this.fileSize,
+    this.deleteToken,
   });
 
   /// Builds the poster URL from the video itself — no second upload (plan §8,
@@ -79,6 +73,7 @@ class CloudinaryVideoAsset extends Equatable {
   }) {
     final assetId = '${data['public_id'] ?? fallbackPublicId}';
     final secureUrl = '${data['secure_url'] ?? ''}';
+    final token = data['delete_token'];
 
     return CloudinaryVideoAsset(
       assetId: assetId,
@@ -90,8 +85,11 @@ class CloudinaryVideoAsset extends Equatable {
       width: (data['width'] as num?)?.toInt() ?? 0,
       height: (data['height'] as num?)?.toInt() ?? 0,
       fileSize: (data['bytes'] as num?)?.toInt() ?? 0,
+      deleteToken: token is String && token.isNotEmpty ? token : null,
     );
   }
+
+  bool get hasDeleteToken => deleteToken != null;
 
   /// Feed media entry for this asset.
   FeaturedMediaModel toMedia({required bool hasAudio}) {
@@ -124,5 +122,6 @@ class CloudinaryVideoAsset extends Equatable {
     width,
     height,
     fileSize,
+    deleteToken,
   ];
 }

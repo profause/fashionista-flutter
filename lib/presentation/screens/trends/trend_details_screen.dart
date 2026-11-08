@@ -33,6 +33,7 @@ import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.d
 import 'package:fashionista/presentation/widgets/featured_media_widget.dart';
 import 'package:fashionista/presentation/widgets/page_empty_widget.dart';
 import 'package:fashionista/presentation/widgets/rating_input_widget.dart';
+import 'package:fashionista/presentation/widgets/video/trend_video_hero.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -261,15 +262,25 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
   }
 
   /// Hero media with the caption rendered over a bottom gradient.
+  ///
+  /// A video post is a single media entry: it gets the player instead of the
+  /// image carousel, which cannot render a video.
   Widget _buildMedia(BuildContext context) {
-    if (trendInfo.featuredMedia.isEmpty) return const SizedBox.shrink();
+    final media = trendInfo.featuredMedia;
+    if (media.isEmpty) return const SizedBox.shrink();
+
+    final caption = trendInfo.description.trim();
+    final isVideo = media.length == 1 && media.first.isVideo;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: FeaturedMediaWidget(
-        featuredMedia: trendInfo.featuredMedia,
-        caption: trendInfo.description.trim(),
-      ),
+      child: isVideo
+          ? TrendVideoHero(
+              media: media.first,
+              caption: caption,
+              playbackKey: 'detail_${media.first.uid ?? media.first.url}',
+            )
+          : FeaturedMediaWidget(featuredMedia: media, caption: caption),
     );
   }
 

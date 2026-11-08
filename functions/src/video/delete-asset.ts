@@ -1,4 +1,4 @@
-import { sanitizeSegment, trendVideoFolder } from '../cloudinary/signature';
+import { sanitizeSegment, trendVideoFolder } from '../cloudinary/folder';
 
 export interface DeleteAssetInput {
   uid: string | undefined;

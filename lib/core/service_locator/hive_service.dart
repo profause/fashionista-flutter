@@ -46,6 +46,10 @@ class HiveService {
 
   /// Videos uploaded but not yet published to Firestore.
   late final Box<String> uploadTasksBox;
+
+  /// Cloudinary `delete_token` values (10-minute lifetime), keyed by asset id.
+  /// Device-only: the token authorizes deletion, so it never goes to Firestore.
+  late final Box<String> videoDeleteTokensBox;
   late final Box<String> globalSearchBox;
 
   /// Initialize Hive + boxes (call once at startup)
@@ -86,6 +90,7 @@ class HiveService {
       notificationsBox = await Hive.openBox('notifications_cache');
       bookingsBox = await Hive.openBox<String>('bookings_cache');
       uploadTasksBox = await Hive.openBox<String>('upload_tasks');
+      videoDeleteTokensBox = await Hive.openBox<String>('video_delete_tokens');
       globalSearchBox = await Hive.openBox<String>('global_search_cache');
 
       debugPrint('✅ Hive initialized');

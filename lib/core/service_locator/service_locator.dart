@@ -25,6 +25,7 @@ import 'package:fashionista/data/services/firebase/firebase_notification_service
 import 'package:fashionista/data/services/firebase/firebase_trends_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_video_upload_service.dart';
 import 'package:fashionista/data/services/hive/hive_upload_task_service.dart';
+import 'package:fashionista/data/services/hive/hive_video_delete_token_service.dart';
 import 'package:fashionista/data/services/local/appointment_reminder_service.dart';
 import 'package:fashionista/data/services/video/native_video_editor_engine.dart';
 import 'package:fashionista/domain/video/video_engine.dart';
@@ -212,6 +213,9 @@ Future<void> initialiseDependencies() async {
   sl.registerSingleton<AppointmentReminderService>(AppointmentReminderService());
   sl.registerSingleton<HiveBookingService>(HiveBookingService());
   sl.registerSingleton<HiveUploadTaskService>(HiveUploadTaskService());
+  sl.registerSingleton<HiveVideoDeleteTokenService>(
+    HiveVideoDeleteTokenService(),
+  );
   sl.registerSingleton<VideoEngine>(NativeVideoEditorEngine());
   sl.registerSingleton<FirebaseVideoUploadService>(FirebaseVideoUploadService());
 

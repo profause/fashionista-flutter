@@ -3,6 +3,10 @@
 Status: **proposed (Milestone 1, reviewed)** · Feature: user-recorded / gallery video posts in Trends
 Companion plans: `trends-pagination.md`, `push-notifications-module.md`
 
+> **Superseded:** §19 replaces the signing design described throughout this document. Uploads are now
+> **unsigned** (public upload preset); the only backend call left is `deleteCloudinaryAsset`. Read §19
+> before §5–§13.
+
 ## 0. Review outcome
 
 Reviewed before implementation. One decision changed (autoplay default), two were raised and then
@@ -10,7 +14,7 @@ confirmed as they were (signing and deletion stay), and eleven defects were foun
 
 | Decision | Outcome | Why |
 | --- | --- | --- |
-| Video upload signing | **Kept** | "Skip signing" was considered, then withdrawn: deleting a Cloudinary asset needs the API secret, so the backend and the secret exist either way. Two callables on one already-required surface beat a permanent orphaned-asset problem. |
+| Video upload signing | **Kept**, then **removed** during device testing — see §19 | "Skip signing" was considered, then withdrawn: deleting a Cloudinary asset needs the API secret, so the backend and the secret exist either way. Two callables on one already-required surface beat a permanent orphaned-asset problem. **Superseded:** the signed upload failed on device with `Invalid Signature`, so the upload moved to an unsigned preset and deletion moved to Cloudinary's `delete_token` (10 min) with the Admin-API callable as fallback. |
 | Deletion | **Keep one minimal `deleteCloudinaryAsset` callable** | Without it a deleted post leaves the video on Cloudinary forever, and `deleteTrendImage` is already broken in that exact way. |
 | Autoplay default | **Flip `autoPlayVideos` to on**, with a one-time migration | The setting defaults to `false` and is persisted by `SettingsBloc` (a `HydratedBloc`), so a default flip alone would never reach existing installs. |
 
@@ -728,3 +732,209 @@ hive type ids 5–10, `settings_model.dart` + `settings_bloc.dart` (autoplay def
   moved from a `BlocBuilder` to a `BlocListener` so the manager never notifies during build.
 - **Upload dialog** closes from `build` as well as from the listener, for uploads that finish before
   the dialog mounts.
+
+### 18.8 Camera viewfinder sizing (device report)
+
+Symptom: the capture screen's preview appeared as a small letterboxed rectangle.
+
+Cause: `CameraPreview` already wraps itself in an `AspectRatio`, and it uses **`1 / value.aspectRatio` in
+portrait**. The capture screen wrapped it in a *second* `AspectRatio` using the un-inverted value, so in
+portrait the inner preview was asked to fit a 9:16 box while it wanted 16:9 — hence the small rectangle
+with black bands.
+
+Fix: the preview is now laid out at its native ratio and scaled with `BoxFit.cover` inside a
+`ClipRect`, mirroring the plugin's own orientation rule (`deviceOrientation` landscape → `aspectRatio`,
+portrait → `1 / aspectRatio`). A viewfinder should fill and crop, not contain.
+
+Also fixed in the same screen: the whole `Stack` used to be wrapped in `SafeArea`, which inset the
+preview by the notch/status bar. The preview is now edge-to-edge and only the top/bottom control bars
+respect the safe area.
+
+## 19. Unsigned uploads (supersedes the signing design)
+
+Device report: a signed video upload was rejected by Cloudinary with
+
+```
+Invalid Signature 4697848f… . String to sign - 'folder=fashionista/trends/videos/ m5oGg4…&public_id=…&timestamp=…'
+```
+
+The signature was computed over exactly those three sorted params, so the mismatch is a parameter or
+formatting drift between signer and sender (a stray space in `folder`, or any extra field reaching
+Cloudinary — it signs every parameter it receives except `file`, `api_key`, `resource_type` and
+`cloud_name`). Rather than chase that, the user asked to drop signing entirely.
+
+### 19.1 What changed
+
+| Before | After |
+| --- | --- |
+| `createVideoUploadSignature` callable, HMAC-SHA1 over `folder`/`public_id`/`timestamp` | **Removed.** `functions/src/video/upload-signature.ts` and its jest suite are deleted; `functions/src/cloudinary/signature.ts` became `folder.ts` and keeps only the folder helpers. |
+| Client sent `api_key`, `timestamp`, `signature`, `folder`, `public_id` | Client sends `upload_preset`, `folder`, `public_id`, `file` and nothing else. |
+| `public_id = trendId`, `overwrite` implicit | `public_id = uuid v4` per attempt: **unsigned uploads never overwrite**, so a repeated id would collide with an earlier attempt. |
+| Signature retry-once on a 401 | No retry: a rejected preset is a configuration problem, not a race. |
+| Deletion: `deleteCloudinaryAsset` callable only | Deletion: `delete_token` first (client-side), callable as the fallback. |
+
+`VideoUploadSignature` is gone from the client; `VideoUploadConfig` (`cloudName`, `uploadPreset`,
+`baseFolder`) replaces it, and `CloudinaryVideoAsset` carries the optional `deleteToken`.
+
+### 19.2 Configuration
+
+| Source | Key | Used for |
+| --- | --- | --- |
+| Remote Config | `cloudinary_url` | cloud name only (`Uri.host`); the credentials in it are never read |
+| Remote Config | `cloudinary_video_upload_preset` | unsigned preset name; falls back to `ml_default` |
+| Remote Config | `cloudinary_base_folder` | base folder, **already used by image uploads**; falls back to `fashionista` |
+
+The upload folder is `<base>/trends/videos/<uid>`, computed by `VideoUploadConfig.folderFor()` and
+mirrored by `trendVideoFolder()` in `functions/src/cloudinary/folder.ts`. Both must agree or the delete
+callable's ownership check rejects the asset. No new RC key was needed for the folder — the existing
+base folder key is reused.
+
+The preset itself must be **unsigned** and should enable **`Return delete token`** in the Cloudinary
+console; that is the only way an unsigned upload can return a `delete_token` (the request parameter of
+the same name is ignored for unsigned uploads).
+
+### 19.3 Deletion, and the 10-minute window
+
+Cloudinary's client-side delete token is valid for **10 minutes** after the upload:
+
+- `POST https://api.cloudinary.com/v1_1/<cloud>/delete_by_token` with `token` only (verified against
+  the Cloudinary JS SDK's `delete_by_token`, which sends nothing else).
+- After 10 minutes only the Destroy/Admin API can delete the asset — that needs the API secret, so
+  `deleteCloudinaryAsset` stays as the backend fallback.
+
+Tokens live in a dedicated Hive box (`video_delete_tokens`, keyed by full public id) and are **never**
+written to Firestore: the token is a deletion credential. `HiveVideoDeleteTokenService` prunes expired
+entries on write and on read, so the box cannot grow without bound.
+
+Deletion order is unchanged (asset first, then the document), and the asset delete now tries the token
+before the callable:
+
+```
+TrendBloc._deleteTrend
+  └─ _deleteVideoAsset(assetId, trendId)
+       ├─ token in Hive?  ──► POST /delete_by_token ──► success? done
+       └─ otherwise       ──► deleteCloudinaryAsset callable ──► success? done
+                                   └─ failure ──► keep the post, show a retryable error
+```
+
+`VideoUploadCubit.cancel()` uses the same order through `_discardAsset()`. Cancelling is only offered
+while bytes are moving (`VideoUploadState.isCancellable`): once the save starts the video is already in
+Cloudinary, and a "cancel" there would either orphan it or hide a post that exists.
+
+### 19.4 Trade-offs
+
+- **The preset is public.** Anyone who extracts it can upload to the account. This is the same posture
+  the app already has for image uploads (`ml_default`), and Cloudinary's mitigations are preset-side
+  (allowed formats, max file size, and a preset-level folder). The uid subfolder is advisory, not an
+  access control boundary, because an unsigned uploader chooses its own `folder`.
+- **Orphans are possible.** If the app dies between upload and the Firestore write, the video stays in
+  Cloudinary with no post and no local token (the token is stored right after the response, so this
+  window is one write). The pending-publish record (§18.6) covers the Firestore-failure case only.
+- **Deleting a post older than 10 minutes depends on the backend.** If the callable is undeployed or
+  the secret is missing, the post is kept and the user is asked to retry — no silent orphan.
+
+### 19.5 Deployment delta
+
+- Remove the `createVideoUploadSignature` function (it is no longer exported; redeploy deletes it).
+- `CLOUDINARY_API_SECRET` is still required — for `deleteCloudinaryAsset` only.
+- Set `cloudinary_video_upload_preset` in Remote Config and tick **Return delete token** on that preset.
+
+### 19.6 Capture → editor is one flow (device feedback)
+
+The recorder used to stop on a confirm step — *Retake* / *Edit 12s clip* — and only popped the path
+after that second tap, with the composer then pushing the editor. Two taps and a route bounce for
+something every social recorder does in one.
+
+Now the recorder opens the editor itself as soon as a take ends:
+
+```
+record (or stop at the 30 s cap)
+  └─ VideoCaptureState.stage == recorded
+       └─ _VideoCaptureViewState._onState  (post-frame)
+            └─ VideoEditorScreen.open(path)
+                 ├─ exported   ──► pop capture with EditedVideo ──► composer
+                 └─ back        ──► back to the recorder, Retake / Edit still shown
+```
+
+Details that matter:
+
+- **`VideoCaptureScreen.open()` returns `EditedVideo?`**, not a path, and the gallery button uses the
+  same `_openEditor` helper, so both sources end in the editor. `add_trend_screen._pickVideo()` is now
+  a single call.
+- **Cancelling the edit keeps the take.** The recorder is still behind the editor in the `recorded`
+  stage, so Retake/Edit are available without re-recording. `_openedFor` remembers the clip the editor
+  was opened for, so the cancelled edit does not reopen on the next rebuild, while a new recording
+  (new path) opens the editor again.
+- **`_editorOpen`** stops a second push while one editor is on top; **`_closing`** stops the editor
+  from opening behind a recorder the user is dismissing (the X button stops the recording on the way
+  out, which would otherwise emit `recorded` during the pop).
+- **The camera stays open while the editor is up.** Releasing it would mean re-initializing on return
+  (and a preview-less "review" state), for a screen that is usually up for a few seconds. This is the
+  one behaviour change from the old flow, which disposed the camera when the recorder popped.
+- Tests: `test/video/video_capture_flow_test.dart` (auto-open, cancel keeps the take, no double push,
+  new take re-opens). The screen takes an optional `cubit` for these tests — the real one owns its
+  camera and never settles in a widget test.
+
+## 20. Video on the trend detail screen
+
+The detail screen rendered every post through `FeaturedMediaWidget`, an image carousel that asks
+Cloudinary for `publicId: <media.uid>` — for a video post that is a folder path, so a video showed a
+broken image.
+
+### 20.1 What renders now
+
+```
+trend.featuredMedia.length == 1 && media.first.isVideo
+  ├─ yes ──► TrendVideoHero   (new, lib/presentation/widgets/video/trend_video_hero.dart)
+  └─ no  ──► FeaturedMediaWidget (unchanged behaviour)
+```
+
+`TrendVideoHero` is a screen-level player, not the feed tile:
+
+- poster (`thumbnail_url`) immediately, decoder created only when it may play, disposed as soon as it
+  may not — the same rule as the feed;
+- tap anywhere to play/pause, a centred play button when paused, a shared mute control (hidden for a
+  silent clip), a scrubbable progress bar, and the post caption over the same bottom gradient;
+- sized by the media's own aspect ratio, clamped to `[9:16, 16:9]`, letterboxed in black rather than
+  cropped — a vertical clip keeps its full frame.
+
+### 20.2 Playback ownership (the part that was actually broken)
+
+A feed card keeps reporting itself visible when a route covers it: `VisibilityDetector` measures
+geometry, not route occlusion. So a video playing in the feed would keep decoding and leaking audio
+behind the detail screen.
+
+The hero therefore takes the manager's active key while it is on top:
+
+- mount → `manager.playManually(heroKey)` (or `pause()` when autoplay is off, so a manually started
+  feed clip still stops);
+- while mounted and not user-paused, it re-claims the key if anything else wins a recompute (an
+  app-resume re-arms the visible feed card otherwise);
+- dispose → `manager.releaseFocus(heroKey)`.
+
+`releaseFocus` is new: unlike `remove()`, which waits for the next visibility event, it re-decides
+immediately — nothing scrolls when a route pops, so without it the feed would stay stopped until the
+user scrolled.
+
+### 20.3 Shared caption
+
+The gradient caption moved out of `FeaturedMediaWidget` into `FeaturedMediaCaption`
+(`lib/presentation/widgets/featured_media_caption.dart`) so the image carousel and the video hero
+cannot drift apart.
+
+The carousel also gained a poster branch for `media.isVideo`: single-video posts never reach it, but a
+legacy mixed post now shows a real frame instead of a broken-image icon.
+
+### 20.4 Known gap
+
+An **image** post's detail screen still lets a feed video play behind it (same occlusion problem, no
+hero to claim playback). Fixing that means pausing on mount for every detail route and restoring on
+pop; left out to keep this change to the video path.
+
+### 20.5 Tests
+
+- `test/video/trend_video_hero_test.dart` — poster/caption/controls, silent clip hides mute, autoplay
+  off does not steal playback, autoplay on takes it, tap-to-play claims it, mute is shared, closing
+  hands playback back to the feed.
+- `test/video/video_playback_manager_test.dart` — `releaseFocus` returns the key to the visible card
+  and is a no-op when it does not own it.

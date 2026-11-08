@@ -2,21 +2,38 @@ import 'package:camera/camera.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/trends/bloc/video_capture_cubit.dart';
 import 'package:fashionista/data/models/trends/bloc/video_capture_state.dart';
+import 'package:fashionista/data/models/video/edited_video.dart';
+import 'package:fashionista/presentation/screens/trends/video/video_editor_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// Full-screen recorder. Pops with the recorded or picked file path.
+/// Full-screen recorder. Pops with the edited clip.
+///
+/// Stopping the recording opens the editor straight away: recording and editing
+/// are one flow, so there is no separate "keep this take?" step.
 class VideoCaptureScreen extends StatelessWidget {
-  const VideoCaptureScreen({super.key});
+  /// Injected by tests; the real screen owns its cubit (and its camera).
+  final VideoCaptureCubit? cubit;
 
-  static Future<String?> open(BuildContext context) {
-    return Navigator.of(context).push<String>(
+  const VideoCaptureScreen({super.key, this.cubit});
+
+  static Future<EditedVideo?> open(BuildContext context) {
+    return Navigator.of(context).push<EditedVideo>(
       MaterialPageRoute(builder: (_) => const VideoCaptureScreen()),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final injected = cubit;
+    if (injected != null) {
+      return BlocProvider<VideoCaptureCubit>.value(
+        value: injected,
+        child: const _VideoCaptureView(),
+      );
+    }
+
     return BlocProvider(
       create: (_) => VideoCaptureCubit()..initialize(),
       child: const _VideoCaptureView(),
@@ -24,32 +41,96 @@ class VideoCaptureScreen extends StatelessWidget {
   }
 }
 
-class _VideoCaptureView extends StatelessWidget {
+class _VideoCaptureView extends StatefulWidget {
   const _VideoCaptureView();
+
+  @override
+  State<_VideoCaptureView> createState() => _VideoCaptureViewState();
+}
+
+class _VideoCaptureViewState extends State<_VideoCaptureView> {
+  /// Guards against a second editor while one is already on top.
+  bool _editorOpen = false;
+
+  /// Set when the user dismisses the recorder, so a recording that is stopped on
+  /// the way out cannot reopen the editor behind the popped route.
+  bool _closing = false;
+
+  /// The clip the editor was opened for, so a cancelled edit does not reopen it
+  /// on the next rebuild.
+  String? _openedFor;
+
+  Future<void> _openEditor(String path) async {
+    if (_editorOpen || _closing) return;
+    _editorOpen = true;
+
+    final edited = await VideoEditorScreen.open(context, path);
+
+    _editorOpen = false;
+    if (!mounted) return;
+
+    // Cancelling the edit keeps the take: the recorder is still behind the
+    // editor, showing Retake / Edit.
+    if (edited != null) Navigator.of(context).pop(edited);
+  }
+
+  Future<void> _close() async {
+    _closing = true;
+
+    final cubit = context.read<VideoCaptureCubit>();
+    if (cubit.state.isRecording) await cubit.stopRecording();
+    if (mounted) Navigator.of(context).pop();
+  }
+
+  void _onState(VideoCaptureState state) {
+    final path = state.recordedPath;
+    if (state.stage != VideoCaptureStage.recorded || path == null) return;
+    if (_openedFor == path) return;
+
+    _openedFor = path;
+    // A listener can fire while a frame is being built; navigate afterwards.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _openedFor == path) _openEditor(path);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       body: BlocConsumer<VideoCaptureCubit, VideoCaptureState>(
-        listener: (context, state) {
-          if (state.stage == VideoCaptureStage.error &&
-              state.error != null &&
-              state.recordedPath == null) {
-            // Keep the message on screen; the user can retry from the retry
-            // button instead of losing the screen.
-          }
-        },
+        listener: (context, state) => _onState(state),
         builder: (context, state) {
-          return SafeArea(
-            child: Stack(
-              children: [
-                Positioned.fill(child: _Preview(state: state)),
-                _TopBar(state: state),
-                if (state.isRecording) _RecordingBadge(state: state),
-                _BottomBar(state: state),
-              ],
-            ),
+          // The preview runs under the status bar and the notch; only the
+          // controls respect the safe area, otherwise the viewfinder is inset
+          // by black bands at the top and bottom.
+          return Stack(
+            children: [
+              Positioned.fill(child: _Preview(state: state)),
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: SafeArea(
+                  bottom: false,
+                  child: Column(
+                    children: [
+                      _TopBar(state: state, onClose: _close),
+                      if (state.isRecording) _RecordingBadge(state: state),
+                    ],
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: SafeArea(
+                  top: false,
+                  child: _BottomBar(state: state, onEdit: _openEditor),
+                ),
+              ),
+            ],
           );
         },
       ),
@@ -96,10 +177,52 @@ class _Preview extends StatelessWidget {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return Center(
-      child: AspectRatio(
-        aspectRatio: controller.value.aspectRatio,
-        child: CameraPreview(controller),
+    return _FullScreenPreview(controller: controller);
+  }
+}
+
+/// Camera preview that covers the screen instead of letterboxing inside it.
+///
+/// [CameraPreview] already applies its own `AspectRatio`, inverted in portrait
+/// (`1 / value.aspectRatio`) — wrapping it in a second, un-inverted one made the
+/// viewfinder shrink to a letterboxed rectangle. Here the preview is laid out at
+/// its native ratio and scaled with `BoxFit.cover`, which is what a viewfinder
+/// should do: fill the frame, crop the overhang.
+class _FullScreenPreview extends StatelessWidget {
+  final CameraController controller;
+
+  const _FullScreenPreview({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    final preview = controller.value.previewSize;
+    if (preview == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    // Mirrors CameraPreview's own orientation rule so the cover box and the
+    // widget's internal AspectRatio agree.
+    final isLandscape = const [
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ].contains(controller.value.deviceOrientation);
+
+    final ratio = isLandscape
+        ? controller.value.aspectRatio
+        : 1 / controller.value.aspectRatio;
+
+    return ClipRect(
+      child: SizedBox.expand(
+        child: FittedBox(
+          fit: BoxFit.cover,
+          alignment: Alignment.center,
+          child: SizedBox(
+            // Any size with the preview's ratio works: BoxFit.cover scales it.
+            width: 1080,
+            height: 1080 / ratio,
+            child: CameraPreview(controller),
+          ),
+        ),
       ),
     );
   }
@@ -107,8 +230,9 @@ class _Preview extends StatelessWidget {
 
 class _TopBar extends StatelessWidget {
   final VideoCaptureState state;
+  final Future<void> Function() onClose;
 
-  const _TopBar({required this.state});
+  const _TopBar({required this.state, required this.onClose});
 
   @override
   Widget build(BuildContext context) {
@@ -119,10 +243,7 @@ class _TopBar extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            onPressed: () async {
-              if (state.isRecording) await cubit.stopRecording();
-              if (context.mounted) Navigator.of(context).pop();
-            },
+            onPressed: onClose,
             icon: const Icon(Icons.close, color: Colors.white),
             tooltip: 'Cancel',
           ),
@@ -152,10 +273,8 @@ class _RecordingBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      top: 56,
-      left: 0,
-      right: 0,
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
       child: Center(
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -190,16 +309,18 @@ class _RecordingBadge extends StatelessWidget {
 class _BottomBar extends StatelessWidget {
   final VideoCaptureState state;
 
-  const _BottomBar({required this.state});
+  /// Opens the editor for [state.recordedPath]; shared with the gallery path so
+  /// both sources land in the same flow.
+  final Future<void> Function(String path) onEdit;
+
+  const _BottomBar({required this.state, required this.onEdit});
 
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<VideoCaptureCubit>();
 
-    return Positioned(
-      left: 0,
-      right: 0,
-      bottom: 24,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
       child: Column(
         children: [
           if (state.stage == VideoCaptureStage.recorded)
@@ -208,11 +329,10 @@ class _BottomBar extends StatelessWidget {
               child: Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
+                    child: FilledButton(
                       onPressed: cubit.retake,
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        side: const BorderSide(color: Colors.white54),
+                        backgroundColor: context.accent,
                       ),
                       child: const Text('Retake'),
                     ),
@@ -220,8 +340,10 @@ class _BottomBar extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: FilledButton(
-                      onPressed: () =>
-                          Navigator.of(context).pop(state.recordedPath),
+                      onPressed: () {
+                        final path = state.recordedPath;
+                        if (path != null) onEdit(path);
+                      },
                       style: FilledButton.styleFrom(
                         backgroundColor: context.accent,
                       ),
@@ -241,7 +363,7 @@ class _BottomBar extends StatelessWidget {
                       : () async {
                           final path = await cubit.pickFromGallery();
                           if (!context.mounted) return;
-                          if (path != null) Navigator.of(context).pop(path);
+                          if (path != null) await onEdit(path);
                         },
                   icon: const Icon(
                     Icons.photo_library_outlined,

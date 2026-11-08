@@ -3,6 +3,7 @@ import 'package:fashionista/data/models/trends/bloc/trend_bloc_event.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc_state.dart';
 import 'package:fashionista/data/services/firebase/firebase_video_upload_service.dart';
 import 'package:fashionista/data/services/hive/hive_trend_service.dart';
+import 'package:fashionista/data/services/hive/hive_video_delete_token_service.dart';
 import 'package:fashionista/domain/usecases/trends/add_trend_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/delete_trend_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/find_trend_by_id_usecase.dart';
@@ -68,7 +69,7 @@ class TrendBloc extends Bloc<TrendBlocEvent, TrendBlocState> {
           .toList(growable: false);
 
       for (final assetId in videoAssets) {
-        final deleted = await sl<FirebaseVideoUploadService>().deleteAsset(
+        final deleted = await _deleteVideoAsset(
           assetId: assetId,
           trendId: event.uid,
         );
@@ -97,6 +98,25 @@ class TrendBloc extends Bloc<TrendBlocEvent, TrendBlocState> {
       // ❌ Rollback if persistence failed (optional)
       emit(TrendError("Failed to delete item: $e"));
     }
+  }
+
+  /// Removes a video from Cloudinary: the delete token first (no backend round
+  /// trip, but only valid for 10 minutes after the upload), then the Admin API
+  /// through the `deleteCloudinaryAsset` callable.
+  Future<bool> _deleteVideoAsset({
+    required String assetId,
+    required String trendId,
+  }) async {
+    final tokens = sl<HiveVideoDeleteTokenService>();
+    final uploads = sl<FirebaseVideoUploadService>();
+
+    final token = await tokens.tokenFor(assetId);
+    if (token != null && await uploads.deleteByToken(token)) {
+      await tokens.remove(assetId);
+      return true;
+    }
+
+    return uploads.deleteAsset(assetId: assetId, trendId: trendId);
   }
 
   Future<void> _updateTrend(

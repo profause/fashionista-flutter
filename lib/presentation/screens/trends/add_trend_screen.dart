@@ -30,7 +30,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:fashionista/data/models/trends/bloc/video_upload_cubit.dart';
 import 'package:fashionista/data/models/video/edited_video.dart';
 import 'package:fashionista/presentation/screens/trends/video/video_capture_screen.dart';
-import 'package:fashionista/presentation/screens/trends/video/video_editor_screen.dart';
 import 'package:fashionista/presentation/screens/trends/video/widgets/video_upload_progress.dart';
 import 'package:dartz/dartz.dart' as dartz;
 import 'package:uuid/uuid.dart';
@@ -690,10 +689,9 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
   }
 
   Future<void> _pickVideo() async {
-    final path = await VideoCaptureScreen.open(context);
-    if (path == null || !mounted) return;
-
-    final edited = await VideoEditorScreen.open(context, path);
+    // The recorder opens the editor as soon as a take ends, so this returns the
+    // edited clip (or null when the flow was dismissed).
+    final edited = await VideoCaptureScreen.open(context);
     if (edited == null || !mounted) return;
 
     setState(() {

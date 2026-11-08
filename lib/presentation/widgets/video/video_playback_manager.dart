@@ -105,6 +105,21 @@ class VideoPlaybackManager extends ChangeNotifier {
     }
   }
 
+  /// Gives playback back after a screen-level player (the post detail hero)
+  /// closes, so the card behind it resumes instead of staying stopped.
+  ///
+  /// Unlike [remove] this re-decides immediately: nothing scrolls when a route
+  /// is popped, so no visibility event would arrive to restart the feed.
+  void releaseFocus(Object key) {
+    if (_activeKey != key) return;
+
+    _fractions.remove(key);
+    _activeKey = null;
+    _userPaused = false;
+    _recompute(force: true);
+    _emit();
+  }
+
   /// Play/pause from the card's own control.
   void togglePlayPause() {
     if (!_enabled && _activeKey == null) return;

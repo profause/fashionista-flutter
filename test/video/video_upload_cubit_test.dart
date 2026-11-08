@@ -9,22 +9,13 @@ import 'package:fashionista/data/models/video/pending_publish_task.dart';
 import 'package:fashionista/data/models/video/video_upload_models.dart';
 import 'package:fashionista/data/services/firebase/firebase_video_upload_service.dart';
 import 'package:fashionista/data/services/hive/hive_upload_task_service.dart';
+import 'package:fashionista/data/services/hive/hive_video_delete_token_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const String trendId = 'trend_123456';
+const String deleteToken = 'delete-token-1';
 
-VideoUploadSignature signature({String signatureValue = 'sig-1'}) {
-  return VideoUploadSignature(
-    cloudName: 'cloud',
-    apiKey: 'key',
-    timestamp: 1700000000,
-    signature: signatureValue,
-    folder: 'fashionista/trends/videos/u1',
-    publicId: trendId,
-  );
-}
-
-CloudinaryVideoAsset asset({String id = trendId}) {
+CloudinaryVideoAsset asset({String id = trendId, String? token = deleteToken}) {
   return CloudinaryVideoAsset(
     assetId: 'fashionista/trends/videos/u1/$id',
     secureUrl: 'https://res.cloudinary.com/cloud/video/upload/$id.mp4',
@@ -33,36 +24,28 @@ CloudinaryVideoAsset asset({String id = trendId}) {
     width: 720,
     height: 1280,
     fileSize: 4 * 1024 * 1024,
+    deleteToken: token,
   );
 }
 
 class FakeUploadService implements FirebaseVideoUploadService {
-  final List<String> signatureRequests = [];
   final List<String> uploads = [];
+  final List<String> tokenDeletes = [];
   final List<String> deletes = [];
 
   /// Results queued per upload attempt; the last one repeats.
   final List<Object> uploadResults = [];
-  int signatureCalls = 0;
 
   /// Held open by the cancel test so `cancel()` lands mid-transfer.
   Completer<void>? gate;
 
   @override
-  Future<VideoUploadSignature> requestSignature(String trendId) async {
-    signatureRequests.add(trendId);
-    signatureCalls += 1;
-    return signature(signatureValue: 'sig-$signatureCalls');
-  }
-
-  @override
   Future<CloudinaryVideoAsset> upload({
     required File file,
-    required VideoUploadSignature signature,
     void Function(int sent, int total)? onProgress,
     CancelToken? cancelToken,
   }) async {
-    uploads.add(signature.signature);
+    uploads.add(file.path);
     if (gate != null) await gate!.future;
     if (cancelToken?.isCancelled ?? false) {
       throw const VideoUploadException('Upload cancelled.');
@@ -82,6 +65,12 @@ class FakeUploadService implements FirebaseVideoUploadService {
   }
 
   @override
+  Future<bool> deleteByToken(String token) async {
+    tokenDeletes.add(token);
+    return tokenDeletes.length < 2;
+  }
+
+  @override
   Future<bool> deleteAsset({
     required String assetId,
     required String trendId,
@@ -89,6 +78,27 @@ class FakeUploadService implements FirebaseVideoUploadService {
     deletes.add(assetId);
     return true;
   }
+}
+
+class FakeDeleteTokens implements HiveVideoDeleteTokenService {
+  final Map<String, String> saved = {};
+  final List<String> removed = [];
+
+  @override
+  Future<void> save({required String assetId, required String token}) async =>
+      saved[assetId] = token;
+
+  @override
+  Future<String?> tokenFor(String assetId) async => saved[assetId];
+
+  @override
+  Future<void> remove(String assetId) async {
+    removed.add(assetId);
+    saved.remove(assetId);
+  }
+
+  @override
+  Future<void> clearCache() async => saved.clear();
 }
 
 class FakePendingTasks extends HiveUploadTaskService {
@@ -111,12 +121,14 @@ class FakePendingTasks extends HiveUploadTaskService {
 void main() {
   late FakeUploadService service;
   late FakePendingTasks pending;
+  late FakeDeleteTokens tokens;
   late Directory temp;
   late String videoPath;
 
   setUp(() async {
     service = FakeUploadService();
     pending = FakePendingTasks();
+    tokens = FakeDeleteTokens();
     temp = Directory.systemTemp.createTempSync('video_upload_test');
     videoPath = '${temp.path}/clip.mp4';
     File(videoPath).writeAsBytesSync([1, 2, 3]);
@@ -124,11 +136,14 @@ void main() {
 
   tearDown(() => temp.deleteSync(recursive: true));
 
-  VideoUploadCubit build() =>
-      VideoUploadCubit(service: service, pendingTasks: pending);
+  VideoUploadCubit build() => VideoUploadCubit(
+    service: service,
+    pendingTasks: pending,
+    deleteTokens: tokens,
+  );
 
   group('happy path', () {
-    test('authorizes, uploads, saves and reports the media', () async {
+    test('uploads, saves and reports the media', () async {
       final bloc = build();
       final published = <FeaturedMediaModel>[];
       final phases = <VideoUploadPhase>[];
@@ -146,14 +161,12 @@ void main() {
       // Stream events are delivered asynchronously; let them drain first.
       await Future<void>.delayed(Duration.zero);
 
-      expect(service.signatureRequests, [trendId]);
       expect(service.uploads, hasLength(1));
       expect(published, hasLength(1));
       expect(published.single.type, 'video');
       expect(published.single.hasAudio, isFalse);
       expect(published.single.duration, 12);
       expect(bloc.state.phase, VideoUploadPhase.completed);
-      expect(phases, contains(VideoUploadPhase.authorizing));
       expect(phases, contains(VideoUploadPhase.uploading));
       expect(phases, contains(VideoUploadPhase.saving));
 
@@ -182,46 +195,9 @@ void main() {
   });
 
   group('failures', () {
-    test(
-      'a signature rejection is retried once with a fresh signature',
-      () async {
-        service.uploadResults.addAll([
-          const VideoUploadException(
-            'Invalid Signature',
-            isSignatureProblem: true,
-          ),
-          asset(),
-        ]);
-
-        final bloc = build();
-        await bloc.start(
-          trendId: trendId,
-          videoPath: videoPath,
-          hasAudio: true,
-          publish: ({required trendId, required media}) async {},
-        );
-
-        expect(service.signatureCalls, 2);
-        expect(service.uploads, hasLength(2));
-        expect(bloc.state.phase, VideoUploadPhase.completed);
-
-        await bloc.close();
-      },
-    );
-
-    test('a second signature rejection fails without looping', () async {
-      service.uploadResults.addAll([
-        const VideoUploadException(
-          'Invalid Signature',
-          isSignatureProblem: true,
-        ),
-        const VideoUploadException(
-          'Invalid Signature',
-          isSignatureProblem: true,
-        ),
-      ]);
-
+    test('keeps the Cloudinary delete token for later removal', () async {
       final bloc = build();
+
       await bloc.start(
         trendId: trendId,
         videoPath: videoPath,
@@ -229,9 +205,8 @@ void main() {
         publish: ({required trendId, required media}) async {},
       );
 
-      expect(service.uploads, hasLength(2));
-      expect(bloc.state.phase, VideoUploadPhase.failed);
-      expect(bloc.state.publishFailedOnly, isFalse);
+      expect(tokens.saved, {asset().assetId: deleteToken});
+      expect(bloc.state.phase, VideoUploadPhase.completed);
 
       await bloc.close();
     });
@@ -309,7 +284,7 @@ void main() {
       await bloc.close();
     });
 
-    test('an upload failure retries from authorization', () async {
+    test('an upload failure retries the upload', () async {
       service.uploadResults.addAll([
         const VideoUploadException('No connection'),
         asset(),
@@ -328,7 +303,7 @@ void main() {
       await bloc.retry();
 
       expect(bloc.state.phase, VideoUploadPhase.completed);
-      expect(service.signatureCalls, 2);
+      expect(service.uploads, hasLength(2));
 
       await bloc.close();
     });

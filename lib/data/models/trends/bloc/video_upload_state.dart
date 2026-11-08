@@ -1,15 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
 
-enum VideoUploadPhase {
-  idle,
-  authorizing,
-  uploading,
-  saving,
-  completed,
-  failed,
-  cancelled,
-}
+enum VideoUploadPhase { idle, uploading, saving, completed, failed, cancelled }
 
 class VideoUploadState extends Equatable {
   final VideoUploadPhase phase;
@@ -35,9 +27,11 @@ class VideoUploadState extends Equatable {
   });
 
   bool get isBusy =>
-      phase == VideoUploadPhase.authorizing ||
-      phase == VideoUploadPhase.uploading ||
-      phase == VideoUploadPhase.saving;
+      phase == VideoUploadPhase.uploading || phase == VideoUploadPhase.saving;
+
+  /// Cancelling only makes sense while bytes are still moving: once the save
+  /// starts the video is already in Cloudinary.
+  bool get isCancellable => phase == VideoUploadPhase.uploading;
 
   bool get isFinished =>
       phase == VideoUploadPhase.completed ||

@@ -2,7 +2,6 @@ import { HttpsError, onCall } from 'firebase-functions/v2/https';
 import { defineSecret } from 'firebase-functions/params';
 import { getFirestore } from 'firebase-admin/firestore';
 
-import { buildUploadSignature, SignatureError } from './upload-signature';
 import {
   assertAssetOwnership,
   destroyCloudinaryAsset,
@@ -18,27 +17,13 @@ const CLOUDINARY_BASE_FOLDER = process.env.CLOUDINARY_BASE_FOLDER ?? 'fashionist
 
 const TRENDS_COLLECTION = 'trends';
 
-export const createVideoUploadSignature = onCall(
-  { secrets: [CLOUDINARY_API_SECRET] },
-  (request) => {
-    try {
-      return buildUploadSignature({
-        uid: request.auth?.uid,
-        trendId: request.data?.trendId,
-        baseFolder: CLOUDINARY_BASE_FOLDER,
-        cloudName: CLOUDINARY_CLOUD_NAME,
-        apiKey: CLOUDINARY_API_KEY,
-        apiSecret: CLOUDINARY_API_SECRET.value(),
-      });
-    } catch (error) {
-      if (error instanceof SignatureError) {
-        throw new HttpsError('invalid-argument', error.message);
-      }
-      throw new HttpsError('internal', 'Unable to sign the upload.');
-    }
-  },
-);
-
+/**
+ * Deletes a Cloudinary video with the Admin API.
+ *
+ * Uploads are unsigned (no signature callable), and Cloudinary's client-side
+ * `delete_token` only lives 10 minutes, so this is the only way to remove an
+ * older video when its trend post is deleted.
+ */
 export const deleteCloudinaryAsset = onCall(
   { secrets: [CLOUDINARY_API_SECRET] },
   async (request) => {

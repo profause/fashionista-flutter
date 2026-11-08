@@ -9,6 +9,7 @@ import 'package:fashionista/core/service_locator/app_config.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
 import 'package:fashionista/data/models/settings/bloc/settings_bloc.dart';
+import 'package:fashionista/presentation/widgets/featured_media_caption.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -108,7 +109,26 @@ class _FeaturedMediaWidgetState extends State<FeaturedMediaWidget> {
               _updateHeightForIndex(index);
             },
             itemBuilder: (context, index) {
-              final imageUrl = widget.featuredMedia[index].url;
+              final media = widget.featuredMedia[index];
+
+              // Video posts are a single entry and get the dedicated hero
+              // player; this keeps a mixed/legacy post showing a real frame
+              // instead of a broken image.
+              if (media.isVideo) {
+                return Container(
+                  color: Colors.black,
+                  alignment: Alignment.center,
+                  child: Image.network(
+                    media.thumbnailUrl ?? '',
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stack) => const Center(
+                      child: Icon(Icons.movie_outlined, color: Colors.white54),
+                    ),
+                  ),
+                );
+              }
+
+              final imageUrl = media.url;
               return Container(
                 decoration: BoxDecoration(
                   color: context.cardSurface,
@@ -124,7 +144,7 @@ class _FeaturedMediaWidgetState extends State<FeaturedMediaWidget> {
                     cloudinary: Cloudinary.fromConfiguration(
                       CloudinaryConfig.fromUri(appConfig.get('cloudinary_url')),
                     ),
-                    publicId: '${widget.featuredMedia[index].uid}',
+                    publicId: '${media.uid}',
                     configuration: CldImageWidgetConfiguration(cache: true),
                     placeholder: (context, url) => const Center(
                       child: SizedBox(
@@ -150,9 +170,7 @@ class _FeaturedMediaWidgetState extends State<FeaturedMediaWidget> {
                               : 'q_auto:good',
                         )..resize(
                           Resize.fill().aspectRatio(
-                            _normalizeAspectRatio(
-                              widget.featuredMedia[index].aspectRatio,
-                            ),
+                            _normalizeAspectRatio(media.aspectRatio),
                           ),
                         ),
                   ),
@@ -175,41 +193,13 @@ class _FeaturedMediaWidgetState extends State<FeaturedMediaWidget> {
             },
           ),
 
-          // � Caption overlay (bottom gradient keeps text readable)
+          // Caption overlay (bottom gradient keeps text readable)
           if (caption.isNotEmpty)
             Positioned(
               left: 0,
               right: 0,
               bottom: 0,
-              child: IgnorePointer(
-                child: Container(
-                  height: 112,
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 26),
-                  alignment: Alignment.bottomLeft,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.bottomCenter,
-                      end: Alignment.topCenter,
-                      colors: [
-                        Colors.black.withValues(alpha: 0.70),
-                        Colors.black.withValues(alpha: 0.35),
-                        Colors.transparent,
-                      ],
-                    ),
-                  ),
-                  child: Text(
-                    caption,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                      height: 1.3,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                ),
-              ),
+              child: FeaturedMediaCaption(text: caption),
             ),
 
           // 🔘 Page Indicator

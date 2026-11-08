@@ -4,7 +4,7 @@ import 'package:fashionista/data/models/trends/bloc/video_upload_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// Modal progress for the signed upload, with cancel and retry in place.
+/// Modal progress for the unsigned upload, with cancel and retry in place.
 ///
 /// Pops `true` when the post is published, so the composer can close itself.
 class VideoUploadProgress extends StatefulWidget {
@@ -81,7 +81,6 @@ class _VideoUploadProgressState extends State<VideoUploadProgress> {
                   const SizedBox(height: 10),
                   Text(
                     switch (state.phase) {
-                      VideoUploadPhase.authorizing => 'Authorizing upload…',
                       VideoUploadPhase.uploading =>
                         'Uploading ${(state.progress * 100).round()}%',
                       VideoUploadPhase.saving => 'Saving your post…',
@@ -110,10 +109,11 @@ class _VideoUploadProgressState extends State<VideoUploadProgress> {
                     ),
                   ]
                 : [
-                    TextButton(
-                      onPressed: cubit.cancel,
-                      child: const Text('Cancel'),
-                    ),
+                    if (state.isCancellable)
+                      TextButton(
+                        onPressed: cubit.cancel,
+                        child: const Text('Cancel'),
+                      ),
                   ],
           ),
         );

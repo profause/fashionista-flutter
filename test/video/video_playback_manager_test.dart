@@ -131,6 +131,36 @@ void main() {
     expect(manager.isMuted, isTrue);
   });
 
+  test('a detail-screen player can take playback from the feed', () async {
+    manager.updateVisibility('feed', 0.9);
+    await afterDebounce();
+    expect(manager.activeKey, 'feed');
+
+    manager.playManually('detail');
+    expect(manager.activeKey, 'detail');
+  });
+
+  test('releasing the focus gives playback back to the visible card', () async {
+    manager.updateVisibility('feed', 0.9);
+    await afterDebounce();
+
+    manager.playManually('detail');
+    manager.releaseFocus('detail');
+
+    // Nothing scrolls when a route pops, so this must not wait for a visibility
+    // event.
+    expect(manager.activeKey, 'feed');
+  });
+
+  test('releasing a focus it does not own changes nothing', () async {
+    manager.updateVisibility('feed', 0.9);
+    await afterDebounce();
+
+    manager.releaseFocus('detail');
+
+    expect(manager.activeKey, 'feed');
+  });
+
   test('notifies listeners when the active key changes', () async {
     var notifications = 0;
     manager.addListener(() => notifications++);
