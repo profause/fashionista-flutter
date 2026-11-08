@@ -1,7 +1,11 @@
+import 'package:fashionista/core/media/cloudinary_video_urls.dart';
+import 'package:fashionista/core/media/video_quality_analytics.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
 import 'package:fashionista/presentation/widgets/featured_media_caption.dart';
 import 'package:fashionista/presentation/widgets/video/video_playback_manager.dart';
+import 'package:fashionista/presentation/widgets/video/video_quality_selector.dart';
+import 'package:fashionista/presentation/widgets/video/video_rendition_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
@@ -44,6 +48,16 @@ class _TrendVideoHeroState extends State<TrendVideoHero> {
 
   /// Set by the hero's own play/pause control.
   bool _paused = false;
+
+  /// Delivery quality in use; the hero also starts in SD.
+  VideoQuality _quality = VideoQuality.sd;
+  bool _switchingQuality = false;
+
+  /// Invalidates an in-flight `initialize()` when playback is torn down or the
+  /// user asks for another quality.
+  int _generation = 0;
+
+  late final String? _publicId = CloudinaryVideoUrls.publicIdOf(widget.media);
 
   VideoPlaybackManager? _listeningTo;
 
@@ -113,6 +127,21 @@ class _TrendVideoHeroState extends State<TrendVideoHero> {
     }
   }
 
+  /// URL of [quality], falling back to the stored original when the public id
+  /// is unknown.
+  Uri? _urlFor(VideoQuality quality) {
+    final publicId = _publicId;
+    if (publicId != null) {
+      return CloudinaryVideoUrls.rendition(publicId, quality);
+    }
+
+    final raw = widget.media.url;
+    if (raw == null || raw.isEmpty) return null;
+    return Uri.tryParse(raw);
+  }
+
+  bool get _canSwitchQuality => _publicId != null;
+
   Future<void> _start() async {
     final manager = _manager;
     final existing = _controller;
@@ -127,31 +156,36 @@ class _TrendVideoHeroState extends State<TrendVideoHero> {
 
     if (_initializing || _failed) return;
 
-    final url = widget.media.url;
-    if (url == null || url.isEmpty) return;
+    final url = _urlFor(_quality);
+    if (url == null) return;
 
+    final generation = _generation;
+    final startedAt = DateTime.now();
     _initializing = true;
 
-    final controller = VideoPlayerController.networkUrl(Uri.parse(url));
     try {
-      await controller.initialize();
-      if (!mounted) {
+      final controller = await loadVideoRendition(
+        url: url,
+        muted: manager.isMuted,
+      );
+      if (!mounted || generation != _generation) {
         await controller.dispose();
         return;
       }
-
-      await controller.setLooping(true);
-      await controller.setVolume(manager.isMuted ? 0 : 1);
-      await controller.play();
 
       setState(() {
         _controller = controller;
         _initializing = false;
         _firstFrameReady = true;
       });
+
+      VideoQualityAnalytics.instance.log(
+        VideoQualityEvent.sdPlaybackStarted,
+        quality: _quality,
+        durationMs: DateTime.now().difference(startedAt).inMilliseconds,
+      );
     } catch (error) {
-      await controller.dispose();
-      if (!mounted) return;
+      if (!mounted || generation != _generation) return;
       setState(() {
         _initializing = false;
         _failed = true;
@@ -159,9 +193,95 @@ class _TrendVideoHeroState extends State<TrendVideoHero> {
     }
   }
 
+  /// Swaps the running controller to [target], keeping position, mute and play
+  /// state. On failure SD keeps playing and the user is told.
+  Future<void> _switchQuality(VideoQuality target) async {
+    if (target == _quality || _switchingQuality) return;
+
+    final current = _controller;
+    final url = _urlFor(target);
+    if (current == null || url == null) {
+      // Nothing is playing yet; a start already in flight will come up as SD.
+      if (_initializing || url == null) return;
+      setState(() => _quality = target);
+      return;
+    }
+
+    final generation = ++_generation;
+    final position = current.value.position;
+    final wasPlaying = current.value.isPlaying;
+    final muted = _manager.isMuted;
+    final startedAt = DateTime.now();
+
+    setState(() => _switchingQuality = true);
+    VideoQualityAnalytics.instance.log(
+      VideoQualityEvent.hdRequested,
+      quality: target,
+    );
+
+    VideoPlayerController next;
+    try {
+      next = await loadVideoRendition(
+        url: url,
+        position: position,
+        muted: muted,
+        playing: false,
+      );
+    } catch (error) {
+      if (!mounted || generation != _generation) return;
+
+      setState(() => _switchingQuality = false);
+      VideoQualityAnalytics.instance.log(
+        VideoQualityEvent.hdSwitchFailed,
+        quality: target,
+        reason: '$error',
+      );
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        SnackBar(
+          content: Text(
+            '${target.label} could not be loaded. '
+            'Still playing ${_quality.label}.',
+          ),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    if (!mounted || generation != _generation) {
+      await next.dispose();
+      return;
+    }
+
+    setState(() {
+      _controller = next;
+      _quality = target;
+      _switchingQuality = false;
+    });
+
+    await current.pause();
+    if (wasPlaying) await next.play();
+    await current.dispose();
+
+    VideoQualityAnalytics.instance.log(
+      VideoQualityEvent.hdPlaybackStarted,
+      quality: target,
+      durationMs: DateTime.now().difference(startedAt).inMilliseconds,
+    );
+  }
+
   Future<void> _stop() async {
     final controller = _controller;
-    if (controller == null) return;
+    final wasSwitching = _switchingQuality;
+
+    _generation++;
+    _quality = VideoQuality.sd;
+    _switchingQuality = false;
+
+    if (controller == null) {
+      if (wasSwitching && mounted) setState(() {});
+      return;
+    }
 
     await controller.pause();
     await controller.dispose();
@@ -272,6 +392,17 @@ class _TrendVideoHeroState extends State<TrendVideoHero> {
                       ),
                     ),
                   ),
+                ),
+              ),
+
+            if (_canSwitchQuality)
+              Positioned(
+                top: 8,
+                left: 8,
+                child: VideoQualitySelector(
+                  quality: _quality,
+                  switching: _switchingQuality,
+                  onSelect: _switchQuality,
                 ),
               ),
 

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloudinary_url_gen/cloudinary.dart';
 import 'package:cloudinary_url_gen/config/cloudinary_config.dart';
@@ -20,14 +21,13 @@ import 'package:fashionista/data/models/trends/bloc/trend_bloc_event.dart';
 import 'package:fashionista/data/models/trends/trend_audience.dart';
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
 import 'package:fashionista/domain/usecases/trends/add_trend_usecase.dart';
-import 'package:fashionista/presentation/widgets/appbar_title.dart';
-import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:fashionista/presentation/widgets/profile_avatar_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:video_player/video_player.dart';
 import 'package:fashionista/data/models/trends/bloc/video_upload_cubit.dart';
 import 'package:fashionista/data/models/video/edited_video.dart';
 import 'package:fashionista/presentation/screens/trends/video/video_capture_screen.dart';
@@ -38,15 +38,6 @@ import 'package:uuid/uuid.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cloudinary_api/uploader/cloudinary_uploader.dart';
 import 'package:cloudinary_api/src/request/model/uploader_params.dart';
-
-List<String> hints = [
-  "✨ Share your next fashion moment…",
-  "👗 What’s trending in your world?",
-  "🧵 Stitch your trend into the feed…",
-  "🚀 Kick off the next big fashion vibe…",
-  "🖋 Describe your style inspiration…",
-  "🔥 Drop your hottest fashion trend…",
-];
 
 class AddTrendScreen extends StatefulWidget {
   const AddTrendScreen({super.key});
@@ -75,6 +66,16 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
 
   /// Who can see the post; public unless the author picks otherwise.
   TrendAudience _audience = TrendAudience.public;
+
+  /// The tag field is tucked behind the toolbar to keep the composer quiet.
+  bool _showTags = false;
+
+  /// Tags currently entered, kept so the field survives being toggled.
+  List<String> get _tags => _tagsController.text
+      .split(',')
+      .map((tag) => tag.trim())
+      .where((tag) => tag.isNotEmpty)
+      .toList(growable: false);
 
   List<XFile> pickedImages = [];
   List<double> uploadProgress = [];
@@ -111,285 +112,379 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    final random = Random();
-
     return Scaffold(
       backgroundColor: context.canvasBackground,
-      appBar: AppBar(
-        backgroundColor: context.canvasBackground,
-        foregroundColor: context.onCanvasText,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        shape: Border(bottom: BorderSide(color: context.hairline)),
-        title: const AppBarTitle(title: 'Start a trend'),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12.0),
-            child: Hero(
-              tag: 'add-post',
-              child: CustomIconButtonRounded(
-                onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
-                    await _saveTrend();
-                    //Navigator.of(context).pop();
-                  }
-                },
-                icon: Icon(Icons.check, color: context.accent, size: 24),
-                iconData: Icons.check,
+      appBar: _buildTopBar(context, textTheme),
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildComposer(context, textTheme),
+                      if (_showTags) ...[
+                        const SizedBox(height: 12),
+                        AutosuggestTagInputField(
+                          hint: 'Add tags so people can find this trend',
+                          valueIn: _tags,
+                          options: selectedInterests,
+                          valueOut: (value) =>
+                              _tagsController.text = value.join(','),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildComposerCard(context, textTheme, random),
-                const SizedBox(height: 16),
-                _buildLookbookSection(context, textTheme),
-                const SizedBox(height: 16),
-                AutosuggestTagInputField(
-                  hint: 'Type and press Enter, Space or Comma',
-                  valueIn: [],
-                  options: selectedInterests,
-                  valueOut: (value) => _tagsController.text = value.join(','),
-                ),
-                const SizedBox(height: 16),
-                _buildMediaToolkit(context, textTheme),
-                const SizedBox(height: 16),
-                _buildAudienceCard(context, textTheme),
-              ],
-            ),
-          ),
+            _buildBottomBar(context, textTheme),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildComposerCard(
-    BuildContext context,
-    TextTheme textTheme,
-    Random random,
-  ) {
-    final bool overLimit = _currentLength >= _maxLength;
-    return Container(
-      width: double.infinity,
-      constraints: const BoxConstraints(minHeight: 160),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: context.cardSurface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: context.hairline),
+  /// Composer bar: close on the left, the post action on the right.
+  AppBar _buildTopBar(BuildContext context, TextTheme textTheme) {
+    final canPost =
+        !isUploading && _descriptionController.text.trim().isNotEmpty;
+
+    return AppBar(
+      backgroundColor: context.canvasBackground,
+      foregroundColor: context.onCanvasText,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      automaticallyImplyLeading: false,
+      leadingWidth: 56,
+      leading: IconButton(
+        onPressed: isUploading ? null : () => Navigator.of(context).pop(),
+        icon: const Icon(Icons.close, size: 26),
+        tooltip: 'Cancel',
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const ProfileAvatar(radius: 16),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextFormField(
-                  autofocus: true,
-                  controller: _descriptionController,
-                  minLines: 4,
-                  maxLines: 8,
-                  maxLength: _maxLength,
-                  keyboardType: TextInputType.multiline,
-                  style: textTheme.bodyLarge?.copyWith(
-                    color: context.onCanvasText,
-                    height: 1.4,
-                  ),
-                  validator: (value) {
-                    if ((value ?? "").isEmpty) {
-                      return 'Please enter a description';
-                    }
-                    return null;
-                  },
-                  decoration: InputDecoration(
-                    counterText: '',
-                    isDense: true,
-                    isCollapsed: true,
-                    contentPadding: EdgeInsets.zero,
-                    border: InputBorder.none,
-                    hintText: hints[random.nextInt(hints.length)],
-                    hintStyle: textTheme.bodyLarge?.copyWith(
-                      color: context.placeholderText,
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
+          child: FilledButton(
+            onPressed: canPost ? _submit : null,
+            style: FilledButton.styleFrom(
+              backgroundColor: context.accent,
+              disabledBackgroundColor: context.accent.withValues(alpha: .35),
+              foregroundColor: Colors.white,
+              disabledForegroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 22),
+              minimumSize: const Size(0, 36),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              shape: const StadiumBorder(),
+              textStyle: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            child: isUploading
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
                     ),
-                  ),
-                ),
-              ),
-            ],
+                  )
+                : const Text('Post'),
           ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: context.accent,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                'Draft',
-                style: textTheme.labelSmall?.copyWith(
-                  color: context.secondaryLabel,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                '$_currentLength/$_maxLength',
-                style: textTheme.labelSmall?.copyWith(
-                  color: overLimit ? context.accent : context.secondaryLabel,
-                  fontWeight: overLimit ? FontWeight.bold : null,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _buildLookbookSection(BuildContext context, TextTheme textTheme) {
+  /// Avatar + audience chip, then the post body and whatever media is attached.
+  Widget _buildComposer(BuildContext context, TextTheme textTheme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Text(
-              '',
-              style: textTheme.labelSmall?.copyWith(
-                color: context.secondaryLabel,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 1.2,
-              ),
-            ),
-            const Spacer(),
-            GestureDetector(
-              onTap: isUploading ? null : _pickVideo,
-              child: Text(
-                'Record video',
-                style: textTheme.labelSmall?.copyWith(
-                  color: context.accent,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
+            const ProfileAvatar(radius: 20),
             const SizedBox(width: 12),
-            GestureDetector(
-              onTap: isUploading ? null : () => pickImages(context),
-              child: Text(
-                'Add media',
-                style: textTheme.labelSmall?.copyWith(
-                  color: context.accent,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
+            _buildAudienceChip(context),
           ],
         ),
-        const SizedBox(height: 10),
-        if (_editedVideo != null)
-          _videoTile(context, textTheme, _editedVideo!)
-        else
-          SizedBox(
-            height: 180,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: previewImages.length + 1,
-              separatorBuilder: (_, _) => const SizedBox(width: 12),
-              itemBuilder: (context, index) {
-                if (index == previewImages.length) {
-                  return _addMediaTile(context, textTheme);
-                }
-                return _lookbookTile(context, textTheme, index);
-              },
+        const SizedBox(height: 14),
+        TextFormField(
+          autofocus: true,
+          controller: _descriptionController,
+          minLines: 2,
+          maxLines: 10,
+          maxLength: _maxLength,
+          keyboardType: TextInputType.multiline,
+          style: textTheme.headlineSmall?.copyWith(
+            fontSize: 18,
+            height: 1.35,
+            fontWeight: FontWeight.w400,
+            color: context.onCanvasText,
+          ),
+          validator: (value) {
+            if ((value ?? '').isEmpty) return 'Please enter a description';
+            return null;
+          },
+          decoration: InputDecoration(
+            counterText: '',
+            isDense: true,
+            isCollapsed: true,
+            filled: false,
+            contentPadding: const EdgeInsets.fromLTRB(4, 0, 0, 0),
+            border: InputBorder.none,
+            hintText: "What's happening?",
+            hintStyle: textTheme.headlineSmall?.copyWith(
+              fontSize: 18,
+              height: 1.35,
+              fontWeight: FontWeight.w400,
+              color: context.placeholderText,
             ),
           ),
+        ),
+        if (_currentLength > 0 || previewImages.isNotEmpty)
+          _buildCounter(context, textTheme),
+        if (_editedVideo != null || previewImages.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          _buildMediaStrip(context, textTheme),
+        ],
       ],
     );
   }
 
-  Widget _videoTile(
-    BuildContext context,
-    TextTheme textTheme,
-    EditedVideo video,
-  ) {
-    return Container(
-      height: 180,
-      decoration: BoxDecoration(
-        color: context.cardSurface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: context.softBorder),
-      ),
-      child: Stack(
-        children: [
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: context.iconSubstrate,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.play_arrow_rounded,
-                    color: context.accent,
-                    size: 28,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'Video · ${video.duration.inSeconds}s',
-                  style: textTheme.labelSmall?.copyWith(
-                    color: context.onCanvasText,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  video.sizeLabel,
-                  style: textTheme.labelSmall?.copyWith(
-                    fontSize: 10,
-                    color: context.secondaryLabel,
-                  ),
-                ),
-              ],
-            ),
+  Widget _buildAudienceChip(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(999),
+        onTap: isUploading ? null : _pickAudience,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(12, 6, 8, 6),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: context.accent, width: 1.2),
           ),
-          Positioned(
-            top: 6,
-            right: 6,
-            child: GestureDetector(
-              onTap: isUploading
-                  ? null
-                  : () => setState(() => _editedVideo = null),
-              child: Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: .55),
-                  shape: BoxShape.circle,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _audience.label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: context.accent,
                 ),
-                child: const Icon(Icons.close, color: Colors.white, size: 14),
               ),
+              const SizedBox(width: 2),
+              Icon(Icons.expand_more, size: 18, color: context.accent),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Character count and media count, only once the user has something to say.
+  Widget _buildCounter(BuildContext context, TextTheme textTheme) {
+    final overLimit = _currentLength >= _maxLength;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Row(
+        children: [
+          if (previewImages.isNotEmpty)
+            Text(
+              '${previewImages.length}/$_maxMedia photos',
+              style: textTheme.labelSmall?.copyWith(
+                color: context.secondaryLabel,
+              ),
+            ),
+          const Spacer(),
+          Text(
+            '$_currentLength/$_maxLength',
+            style: textTheme.labelSmall?.copyWith(
+              color: overLimit ? context.accent : context.secondaryLabel,
+              fontWeight: overLimit ? FontWeight.bold : null,
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildMediaStrip(BuildContext context, TextTheme textTheme) {
+    if (_editedVideo != null) {
+      return _videoTile(_editedVideo!);
+    }
+
+    return SizedBox(
+      height: 180,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: previewImages.length + 1,
+        separatorBuilder: (_, _) => const SizedBox(width: 12),
+        itemBuilder: (context, index) {
+          if (index == previewImages.length) {
+            return _addMediaTile(context, textTheme);
+          }
+          return _lookbookTile(context, textTheme, index);
+        },
+      ),
+    );
+  }
+
+  /// Fixed bottom bar: who sees the post, then the attach actions.
+  Widget _buildBottomBar(BuildContext context, TextTheme textTheme) {
+    final isDraft = _audience == TrendAudience.draft;
+
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: context.hairline)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            InkWell(
+              onTap: isUploading ? null : _pickAudience,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+                child: Row(
+                  children: [
+                    Icon(
+                      isDraft ? Icons.lock_outline : Icons.public,
+                      size: 16,
+                      color: context.accent,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      isDraft
+                          ? 'Only you can see this post'
+                          : 'Everyone can see this trend',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: context.accent,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+              child: Row(
+                children: [
+                  _toolbarButton(
+                    context,
+                    icon: Icons.image_outlined,
+                    tooltip: 'Add photos',
+                    onTap: isUploading ? null : () => pickImages(context),
+                  ),
+                  _toolbarButton(
+                    context,
+                    icon: Icons.photo_camera_outlined,
+                    tooltip: 'Take a photo',
+                    onTap: isUploading
+                        ? null
+                        : () => _pickImage(ImageSource.camera),
+                  ),
+                  _toolbarButton(
+                    context,
+                    icon: Icons.videocam_outlined,
+                    tooltip: 'Record a video',
+                    onTap: isUploading ? null : _pickVideo,
+                  ),
+                  _toolbarButton(
+                    context,
+                    icon: Icons.tag,
+                    tooltip: 'Add tags',
+                    isActive: _showTags,
+                    onTap: isUploading
+                        ? null
+                        : () => setState(() => _showTags = !_showTags),
+                  ),
+                  const Spacer(),
+                  _buildQualityToggle(context, textTheme),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _toolbarButton(
+    BuildContext context, {
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback? onTap,
+    bool isActive = false,
+  }) {
+    return IconButton(
+      onPressed: onTap,
+      tooltip: tooltip,
+      icon: Icon(icon, size: 22),
+      color: isActive ? context.accent : context.secondaryLabel,
+      splashRadius: 22,
+    );
+  }
+
+  /// Image quality is a posting setting, so it lives next to the attach actions.
+  Widget _buildQualityToggle(BuildContext context, TextTheme textTheme) {
+    return ValueListenableBuilder<String>(
+      valueListenable: imageQuality,
+      builder: (context, quality, _) {
+        return Material(
+          color: context.iconSubstrate,
+          borderRadius: BorderRadius.circular(999),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(999),
+            onTap: () => imageQuality.value = quality == 'SD' ? 'HD' : 'SD',
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              child: Text(
+                quality,
+                style: textTheme.labelSmall?.copyWith(
+                  color: context.accent,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: .5,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _submit() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    // A trend is a look: the feed card renders media, and a post without any
+    // would fall back to its "no image" placeholder.
+    if (_editedVideo == null && pickedImages.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Add a photo or video to post')),
+      );
+      return;
+    }
+
+    await _saveTrend();
+  }
+
+  Widget _videoTile(EditedVideo video) {
+    return _ComposerVideoPreview(
+      video: video,
+      onRemove: isUploading ? null : () => setState(() => _editedVideo = null),
     );
   }
 
@@ -509,166 +604,11 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
     );
   }
 
-  Widget _buildMediaToolkit(BuildContext context, TextTheme textTheme) {
-    final double mediaProgress = (previewImages.length / _maxMedia).clamp(
-      0.0,
-      1.0,
-    );
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: context.cardSurface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: context.hairline),
-      ),
-      child: Row(
-        children: [
-          _toolkitTile(
-            context,
-            icon: Icons.photo_library_outlined,
-            iconColor: context.accent,
-            onTap: () {
-              if (isUploading) return;
-              pickImages(context);
-            },
-          ),
-          const SizedBox(width: 12),
-          _toolkitTile(
-            context,
-            icon: Icons.photo_camera_outlined,
-            onTap: () => _pickImage(ImageSource.camera),
-          ),
-          const SizedBox(width: 12),
-          ValueListenableBuilder<String>(
-            valueListenable: imageQuality,
-            builder: (context, quality, _) {
-              return _toolkitTile(
-                context,
-                icon: quality == 'SD' ? Icons.sd_outlined : Icons.hd_outlined,
-                onTap: () => imageQuality.value = quality == 'SD' ? 'HD' : 'SD',
-              );
-            },
-          ),
-          const Spacer(),
-          Text(
-            '${previewImages.length}/$_maxMedia Photos',
-            style: textTheme.labelSmall?.copyWith(
-              color: context.secondaryLabel,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(width: 8),
-          SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(
-              strokeWidth: 2.5,
-              value: mediaProgress, // media slots filled
-              backgroundColor: context.hairline,
-              color: context.accent,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _toolkitTile(
-    BuildContext context, {
-    required IconData icon,
-    required VoidCallback onTap,
-    Color? iconColor,
-  }) {
-    return Material(
-      color: context.iconSubstrate,
-      borderRadius: BorderRadius.circular(8),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8),
-        onTap: onTap,
-        child: SizedBox(
-          width: 36,
-          height: 36,
-          child: Icon(
-            icon,
-            size: 18,
-            color: iconColor ?? context.secondaryLabel,
-          ),
-        ),
-      ),
-    );
-  }
-
   Future<void> _pickAudience() async {
     final picked = await showTrendAudienceSheet(context, current: _audience);
     if (picked == null || !mounted) return;
 
     setState(() => _audience = picked);
-  }
-
-  Widget _buildAudienceCard(BuildContext context, TextTheme textTheme) {
-    final isDraft = _audience == TrendAudience.draft;
-
-    return Material(
-      color: context.cardSurface,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: _pickAudience,
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: context.hairline),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: context.iconSubstrate,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  isDraft ? Icons.lock_outline : Icons.public,
-                  size: 16,
-                  color: context.secondaryLabel,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Audience',
-                      style: textTheme.labelMedium?.copyWith(
-                        color: context.onCanvasText,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${_audience.label} · ${_audience.description}',
-                      style: textTheme.bodySmall?.copyWith(
-                        color: context.secondaryLabel,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.chevron_right,
-                size: 20,
-                color: context.secondaryLabel,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 
   /// Keeps the reel the user sees in sync with the list that gets uploaded.
@@ -1097,5 +1037,233 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
     if (Navigator.canPop(context)) {
       Navigator.of(context, rootNavigator: true).pop();
     }
+  }
+}
+
+/// Preview of the clip attached to the post, played from the local file.
+///
+/// Same shape as the image tiles: 180 tall, rounded, tap to play or pause. It
+/// starts paused on the first frame so the composer does not play audio on its
+/// own.
+class _ComposerVideoPreview extends StatefulWidget {
+  final EditedVideo video;
+  final VoidCallback? onRemove;
+
+  const _ComposerVideoPreview({required this.video, this.onRemove});
+
+  @override
+  State<_ComposerVideoPreview> createState() => _ComposerVideoPreviewState();
+}
+
+class _ComposerVideoPreviewState extends State<_ComposerVideoPreview> {
+  VideoPlayerController? _controller;
+  bool _failed = false;
+  bool _playing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    final file = File(widget.video.path);
+    if (!await file.exists()) {
+      if (mounted) setState(() => _failed = true);
+      return;
+    }
+
+    final controller = VideoPlayerController.file(file);
+    try {
+      await controller.initialize();
+      if (!mounted) {
+        await controller.dispose();
+        return;
+      }
+      await controller.setLooping(true);
+      setState(() => _controller = controller);
+    } catch (error) {
+      debugPrint('Clip preview failed: $error');
+      await controller.dispose();
+      if (mounted) setState(() => _failed = true);
+    }
+  }
+
+  Future<void> _toggle() async {
+    final controller = _controller;
+    if (controller == null) return;
+
+    if (controller.value.isPlaying) {
+      await controller.pause();
+    } else {
+      await controller.play();
+    }
+    if (mounted) setState(() => _playing = controller.value.isPlaying);
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  /// Prefer what the decoder reports; the editor's metadata is the fallback
+  /// while the controller is still initializing.
+  double _aspectRatio(VideoPlayerController? controller) {
+    final reported = controller?.value.isInitialized == true
+        ? controller!.value.aspectRatio
+        : null;
+    final ratio = reported ?? widget.video.aspectRatio;
+    if (ratio.isNaN || ratio <= 0) return 9 / 16;
+    return ratio;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final controller = _controller;
+    final ratio = _aspectRatio(controller);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final screen = MediaQuery.sizeOf(context);
+        final width = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : screen.width;
+
+        // Full width at the clip's own ratio, capped so a vertical clip cannot
+        // push the rest of the composer off screen. Past the cap the frame is
+        // centred with black bars: never cropped, never stretched.
+        final height = (width / ratio).clamp(120.0, screen.height * .55);
+        // Never let a clamp stretch the frame: the box keeps the clip's ratio.
+        final videoHeight = min(height, width / ratio);
+        final videoWidth = videoHeight * ratio;
+
+        return SizedBox(
+          height: height,
+          width: videoWidth,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              color: Colors.transparent,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Center(
+                    child: SizedBox(
+                      width: videoWidth,
+                      height: videoHeight,
+                      child: controller != null
+                          ? VideoPlayer(controller)
+                          : _buildPlaceholder(),
+                    ),
+                  ),
+
+                  // Tap anywhere on the clip to play or pause it.
+                  Positioned.fill(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: controller == null ? null : _toggle,
+                      child: const SizedBox.shrink(),
+                    ),
+                  ),
+
+                  if (controller != null && !_playing)
+                    Center(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: .45),
+                          shape: BoxShape.circle,
+                        ),
+                        padding: const EdgeInsets.all(10),
+                        child: const Icon(
+                          Icons.play_arrow,
+                          color: Colors.white,
+                          size: 30,
+                        ),
+                      ),
+                    ),
+
+                  Positioned(
+                    left: 8,
+                    bottom: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: .55),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        '${widget.video.duration.inSeconds}s · ${widget.video.sizeLabel}',
+                        style: textTheme.labelSmall?.copyWith(
+                          color: Colors.white,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: GestureDetector(
+                      onTap: widget.onRemove,
+                      child: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: .55),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: .25),
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.close,
+                          color: Colors.white,
+                          size: 14,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    if (!_failed) {
+      return const Center(
+        child: SizedBox(
+          height: 22,
+          width: 22,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: Colors.white70,
+          ),
+        ),
+      );
+    }
+
+    return const Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.videocam_off, color: Colors.white54),
+          SizedBox(height: 6),
+          Text(
+            'This clip could not be previewed',
+            style: TextStyle(color: Colors.white54, fontSize: 12),
+          ),
+        ],
+      ),
+    );
   }
 }

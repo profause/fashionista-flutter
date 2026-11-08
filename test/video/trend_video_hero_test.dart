@@ -135,6 +135,61 @@ void main() {
     expect(find.byIcon(Icons.volume_up), findsOneWidget);
   });
 
+  testWidgets('unmounting while active does not notify during the locked '
+      'build', (tester) async {
+    final manager = VideoPlaybackManager();
+    addTearDown(manager.dispose);
+
+    manager.updateVisibility('feed', 0.9);
+    await tester.pump(const Duration(milliseconds: 300));
+
+    // The provider stays mounted while the hero goes away, which is what a
+    // route pop looks like: notifying from dispose() then marks the provider
+    // dirty while the tree is locked.
+    var showHero = true;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: fashionistaLightTheme,
+        home: ChangeNotifierProvider<VideoPlaybackManager>.value(
+          value: manager,
+          child: Scaffold(
+            body: StatefulBuilder(
+              builder: (context, setState) => showHero
+                  ? Column(
+                      children: [
+                        TextButton(
+                          onPressed: () => setState(() => showHero = false),
+                          child: const Text('remove'),
+                        ),
+                        SizedBox(
+                          width: 300,
+                          child: TrendVideoHero(
+                            media: videoMedia,
+                            caption: '',
+                            playbackKey: 'detail',
+                          ),
+                        ),
+                      ],
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(manager.activeKey, 'detail');
+
+    await tester.tap(find.text('remove'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(tester.takeException(), isNull);
+    expect(manager.activeKey, 'feed');
+  });
+
   testWidgets('closing the screen hands playback back to the feed', (
     tester,
   ) async {

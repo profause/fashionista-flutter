@@ -59,6 +59,41 @@ void main() {
     expect(find.byIcon(Icons.volume_off), findsOneWidget);
   });
 
+  testWidgets('an idle card shows its poster, not a spinner', (tester) async {
+    final manager = VideoPlaybackManager()..setEnabled(false);
+    addTearDown(manager.dispose);
+
+    await pumpTile(tester, manager);
+
+    // A card that is not playing has nothing to wait for; a spinner over the
+    // poster reads as a stuck video.
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
+
+  testWidgets('offers SD first and never shows HD unprompted', (tester) async {
+    final manager = VideoPlaybackManager()..setEnabled(false);
+    addTearDown(manager.dispose);
+
+    await pumpTile(tester, manager);
+
+    // Playback always starts in SD; HD is only a target the user can pick.
+    expect(find.text('SD'), findsOneWidget);
+    expect(find.text('HD'), findsNothing);
+  });
+
+  testWidgets('the quality pill only switches what plays next', (tester) async {
+    final manager = VideoPlaybackManager()..setEnabled(false);
+    addTearDown(manager.dispose);
+
+    await pumpTile(tester, manager);
+
+    await tester.tap(find.text('SD'));
+    await tester.pump(const Duration(milliseconds: 50));
+
+    // Nothing is playing yet, so the tap just records the preference.
+    expect(find.text('HD'), findsOneWidget);
+  });
+
   testWidgets('a tap starts playback when autoplay is off', (tester) async {
     final manager = VideoPlaybackManager()..setEnabled(false);
     addTearDown(manager.dispose);

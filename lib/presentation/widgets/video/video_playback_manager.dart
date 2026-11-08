@@ -101,7 +101,10 @@ class VideoPlaybackManager extends ChangeNotifier {
     _fractions.remove(key);
     if (wasActive) {
       _activeKey = null;
-      _emit();
+      // Called from dispose(): notifying here marks the provider dirty while
+      // the tree is locked, so the state changes now and listeners hear about
+      // it once the frame is done.
+      _emitAfterFrame();
     }
   }
 
@@ -116,8 +119,10 @@ class VideoPlaybackManager extends ChangeNotifier {
     _fractions.remove(key);
     _activeKey = null;
     _userPaused = false;
-    _recompute(force: true);
-    _emit();
+    // Also a dispose() caller, so the hand-off is applied now and announced
+    // after the frame.
+    _recompute(force: true, notify: false);
+    _emitAfterFrame();
   }
 
   /// Play/pause from the card's own control.
@@ -152,7 +157,7 @@ class VideoPlaybackManager extends ChangeNotifier {
     _debounceTimer = Timer(debounce, () => _recompute());
   }
 
-  void _recompute({bool force = false}) {
+  void _recompute({bool force = false, bool notify = true}) {
     if (_disposed || !_enabled || !_appActive) return;
 
     // A user pause wins until the card leaves the viewport entirely.
@@ -173,12 +178,22 @@ class VideoPlaybackManager extends ChangeNotifier {
 
     _activeKey = next;
     _userPaused = false;
-    _emit();
+    if (notify) _emit();
   }
 
   void _emit() {
     if (_disposed) return;
     notifyListeners();
+  }
+
+  /// Defers the notification past the current frame.
+  ///
+  /// `dispose()` runs while the framework holds the tree lock; calling
+  /// `notifyListeners()` there makes the provider mark itself dirty and throws
+  /// "setState() or markNeedsBuild() called when widget tree was locked".
+  /// A microtask runs once the frame callback (and its lock) is done.
+  void _emitAfterFrame() {
+    scheduleMicrotask(_emit);
   }
 
   @override

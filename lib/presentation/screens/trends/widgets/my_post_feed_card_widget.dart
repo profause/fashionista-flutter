@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
+import 'package:fashionista/core/media/cloudinary_video_urls.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/utils/get_relative_time.dart';
 import 'package:fashionista/data/models/author/author_model.dart';
@@ -253,6 +254,14 @@ class _MyPostFeedCardWidgetState extends State<MyPostFeedCardWidget> {
     );
   }
 
+  /// The legacy preview plays the SD rendition, matching the feed (the original
+  /// file is the HD one and would waste bandwidth on a profile card).
+  String _videoUrl(FeaturedMediaModel media) {
+    final publicId = CloudinaryVideoUrls.publicIdOf(media);
+    if (publicId == null) return media.url!;
+    return CloudinaryVideoUrls.rendition(publicId, VideoQuality.sd).toString();
+  }
+
   Widget _buildMedia(BuildContext context) {
     final List<FeaturedMediaModel> media = widget.trendInfo.featuredMedia;
     if (media.isEmpty || (media.first.url ?? '').isEmpty) {
@@ -271,7 +280,10 @@ class _MyPostFeedCardWidgetState extends State<MyPostFeedCardWidget> {
               ? 9 / 16
               : (featuredMedia.aspectRatio ?? 4 / 5),
           child: isVideo
-              ? VideoPreviewWidget(videoUrl: featuredMedia.url!, onTap: () {})
+              ? VideoPreviewWidget(
+                  videoUrl: _videoUrl(featuredMedia),
+                  onTap: () {},
+                )
               : CachedNetworkImage(
                   imageUrl: featuredMedia.url!.trim(),
                   fit: BoxFit.cover,

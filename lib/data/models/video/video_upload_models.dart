@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:fashionista/core/media/cloudinary_video_urls.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
 
 /// Cloudinary parameters for an *unsigned* video upload.
@@ -78,9 +79,10 @@ class CloudinaryVideoAsset extends Equatable {
     return CloudinaryVideoAsset(
       assetId: assetId,
       secureUrl: secureUrl,
-      thumbnailUrl:
-          'https://res.cloudinary.com/$cloudName/video/upload/'
-          'so_0,w_720,q_auto/$assetId.jpg',
+      thumbnailUrl: CloudinaryVideoUrls.poster(
+        assetId,
+        cloudName: cloudName,
+      ).toString(),
       durationSeconds: _toDouble(data['duration']),
       width: (data['width'] as num?)?.toInt() ?? 0,
       height: (data['height'] as num?)?.toInt() ?? 0,
