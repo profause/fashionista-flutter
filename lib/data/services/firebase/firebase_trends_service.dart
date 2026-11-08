@@ -105,12 +105,18 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
       final hasMore = docs.length > limit;
       final pageDocs = hasMore ? docs.sublist(0, limit) : docs;
 
+      // Drafts are filtered here rather than in the query: documents written
+      // before audiences existed have no `audience` field, and an equality
+      // filter would hide every one of them. A page can come back shorter (or
+      // empty) when the author's drafts are the newest posts; the feed bloc
+      // keeps walking while a page adds nothing.
       final trends = pageDocs
           .map(
             (doc) => TrendFeedModel.fromJson(
               doc.data(),
             ).copyWith(uid: doc.id),
           )
+          .where((trend) => !trend.isDraft)
           .toList(growable: false);
 
       return Right(
@@ -186,6 +192,7 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
 
       // `tags` is stored as a comma separated string, so match client-side.
       final matchingDocs = querySnapshot.docs.where((doc) {
+        if (TrendFeedModel.fromJson(doc.data()).isDraft) return false;
         final rawTags = (doc.data()['tags'] ?? '').toString().toLowerCase();
         return rawTags.split(',').any((t) => t.trim() == normalizedTag);
       });
@@ -224,6 +231,12 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
       TrendFeedModel trendFeedModel = TrendFeedModel.fromJson(
         doc.data() as Map<String, dynamic>,
       );
+
+      // A draft is hidden from everyone but its author, including by id.
+      final viewerId = FirebaseAuth.instance.currentUser?.uid;
+      if (trendFeedModel.isDraft && trendFeedModel.createdBy != viewerId) {
+        return const Left('Design post not found');
+      }
 
       return Right(trendFeedModel);
     } on FirebaseException catch (e) {

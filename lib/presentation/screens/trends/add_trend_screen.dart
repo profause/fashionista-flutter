@@ -17,6 +17,7 @@ import 'package:fashionista/data/models/profile/models/user.dart';
 import 'package:fashionista/data/models/settings/bloc/settings_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc_event.dart';
+import 'package:fashionista/data/models/trends/trend_audience.dart';
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
 import 'package:fashionista/domain/usecases/trends/add_trend_usecase.dart';
 import 'package:fashionista/presentation/widgets/appbar_title.dart';
@@ -31,6 +32,7 @@ import 'package:fashionista/data/models/trends/bloc/video_upload_cubit.dart';
 import 'package:fashionista/data/models/video/edited_video.dart';
 import 'package:fashionista/presentation/screens/trends/video/video_capture_screen.dart';
 import 'package:fashionista/presentation/screens/trends/video/widgets/video_upload_progress.dart';
+import 'package:fashionista/presentation/screens/trends/widgets/trend_audience_sheet.dart';
 import 'package:dartz/dartz.dart' as dartz;
 import 'package:uuid/uuid.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -70,6 +72,9 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
 
   /// Local clip chosen in the camera/editor flow; replaces the image carousel.
   EditedVideo? _editedVideo;
+
+  /// Who can see the post; public unless the author picks otherwise.
+  TrendAudience _audience = TrendAudience.public;
 
   List<XFile> pickedImages = [];
   List<double> uploadProgress = [];
@@ -594,49 +599,74 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
     );
   }
 
+  Future<void> _pickAudience() async {
+    final picked = await showTrendAudienceSheet(context, current: _audience);
+    if (picked == null || !mounted) return;
+
+    setState(() => _audience = picked);
+  }
+
   Widget _buildAudienceCard(BuildContext context, TextTheme textTheme) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: context.cardSurface,
+    final isDraft = _audience == TrendAudience.draft;
+
+    return Material(
+      color: context.cardSurface,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: context.hairline),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: context.iconSubstrate,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.public, size: 16, color: context.secondaryLabel),
+        onTap: _pickAudience,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: context.hairline),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Audience',
-                  style: textTheme.labelMedium?.copyWith(
-                    color: context.onCanvasText,
-                    fontWeight: FontWeight.w600,
-                  ),
+          child: Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: context.iconSubstrate,
+                  shape: BoxShape.circle,
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  'Public · Anyone can join this trend',
-                  style: textTheme.bodySmall?.copyWith(
-                    color: context.secondaryLabel,
-                  ),
+                child: Icon(
+                  isDraft ? Icons.lock_outline : Icons.public,
+                  size: 16,
+                  color: context.secondaryLabel,
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Audience',
+                      style: textTheme.labelMedium?.copyWith(
+                        color: context.onCanvasText,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${_audience.label} · ${_audience.description}',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: context.secondaryLabel,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                size: 20,
+                color: context.secondaryLabel,
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -730,6 +760,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
         updatedAt: now,
         author: author,
         featuredMedia: [media],
+        audience: _audience.value,
       );
 
       final result = await sl<AddTrendUsecase>().call(trend);
@@ -822,6 +853,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
         author: author,
         tags: tags,
         featuredMedia: featuredImages,
+        audience: _audience.value,
       );
 
       final result = await sl<AddTrendUsecase>().call(trend);

@@ -11,7 +11,12 @@ import 'package:fashionista/data/services/hive/hive_trend_service.dart';
 
 const String viewerUid = 'viewer_1';
 
-TrendFeedModel trend(String id, {int createdAt = 0, String? createdBy}) {
+TrendFeedModel trend(
+  String id, {
+  int createdAt = 0,
+  String? createdBy,
+  String? audience,
+}) {
   return TrendFeedModel(
     uid: id,
     description: 'Trend $id',
@@ -21,6 +26,7 @@ TrendFeedModel trend(String id, {int createdAt = 0, String? createdBy}) {
     createdBy: createdBy ?? 'author_x',
     tags: '',
     author: const AuthorModel(uid: 'author_x', name: 'Author X', avatar: ''),
+    audience: audience,
   );
 }
 
@@ -114,8 +120,10 @@ class FakeHiveTrendService extends HiveTrendService {
   String? prunedForUid;
 
   @override
-  List<TrendFeedModel> getSortedItems() {
-    final items = store.values.toList();
+  List<TrendFeedModel> getSortedItems({bool includeDrafts = false}) {
+    final items = store.values
+        .where((item) => includeDrafts || !item.isDraft)
+        .toList();
     items.sort((a, b) {
       final byDate = (b.createdAt ?? 0).compareTo(a.createdAt ?? 0);
       if (byDate != 0) return byDate;
@@ -140,4 +148,3 @@ class FakeHiveTrendService extends HiveTrendService {
     prunedForUid = keepAuthorUid;
   }
 }
-

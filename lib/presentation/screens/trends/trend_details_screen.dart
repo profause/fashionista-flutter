@@ -165,6 +165,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildAuthorHeader(context, textTheme),
+                      if (trendInfo.isDraft) _buildDraftNotice(context),
                       _buildMedia(context),
                       _buildActionBar(context),
                       _buildTags(context, textTheme),
@@ -258,6 +259,38 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
               errorWidget: (_, _, _) =>
                   DefaultProfileAvatar(name: name, size: size, uid: uid),
             ),
+    );
+  }
+
+  /// Tells the author their post is still a draft: nothing on the card itself
+  /// distinguishes it from a published one.
+  Widget _buildDraftNotice(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: context.iconSubstrate,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: context.hairline),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.lock_outline, size: 16, color: context.secondaryLabel),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Draft · Only you can see this post',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: context.secondaryLabel,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

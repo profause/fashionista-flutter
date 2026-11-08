@@ -5,6 +5,7 @@ import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_feed_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_feed_event.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_feed_state.dart';
+import 'package:fashionista/data/models/trends/trend_feed_model.dart';
 import 'package:fashionista/data/services/firebase/firebase_trends_service.dart';
 import 'package:fashionista/data/services/hive/hive_trend_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -65,6 +66,25 @@ void main() {
     expect(loaded.items.single.uid, 'c1');
     expect(hive.pruneCalls, 1);
     expect(hive.prunedForUid, viewerUid);
+
+    await bloc.close();
+  });
+
+  test('a draft in the cache never reaches the feed', () async {
+    hive.store['draft'] = trend(
+      'draft',
+      createdAt: 200,
+      audience: TrendFeedModel.audienceDraft,
+    );
+    hive.store['live'] = trend('live', createdAt: 100);
+    service.queue.add(Right(page([trend('live', createdAt: 100)])));
+
+    final bloc = buildBloc();
+    final loaded = waitFor(bloc, (state) => state.pagesLoaded == 1);
+    bloc.add(const TrendFeedOpened());
+    await loaded;
+
+    expect(bloc.state.items.map((item) => item.uid), ['live']);
 
     await bloc.close();
   });

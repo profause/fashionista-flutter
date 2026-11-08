@@ -30,13 +30,14 @@ class TrendFeedModelAdapter extends TypeAdapter<TrendFeedModel> {
       numberOfLikes: fields[10] as int?,
       numberOfFollowers: fields[11] as int?,
       numberOfComments: fields[12] as int?,
+      audience: fields[13] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, TrendFeedModel obj) {
     writer
-      ..writeByte(13)
+      ..writeByte(14)
       ..writeByte(0)
       ..write(obj.uid)
       ..writeByte(1)
@@ -62,7 +63,9 @@ class TrendFeedModelAdapter extends TypeAdapter<TrendFeedModel> {
       ..writeByte(11)
       ..write(obj.numberOfFollowers)
       ..writeByte(12)
-      ..write(obj.numberOfComments);
+      ..write(obj.numberOfComments)
+      ..writeByte(13)
+      ..write(obj.audience);
   }
 
   @override
@@ -95,6 +98,7 @@ TrendFeedModel _$TrendFeedModelFromJson(Map<String, dynamic> json) =>
       numberOfLikes: (json['number_of_likes'] as num?)?.toInt(),
       numberOfFollowers: (json['number_of_followers'] as num?)?.toInt(),
       numberOfComments: (json['number_of_comments'] as num?)?.toInt(),
+      audience: json['audience'] as String? ?? 'public',
     );
 
 Map<String, dynamic> _$TrendFeedModelToJson(TrendFeedModel instance) =>
@@ -110,4 +114,5 @@ Map<String, dynamic> _$TrendFeedModelToJson(TrendFeedModel instance) =>
       'number_of_likes': instance.numberOfLikes,
       'number_of_followers': instance.numberOfFollowers,
       'number_of_comments': instance.numberOfComments,
+      'audience': instance.audience,
     };

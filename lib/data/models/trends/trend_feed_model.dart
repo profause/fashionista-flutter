@@ -59,6 +59,14 @@ class TrendFeedModel extends Equatable {
   @JsonKey(name: 'number_of_comments')
   final int? numberOfComments;
 
+  /// [TrendAudience.value]: `public` or `draft`.
+  ///
+  /// Nullable because documents written before audiences existed have no such
+  /// field; both Hive and JSON read them back as public.
+  @HiveField(TrendFeedModelHiveType.audience)
+  @JsonKey(name: 'audience', defaultValue: TrendFeedModel.audiencePublic)
+  final String? audience;
+
   const TrendFeedModel({
     this.uid,
     required this.description,
@@ -73,12 +81,19 @@ class TrendFeedModel extends Equatable {
     this.numberOfLikes,
     this.numberOfFollowers,
     this.numberOfComments,
+    this.audience,
   });
 
   factory TrendFeedModel.fromJson(Map<String, dynamic> json) =>
       _$TrendFeedModelFromJson(json);
 
   Map<String, dynamic> toJson() => _$TrendFeedModelToJson(this);
+
+  static const String audiencePublic = 'public';
+  static const String audienceDraft = 'draft';
+
+  /// Excluded from the public feed; the author still sees it in their posts.
+  bool get isDraft => audience == audienceDraft;
 
   @override
   List<Object?> get props => [
@@ -95,6 +110,7 @@ class TrendFeedModel extends Equatable {
     numberOfLikes,
     numberOfFollowers,
     numberOfComments,
+    audience,
   ];
 
   factory TrendFeedModel.empty() => TrendFeedModel(
@@ -110,6 +126,7 @@ class TrendFeedModel extends Equatable {
     numberOfLikes: 0,
     numberOfFollowers: 0,
     numberOfComments: 0,
+    audience: audiencePublic,
   );
 
   TrendFeedModel copyWith({
@@ -126,6 +143,7 @@ class TrendFeedModel extends Equatable {
     int ? numberOfLikes,
     int ? numberOfFollowers,
     int ? numberOfComments,
+    String? audience,
   }) {
     return TrendFeedModel(
       uid: uid ?? this.uid,
@@ -141,6 +159,7 @@ class TrendFeedModel extends Equatable {
       numberOfLikes: numberOfLikes ?? this.numberOfLikes,
       numberOfFollowers: numberOfFollowers ?? this.numberOfFollowers,
       numberOfComments: numberOfComments ?? this.numberOfComments,
+      audience: audience ?? this.audience,
     );
   }
 }
