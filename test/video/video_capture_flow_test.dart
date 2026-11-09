@@ -1,4 +1,5 @@
 import 'package:fashionista/data/models/trends/bloc/video_capture_cubit.dart';
+import 'package:fashionista/data/models/trends/bloc/video_editor_state.dart';
 import 'package:fashionista/data/models/trends/bloc/video_capture_state.dart';
 import 'package:fashionista/presentation/screens/trends/video/video_capture_screen.dart';
 import 'package:fashionista/presentation/screens/trends/video/video_editor_screen.dart';
@@ -11,6 +12,16 @@ class _FakeCaptureCubit extends VideoCaptureCubit {
 
   @override
   Future<void> initialize() async {}
+
+  void useFrontCameraForTest() {
+    emit(
+      state.copyWith(
+        isFrontCamera: true,
+        isTorchAvailable: false,
+        isTorchOn: false,
+      ),
+    );
+  }
 
   void markRecorded(String path) {
     emit(
@@ -43,6 +54,40 @@ void main() {
     );
     await tester.pump();
   }
+
+  testWidgets('offers the three framing ratios, 9:16 by default', (
+    tester,
+  ) async {
+    await pumpScreen(tester);
+
+    expect(cubit.state.aspect, VideoAspectPreset.portrait);
+    expect(find.text('1:1'), findsOneWidget);
+    expect(find.text('4:5'), findsOneWidget);
+    expect(find.text('9:16'), findsOneWidget);
+  });
+
+  testWidgets('picking a ratio changes the framing', (tester) async {
+    await pumpScreen(tester);
+
+    await tester.tap(find.text('1:1'));
+    await tester.pump();
+
+    expect(cubit.state.aspect, VideoAspectPreset.square);
+  });
+
+  testWidgets('the torch control is shown for the back camera only', (
+    tester,
+  ) async {
+    await pumpScreen(tester);
+
+    expect(find.byIcon(Icons.flash_off), findsOneWidget);
+
+    cubit.useFrontCameraForTest();
+    await tester.pump();
+
+    expect(find.byIcon(Icons.flash_off), findsNothing);
+    expect(find.byIcon(Icons.flash_on), findsNothing);
+  });
 
   testWidgets('a finished take opens the editor without another tap', (
     tester,

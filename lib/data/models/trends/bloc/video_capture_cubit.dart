@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:fashionista/data/models/trends/bloc/video_capture_state.dart';
+import 'package:fashionista/data/models/trends/bloc/video_editor_state.dart';
 import 'package:fashionista/domain/video/video_engine.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -65,6 +66,8 @@ class VideoCaptureCubit extends Cubit<VideoCaptureState> {
           cameraCount: cameras.length,
           isFrontCamera: camera.lensDirection == CameraLensDirection.front,
           isMuted: !useAudio,
+          isTorchOn: false,
+          isTorchAvailable: camera.lensDirection != CameraLensDirection.front,
           clearError: true,
         ),
       );
@@ -106,11 +109,42 @@ class VideoCaptureCubit extends Cubit<VideoCaptureState> {
       emit(
         state.copyWith(
           isFrontCamera: next.lensDirection == CameraLensDirection.front,
+          isTorchOn: false,
+          isTorchAvailable: next.lensDirection != CameraLensDirection.front,
           stage: VideoCaptureStage.ready,
         ),
       );
     } catch (error) {
       debugPrint('Camera switch failed: $error');
+    }
+  }
+
+  /// Changes the framing guide. The camera keeps recording full-frame; the
+  /// ratio travels to the editor as its initial crop.
+  void setAspect(VideoAspectPreset aspect) {
+    if (state.aspect == aspect) return;
+    emit(state.copyWith(aspect: aspect));
+  }
+
+  /// Torch on/off for the back camera.
+  ///
+  /// Front cameras have no torch, and some devices report one that cannot be
+  /// driven; both cases disable the control instead of failing the screen.
+  Future<void> toggleTorch() async {
+    final controller = _controller;
+    if (controller == null || !controller.value.isInitialized) return;
+    if (state.isFrontCamera || !state.isTorchAvailable) return;
+
+    final next = !state.isTorchOn;
+
+    try {
+      await controller.setFlashMode(next ? FlashMode.torch : FlashMode.off);
+      if (isClosed) return;
+      emit(state.copyWith(isTorchOn: next));
+    } on CameraException catch (error) {
+      debugPrint('Torch unavailable: ${error.description}');
+      if (isClosed) return;
+      emit(state.copyWith(isTorchOn: false, isTorchAvailable: false));
     }
   }
 

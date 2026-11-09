@@ -2,6 +2,7 @@ import 'package:camera/camera.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/trends/bloc/video_capture_cubit.dart';
 import 'package:fashionista/data/models/trends/bloc/video_capture_state.dart';
+import 'package:fashionista/data/models/trends/bloc/video_editor_state.dart';
 import 'package:fashionista/data/models/video/edited_video.dart';
 import 'package:fashionista/presentation/screens/trends/video/video_editor_screen.dart';
 import 'package:flutter/material.dart';
@@ -64,7 +65,8 @@ class _VideoCaptureViewState extends State<_VideoCaptureView> {
     if (_editorOpen || _closing) return;
     _editorOpen = true;
 
-    final edited = await VideoEditorScreen.open(context, path);
+    final aspect = context.read<VideoCaptureCubit>().state.aspect;
+    final edited = await VideoEditorScreen.open(context, path, aspect: aspect);
 
     _editorOpen = false;
     if (!mounted) return;
@@ -177,11 +179,36 @@ class _Preview extends StatelessWidget {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return _FullScreenPreview(controller: controller);
+    // The frame *is* the crop: what fits inside this box is what the editor
+    // exports, because both use the same centred ratio.
+    final aspect = state.aspect.aspect ?? _nativePortraitRatio(controller);
+
+    return ColoredBox(
+      color: Colors.black,
+      child: Center(
+        child: AspectRatio(
+          aspectRatio: aspect,
+          child: _FullScreenPreview(controller: controller),
+        ),
+      ),
+    );
+  }
+
+  /// Portrait ratio of the camera stream, used when the framing is "original".
+  double _nativePortraitRatio(CameraController controller) {
+    final ratio = controller.value.aspectRatio;
+    if (ratio.isNaN || ratio <= 0) return 9 / 16;
+
+    return const [
+          DeviceOrientation.landscapeLeft,
+          DeviceOrientation.landscapeRight,
+        ].contains(controller.value.deviceOrientation)
+        ? ratio
+        : 1 / ratio;
   }
 }
 
-/// Camera preview that covers the screen instead of letterboxing inside it.
+/// Camera preview that covers its framing box instead of letterboxing inside it.
 ///
 /// [CameraPreview] already applies its own `AspectRatio`, inverted in portrait
 /// (`1 / value.aspectRatio`) — wrapping it in a second, un-inverted one made the
@@ -254,6 +281,17 @@ class _TopBar extends StatelessWidget {
               child: Icon(Icons.mic_off, color: Colors.white70, size: 20),
             ),
           const SizedBox(width: 8),
+          if (state.isTorchAvailable && !state.isFrontCamera)
+            IconButton(
+              onPressed: cubit.toggleTorch,
+              icon: Icon(
+                state.isTorchOn ? Icons.flash_on : Icons.flash_off,
+                color: state.isTorchOn ? context.accent : Colors.white,
+              ),
+              tooltip: state.isTorchOn
+                  ? 'Turn the light off'
+                  : 'Turn the light on',
+            ),
           if (state.cameraCount > 1)
             IconButton(
               onPressed: state.isRecording ? null : cubit.switchCamera,
@@ -323,40 +361,21 @@ class _BottomBar extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 24),
       child: Column(
         children: [
-          if (state.stage == VideoCaptureStage.recorded)
+          if (state.stage != VideoCaptureStage.recorded) ...[
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: FilledButton(
-                      onPressed: cubit.retake,
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: context.accent,
-                      ),
-                      child: const Text('Retake'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: FilledButton(
-                      onPressed: () {
-                        final path = state.recordedPath;
-                        if (path != null) onEdit(path);
-                      },
-                      style: FilledButton.styleFrom(
-                        backgroundColor: context.accent,
-                      ),
-                      child: Text('Edit ${state.elapsed.inSeconds}s clip'),
-                    ),
-                  ),
-                ],
+              padding: const EdgeInsets.only(bottom: 16),
+              child: _AspectSelector(
+                selected: state.aspect,
+                enabled: !state.isRecording,
+                onSelect: cubit.setAspect,
               ),
-            )
-          else
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
+            ),
+          ],
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              if (state.stage != VideoCaptureStage.recorded) ...[
                 IconButton(
                   onPressed: state.isRecording
                       ? null
@@ -372,39 +391,143 @@ class _BottomBar extends StatelessWidget {
                   ),
                   tooltip: 'Choose from gallery',
                 ),
-                GestureDetector(
-                  onTap: state.isRecording
-                      ? cubit.stopRecording
-                      : cubit.startRecording,
-                  child: Container(
-                    width: 76,
-                    height: 76,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 4),
-                    ),
-                    child: Center(
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 150),
-                        width: state.isRecording ? 28 : 58,
-                        height: state.isRecording ? 28 : 58,
-                        decoration: BoxDecoration(
-                          color: state.isRecording
-                              ? Colors.red
-                              : context.accent,
-                          borderRadius: BorderRadius.circular(
-                            state.isRecording ? 6 : 40,
-                          ),
+              ],
+              if (state.stage == VideoCaptureStage.recorded) ...[
+                const SizedBox(width: 16),
+                IconButton(
+                  onPressed: cubit.retake,
+                  icon: Icon(
+                    Icons.cancel_outlined,
+                    color: Colors.white,
+                    size: 32,
+                  ),
+                ),
+              ],
+              GestureDetector(
+                onTap: state.isRecording
+                    ? cubit.stopRecording
+                    : cubit.startRecording,
+                child: Container(
+                  width: 76,
+                  height: 76,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 4),
+                  ),
+                  child: Center(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      width: state.isRecording ? 28 : 58,
+                      height: state.isRecording ? 28 : 58,
+                      decoration: BoxDecoration(
+                        color: state.isRecording ? Colors.red : context.accent,
+                        borderRadius: BorderRadius.circular(
+                          state.isRecording ? 6 : 40,
                         ),
                       ),
                     ),
                   ),
                 ),
-                // Second spacer keeps the record button centred.
-                const SizedBox(width: 48),
+              ),
+              // Second spacer keeps the record button centred.
+              if (state.stage == VideoCaptureStage.recorded) ...[
+                IconButton(
+                  onPressed: () {
+                    final path = state.recordedPath;
+                    if (path != null) onEdit(path);
+                  },
+                  icon: Icon(
+                    Icons.check_circle,
+                    color: context.accent,
+                    size: 32,
+                  ),
+                ),
               ],
-            ),
+              const SizedBox(width: 16),
+            ],
+          ),
         ],
+      ),
+    );
+  }
+}
+
+/// Ratio chips above the shutter: what you frame is what gets exported.
+class _AspectSelector extends StatelessWidget {
+  /// 9:16 first would read as "no choice"; the alternatives lead.
+  static const List<VideoAspectPreset> presets = [
+    VideoAspectPreset.square,
+    VideoAspectPreset.portraitFourFive,
+    VideoAspectPreset.portrait,
+  ];
+
+  final VideoAspectPreset selected;
+  final bool enabled;
+  final ValueChanged<VideoAspectPreset> onSelect;
+
+  const _AspectSelector({
+    required this.selected,
+    required this.onSelect,
+    this.enabled = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        for (final preset in presets)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: _AspectChip(
+              preset: preset,
+              isSelected: preset == selected,
+              onTap: enabled ? () => onSelect(preset) : null,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _AspectChip extends StatelessWidget {
+  final VideoAspectPreset preset;
+  final bool isSelected;
+  final VoidCallback? onTap;
+
+  const _AspectChip({
+    required this.preset,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isSelected ? context.accent : Colors.white70;
+
+    return Material(
+      color: Colors.black.withValues(alpha: .35),
+      borderRadius: BorderRadius.circular(999),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(999),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: isSelected ? context.accent : Colors.white24,
+            ),
+          ),
+          child: Text(
+            preset.label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              color: color,
+            ),
+          ),
+        ),
       ),
     );
   }

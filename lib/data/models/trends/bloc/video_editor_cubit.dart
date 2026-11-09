@@ -18,7 +18,8 @@ class VideoEditorCubit extends Cubit<VideoEditorState> {
 
   static const int filmstripFrames = 8;
 
-  Future<void> load(String path) async {
+  /// Loads [path]; [aspect] is the framing the recorder was showing.
+  Future<void> load(String path, {VideoAspectPreset? aspect}) async {
     emit(const VideoEditorState(stage: VideoEditorStage.loading));
 
     try {
@@ -34,6 +35,7 @@ class VideoEditorCubit extends Cubit<VideoEditorState> {
           metadata: metadata,
           trimStart: Duration.zero,
           trimEnd: initialEnd,
+          aspect: aspect ?? VideoAspectPreset.original,
         ),
       );
 

@@ -182,3 +182,13 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# native_video_editor 0.4.0 calls `EditedMediaItemSequence(List)`, which media3
+# 1.10 replaced with `EditedMediaItemSequence.Builder` — its Android module does
+# not compile at all, which breaks release builds. Upstream fixed it on master
+# (0.4.1 is not published yet), so pin the fix commit.
+dependency_overrides:
+  native_video_editor:
+    git:
+      url: https://github.com/MuhammadFahad0/native_video_editor.git
+      ref: 084c70241ac2a617fbcecb8cd264db92b620a8b3

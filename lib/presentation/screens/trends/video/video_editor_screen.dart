@@ -13,18 +13,33 @@ import 'package:video_player/video_player.dart';
 class VideoEditorScreen extends StatelessWidget {
   final String sourcePath;
 
-  const VideoEditorScreen({super.key, required this.sourcePath});
+  /// Framing chosen in the recorder; the editor opens on that crop.
+  final VideoAspectPreset? initialAspect;
 
-  static Future<EditedVideo?> open(BuildContext context, String path) {
+  const VideoEditorScreen({
+    super.key,
+    required this.sourcePath,
+    this.initialAspect,
+  });
+
+  static Future<EditedVideo?> open(
+    BuildContext context,
+    String path, {
+    VideoAspectPreset? aspect,
+  }) {
     return Navigator.of(context).push<EditedVideo>(
-      MaterialPageRoute(builder: (_) => VideoEditorScreen(sourcePath: path)),
+      MaterialPageRoute(
+        builder: (_) =>
+            VideoEditorScreen(sourcePath: path, initialAspect: aspect),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => VideoEditorCubit()..load(sourcePath),
+      create: (_) =>
+          VideoEditorCubit()..load(sourcePath, aspect: initialAspect),
       child: const _VideoEditorView(),
     );
   }
@@ -159,12 +174,12 @@ class _VideoEditorView extends StatelessWidget {
                             child: const Text('Reset'),
                           ),
                           const Spacer(),
-                          FilledButton(
+                          TextButton(
                             onPressed: state.canExport ? cubit.export : null,
-                            style: FilledButton.styleFrom(
-                              backgroundColor: context.accent,
+                            style: TextButton.styleFrom(
+                              foregroundColor: context.accent,
                             ),
-                            child: Text('Export ${state.durationLabel}'),
+                            child: Text('Next'),
                           ),
                         ],
                       ),

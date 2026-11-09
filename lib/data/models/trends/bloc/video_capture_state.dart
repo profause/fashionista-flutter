@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:fashionista/data/models/trends/bloc/video_editor_state.dart';
 
 enum VideoCaptureStage { initializing, ready, recording, recorded, error }
 
@@ -14,6 +15,16 @@ class VideoCaptureState extends Equatable {
   /// Microphone was denied, so recordings are silent.
   final bool isMuted;
 
+  /// Frame the user is composing. The camera records full-frame; this ratio is
+  /// the framing guide and the crop the editor opens with.
+  final VideoAspectPreset aspect;
+
+  /// Torch is on (back camera only).
+  final bool isTorchOn;
+
+  /// False when the camera reported that it has no torch.
+  final bool isTorchAvailable;
+
   const VideoCaptureState({
     this.stage = VideoCaptureStage.initializing,
     this.cameraCount = 0,
@@ -23,6 +34,9 @@ class VideoCaptureState extends Equatable {
     this.recordedPath,
     this.error,
     this.isMuted = false,
+    this.aspect = VideoAspectPreset.portrait,
+    this.isTorchOn = false,
+    this.isTorchAvailable = true,
   });
 
   bool get isRecording => stage == VideoCaptureStage.recording;
@@ -48,6 +62,9 @@ class VideoCaptureState extends Equatable {
     String? recordedPath,
     String? error,
     bool? isMuted,
+    VideoAspectPreset? aspect,
+    bool? isTorchOn,
+    bool? isTorchAvailable,
     bool clearError = false,
     bool clearRecording = false,
   }) {
@@ -60,6 +77,9 @@ class VideoCaptureState extends Equatable {
       recordedPath: clearRecording ? null : recordedPath ?? this.recordedPath,
       error: clearError ? null : error ?? this.error,
       isMuted: isMuted ?? this.isMuted,
+      aspect: aspect ?? this.aspect,
+      isTorchOn: isTorchOn ?? this.isTorchOn,
+      isTorchAvailable: isTorchAvailable ?? this.isTorchAvailable,
     );
   }
 
@@ -73,5 +93,8 @@ class VideoCaptureState extends Equatable {
     recordedPath,
     error,
     isMuted,
+    aspect,
+    isTorchOn,
+    isTorchAvailable,
   ];
 }
