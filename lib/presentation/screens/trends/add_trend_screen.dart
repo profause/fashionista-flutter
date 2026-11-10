@@ -39,6 +39,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cloudinary_api/uploader/cloudinary_uploader.dart';
 import 'package:cloudinary_api/src/request/model/uploader_params.dart';
 
+/// Placeholder pool for an empty composer. One is picked per screen instance,
+/// never per build, so the hint cannot change under the user's fingers.
+const List<String> trendComposerHints = [
+  "✨ Share your next fashion moment…",
+  "👗 What’s trending in your world?",
+  "🧵 Stitch your trend into the feed…",
+  "🚀 Kick off the next big fashion vibe…",
+  "🖋 Describe your style inspiration…",
+  "🔥 Drop your hottest fashion trend…",
+];
+
 class AddTrendScreen extends StatefulWidget {
   const AddTrendScreen({super.key});
 
@@ -53,6 +64,9 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
   late ValueNotifier<String> imageQuality = ValueNotifier('SD');
   final List<String> selectedInterests = [];
   late SettingsBloc _settingsBloc;
+
+  /// Chosen once per composer, see [trendComposerHints].
+  late final String _hint;
 
   int _currentLength = 0;
   final int _maxLength = 100; // keep in sync with input field
@@ -89,6 +103,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
     _settingsBloc = context.read<SettingsBloc>();
     _descriptionController = TextEditingController();
     _tagsController = TextEditingController();
+    _hint = trendComposerHints[Random().nextInt(trendComposerHints.length)];
     _descriptionController.addListener(() {
       setState(() {
         _currentLength = _descriptionController.text.length;
@@ -240,7 +255,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
             filled: false,
             contentPadding: const EdgeInsets.fromLTRB(4, 0, 0, 0),
             border: InputBorder.none,
-            hintText: "What's happening?",
+            hintText: _hint,
             hintStyle: textTheme.headlineSmall?.copyWith(
               fontSize: 18,
               height: 1.35,
@@ -344,6 +359,11 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
   Widget _buildBottomBar(BuildContext context, TextTheme textTheme) {
     final isDraft = _audience == TrendAudience.draft;
 
+    // A post is either one video or up to four photos. Once a clip is attached
+    // the image pickers are pointless: `_saveTrend` publishes the video and the
+    // photos would be dropped without a word.
+    final hasVideo = _editedVideo != null;
+
     return Container(
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: context.hairline)),
@@ -385,14 +405,20 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
                   _toolbarButton(
                     context,
                     icon: Icons.image_outlined,
-                    tooltip: 'Add photos',
-                    onTap: isUploading ? null : () => pickImages(context),
+                    tooltip: hasVideo
+                        ? 'Remove the video to add photos'
+                        : 'Add photos',
+                    onTap: isUploading || hasVideo
+                        ? null
+                        : () => pickImages(context),
                   ),
                   _toolbarButton(
                     context,
                     icon: Icons.photo_camera_outlined,
-                    tooltip: 'Take a photo',
-                    onTap: isUploading
+                    tooltip: hasVideo
+                        ? 'Remove the video to take a photo'
+                        : 'Take a photo',
+                    onTap: isUploading || hasVideo
                         ? null
                         : () => _pickImage(ImageSource.camera),
                   ),
@@ -429,11 +455,17 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
     required VoidCallback? onTap,
     bool isActive = false,
   }) {
+    // An explicit `color` would keep a disabled button looking tappable.
+    final color = onTap == null
+        ? context.secondaryLabel.withValues(alpha: .38)
+        : (isActive ? context.accent : context.secondaryLabel);
+
     return IconButton(
       onPressed: onTap,
       tooltip: tooltip,
       icon: Icon(icon, size: 22),
-      color: isActive ? context.accent : context.secondaryLabel,
+      color: color,
+      disabledColor: color,
       splashRadius: 22,
     );
   }
@@ -621,6 +653,8 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
   }
 
   Future<void> pickImages(BuildContext context) async {
+    if (_editedVideo != null) return;
+
     final images = await picker.pickMultiImage(
       imageQuality: 70,
       limit: 4,
@@ -644,6 +678,8 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
   }
 
   Future<void> _pickImage(ImageSource source) async {
+    if (_editedVideo != null) return;
+
     try {
       final pickedFile = await ImagePicker().pickImage(source: source);
       if (pickedFile != null) {
@@ -704,14 +740,13 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
       );
 
       final result = await sl<AddTrendUsecase>().call(trend);
-      await result.fold(
-        (failure) async => throw Exception('$failure'),
-        (_) async {
-          if (mounted) {
-            context.read<TrendBloc>().add(AddTrend(trend));
-          }
-        },
-      );
+      await result.fold((failure) async => throw Exception('$failure'), (
+        _,
+      ) async {
+        if (mounted) {
+          context.read<TrendBloc>().add(AddTrend(trend));
+        }
+      });
     }
 
     final upload = _uploadCubit.start(
@@ -764,17 +799,14 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
       // A failed upload must abort the publish. The previous code returned from
       // inside the fold closure only, so a failed upload still created a post
       // with an empty `featured_media` list (T21).
-      final uploaded = uploadResult.fold<List<FeaturedMediaModel>?>(
-        (failure) {
-          if (mounted) dismissLoadingDialog(context);
-          if (!mounted) return null;
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(failure)));
-          return null;
-        },
-        (media) => media,
-      );
+      final uploaded = uploadResult.fold<List<FeaturedMediaModel>?>((failure) {
+        if (mounted) dismissLoadingDialog(context);
+        if (!mounted) return null;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(failure)));
+        return null;
+      }, (media) => media);
       if (uploaded == null) return;
       final featuredImages = uploaded;
 

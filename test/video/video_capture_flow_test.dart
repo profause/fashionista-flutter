@@ -113,9 +113,9 @@ void main() {
     await settle(tester);
 
     expect(find.byType(VideoEditorScreen), findsNothing);
-    // The take is still there, so Retake / Edit remain available.
-    expect(find.text('Retake'), findsOneWidget);
-    expect(find.text('Edit 4s clip'), findsOneWidget);
+    // The take is still there, so retake / confirm remain available.
+    expect(find.byIcon(Icons.cancel_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.check_circle), findsOneWidget);
   });
 
   testWidgets('the same take never opens the editor twice', (tester) async {

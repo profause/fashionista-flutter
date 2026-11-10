@@ -426,31 +426,33 @@ class _Controls extends StatelessWidget {
       children: [
         Positioned(
           bottom: 8,
-          left: 8,
-          child: _RoundButton(
-            icon: isPlaying ? Icons.pause : Icons.play_arrow,
-            onTap: onPlayPause,
-          ),
-        ),
-        Positioned(
-          bottom: 8,
           right: 8,
-          child: _RoundButton(
-            icon: isMuted ? Icons.volume_off : Icons.volume_up,
-            onTap: onMuteToggle,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _RoundButton(
+                icon: isPlaying ? Icons.pause : Icons.play_arrow,
+                onTap: onPlayPause,
+              ),
+              const SizedBox(width: 8),
+              _RoundButton(
+                icon: isMuted ? Icons.volume_off : Icons.volume_up,
+                onTap: onMuteToggle,
+              ),
+            ],
           ),
         ),
         // Next to play/pause: thumb-reachable, clear of the mute control.
-        Positioned(
-          bottom: 8,
-          left: 44,
-          child: VideoQualitySelector(
-            quality: quality,
-            switching: switchingQuality,
-            isAvailable: canSwitchQuality,
-            onSelect: onQualitySelected,
-          ),
-        ),
+        // Positioned(
+        //   bottom: 8,
+        //   left: 44,
+        //   child: VideoQualitySelector(
+        //     quality: quality,
+        //     switching: switchingQuality,
+        //     isAvailable: canSwitchQuality,
+        //     onSelect: onQualitySelected,
+        //   ),
+        // ),
       ],
     );
   }

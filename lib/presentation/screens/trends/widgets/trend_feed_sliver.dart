@@ -18,8 +18,8 @@ class TrendFeedSliver extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       sliver: SliverMasonryGrid.count(
         crossAxisCount: 2,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
         childCount: items.length,
         itemBuilder: (context, index) {
           final trend = items[index];

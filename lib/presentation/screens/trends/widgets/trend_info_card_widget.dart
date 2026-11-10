@@ -40,11 +40,11 @@ class TrendInfoCardWidget extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: context.cardSurface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
+            blurRadius: 8,
             offset: const Offset(0, 3),
           ),
         ],
@@ -104,7 +104,7 @@ class TrendInfoCardWidget extends StatelessWidget {
                       left: 50,
                       right: 8,
                       child: Text(
-                        '@${trendInfo.author.name ?? 'fashionista'}',
+                        '@${trendInfo.author.name ?? ''}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: textTheme.labelSmall?.copyWith(
