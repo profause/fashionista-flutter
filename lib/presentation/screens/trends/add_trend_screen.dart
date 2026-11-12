@@ -32,6 +32,7 @@ import 'package:fashionista/data/models/trends/bloc/video_upload_cubit.dart';
 import 'package:fashionista/data/models/video/edited_video.dart';
 import 'package:fashionista/presentation/screens/trends/video/video_capture_screen.dart';
 import 'package:fashionista/presentation/screens/trends/video/widgets/video_upload_progress.dart';
+import 'package:fashionista/presentation/screens/trends/trend_composer_rules.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/trend_audience_sheet.dart';
 import 'package:dartz/dartz.dart' as dartz;
 import 'package:uuid/uuid.dart';
@@ -95,6 +96,12 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
   List<double> uploadProgress = [];
   List<XFile> previewImages = [];
   bool isUploading = false;
+
+  /// A trend must carry at least one photo or one video.
+  bool get _hasMedia => _editedVideo != null || pickedImages.isNotEmpty;
+
+  bool get _hasDescription =>
+      _descriptionController.text.trim().isNotEmpty;
 
   @override
   void initState() {
@@ -168,8 +175,11 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
 
   /// Composer bar: close on the left, the post action on the right.
   AppBar _buildTopBar(BuildContext context, TextTheme textTheme) {
-    final canPost =
-        !isUploading && _descriptionController.text.trim().isNotEmpty;
+    final canPost = TrendComposerRules.canPublish(
+      description: _descriptionController.text,
+      hasMedia: _hasMedia,
+      isUploading: isUploading,
+    );
 
     return AppBar(
       backgroundColor: context.canvasBackground,
@@ -266,6 +276,10 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
         ),
         if (_currentLength > 0 || previewImages.isNotEmpty)
           _buildCounter(context, textTheme),
+        if (_hasDescription && !_hasMedia) ...[
+          const SizedBox(height: 8),
+          _buildMediaRequiredHint(context, textTheme),
+        ],
         if (_editedVideo != null || previewImages.isNotEmpty) ...[
           const SizedBox(height: 12),
           _buildMediaStrip(context, textTheme),
@@ -331,6 +345,26 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  /// Explains why the Post action is still disabled once the user starts
+  /// writing but has not attached a photo or a video yet.
+  Widget _buildMediaRequiredHint(BuildContext context, TextTheme textTheme) {
+    return Row(
+      children: [
+        Icon(Icons.image_outlined, size: 16, color: context.mutedText),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            'Add at least one photo or video to post',
+            style: textTheme.labelSmall?.copyWith(
+              color: context.mutedText,
+              fontSize: 12,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -503,7 +537,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
 
     // A trend is a look: the feed card renders media, and a post without any
     // would fall back to its "no image" placeholder.
-    if (_editedVideo == null && pickedImages.isEmpty) {
+    if (!_hasMedia) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Add a photo or video to post')),
       );
