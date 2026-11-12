@@ -18,10 +18,17 @@ class TrendInfoCardWidget extends StatelessWidget {
   final TrendFeedModel trendInfo;
   final double aspectRatio;
 
+  /// Whether the media's own aspect ratio may override [aspectRatio].
+  ///
+  /// Fixed-height contexts (horizontal rails) must set this to `false`:
+  /// portrait media would otherwise make the card taller than its slot.
+  final bool respectMediaAspectRatio;
+
   const TrendInfoCardWidget({
     super.key,
     required this.trendInfo,
     required this.aspectRatio,
+    this.respectMediaAspectRatio = true,
   });
 
   @override
@@ -35,7 +42,9 @@ class TrendInfoCardWidget extends StatelessWidget {
 
     final isVideo =
         featuredMedia != null && featuredMedia.type?.toLowerCase() == 'video';
-    final mediaAspectRatio = featuredMedia?.aspectRatio ?? aspectRatio;
+    final mediaAspectRatio = respectMediaAspectRatio
+        ? (featuredMedia?.aspectRatio ?? aspectRatio)
+        : aspectRatio;
 
     return Container(
       decoration: BoxDecoration(

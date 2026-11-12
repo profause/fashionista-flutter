@@ -13,11 +13,23 @@ abstract class FirebaseTrendsService {
     int limit,
     Object? cursor,
   });
-  Future<Either<String, List<TrendFeedModel>>> fetchTrendsCreatedBy(int limit,
-      String createdBy);
+  Future<Either<String, List<TrendFeedModel>>> fetchTrendsCreatedBy(
+    int limit,
+    String createdBy,
+  );
   Future<Either<String, List<TrendFeedModel>>> fetchTrendsByTag(
     String tag, {
     int limit,
+  });
+
+  /// Trends matching **any** of [tags], newest first.
+  ///
+  /// [limit] bounds how many recent documents are scanned; [maxResults] caps
+  /// the number returned. Drafts are always excluded.
+  Future<Either<String, List<TrendFeedModel>>> fetchTrendsByTags(
+    List<String> tags, {
+    int limit,
+    int maxResults,
   });
   Future<Either> addTrendToFirestore(TrendFeedModel trend);
   Future<Either> updateTrendToFirestore(TrendFeedModel trend);
@@ -112,9 +124,7 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
       // keeps walking while a page adds nothing.
       final trends = pageDocs
           .map(
-            (doc) => TrendFeedModel.fromJson(
-              doc.data(),
-            ).copyWith(uid: doc.id),
+            (doc) => TrendFeedModel.fromJson(doc.data()).copyWith(uid: doc.id),
           )
           .where((trend) => !trend.isDraft)
           .toList(growable: false);
@@ -175,40 +185,40 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
   Future<Either<String, List<TrendFeedModel>>> fetchTrendsByTag(
     String tag, {
     int limit = 100,
+  }) {
+    // Preserve the previous contract: every match in the scanned window is
+    // returned, not just the first page of them.
+    return fetchTrendsByTags([tag], limit: limit, maxResults: limit);
+  }
+
+  @override
+  Future<Either<String, List<TrendFeedModel>>> fetchTrendsByTags(
+    List<String> tags, {
+    int limit = 100,
+    int maxResults = 20,
   }) async {
+    final wantedTags = _normalizeTags(tags);
+    if (wantedTags.isEmpty) {
+      return const Right(<TrendFeedModel>[]);
+    }
+
     try {
-      final firestore = FirebaseFirestore.instance;
-      final normalizedTag = tag.trim().toLowerCase();
-
-      if (normalizedTag.isEmpty) {
-        return const Right(<TrendFeedModel>[]);
-      }
-
-      final querySnapshot = await firestore
+      final querySnapshot = await FirebaseFirestore.instance
           .collection('trends')
           .orderBy('created_at', descending: true)
           .limit(limit)
           .get();
 
       // `tags` is stored as a comma separated string, so match client-side.
-      final matchingDocs = querySnapshot.docs.where((doc) {
-        if (TrendFeedModel.fromJson(doc.data()).isDraft) return false;
-        final rawTags = (doc.data()['tags'] ?? '').toString().toLowerCase();
-        return rawTags.split(',').any((t) => t.trim() == normalizedTag);
-      });
+      final matchingDocs = querySnapshot.docs
+          .where((doc) {
+            final data = doc.data();
+            if (TrendFeedModel.fromJson(data).isDraft) return false;
+            return _matchesAnyTag(data['tags'], wantedTags);
+          })
+          .take(maxResults);
 
-      final trends = await Future.wait(
-        matchingDocs.map((doc) async {
-          bool isLiked = await isLikedTrend(doc.reference.id);
-          bool isFollowed = await isFollowedTrend(doc.reference.id);
-          final d = TrendFeedModel.fromJson(doc.data());
-          return d.copyWith(
-            uid: doc.reference.id,
-            isLiked: isLiked,
-            isFollowed: isFollowed,
-          );
-        }),
-      );
+      final trends = await Future.wait(matchingDocs.map(_hydrateTrend));
 
       return Right(trends);
     } on FirebaseException catch (e) {
@@ -216,6 +226,28 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
     } catch (e) {
       return Left(e.toString());
     }
+  }
+
+  Set<String> _normalizeTags(Iterable<String> tags) => {
+    for (final tag in tags)
+      if (tag.trim().isNotEmpty) tag.trim().toLowerCase(),
+  };
+
+  bool _matchesAnyTag(Object? rawTags, Set<String> wantedTags) {
+    final raw = (rawTags ?? '').toString().toLowerCase();
+    return raw.split(',').any((tag) => wantedTags.contains(tag.trim()));
+  }
+
+  /// Adds the id and the viewer-specific interaction flags the card needs.
+  Future<TrendFeedModel> _hydrateTrend(
+    QueryDocumentSnapshot<Map<String, dynamic>> doc,
+  ) async {
+    final isLiked = await isLikedTrend(doc.reference.id);
+    final isFollowed = await isFollowedTrend(doc.reference.id);
+
+    return TrendFeedModel.fromJson(
+      doc.data(),
+    ).copyWith(uid: doc.reference.id, isLiked: isLiked, isFollowed: isFollowed);
   }
 
   @override

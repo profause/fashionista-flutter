@@ -28,6 +28,7 @@ import 'package:fashionista/domain/usecases/trends/add_trend_comment_usecase.dar
 import 'package:fashionista/domain/usecases/trends/delete_trend_comment_usecase.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/comment_widget.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/custom_trend_like_button_widget.dart';
+import 'package:fashionista/presentation/screens/trends/widgets/discover_more_section.dart';
 import 'package:fashionista/presentation/widgets/appbar_title.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:fashionista/presentation/widgets/featured_media_widget.dart';
@@ -170,6 +171,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                       _buildActionBar(context),
                       _buildTags(context, textTheme),
                       _buildComments(context, textTheme),
+                      _buildDiscoverMore(context),
                     ],
                   ),
                 ),
@@ -383,13 +385,16 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
     );
   }
 
+  /// Tags of the current post, trimmed and without empty entries.
+  List<String> get _parsedTags => (trendInfo.tags ?? '')
+      .split(',')
+      .map((tag) => tag.trim())
+      .where((tag) => tag.isNotEmpty)
+      .toList();
+
   /// Post tags rendered as subtle pills under the action bar.
   Widget _buildTags(BuildContext context, TextTheme textTheme) {
-    final List<String> tags = (trendInfo.tags ?? '')
-        .split(',')
-        .map((tag) => tag.trim())
-        .where((tag) => tag.isNotEmpty)
-        .toList();
+    final List<String> tags = _parsedTags;
 
     if (tags.isEmpty) return const SizedBox.shrink();
 
@@ -480,6 +485,14 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
           }
         },
       ),
+    );
+  }
+
+  /// Trends sharing at least one tag with this post, below the comments.
+  Widget _buildDiscoverMore(BuildContext context) {
+    return DiscoverMoreSection(
+      tags: _parsedTags,
+      excludeTrendId: trendInfo.uid,
     );
   }
 

@@ -42,6 +42,12 @@ class FakeTrendsService implements FirebaseTrendsService {
   final List<({int limit, Object? cursor})> requests = [];
   final List<Either<String, TrendFeedPage>> queue = [];
 
+  /// Calls made to [fetchTrendsByTags], in order.
+  final List<({List<String> tags, int limit, int maxResults})> tagRequests = [];
+
+  /// Results handed back by [fetchTrendsByTags]; defaults to an empty page.
+  final List<Either<String, List<TrendFeedModel>>> tagQueue = [];
+
   /// Held open to simulate a slow page; complete it to let the call return.
   Completer<void>? gate;
 
@@ -73,6 +79,22 @@ class FakeTrendsService implements FirebaseTrendsService {
     String tag, {
     int limit = 100,
   }) async => throw UnimplementedError();
+  @override
+  Future<Either<String, List<TrendFeedModel>>> fetchTrendsByTags(
+    List<String> tags, {
+    int limit = 100,
+    int maxResults = 20,
+  }) async {
+    tagRequests.add((
+      tags: List<String>.unmodifiable(tags),
+      limit: limit,
+      maxResults: maxResults,
+    ));
+
+    if (tagQueue.isEmpty) return const Right(<TrendFeedModel>[]);
+    return tagQueue.removeAt(0);
+  }
+
   @override
   Future<Either> addTrendToFirestore(TrendFeedModel trend) async =>
       throw UnimplementedError();
