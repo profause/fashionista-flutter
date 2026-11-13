@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloudinary_url_gen/cloudinary.dart';
 import 'package:cloudinary_url_gen/config/cloudinary_config.dart';
 import 'package:cloudinary_url_gen/transformation/resize/resize.dart';
@@ -10,8 +9,11 @@ import 'package:fashionista/core/service_locator/app_config.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/core/utils/get_image_aspect_ratio.dart';
-import 'package:fashionista/core/widgets/autosuggest_tag_input_field.dart';
+import 'package:fashionista/core/utils/hashtag_parser.dart';
 import 'package:fashionista/data/models/author/author_model.dart';
+import 'package:fashionista/data/models/fashion_interests/bloc/fashion_interest_cubit.dart';
+import 'package:fashionista/data/models/fashion_interests/bloc/fashion_interest_state.dart';
+import 'package:fashionista/data/models/fashion_interests/fashion_interest_model.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
@@ -20,6 +22,7 @@ import 'package:fashionista/data/models/trends/bloc/trend_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc_event.dart';
 import 'package:fashionista/data/models/trends/trend_audience.dart';
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
+import 'package:fashionista/domain/repository/fashion_interests/fashion_interest_repository.dart';
 import 'package:fashionista/domain/usecases/trends/add_trend_usecase.dart';
 import 'package:fashionista/presentation/widgets/profile_avatar_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
@@ -33,6 +36,7 @@ import 'package:fashionista/data/models/video/edited_video.dart';
 import 'package:fashionista/presentation/screens/trends/video/video_capture_screen.dart';
 import 'package:fashionista/presentation/screens/trends/video/widgets/video_upload_progress.dart';
 import 'package:fashionista/presentation/screens/trends/trend_composer_rules.dart';
+import 'package:fashionista/presentation/screens/trends/widgets/fashion_interest_panel.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/trend_audience_sheet.dart';
 import 'package:dartz/dartz.dart' as dartz;
 import 'package:uuid/uuid.dart';
@@ -61,10 +65,10 @@ class AddTrendScreen extends StatefulWidget {
 class _AddTrendScreenState extends State<AddTrendScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _descriptionController;
-  late TextEditingController _tagsController;
   late ValueNotifier<String> imageQuality = ValueNotifier('SD');
-  final List<String> selectedInterests = [];
+  final FocusNode _descriptionFocusNode = FocusNode();
   late SettingsBloc _settingsBloc;
+  late final FashionInterestCubit _interestCubit;
 
   /// Chosen once per composer, see [trendComposerHints].
   late final String _hint;
@@ -82,15 +86,13 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
   /// Who can see the post; public unless the author picks otherwise.
   TrendAudience _audience = TrendAudience.public;
 
-  /// The tag field is tucked behind the toolbar to keep the composer quiet.
-  bool _showTags = false;
+  /// The interest catalogue is tucked behind the toolbar to keep the composer
+  /// quiet.
+  bool _showInterests = false;
 
-  /// Tags currently entered, kept so the field survives being toggled.
-  List<String> get _tags => _tagsController.text
-      .split(',')
-      .map((tag) => tag.trim())
-      .where((tag) => tag.isNotEmpty)
-      .toList(growable: false);
+  /// Hashtag the caret is editing, if any. Drives the same panel as the
+  /// toolbar button, filtered by what the user typed after `#`.
+  ActiveHashtag? _activeHashtag;
 
   List<XFile> pickedImages = [];
   List<double> uploadProgress = [];
@@ -106,25 +108,40 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
   @override
   void initState() {
     super.initState();
-    _loadUserInterests();
     _settingsBloc = context.read<SettingsBloc>();
     _descriptionController = TextEditingController();
-    _tagsController = TextEditingController();
+    _interestCubit = FashionInterestCubit(
+      repository: sl<FashionInterestRepository>(),
+    )..load();
     _hint = trendComposerHints[Random().nextInt(trendComposerHints.length)];
-    _descriptionController.addListener(() {
-      setState(() {
-        _currentLength = _descriptionController.text.length;
-      });
-    });
+    _descriptionController.addListener(_handleDescriptionChanged);
 
     imageQuality.value = _settingsBloc.state.imageQuality ?? 'SD';
   }
 
+  /// Keeps the length counter and the `#` interest panel in sync with the text
+  /// and caret.
+  void _handleDescriptionChanged() {
+    final active = activeHashtag(
+      _descriptionController.text,
+      _descriptionController.selection,
+    );
+
+    _interestCubit.filter(active?.query ?? '');
+
+    if (!mounted) return;
+    setState(() {
+      _currentLength = _descriptionController.text.length;
+      _activeHashtag = active;
+    });
+  }
+
   @override
   void dispose() {
+    _interestCubit.close();
     _uploadCubit.close();
     _descriptionController.dispose();
-    _tagsController.dispose();
+    _descriptionFocusNode.dispose();
     previewImages.clear();
     pickedImages.clear();
     super.dispose();
@@ -151,14 +168,21 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildComposer(context, textTheme),
-                      if (_showTags) ...[
+                      if (_showInterests || _activeHashtag != null) ...[
                         const SizedBox(height: 12),
-                        AutosuggestTagInputField(
-                          hint: 'Add tags so people can find this trend',
-                          valueIn: _tags,
-                          options: selectedInterests,
-                          valueOut: (value) =>
-                              _tagsController.text = value.join(','),
+                        BlocBuilder<FashionInterestCubit, FashionInterestState>(
+                          bloc: _interestCubit,
+                          builder: (context, state) {
+                            return FashionInterestPanel(
+                              interests: state.visible,
+                              isLoading: state.isLoading,
+                              error: state.error,
+                              query: state.query,
+                              onRetry: () =>
+                                  _interestCubit.load(forceRefresh: true),
+                              onInterestTap: _insertInterest,
+                            );
+                          },
                         ),
                       ],
                     ],
@@ -244,6 +268,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
         TextFormField(
           autofocus: true,
           controller: _descriptionController,
+          focusNode: _descriptionFocusNode,
           minLines: 2,
           maxLines: 10,
           maxLength: _maxLength,
@@ -465,11 +490,12 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
                   _toolbarButton(
                     context,
                     icon: Icons.tag,
-                    tooltip: 'Add tags',
-                    isActive: _showTags,
+                    tooltip: 'Browse interests',
+                    isActive: _showInterests || _activeHashtag != null,
                     onTap: isUploading
                         ? null
-                        : () => setState(() => _showTags = !_showTags),
+                        : () =>
+                              setState(() => _showInterests = !_showInterests),
                   ),
                   const Spacer(),
                   _buildQualityToggle(context, textTheme),
@@ -530,6 +556,41 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
         );
       },
     );
+  }
+
+  /// Turns a tapped interest into a hashtag in the description.
+  ///
+  /// Replaces the `#token` being edited, or inserts at the caret. A trailing
+  /// space is appended so the panel does not reopen on the new hashtag.
+  void _insertInterest(FashionInterestModel interest) {
+    final hashtag = hashtagFor(interest.name);
+    if (hashtag.isEmpty) return;
+
+    final insertion = insertHashtag(
+      text: _descriptionController.text,
+      selection: _descriptionController.selection,
+      hashtag: hashtag,
+      active: _activeHashtag,
+    );
+
+    if (insertion.text.length > _maxLength) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Not enough room for that tag')),
+      );
+      return;
+    }
+
+    _descriptionController.value = TextEditingValue(
+      text: insertion.text,
+      selection: insertion.selection,
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _showInterests = false;
+      _activeHashtag = null;
+    });
+    _descriptionFocusNode.requestFocus();
   }
 
   Future<void> _submit() async {
@@ -765,7 +826,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
         uid: trendId,
         createdBy: createdBy,
         description: _descriptionController.text.trim(),
-        tags: _tagsController.text.trim(),
+        tags: extractHashtags(_descriptionController.text).join(','),
         createdAt: now,
         updatedAt: now,
         author: author,
@@ -816,7 +877,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
           user.uid ?? firebase_auth.FirebaseAuth.instance.currentUser!.uid;
       //_buttonLoadingStateCubit.setLoading(true);
       final description = _descriptionController.text.trim();
-      final tags = _tagsController.text.trim();
+      final tags = extractHashtags(_descriptionController.text).join(',');
       final trendId = Uuid().v4();
 
       // A video post is a single media entry; images are a carousel.
@@ -1068,27 +1129,6 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
       setState(() => isUploading = false);
       return dartz.Left(e.toString());
     }
-  }
-
-  Future<void> _loadUserInterests() async {
-    final user = firebase_auth.FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    final doc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .get();
-
-    if (doc.exists) {
-      final data = doc.data();
-      final List<dynamic>? interests = data?['interests'];
-      if (interests != null) {
-        setState(() {
-          selectedInterests.addAll(interests.cast<String>());
-        });
-      }
-    }
-    //setState(() => _loadingUserInterests = false);
   }
 
   void showLoadingDialog(BuildContext context) {

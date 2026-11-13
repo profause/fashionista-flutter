@@ -6,6 +6,7 @@ import 'package:fashionista/data/repository/notifications/notification_preferenc
 import 'package:fashionista/data/repository/closet/closet_repository_impl.dart';
 import 'package:fashionista/data/repository/design_collection/design_collection_repository_impl.dart';
 import 'package:fashionista/data/repository/designers/designers_repository_impl.dart';
+import 'package:fashionista/data/repository/fashion_interests/fashion_interest_repository_impl.dart';
 import 'package:fashionista/data/repository/profile/user_repository_impl.dart';
 import 'package:fashionista/data/repository/trends/trend_feed_repository_impl.dart';
 import 'package:fashionista/data/repository/work_order/work_order_repository_impl.dart';
@@ -37,6 +38,7 @@ import 'package:fashionista/data/services/hive/hive_closet_item_service.dart';
 import 'package:fashionista/data/services/hive/hive_design_collection_service.dart';
 import 'package:fashionista/data/services/hive/hive_designer_reviews_service.dart';
 import 'package:fashionista/data/services/hive/hive_designers_service.dart';
+import 'package:fashionista/data/services/hive/fashion_interest_cache.dart';
 import 'package:fashionista/data/services/hive/hive_notification_service.dart';
 import 'package:fashionista/data/services/hive/hive_outfit_service.dart';
 import 'package:fashionista/data/services/hive/hive_trend_comment_service.dart';
@@ -51,6 +53,7 @@ import 'package:fashionista/domain/repository/notifications/notification_prefere
 import 'package:fashionista/domain/repository/closet/closet_repository.dart';
 import 'package:fashionista/domain/repository/design_collection/design_collection_repository.dart';
 import 'package:fashionista/domain/repository/designers/designers_repository.dart';
+import 'package:fashionista/domain/repository/fashion_interests/fashion_interest_repository.dart';
 import 'package:fashionista/domain/repository/profile/user_repository.dart';
 import 'package:fashionista/domain/repository/trends/trend_repository.dart';
 import 'package:fashionista/domain/repository/work_order/work_order_repository.dart';
@@ -249,6 +252,13 @@ Future<void> initialiseDependencies() async {
   sl.registerSingleton<ClosetRepository>(ClosetRepositoryImpl());
   sl.registerSingleton<FirebaseFashionInterestService>(
     FirebaseFashionInterestServiceImpl(),
+  );
+  sl.registerSingleton<FashionInterestCache>(FashionInterestCache());
+  sl.registerSingleton<FashionInterestRepository>(
+    FashionInterestRepositoryImpl(
+      cache: sl<FashionInterestCache>(),
+      service: sl<FirebaseFashionInterestService>(),
+    ),
   );
   sl.registerSingleton<FirebaseGlobalSearchService>(
     FirebaseGlobalSearchService(),

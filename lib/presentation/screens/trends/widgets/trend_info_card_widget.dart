@@ -49,14 +49,7 @@ class TrendInfoCardWidget extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: context.cardSurface,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(12),
       ),
       clipBehavior: Clip.antiAlias,
       child: GestureDetector(
@@ -108,17 +101,49 @@ class TrendInfoCardWidget extends StatelessWidget {
                   ),
                 ),
 
-                    Positioned(
-                      top: 14,
-                      left: 50,
-                      right: 8,
+                Positioned(
+                  top: 14,
+                  left: 50,
+                  right: 8,
+                  child: Text(
+                    '@${trendInfo.author.name ?? ''}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.labelSmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      shadows: const [
+                        Shadow(
+                          color: Colors.black54,
+                          blurRadius: 3,
+                          offset: Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // --- Description banner (bottom) ---
+                if (trendInfo.description.isNotEmpty)
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    left: 0,
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(10, 26, 10, 10),
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Colors.transparent, Color(0x80000000)],
+                        ),
+                      ),
                       child: Text(
-                        '@${trendInfo.author.name ?? ''}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: textTheme.labelSmall?.copyWith(
+                        trendInfo.description,
+                        style: textTheme.bodyMedium!.copyWith(
                           color: Colors.white,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                          height: 1.2,
                           shadows: const [
                             Shadow(
                               color: Colors.black54,
@@ -127,43 +152,8 @@ class TrendInfoCardWidget extends StatelessWidget {
                             ),
                           ],
                         ),
-                      ),
-                    ),
-
-                // --- Description banner (bottom) ---
-                if (trendInfo.description.isNotEmpty)
-                  Positioned(
-                        right: 0,
-                        bottom: 0,
-                        left: 0,
-                    child: Container(
-                          padding: const EdgeInsets.fromLTRB(10, 26, 10, 10),
-                          decoration: const BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                Color(0xE6000000),
-                              ],
-                            ),
-                      ),
-                          child: Text(
-                            trendInfo.description,
-                            style: textTheme.bodyMedium!.copyWith(
-                              color: Colors.white,
-                              fontSize: 13,
-                              height: 1.2,
-                              shadows: const [
-                                Shadow(
-                                  color: Colors.black54,
-                                  blurRadius: 3,
-                                  offset: Offset(0, 1),
-                                ),
-                              ],
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ),
