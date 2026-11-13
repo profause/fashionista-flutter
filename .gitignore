@@ -131,3 +131,4 @@ android/app/release/baselineProfiles/0/app-release.dm
 android/app/release/app-release.aab
 **/android/app/release/**
 /functions/.env
+.DS_Store

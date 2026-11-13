@@ -85,21 +85,46 @@ void main() {
     test('returns nothing for a bare hash', () {
       expect(extractHashtags('#'), isEmpty);
     });
+
+    test('keeps the exact spelling of known interest names', () {
+      expect(
+        extractHashtags(
+          '#OfficeChic and #Lace, then #officechic again',
+          knownTags: ['OfficeChic', 'Lace'],
+        ),
+        ['OfficeChic', 'Lace'],
+      );
+    });
+
+    test('matches a multi-word interest name as one tag', () {
+      expect(
+        extractHashtags(
+          'a #Crop Top look and #Lace',
+          knownTags: ['Crop Top', 'Lace'],
+        ),
+        ['Crop Top', 'Lace'],
+      );
+    });
+
+    test('falls back to the typed token for unknown hashtags', () {
+      expect(extractHashtags('#crop top'), ['crop']);
+    });
   });
 
   group('hashtagFor', () {
-    test('turns spaces into hyphens', () {
-      expect(hashtagFor('Crop Top'), 'crop-top');
+    test('keeps the exact interest name and case', () {
+      expect(hashtagFor('Crop Top'), 'Crop Top');
+      expect(hashtagFor('OfficeChic'), 'OfficeChic');
     });
 
-    test('strips hashes, commas and punctuation', () {
-      expect(hashtagFor('#Y2K,'), 'y2k');
-      expect(hashtagFor('denim, blue'), 'denim-blue');
+    test('strips hashes and commas', () {
+      expect(hashtagFor('#Y2K,'), 'Y2K');
+      expect(hashtagFor('denim, blue'), 'denim blue');
     });
 
-    test('keeps single hyphens and trims edges', () {
+    test('keeps hyphens and trims edges', () {
       expect(hashtagFor(' co-ord '), 'co-ord');
-      expect(hashtagFor('-denim-'), 'denim');
+      expect(hashtagFor('-denim-'), '-denim-');
     });
 
     test('returns empty when nothing usable remains', () {
@@ -166,14 +191,14 @@ void main() {
       expect(insertion.text, '#summer is nice');
     });
 
-    test('normalises multi-word interests', () {
+    test('inserts the exact multi-word interest name', () {
       final insertion = insertHashtag(
         text: 'x',
         selection: const TextSelection.collapsed(offset: 1),
         hashtag: 'Crop Top',
       );
 
-      expect(insertion.text, 'x #crop-top ');
+      expect(insertion.text, 'x #Crop Top ');
     });
   });
 }

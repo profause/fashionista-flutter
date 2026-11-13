@@ -817,6 +817,11 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
       avatar: user.profileImage,
     );
 
+    // Capture the composer state before the upload starts: the publish closure
+    // can run after the screen (and its cubits) have been disposed.
+    final description = _descriptionController.text.trim();
+    final tags = _descriptionTags;
+
     Future<void> publish({
       required String trendId,
       required FeaturedMediaModel media,
@@ -825,8 +830,8 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
       final trend = TrendFeedModel.empty().copyWith(
         uid: trendId,
         createdBy: createdBy,
-        description: _descriptionController.text.trim(),
-        tags: extractHashtags(_descriptionController.text).join(','),
+        description: description,
+        tags: tags,
         createdAt: now,
         updatedAt: now,
         author: author,
@@ -869,6 +874,13 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
     }
   }
 
+  /// The `tags` field stores exact `fashion_interests.name` values, so the
+  /// hashtags are resolved against the loaded catalogue before being joined.
+  String get _descriptionTags => extractHashtags(
+    _descriptionController.text,
+    knownTags: _interestCubit.state.all.map((interest) => interest.name),
+  ).join(',');
+
   Future<void> _saveTrend() async {
     try {
       UserBloc userBloc = context.read<UserBloc>();
@@ -877,7 +889,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
           user.uid ?? firebase_auth.FirebaseAuth.instance.currentUser!.uid;
       //_buttonLoadingStateCubit.setLoading(true);
       final description = _descriptionController.text.trim();
-      final tags = extractHashtags(_descriptionController.text).join(',');
+      final tags = _descriptionTags;
       final trendId = Uuid().v4();
 
       // A video post is a single media entry; images are a carousel.

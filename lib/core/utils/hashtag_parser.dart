@@ -90,52 +90,91 @@ ActiveHashtag? activeHashtag(String text, TextSelection selection) {
   return ActiveHashtag(start: start, end: end, query: query);
 }
 
-final RegExp _hashtagPattern = RegExp(r'#([^\s#]+)');
-
 /// Every hashtag in [text], in order of appearance.
 ///
 /// Duplicates are removed case-insensitively and the first spelling is kept.
-List<String> extractHashtags(String text) {
+///
+/// Trend tags must match `fashion_interests.name` values, so [knownTags] is
+/// matched first (longest spelling wins). That lets a multi-word name such as
+/// `Crop Top` survive as `#Crop Top` even though a regular hashtag stops at
+/// whitespace.
+List<String> extractHashtags(
+  String text, {
+  Iterable<String> knownTags = const <String>[],
+}) {
+  final known = <String>[
+    for (final tag in knownTags)
+      if (tag.trim().isNotEmpty) tag.trim(),
+  ]..sort((a, b) => b.length.compareTo(a.length));
+
   final seen = <String>{};
   final tags = <String>[];
 
-  for (final match in _hashtagPattern.allMatches(text)) {
-    if (match.start > 0 && !_isBoundary(text[match.start - 1])) continue;
+  var cursor = 0;
+  while (cursor < text.length) {
+    final hash = text.indexOf('#', cursor);
+    if (hash < 0) break;
+    cursor = hash + 1;
 
-    final body = _stripTrailingPunctuation(match.group(1) ?? '').trim();
-    if (body.isEmpty) continue;
-    if (seen.add(body.toLowerCase())) tags.add(body);
+    if (hash > 0 && !_isBoundary(text[hash - 1])) continue;
+
+    final knownTag = _matchKnownTag(text, hash + 1, known);
+    if (knownTag != null) {
+      if (seen.add(knownTag.toLowerCase())) tags.add(knownTag);
+      cursor = hash + 1 + knownTag.length;
+      continue;
+    }
+
+    var end = hash + 1;
+    while (end < text.length && !_isBoundary(text[end])) {
+      end++;
+    }
+
+    final body = _stripTrailingPunctuation(
+      text.substring(hash + 1, end),
+    ).trim();
+    if (body.isNotEmpty && seen.add(body.toLowerCase())) tags.add(body);
+    cursor = end;
   }
 
   return tags;
 }
 
-/// Normalises an interest name into a hashtag body (no leading `#`).
-///
-/// Hashtags cannot contain spaces or commas, so `Crop Top` becomes `crop-top`.
-/// Returns an empty string when nothing usable remains.
-String hashtagFor(String name) {
-  final buffer = StringBuffer();
-  var pendingSeparator = false;
+String? _matchKnownTag(String text, int start, List<String> known) {
+  for (final tag in known) {
+    final end = start + tag.length;
+    if (end > text.length) continue;
+    if (text.substring(start, end).toLowerCase() != tag.toLowerCase()) continue;
 
-  for (final rune in name.trim().runes) {
-    final char = String.fromCharCode(rune);
-
-    if (char == '#' || char == ',' || char == '-' || char.trim().isEmpty) {
-      pendingSeparator = true;
-      continue;
-    }
-
-    final isLetter = char.toLowerCase() != char.toUpperCase();
-    final isNumberOrUnderscore = RegExp(r'[0-9_]').hasMatch(char);
-    if (!isLetter && !isNumberOrUnderscore) continue;
-
-    if (pendingSeparator && buffer.isNotEmpty) buffer.write('-');
-    pendingSeparator = false;
-    buffer.write(char.toLowerCase());
+    final endsToken =
+        end == text.length ||
+        _isBoundary(text[end]) ||
+        _trailingPunctuation.contains(text[end]) ||
+        text[end] == '#';
+    if (endsToken) return tag;
   }
 
-  return buffer.toString();
+  return null;
+}
+
+final RegExp _wordCharacter = RegExp(r'[\p{L}\p{N}]', unicode: true);
+
+/// The interest name as a hashtag body (no leading `#`).
+///
+/// Names are kept exactly as stored — trend tags must equal
+/// `fashion_interests.name` — so `OfficeChic` stays `OfficeChic` and
+/// `Crop Top` keeps its space (which is resolved from the catalogue when the
+/// tags are extracted). Only `#`, `,` and repeated whitespace are cleaned up.
+/// Returns an empty string when nothing usable remains.
+String hashtagFor(String name) {
+  final cleaned = name
+      .replaceAll('#', '')
+      .replaceAll(',', '')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
+
+  if (cleaned.isEmpty || !_wordCharacter.hasMatch(cleaned)) return '';
+  return cleaned;
 }
 
 /// Inserts [hashtag] at the caret or replaces the [active] token.
