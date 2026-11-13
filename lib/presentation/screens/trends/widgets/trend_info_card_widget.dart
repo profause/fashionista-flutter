@@ -124,36 +124,40 @@ class TrendInfoCardWidget extends StatelessWidget {
                 ),
 
                 // --- Description banner (bottom) ---
+                // Purely decorative: without IgnorePointer this layer sits on
+                // top of the video controls and swallows their taps.
                 if (trendInfo.description.isNotEmpty)
                   Positioned(
                     right: 0,
                     bottom: 0,
                     left: 0,
-                    child: Container(
-                      padding: const EdgeInsets.fromLTRB(10, 26, 10, 10),
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Colors.transparent, Color(0x80000000)],
+                    child: IgnorePointer(
+                      child: Container(
+                        padding: const EdgeInsets.fromLTRB(10, 26, 10, 10),
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.transparent, Color(0x80000000)],
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        trendInfo.description,
-                        style: textTheme.bodyMedium!.copyWith(
-                          color: Colors.white,
-                          fontSize: 12,
-                          height: 1.2,
-                          shadows: const [
-                            Shadow(
-                              color: Colors.black54,
-                              blurRadius: 3,
-                              offset: Offset(0, 1),
-                            ),
-                          ],
+                        child: Text(
+                          trendInfo.description,
+                          style: textTheme.bodyMedium!.copyWith(
+                            color: Colors.white,
+                            fontSize: 12,
+                            height: 1.2,
+                            shadows: const [
+                              Shadow(
+                                color: Colors.black54,
+                                blurRadius: 3,
+                                offset: Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ),
