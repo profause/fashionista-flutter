@@ -31,13 +31,14 @@ class TrendFeedModelAdapter extends TypeAdapter<TrendFeedModel> {
       numberOfFollowers: fields[11] as int?,
       numberOfComments: fields[12] as int?,
       audience: fields[13] as String?,
+      status: fields[14] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, TrendFeedModel obj) {
     writer
-      ..writeByte(14)
+      ..writeByte(15)
       ..writeByte(0)
       ..write(obj.uid)
       ..writeByte(1)
@@ -65,7 +66,9 @@ class TrendFeedModelAdapter extends TypeAdapter<TrendFeedModel> {
       ..writeByte(12)
       ..write(obj.numberOfComments)
       ..writeByte(13)
-      ..write(obj.audience);
+      ..write(obj.audience)
+      ..writeByte(14)
+      ..write(obj.status);
   }
 
   @override
@@ -99,20 +102,31 @@ TrendFeedModel _$TrendFeedModelFromJson(Map<String, dynamic> json) =>
       numberOfFollowers: (json['number_of_followers'] as num?)?.toInt(),
       numberOfComments: (json['number_of_comments'] as num?)?.toInt(),
       audience: json['audience'] as String? ?? 'public',
+      status: json['status'] as String?,
     );
 
-Map<String, dynamic> _$TrendFeedModelToJson(TrendFeedModel instance) =>
-    <String, dynamic>{
-      'uid': instance.uid,
-      'description': instance.description,
-      'featured_media': instance.featuredMedia.map((e) => e.toJson()).toList(),
-      'created_at': instance.createdAt,
-      'updated_at': instance.updatedAt,
-      'created_by': instance.createdBy,
-      'tags': instance.tags,
-      'author': instance.author.toJson(),
-      'number_of_likes': instance.numberOfLikes,
-      'number_of_followers': instance.numberOfFollowers,
-      'number_of_comments': instance.numberOfComments,
-      'audience': instance.audience,
-    };
+Map<String, dynamic> _$TrendFeedModelToJson(TrendFeedModel instance) {
+  final val = <String, dynamic>{
+    'uid': instance.uid,
+    'description': instance.description,
+    'featured_media': instance.featuredMedia.map((e) => e.toJson()).toList(),
+    'created_at': instance.createdAt,
+    'updated_at': instance.updatedAt,
+    'created_by': instance.createdBy,
+    'tags': instance.tags,
+    'author': instance.author.toJson(),
+    'number_of_likes': instance.numberOfLikes,
+    'number_of_followers': instance.numberOfFollowers,
+    'number_of_comments': instance.numberOfComments,
+    'audience': instance.audience,
+  };
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('status', instance.status);
+  return val;
+}

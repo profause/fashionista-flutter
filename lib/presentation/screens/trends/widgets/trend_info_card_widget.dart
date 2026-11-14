@@ -10,7 +10,9 @@ import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/featured_media/featured_media_model.dart';
 import 'package:fashionista/data/models/trends/trend_feed_model.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
+import 'package:fashionista/presentation/screens/trends/widgets/trend_actions_sheet.dart';
 import 'package:fashionista/presentation/widgets/video/inline_video_tile.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -54,6 +56,7 @@ class TrendInfoCardWidget extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: GestureDetector(
         onTap: () => context.push('/trends/${trendInfo.uid}'),
+        onLongPress: () => _openActions(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -166,6 +169,25 @@ class TrendInfoCardWidget extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _openActions(BuildContext context) async {
+    final origin = shareOriginFor(context);
+    final action = await showTrendActionsSheet(
+      context,
+      trend: trendInfo,
+      canReport:
+          trendInfo.uid != null &&
+          !trendInfo.isReported &&
+          trendInfo.createdBy != FirebaseAuth.instance.currentUser?.uid,
+    );
+    if (action == null || !context.mounted) return;
+    await performTrendAction(
+      context,
+      trendInfo,
+      action,
+      sharePositionOrigin: origin,
     );
   }
 

@@ -7,6 +7,7 @@ import 'package:fashionista/data/services/hive/hive_video_delete_token_service.d
 import 'package:fashionista/domain/usecases/trends/add_trend_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/delete_trend_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/find_trend_by_id_usecase.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class TrendBloc extends Bloc<TrendBlocEvent, TrendBlocState> {
@@ -28,6 +29,11 @@ class TrendBloc extends Bloc<TrendBlocEvent, TrendBlocState> {
     if (event.isFromCache) {
       // 1️⃣ Try cache first
       final cachedItem = await sl<HiveTrendService>().getItem(event.uid);
+      final viewerId = FirebaseAuth.instance.currentUser?.uid;
+      if (cachedItem.isReported && cachedItem.createdBy != viewerId) {
+        emit(const TrendError('This trend is no longer available.'));
+        return;
+      }
       emit(TrendUpdated(cachedItem));
     } else {
       final result = await sl<FindTrendByIdUsecase>().call(event.uid);

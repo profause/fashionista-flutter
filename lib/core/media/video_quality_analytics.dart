@@ -1,3 +1,6 @@
+// build_runner's pinned analyzer cannot parse Dart 3.8 null-aware elements.
+// ignore_for_file: use_null_aware_elements
+
 import 'package:fashionista/core/media/cloudinary_video_urls.dart';
 import 'package:flutter/foundation.dart';
 
@@ -52,9 +55,9 @@ class DebugVideoQualityAnalytics implements VideoQualityAnalytics {
 
     final parts = <String>[
       event.name,
-      ?quality?.label,
+      if (quality != null) quality.label,
       if (durationMs != null) '${durationMs}ms',
-      ?reason,
+      if (reason != null) reason,
     ];
     debugPrint('[video-quality] ${parts.join(' ')}');
   }

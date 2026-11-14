@@ -13,7 +13,9 @@ import 'package:fashionista/data/models/trends/trend_feed_model.dart';
 import 'package:fashionista/domain/usecases/trends/like_or_unlike_trend_usecase.dart';
 import 'package:fashionista/presentation/widgets/custom_colored_banner.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
+import 'package:fashionista/presentation/screens/trends/widgets/trend_actions_sheet.dart';
 import 'package:fashionista/presentation/widgets/video_preview_widget.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -89,6 +91,25 @@ class _MyPostFeedCardWidgetState extends State<MyPostFeedCardWidget> {
     return isLiked ? base + 1 : base;
   }
 
+  Future<void> _openActions() async {
+    final origin = shareOriginFor(context);
+    final action = await showTrendActionsSheet(
+      context,
+      trend: widget.trendInfo,
+      canReport:
+          widget.trendInfo.uid != null &&
+          !widget.trendInfo.isReported &&
+          widget.trendInfo.createdBy != FirebaseAuth.instance.currentUser?.uid,
+    );
+    if (action == null || !mounted) return;
+    await performTrendAction(
+      context,
+      widget.trendInfo,
+      action,
+      sharePositionOrigin: origin,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
@@ -115,6 +136,7 @@ class _MyPostFeedCardWidgetState extends State<MyPostFeedCardWidget> {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => context.push('/trends/${trend.uid}'),
+        onLongPress: _openActions,
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(
@@ -133,7 +155,9 @@ class _MyPostFeedCardWidgetState extends State<MyPostFeedCardWidget> {
                           icon: isLiked
                               ? Icons.favorite
                               : Icons.favorite_border,
-                          color: isLiked ? context.accent : context.secondaryLabel,
+                          color: isLiked
+                              ? context.accent
+                              : context.secondaryLabel,
                           label: '$_likeCount',
                           onTap: _toggleLike,
                         );
@@ -148,7 +172,12 @@ class _MyPostFeedCardWidgetState extends State<MyPostFeedCardWidget> {
                     const SizedBox(width: 16),
                     _FeedActionButton(
                       icon: Icons.ios_share,
-                      onTap: () {},
+                      onTap: () => performTrendAction(
+                        context,
+                        trend,
+                        TrendAction.share,
+                        sharePositionOrigin: shareOriginFor(context),
+                      ),
                     ),
                     const Spacer(),
                     _FeedActionButton(
@@ -217,7 +246,19 @@ class _MyPostFeedCardWidgetState extends State<MyPostFeedCardWidget> {
                   height: 1.2,
                 ),
               ),
-              if (widget.trendInfo.description.isNotEmpty)
+              if (widget.trendInfo.isReported)
+                Text(
+                  'Reported · Under review',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.labelSmall?.copyWith(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    height: 1.3,
+                    color: context.accent,
+                  ),
+                )
+              else if (widget.trendInfo.description.isNotEmpty)
                 Text(
                   widget.trendInfo.description,
                   maxLines: 1,
@@ -244,7 +285,7 @@ class _MyPostFeedCardWidgetState extends State<MyPostFeedCardWidget> {
           ),
         ),
         IconButton(
-          onPressed: () {},
+          onPressed: _openActions,
           visualDensity: VisualDensity.compact,
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
@@ -276,9 +317,7 @@ class _MyPostFeedCardWidgetState extends State<MyPostFeedCardWidget> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: AspectRatio(
-          aspectRatio: isVideo
-              ? 9 / 16
-              : (featuredMedia.aspectRatio ?? 4 / 5),
+          aspectRatio: isVideo ? 9 / 16 : (featuredMedia.aspectRatio ?? 4 / 5),
           child: isVideo
               ? VideoPreviewWidget(
                   videoUrl: _videoUrl(featuredMedia),

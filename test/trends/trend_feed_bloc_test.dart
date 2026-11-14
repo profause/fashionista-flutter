@@ -89,45 +89,104 @@ void main() {
     await bloc.close();
   });
 
-  test('the first page asks for one extra document and keeps it exact', () async {
-    final first = [
-      for (var i = 0; i < 20; i++) trend('t$i', createdAt: 1000 - i),
-    ];
-    service.queue.add(Right(page(first, cursor: 'cur-1', hasMore: true)));
-
-    final bloc = buildBloc();
-    final loaded = waitFor(bloc, (state) => state.pagesLoaded == 1);
-    bloc.add(const TrendFeedOpened());
-    final state = await loaded;
-
-    expect(service.requests.single.limit, TrendFeedBloc.pageSize);
-    expect(service.requests.single.cursor, isNull);
-    expect(state.items, hasLength(20));
-    expect(state.hasMore, isTrue);
-    expect(state.isLoadingInitial, isFalse);
-
-    await bloc.close();
-  });
-
-  test('stops asking for pages when the server says there is no more', () async {
-    service.queue.add(
-      Right(page([trend('t0', createdAt: 10)], cursor: 'cur-1', hasMore: false)),
+  test('a reported trend in the cache never reaches the feed', () async {
+    hive.store['reported'] = trend(
+      'reported',
+      createdAt: 200,
+      status: TrendFeedModel.statusReported,
     );
+    hive.store['live'] = trend('live', createdAt: 100);
+    service.queue.add(Right(page([trend('live', createdAt: 100)])));
 
     final bloc = buildBloc();
     final loaded = waitFor(bloc, (state) => state.pagesLoaded == 1);
     bloc.add(const TrendFeedOpened());
     await loaded;
 
-    expect(bloc.state.hasMore, isFalse);
-
-    bloc.add(const TrendFeedLoadMore());
-    await Future<void>.delayed(Duration.zero);
-
-    expect(service.requests, hasLength(1));
+    expect(bloc.state.items.map((item) => item.uid), ['live']);
 
     await bloc.close();
   });
+
+  test('reported pages do not look like visible progress', () async {
+    final reported = [
+      for (var i = 0; i < 5; i++)
+        trend(
+          'reported$i',
+          createdAt: 500 - i,
+          status: TrendFeedModel.statusReported,
+        ),
+    ];
+    service.queue.add(Right(page(reported, cursor: 'cur-1', hasMore: true)));
+    service.queue.add(
+      Right(
+        page([trend('live', createdAt: 10)], cursor: 'cur-2', hasMore: false),
+      ),
+    );
+
+    final bloc = buildBloc();
+    final firstPage = waitFor(bloc, (state) => state.pagesLoaded == 1);
+    bloc.add(const TrendFeedOpened());
+    await firstPage;
+    expect(bloc.state.items, isEmpty);
+
+    final nextPage = waitFor(bloc, (state) => state.items.isNotEmpty);
+    bloc.add(const TrendFeedLoadMore());
+    await nextPage;
+
+    expect(bloc.state.items.map((item) => item.uid), ['live']);
+    expect(service.requests, hasLength(2));
+
+    await bloc.close();
+  });
+
+  test(
+    'the first page asks for one extra document and keeps it exact',
+    () async {
+      final first = [
+        for (var i = 0; i < 20; i++) trend('t$i', createdAt: 1000 - i),
+      ];
+      service.queue.add(Right(page(first, cursor: 'cur-1', hasMore: true)));
+
+      final bloc = buildBloc();
+      final loaded = waitFor(bloc, (state) => state.pagesLoaded == 1);
+      bloc.add(const TrendFeedOpened());
+      final state = await loaded;
+
+      expect(service.requests.single.limit, TrendFeedBloc.pageSize);
+      expect(service.requests.single.cursor, isNull);
+      expect(state.items, hasLength(20));
+      expect(state.hasMore, isTrue);
+      expect(state.isLoadingInitial, isFalse);
+
+      await bloc.close();
+    },
+  );
+
+  test(
+    'stops asking for pages when the server says there is no more',
+    () async {
+      service.queue.add(
+        Right(
+          page([trend('t0', createdAt: 10)], cursor: 'cur-1', hasMore: false),
+        ),
+      );
+
+      final bloc = buildBloc();
+      final loaded = waitFor(bloc, (state) => state.pagesLoaded == 1);
+      bloc.add(const TrendFeedOpened());
+      await loaded;
+
+      expect(bloc.state.hasMore, isFalse);
+
+      bloc.add(const TrendFeedLoadMore());
+      await Future<void>.delayed(Duration.zero);
+
+      expect(service.requests, hasLength(1));
+
+      await bloc.close();
+    },
+  );
 
   test('loading more appends the next page and passes its cursor', () async {
     service.queue.add(
@@ -265,12 +324,20 @@ void main() {
     );
     service.queue.add(
       Right(
-        page([trend('stale', createdAt: 5)], cursor: 'cur-stale', hasMore: true),
+        page(
+          [trend('stale', createdAt: 5)],
+          cursor: 'cur-stale',
+          hasMore: true,
+        ),
       ),
     );
     service.queue.add(
       Right(
-        page([trend('fresh', createdAt: 30)], cursor: 'cur-fresh', hasMore: true),
+        page(
+          [trend('fresh', createdAt: 30)],
+          cursor: 'cur-fresh',
+          hasMore: true,
+        ),
       ),
     );
 
@@ -325,7 +392,9 @@ void main() {
       ),
     );
     service.queue.add(
-      Right(page([trend('new', createdAt: 1)], cursor: 'cur-3', hasMore: false)),
+      Right(
+        page([trend('new', createdAt: 1)], cursor: 'cur-3', hasMore: false),
+      ),
     );
 
     final bloc = buildBloc();
@@ -381,11 +450,15 @@ void main() {
   test('items are emitted newest first with a stable tie break', () async {
     service.queue.add(
       Right(
-        page([
-          trend('b', createdAt: 100),
-          trend('a', createdAt: 100),
-          trend('c', createdAt: 200),
-        ], cursor: 'cur-1', hasMore: false),
+        page(
+          [
+            trend('b', createdAt: 100),
+            trend('a', createdAt: 100),
+            trend('c', createdAt: 200),
+          ],
+          cursor: 'cur-1',
+          hasMore: false,
+        ),
       ),
     );
 
@@ -400,24 +473,29 @@ void main() {
     await bloc.close();
   });
 
-  test('a cache mutation re-projects the feed without losing pagination', () async {
-    service.queue.add(
-      Right(page([trend('a', createdAt: 20)], cursor: 'cur-1', hasMore: true)),
-    );
+  test(
+    'a cache mutation re-projects the feed without losing pagination',
+    () async {
+      service.queue.add(
+        Right(
+          page([trend('a', createdAt: 20)], cursor: 'cur-1', hasMore: true),
+        ),
+      );
 
-    final bloc = buildBloc();
-    final loaded = waitFor(bloc, (state) => state.pagesLoaded == 1);
-    bloc.add(const TrendFeedOpened());
-    await loaded;
+      final bloc = buildBloc();
+      final loaded = waitFor(bloc, (state) => state.pagesLoaded == 1);
+      bloc.add(const TrendFeedOpened());
+      await loaded;
 
-    final updated = waitFor(bloc, (state) => state.items.first.uid == 'new');
-    hive.store['new'] = trend('new', createdAt: 500);
-    hive.changes.add(null);
-    final state = await updated;
+      final updated = waitFor(bloc, (state) => state.items.first.uid == 'new');
+      hive.store['new'] = trend('new', createdAt: 500);
+      hive.changes.add(null);
+      final state = await updated;
 
-    expect(state.hasMore, isTrue); // pagination untouched
-    expect(state.items.map((item) => item.uid), ['new', 'a']);
+      expect(state.hasMore, isTrue); // pagination untouched
+      expect(state.items.map((item) => item.uid), ['new', 'a']);
 
-    await bloc.close();
-  });
+      await bloc.close();
+    },
+  );
 }

@@ -29,6 +29,7 @@ import 'package:fashionista/domain/usecases/trends/delete_trend_comment_usecase.
 import 'package:fashionista/presentation/screens/trends/widgets/comment_widget.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/custom_trend_like_button_widget.dart';
 import 'package:fashionista/presentation/screens/trends/widgets/discover_more_section.dart';
+import 'package:fashionista/presentation/screens/trends/widgets/trend_actions_sheet.dart';
 import 'package:fashionista/presentation/widgets/appbar_title.dart';
 import 'package:fashionista/presentation/widgets/default_profile_avatar_widget.dart';
 import 'package:fashionista/presentation/widgets/featured_media_widget.dart';
@@ -103,7 +104,10 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
   Widget build(BuildContext context) {
     return BlocBuilder<TrendBloc, TrendBlocState>(
       buildWhen: (context, state) {
-        return state is TrendLoaded || state is TrendUpdated;
+        return state is TrendLoaded ||
+            state is TrendUpdated ||
+            state is TrendError ||
+            state is TrendLoading;
       },
       builder: (context, state) {
         switch (state) {
@@ -122,6 +126,12 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                 shape: Border(bottom: BorderSide(color: context.hairline)),
                 title: const AppBarTitle(title: 'Trend'),
                 actions: [
+                  IconButton(
+                    onPressed: _openTrendActions,
+                    icon: const Icon(Icons.more_horiz, size: 22),
+                    color: context.secondaryLabel,
+                    tooltip: 'Trend options',
+                  ),
                   if (userId == trendInfo.createdBy) ...[
                     IconButton(
                       onPressed: () async {
@@ -167,6 +177,7 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                     children: [
                       _buildAuthorHeader(context, textTheme),
                       if (trendInfo.isDraft) _buildDraftNotice(context),
+                      if (trendInfo.isReported) _buildReportedNotice(context),
                       _buildMedia(context),
                       _buildActionBar(context),
                       _buildTags(context, textTheme),
@@ -177,6 +188,40 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
                 ),
               ),
               bottomNavigationBar: _buildCommentComposer(context, textTheme),
+            );
+          case TrendError(:final message):
+            return Scaffold(
+              backgroundColor: context.canvasBackground,
+              appBar: AppBar(
+                backgroundColor: context.canvasBackground,
+                foregroundColor: context.onCanvasText,
+                elevation: 0,
+                scrolledUnderElevation: 0,
+                shape: Border(bottom: BorderSide(color: context.hairline)),
+                title: const AppBarTitle(title: 'Trend'),
+              ),
+              body: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    message,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: context.mutedText),
+                  ),
+                ),
+              ),
+            );
+          case TrendLoading():
+            return Scaffold(
+              backgroundColor: context.canvasBackground,
+              appBar: AppBar(
+                backgroundColor: context.canvasBackground,
+                foregroundColor: context.onCanvasText,
+                elevation: 0,
+                shape: Border(bottom: BorderSide(color: context.hairline)),
+                title: const AppBarTitle(title: 'Trend'),
+              ),
+              body: const Center(child: CircularProgressIndicator()),
             );
         }
         return const SizedBox.shrink();
@@ -283,6 +328,38 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
             Expanded(
               child: Text(
                 'Draft · Only you can see this post',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: context.secondaryLabel,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Tells the author their post is under review after reports crossed the
+  /// threshold. Public surfaces hide it; the author keeps access.
+  Widget _buildReportedNotice(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: context.iconSubstrate,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: context.hairline),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.flag_outlined, size: 16, color: context.secondaryLabel),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Reported · This post is hidden from other users',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -606,6 +683,25 @@ class _TrendDetailsScreenState extends State<TrendDetailsScreen>
         context,
       ).showSnackBar(SnackBar(content: Text(e.message!)));
     }
+  }
+
+  Future<void> _openTrendActions() async {
+    final origin = shareOriginFor(context);
+    final action = await showTrendActionsSheet(
+      context,
+      trend: trendInfo,
+      canReport:
+          trendInfo.uid != null &&
+          !trendInfo.isReported &&
+          trendInfo.createdBy != userId,
+    );
+    if (action == null || !mounted) return;
+    await performTrendAction(
+      context,
+      trendInfo,
+      action,
+      sharePositionOrigin: origin,
+    );
   }
 
   Future<void> _deleteTrend(TrendFeedModel trend) async {

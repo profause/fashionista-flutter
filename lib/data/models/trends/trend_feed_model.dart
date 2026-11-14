@@ -67,6 +67,12 @@ class TrendFeedModel extends Equatable {
   @JsonKey(name: 'audience', defaultValue: TrendFeedModel.audiencePublic)
   final String? audience;
 
+  /// Moderation status. A missing value means the trend is visible; the
+  /// reporting function sets `reported` once the threshold is reached.
+  @HiveField(TrendFeedModelHiveType.status)
+  @JsonKey(name: 'status', includeIfNull: false)
+  final String? status;
+
   const TrendFeedModel({
     this.uid,
     required this.description,
@@ -82,6 +88,7 @@ class TrendFeedModel extends Equatable {
     this.numberOfFollowers,
     this.numberOfComments,
     this.audience,
+    this.status,
   });
 
   factory TrendFeedModel.fromJson(Map<String, dynamic> json) =>
@@ -91,9 +98,14 @@ class TrendFeedModel extends Equatable {
 
   static const String audiencePublic = 'public';
   static const String audienceDraft = 'draft';
+  static const String statusReported = 'reported';
 
   /// Excluded from the public feed; the author still sees it in their posts.
   bool get isDraft => audience == audienceDraft;
+
+  /// Hidden from every public surface once moderation reports cross the
+  /// threshold. Missing status (legacy documents) is visible.
+  bool get isReported => status == statusReported;
 
   @override
   List<Object?> get props => [
@@ -111,6 +123,7 @@ class TrendFeedModel extends Equatable {
     numberOfFollowers,
     numberOfComments,
     audience,
+    status,
   ];
 
   factory TrendFeedModel.empty() => TrendFeedModel(
@@ -127,6 +140,7 @@ class TrendFeedModel extends Equatable {
     numberOfFollowers: 0,
     numberOfComments: 0,
     audience: audiencePublic,
+    status: null,
   );
 
   TrendFeedModel copyWith({
@@ -140,10 +154,11 @@ class TrendFeedModel extends Equatable {
     bool? isFollowed,
     String? tags,
     AuthorModel? author,
-    int ? numberOfLikes,
-    int ? numberOfFollowers,
-    int ? numberOfComments,
+    int? numberOfLikes,
+    int? numberOfFollowers,
+    int? numberOfComments,
     String? audience,
+    String? status,
   }) {
     return TrendFeedModel(
       uid: uid ?? this.uid,
@@ -160,6 +175,7 @@ class TrendFeedModel extends Equatable {
       numberOfFollowers: numberOfFollowers ?? this.numberOfFollowers,
       numberOfComments: numberOfComments ?? this.numberOfComments,
       audience: audience ?? this.audience,
+      status: status ?? this.status,
     );
   }
 }

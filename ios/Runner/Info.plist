@@ -2,6 +2,27 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 	<dict>
+		<key>UIApplicationSceneManifest</key>
+		<dict>
+			<key>UIApplicationSupportsMultipleScenes</key>
+			<false/>
+			<key>UISceneConfigurations</key>
+			<dict>
+				<key>UIWindowSceneSessionRoleApplication</key>
+				<array>
+					<dict>
+						<key>UISceneClassName</key>
+						<string>UIWindowScene</string>
+						<key>UISceneDelegateClassName</key>
+						<string>FlutterSceneDelegate</string>
+						<key>UISceneConfigurationName</key>
+						<string>flutter</string>
+						<key>UISceneStoryboardFile</key>
+						<string>Main</string>
+					</dict>
+				</array>
+			</dict>
+		</dict>
 		<key>CADisableMinimumFrameDurationOnPhone</key>
 		<true/>
 		<key>CFBundleDevelopmentRegion</key>
@@ -104,6 +125,8 @@
 		<string>We need to access your camera to take pictures.</string>
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>We need to access your photos to pick images.</string>
+		<key>NSPhotoLibraryAddUsageDescription</key>
+		<string>We need permission to save trend photos and videos to your gallery.</string>
 		<key>NSMicrophoneUsageDescription</key>
 		<string>We need microphone access for videos.</string>
 		<key>GADApplicationIdentifier</key>

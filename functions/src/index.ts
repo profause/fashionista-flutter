@@ -15,6 +15,7 @@ import { onTrendLikeCreated } from './triggers/trend-like.triggers';
 import { onDesignerReviewCreated } from './triggers/review.triggers';
 import { onClientLinked } from './triggers/client-link.triggers';
 import { onTrendCommentCreated } from './triggers/trend-comment.triggers';
+import { reportTrend } from './trends/report';
 import { deleteCloudinaryAsset } from './video/callables';
 
 initializeApp();
@@ -103,6 +104,9 @@ export const trendCommented = onDocumentCreated(
     await onTrendCommentCreated(event);
   }
 );
+
+// ---- Trend reports ----------------------------------------------------------
+export { reportTrend };
 
 // ---- Cloudinary video deletion --------------------------------------------
 // Uploads are unsigned (public preset), so only deletion needs a backend.

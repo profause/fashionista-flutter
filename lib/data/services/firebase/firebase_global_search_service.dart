@@ -182,6 +182,7 @@ class FirebaseGlobalSearchService {
 
       for (final doc in snapshots[1].docs) {
         final data = doc.data();
+        if (data['status'] == 'reported') continue;
         final title = _value(data['description']);
         results.add(
           GlobalSearchResult(

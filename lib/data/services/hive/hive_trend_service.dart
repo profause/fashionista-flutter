@@ -27,10 +27,21 @@ class HiveTrendService {
   /// Drafts are left out by default: the cache is shared with the author's own
   /// posts, and a draft must never reach the public feed. Callers that own the
   /// post (the author's profile) ask for them explicitly.
-  List<TrendFeedModel> getSortedItems({bool includeDrafts = false}) {
+  ///
+  /// Reported trends are also hidden by default. They stay in the box so a
+  /// later network refresh can overwrite the stale copy, but public
+  /// projections never expose them.
+  List<TrendFeedModel> getSortedItems({
+    bool includeDrafts = false,
+    bool includeReported = false,
+  }) {
     try {
       final items = hive.trendsBox.values
-          .where((item) => includeDrafts || !item.isDraft)
+          .where(
+            (item) =>
+                (includeDrafts || !item.isDraft) &&
+                (includeReported || !item.isReported),
+          )
           .toList();
       items.sort(_compareFeedOrder);
       return items;
@@ -51,7 +62,7 @@ class HiveTrendService {
   /// them from this same box.
   Future<void> pruneCache({String? keepAuthorUid}) async {
     try {
-      final sorted = getSortedItems(includeDrafts: true);
+      final sorted = getSortedItems(includeDrafts: true, includeReported: true);
       if (sorted.length <= maxCachedItems) return;
 
       final doomed = sorted

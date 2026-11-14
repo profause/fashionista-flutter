@@ -28,6 +28,7 @@ import 'package:fashionista/presentation/screens/profile/user_interest_screen.da
 import 'package:fashionista/presentation/screens/settings/settings_screen.dart';
 import 'package:fashionista/presentation/screens/splash/splash_screen.dart';
 import 'package:fashionista/presentation/screens/trends/add_trend_screen.dart';
+import 'package:fashionista/presentation/screens/trends/report_trend_screen.dart';
 import 'package:fashionista/presentation/screens/trends/trend_details_screen.dart';
 import 'package:fashionista/presentation/screens/work_order/add_work_order_screen.dart';
 import 'package:fashionista/presentation/screens/work_order/edit_work_order_screen.dart';
@@ -120,6 +121,12 @@ GoRouter appRouter = GoRouter(
       name: 'TrendDetailsScreen',
       builder: (context, state) =>
           TrendDetailsScreen(trendId: state.pathParameters['id']!),
+    ),
+    GoRoute(
+      path: '/trends/:id/report',
+      name: 'ReportTrendScreen',
+      builder: (context, state) =>
+          ReportTrendScreen(trendId: state.pathParameters['id']!),
     ),
     GoRoute(
       path: '/clients/view/:id',

@@ -9,6 +9,7 @@ import 'package:fashionista/data/repository/designers/designers_repository_impl.
 import 'package:fashionista/data/repository/fashion_interests/fashion_interest_repository_impl.dart';
 import 'package:fashionista/data/repository/profile/user_repository_impl.dart';
 import 'package:fashionista/data/repository/trends/trend_feed_repository_impl.dart';
+import 'package:fashionista/data/repository/trends/report_trend_repository_impl.dart';
 import 'package:fashionista/data/repository/work_order/work_order_repository_impl.dart';
 import 'package:fashionista/data/services/firebase/firebase_auth_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_availability_service.dart';
@@ -24,6 +25,9 @@ import 'package:fashionista/data/services/firebase/firebase_fashion_interest_ser
 import 'package:fashionista/data/services/firebase/firebase_global_search_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_notification_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_trends_service.dart';
+import 'package:fashionista/data/services/firebase/firebase_report_trend_service.dart';
+import 'package:fashionista/data/services/media/trend_media_download_service.dart';
+import 'package:fashionista/data/services/media/trend_share_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_video_upload_service.dart';
 import 'package:fashionista/data/services/hive/hive_upload_task_service.dart';
 import 'package:fashionista/data/services/hive/hive_video_delete_token_service.dart';
@@ -56,6 +60,7 @@ import 'package:fashionista/domain/repository/designers/designers_repository.dar
 import 'package:fashionista/domain/repository/fashion_interests/fashion_interest_repository.dart';
 import 'package:fashionista/domain/repository/profile/user_repository.dart';
 import 'package:fashionista/domain/repository/trends/trend_repository.dart';
+import 'package:fashionista/domain/repository/trends/report_trend_repository.dart';
 import 'package:fashionista/domain/repository/work_order/work_order_repository.dart';
 import 'package:fashionista/domain/usecases/auth/signin_usecase.dart';
 import 'package:fashionista/domain/usecases/auth/signout_usecase.dart';
@@ -114,6 +119,8 @@ import 'package:fashionista/domain/usecases/trends/follow_or_unfollow_trend_usec
 import 'package:fashionista/domain/usecases/trends/is_followed_trend_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/is_liked_trend_usecase.dart';
 import 'package:fashionista/domain/usecases/trends/like_or_unlike_trend_usecase.dart';
+import 'package:fashionista/domain/usecases/trends/fetch_report_trend_reasons_usecase.dart';
+import 'package:fashionista/domain/usecases/trends/submit_trend_report_usecase.dart';
 import 'package:get_it/get_it.dart';
 
 final sl = GetIt.instance;
@@ -226,6 +233,17 @@ Future<void> initialiseDependencies() async {
 
   sl.registerSingleton<FirebaseTrendsService>(FirebaseTrendsServiceImpl());
 
+  sl.registerSingleton<FirebaseReportTrendService>(
+    FirebaseReportTrendServiceImpl(),
+  );
+  sl.registerSingleton<ReportTrendRepository>(ReportTrendRepositoryImpl());
+  sl.registerSingleton<FetchReportTrendReasonsUsecase>(
+    FetchReportTrendReasonsUsecase(),
+  );
+  sl.registerSingleton<SubmitTrendReportUsecase>(SubmitTrendReportUsecase());
+  sl.registerSingleton<TrendMediaDownloadService>(TrendMediaDownloadService());
+  sl.registerSingleton<TrendShareService>(TrendShareService());
+
   sl.registerSingleton<FindTrendFeedPageUsecase>(FindTrendFeedPageUsecase());
   sl.registerSingleton<IsLikedTrendUsecase>(IsLikedTrendUsecase());
 
@@ -280,8 +298,8 @@ Future<void> initialiseDependencies() async {
   sl.registerSingleton<FirebaseNotificationService>(
     FirebaseNotificationServiceImpl(),
   );
-  
-    sl.registerSingleton<HiveNotificationService>(
+
+  sl.registerSingleton<HiveNotificationService>(
     HiveNotificationService(),
   );
 

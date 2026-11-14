@@ -13,4 +13,5 @@ class TrendFeedModelHiveType {
   static const int numberOfFollowers = 11;
   static const int numberOfComments = 12;
   static const int audience = 13;
+  static const int status = 14;
 }

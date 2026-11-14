@@ -122,6 +122,10 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
       // filter would hide every one of them. A page can come back shorter (or
       // empty) when the author's drafts are the newest posts; the feed bloc
       // keeps walking while a page adds nothing.
+      //
+      // Reported trends are kept in the page on purpose: writing them to the
+      // Hive cache lets the feed projection replace a stale visible copy.
+      // `HiveTrendService.getSortedItems()` hides them from the feed.
       final trends = pageDocs
           .map(
             (doc) => TrendFeedModel.fromJson(doc.data()).copyWith(uid: doc.id),
@@ -213,7 +217,8 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
       final matchingDocs = querySnapshot.docs
           .where((doc) {
             final data = doc.data();
-            if (TrendFeedModel.fromJson(data).isDraft) return false;
+            final trend = TrendFeedModel.fromJson(data);
+            if (trend.isDraft || trend.isReported) return false;
             return _matchesAnyTag(data['tags'], wantedTags);
           })
           .take(maxResults);
@@ -265,8 +270,10 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
       );
 
       // A draft is hidden from everyone but its author, including by id.
+      // A reported trend is hidden from the public for the same reason.
       final viewerId = FirebaseAuth.instance.currentUser?.uid;
-      if (trendFeedModel.isDraft && trendFeedModel.createdBy != viewerId) {
+      if ((trendFeedModel.isDraft || trendFeedModel.isReported) &&
+          trendFeedModel.createdBy != viewerId) {
         return const Left('Design post not found');
       }
 

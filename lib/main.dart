@@ -32,6 +32,7 @@ import 'package:fashionista/data/models/settings/bloc/settings_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_comment_bloc.dart';
 import 'package:fashionista/data/models/trends/bloc/trend_feed_bloc.dart';
+import 'package:fashionista/data/models/trends/bloc/report_trend_bloc.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_bloc.dart';
 import 'package:fashionista/data/models/work_order/bloc/work_order_status_progress_bloc.dart';
 import 'package:flutter/foundation.dart';
@@ -59,7 +60,7 @@ Future<void> main() async {
   await initialiseDependencies();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  await MobileAds.instance.initialize();  
+  await MobileAds.instance.initialize();
 
   //Ensure Hive is ready before app starts
   await HiveService().init();
@@ -82,7 +83,7 @@ Future<void> main() async {
   //final appLinks = AppLinks();
 
   //final sub = appLinks.uriLinkStream.listen((uri) {
-    //debugPrint('Deep link: $uri');
+  //debugPrint('Deep link: $uri');
   //});
 
   runApp(const MyApp());
@@ -123,6 +124,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => TrendBloc()),
         BlocProvider(create: (_) => TrendFeedBloc()),
         BlocProvider(create: (_) => TrendCommentBloc()),
+        BlocProvider(create: (_) => ReportTrendBloc()),
         BlocProvider(create: (_) => ClosetOutfitBloc()),
         BlocProvider(create: (_) => ClosetItemBloc()),
         BlocProvider(create: (_) => ClosetOutfitPlannerBloc()),

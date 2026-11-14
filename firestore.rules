@@ -96,6 +96,15 @@ service cloud.firestore {
       return signedIn() && resource.data.created_by == request.auth.uid;
     }
 
+    // Report moderation writes `trends.status`; clients must not be able to
+    // hide or un-hide a post by changing that field. Omitting it is safe
+    // because `TrendFeedModel.toJson` drops a null status.
+    function moderationStatusUnchanged() {
+      return !('status' in request.resource.data)
+        || (('status' in resource.data)
+            && request.resource.data.status == resource.data.status);
+    }
+
     // ---- Users -----------------------------------------------------------
     match /users/{userId} {
       // Profiles are discoverable (search, designer fallback).
@@ -292,7 +301,8 @@ service cloud.firestore {
     match /trends/{trendId} {
       allow read: if signedIn();
       allow create: if createsAsSelf();
-      allow update, delete: if updatesOwnedDocument();
+      allow update: if updatesOwnedDocument() && moderationStatusUnchanged();
+      allow delete: if updatesOwnedDocument();
 
       // CommentModel documents identify the author as `author.uid`
       // (there is no `created_by` field).
@@ -313,6 +323,25 @@ service cloud.firestore {
       match /followers/{userId} {
         allow read: if signedIn();
         allow write: if isSelf(userId);
+      }
+    }
+
+    // ---- Trend reports ---------------------------------------------------
+    // Report reasons are managed by admins/console; clients only read them.
+    match /report_trend_content/{contentId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    // Aggregates and per-user receipts are written by the `reportTrend`
+    // callable (Admin SDK bypasses these rules). Clients never need to write
+    // them; a user may read only their own receipt.
+    match /reported_trends/{trendId} {
+      allow read, write: if false;
+
+      match /reports/{uid} {
+        allow get: if isSelf(uid);
+        allow list, create, update, delete: if false;
       }
     }
 

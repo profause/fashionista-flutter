@@ -16,6 +16,7 @@ TrendFeedModel trend(
   int createdAt = 0,
   String? createdBy,
   String? audience,
+  String? status,
 }) {
   return TrendFeedModel(
     uid: id,
@@ -27,6 +28,7 @@ TrendFeedModel trend(
     tags: '',
     author: const AuthorModel(uid: 'author_x', name: 'Author X', avatar: ''),
     audience: audience,
+    status: status,
   );
 }
 
@@ -142,9 +144,16 @@ class FakeHiveTrendService extends HiveTrendService {
   String? prunedForUid;
 
   @override
-  List<TrendFeedModel> getSortedItems({bool includeDrafts = false}) {
+  List<TrendFeedModel> getSortedItems({
+    bool includeDrafts = false,
+    bool includeReported = false,
+  }) {
     final items = store.values
-        .where((item) => includeDrafts || !item.isDraft)
+        .where(
+          (item) =>
+              (includeDrafts || !item.isDraft) &&
+              (includeReported || !item.isReported),
+        )
         .toList();
     items.sort((a, b) {
       final byDate = (b.createdAt ?? 0).compareTo(a.createdAt ?? 0);

@@ -59,10 +59,7 @@ class TrendFeedBloc extends Bloc<TrendFeedEvent, TrendFeedState> {
     return super.close();
   }
 
-  Future<void> _onOpened(
-    TrendFeedOpened event,
-    Emitter<TrendFeedState> emit,
-  ) {
+  Future<void> _onOpened(TrendFeedOpened event, Emitter<TrendFeedState> emit) {
     final uid = event.uid ?? _userIdProvider() ?? '';
     return _loadFirstPage(emit, uid: uid);
   }
@@ -203,14 +200,12 @@ class TrendFeedBloc extends Bloc<TrendFeedEvent, TrendFeedState> {
       if (generation != _generation) return;
 
       final added = page.trends
-          .where((trend) => !seen.contains(trend.uid))
+          .where((trend) => !trend.isReported && !seen.contains(trend.uid))
           .length;
 
       duplicatePages = added == 0 ? duplicatePages + 1 : 0;
       final shouldContinue =
-          added == 0 &&
-          page.hasMore &&
-          duplicatePages < maxDuplicatePages;
+          added == 0 && page.hasMore && duplicatePages < maxDuplicatePages;
 
       emit(
         state.copyWith(
