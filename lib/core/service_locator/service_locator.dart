@@ -1,4 +1,7 @@
+import 'package:fashionista/core/auth/account_deletion_state.dart';
+import 'package:fashionista/core/auth/session_cleanup_service.dart';
 import 'package:fashionista/data/repository/auth/auth_repository_impl.dart';
+import 'package:fashionista/data/repository/account/account_repository_impl.dart';
 import 'package:fashionista/data/repository/availability/availability_repository_impl.dart';
 import 'package:fashionista/data/repository/bookings/booking_repository_impl.dart';
 import 'package:fashionista/data/repository/clients/clients_repository_impl.dart';
@@ -11,6 +14,7 @@ import 'package:fashionista/data/repository/profile/user_repository_impl.dart';
 import 'package:fashionista/data/repository/trends/trend_feed_repository_impl.dart';
 import 'package:fashionista/data/repository/trends/report_trend_repository_impl.dart';
 import 'package:fashionista/data/repository/work_order/work_order_repository_impl.dart';
+import 'package:fashionista/data/services/firebase/firebase_account_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_auth_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_availability_service.dart';
 import 'package:fashionista/data/services/firebase/firebase_booking_service.dart';
@@ -49,6 +53,7 @@ import 'package:fashionista/data/services/hive/hive_trend_comment_service.dart';
 import 'package:fashionista/data/services/hive/hive_trend_service.dart';
 import 'package:fashionista/data/services/hive/hive_work_order_service.dart';
 import 'package:fashionista/data/services/hive/hive_work_order_status_progress_service.dart';
+import 'package:fashionista/domain/repository/account/account_repository.dart';
 import 'package:fashionista/domain/repository/auth/auth_repository.dart';
 import 'package:fashionista/domain/repository/availability/availability_repository.dart';
 import 'package:fashionista/domain/repository/bookings/booking_repository.dart';
@@ -62,6 +67,7 @@ import 'package:fashionista/domain/repository/profile/user_repository.dart';
 import 'package:fashionista/domain/repository/trends/trend_repository.dart';
 import 'package:fashionista/domain/repository/trends/report_trend_repository.dart';
 import 'package:fashionista/domain/repository/work_order/work_order_repository.dart';
+import 'package:fashionista/domain/usecases/account/delete_account_usecase.dart';
 import 'package:fashionista/domain/usecases/auth/signin_usecase.dart';
 import 'package:fashionista/domain/usecases/auth/signout_usecase.dart';
 import 'package:fashionista/domain/usecases/auth/verify_otp_usecase.dart';
@@ -131,6 +137,12 @@ Future<void> initialiseDependencies() async {
   sl.registerSingleton<SignInUsecase>(SignInUsecase());
   sl.registerSingleton<SignOutUsecase>(SignOutUsecase());
   sl.registerSingleton<VerifyOtpUsecase>(VerifyOtpUsecase());
+
+  sl.registerSingleton<AccountDeletionState>(AccountDeletionState());
+  sl.registerSingleton<SessionCleanupService>(SessionCleanupService());
+  sl.registerSingleton<FirebaseAccountService>(FirebaseAccountServiceImpl());
+  sl.registerSingleton<AccountRepository>(AccountRepositoryImpl());
+  sl.registerSingleton<DeleteAccountUsecase>(DeleteAccountUsecase());
 
   sl.registerSingleton<FirebaseUserService>(FirebaseUserServiceImpl());
   sl.registerSingleton<UserRepository>(UserRepositoryImpl());
@@ -220,14 +232,18 @@ Future<void> initialiseDependencies() async {
   sl.registerSingleton<HiveClientService>(HiveClientService());
 
   sl.registerSingleton<HiveTrendService>(HiveTrendService());
-  sl.registerSingleton<AppointmentReminderService>(AppointmentReminderService());
+  sl.registerSingleton<AppointmentReminderService>(
+    AppointmentReminderService(),
+  );
   sl.registerSingleton<HiveBookingService>(HiveBookingService());
   sl.registerSingleton<HiveUploadTaskService>(HiveUploadTaskService());
   sl.registerSingleton<HiveVideoDeleteTokenService>(
     HiveVideoDeleteTokenService(),
   );
   sl.registerSingleton<VideoEngine>(NativeVideoEditorEngine());
-  sl.registerSingleton<FirebaseVideoUploadService>(FirebaseVideoUploadService());
+  sl.registerSingleton<FirebaseVideoUploadService>(
+    FirebaseVideoUploadService(),
+  );
 
   sl.registerSingleton<TrendRepository>(TrendRepositoryImpl());
 
@@ -299,9 +315,7 @@ Future<void> initialiseDependencies() async {
     FirebaseNotificationServiceImpl(),
   );
 
-  sl.registerSingleton<HiveNotificationService>(
-    HiveNotificationService(),
-  );
+  sl.registerSingleton<HiveNotificationService>(HiveNotificationService());
 
   // ---- Availability & bookings -------------------------------------------
   sl.registerSingleton<FirebaseAvailabilityService>(
@@ -311,7 +325,9 @@ Future<void> initialiseDependencies() async {
   sl.registerSingleton<FetchWeeklyAvailabilityUsecase>(
     FetchWeeklyAvailabilityUsecase(),
   );
-  sl.registerSingleton<SaveDayAvailabilityUsecase>(SaveDayAvailabilityUsecase());
+  sl.registerSingleton<SaveDayAvailabilityUsecase>(
+    SaveDayAvailabilityUsecase(),
+  );
   sl.registerSingleton<FetchAvailabilityExceptionsUsecase>(
     FetchAvailabilityExceptionsUsecase(),
   );
@@ -332,7 +348,9 @@ Future<void> initialiseDependencies() async {
   sl.registerSingleton<BookingRepository>(BookingRepositoryImpl());
   sl.registerSingleton<GetAvailableSlotsUsecase>(GetAvailableSlotsUsecase());
   sl.registerSingleton<CreateBookingUsecase>(CreateBookingUsecase());
-  sl.registerSingleton<UpdateBookingStatusUsecase>(UpdateBookingStatusUsecase());
+  sl.registerSingleton<UpdateBookingStatusUsecase>(
+    UpdateBookingStatusUsecase(),
+  );
   sl.registerSingleton<FetchBookingsForDesignerUsecase>(
     FetchBookingsForDesignerUsecase(),
   );

@@ -16,6 +16,7 @@ import { onDesignerReviewCreated } from './triggers/review.triggers';
 import { onClientLinked } from './triggers/client-link.triggers';
 import { onTrendCommentCreated } from './triggers/trend-comment.triggers';
 import { reportTrend } from './trends/report';
+import { deleteMyAccount } from './account/delete-account';
 import { deleteCloudinaryAsset } from './video/callables';
 
 initializeApp();
@@ -111,3 +112,6 @@ export { reportTrend };
 // ---- Cloudinary video deletion --------------------------------------------
 // Uploads are unsigned (public preset), so only deletion needs a backend.
 export { deleteCloudinaryAsset };
+
+// ---- Account deletion -------------------------------------------------------
+export { deleteMyAccount };

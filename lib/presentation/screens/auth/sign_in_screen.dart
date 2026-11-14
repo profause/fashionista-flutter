@@ -1,3 +1,4 @@
+import 'package:fashionista/core/auth/account_deletion_state.dart';
 import 'package:fashionista/core/auth/auth_provider_cubit.dart';
 import 'package:fashionista/core/onboarding/onboarding_cubit.dart';
 import 'package:fashionista/core/service_locator/app_config.dart';
@@ -37,6 +38,7 @@ class _SignInScreenState extends State<SignInScreen> {
   late UserBloc _userBloc;
   final ValueNotifier<String> _verificationId = ValueNotifier('');
   late OnboardingCubit _onboardingCubit;
+  bool _showedDeletionMessage = false;
 
   @override
   void initState() {
@@ -65,6 +67,29 @@ class _SignInScreenState extends State<SignInScreen> {
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (_showedDeletionMessage) return;
+    String? deleted;
+    try {
+      deleted = GoRouterState.of(context).uri.queryParameters['deleted'];
+    } catch (_) {
+      // The screen can be embedded without a GoRouter in tests.
+      return;
+    }
+    if (deleted != '1') return;
+
+    _showedDeletionMessage = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Your account has been deleted.')),
+      );
+    });
   }
 
   @override
@@ -202,6 +227,7 @@ class _SignInScreenState extends State<SignInScreen> {
         },
         (ifRight) {
           if (!mounted) return;
+          sl<AccountDeletionState>().reset();
           _authProviderCubit.setAuthState(
             ifRight?.displayName ?? '',
             ifRight?.phoneNumber ?? _authProviderCubit.authState.mobileNumber,

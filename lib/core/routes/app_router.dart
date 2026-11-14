@@ -25,6 +25,7 @@ import 'package:fashionista/presentation/screens/profile/create_profile_screen.d
 import 'package:fashionista/presentation/screens/profile/edit_profile_screen.dart';
 import 'package:fashionista/presentation/screens/profile/profile_screen.dart';
 import 'package:fashionista/presentation/screens/profile/user_interest_screen.dart';
+import 'package:fashionista/presentation/screens/settings/account_deletion_screen.dart';
 import 'package:fashionista/presentation/screens/settings/settings_screen.dart';
 import 'package:fashionista/presentation/screens/splash/splash_screen.dart';
 import 'package:fashionista/presentation/screens/trends/add_trend_screen.dart';
@@ -95,6 +96,11 @@ GoRouter appRouter = GoRouter(
       builder: (context, state) => const EditProfileScreen(),
     ),
 
+    GoRoute(
+      name: 'AccountDeletionScreen',
+      path: '/settings/delete-account',
+      builder: (context, state) => const AccountDeletionScreen(),
+    ),
     GoRoute(
       name: 'SettingsScreen',
       path: '/settings',
@@ -248,9 +254,8 @@ GoRouter appRouter = GoRouter(
     GoRoute(
       name: 'InterestDetailsScreen',
       path: '/interest-details',
-      builder: (context, state) => InterestDetailsScreen(
-        initialQuery: state.uri.queryParameters['q'],
-      ),
+      builder: (context, state) =>
+          InterestDetailsScreen(initialQuery: state.uri.queryParameters['q']),
     ),
 
     StatefulShellRoute.indexedStack(

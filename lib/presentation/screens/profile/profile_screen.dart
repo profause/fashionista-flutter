@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:fashionista/core/auth/account_deletion_state.dart';
 import 'package:fashionista/core/auth/auth_provider_cubit.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
@@ -42,12 +43,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _userSubscription = firebase_auth.FirebaseAuth.instance
           .userChanges()
           .listen((firebase_auth.User? user) {
-            if (user == null && !_authProviderCubit.state.isAuthenticated) {
-              // User signed out → redirect to login
-              context.go('/sign-in');
-            } else {
-              _getUserDetails();
+            if (sl<AccountDeletionState>().isDeleting) {
+              // Account deletion removes the Auth user before the callable
+              // returns; do not fetch a missing profile or navigate twice.
+              return;
             }
+
+            if (user == null) {
+              if (!_authProviderCubit.state.isAuthenticated && mounted) {
+                context.go('/sign-in');
+              }
+              return;
+            }
+
+            _getUserDetails();
           });
     }
   }
@@ -63,7 +72,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     const double maxAvatarRadius = 40;
     const double minAvatarRadius = 32;
     const double expandedHeight = 176;
-     final colorScheme = Theme.of(context).colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return BlocBuilder<UserBloc, User>(
       builder: (context, user) {
@@ -138,9 +147,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         },
                       ),
                       bottom: PreferredSize(
-                        preferredSize: const Size.fromHeight(
-                          0,
-                        ),
+                        preferredSize: const Size.fromHeight(0),
                         child: TabBar(
                           labelColor: colorScheme.primary,
                           unselectedLabelColor: AppTheme.darkGrey,
@@ -171,10 +178,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 horizontal: 8,
                               ),
                               // divider color
-                              child: Text(
-                                "Profile",
-                                
-                              ),
+                              child: Text("Profile"),
                             ),
                             //Tab(text: "Profile"),
                             if (user.accountType.toLowerCase() ==
@@ -185,10 +189,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   horizontal: 8,
                                 ),
                                 // divider color
-                                child: Text(
-                                  "Designer Card",
-                                 
-                                ),
+                                child: Text("Designer Card"),
                               ),
                             ],
                           ],

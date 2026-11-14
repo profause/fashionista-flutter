@@ -41,6 +41,8 @@ export async function destroyCloudinaryAsset(input: {
   apiKey: string;
   apiSecret: string;
   assetId: string;
+  /** Cloudinary resource type; defaults to video for the trend-video path. */
+  resourceType?: 'image' | 'video';
   fetchImpl?: typeof fetch;
 }): Promise<{ result: string }> {
   if (!input.apiKey || !input.apiSecret || !input.cloudName) {
@@ -54,8 +56,9 @@ export async function destroyCloudinaryAsset(input: {
     invalidate: 'true',
   });
 
+  const resourceType = input.resourceType ?? 'video';
   const response = await doFetch(
-    `https://api.cloudinary.com/v1_1/${input.cloudName}/video/destroy`,
+    `https://api.cloudinary.com/v1_1/${input.cloudName}/${resourceType}/destroy`,
     {
       method: 'POST',
       headers: {

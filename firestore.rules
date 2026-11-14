@@ -394,6 +394,12 @@ service cloud.firestore {
         && resource.data.author.uid == request.auth.uid;
     }
 
+    // ---- Account deletion jobs (Cloud Functions only) ---------------------
+    // Written with the Admin SDK, which bypasses these rules.
+    match /account_deletions/{uid} {
+      allow read, write: if false;
+    }
+
     // ---- Reference data (seeded from the console) ------------------------
     match /fashion_interests/{interestId} {
       allow read: if signedIn();

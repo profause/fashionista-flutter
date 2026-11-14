@@ -1,27 +1,14 @@
 import 'package:fashionista/core/auth/auth_provider_cubit.dart';
-import 'package:fashionista/core/service_locator/local_notification_service.dart';
-import 'package:fashionista/core/service_locator/push_notification_service.dart';
+import 'package:fashionista/core/auth/session_cleanup_service.dart';
 import 'package:fashionista/core/service_locator/service_locator.dart';
 import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/profile/bloc/user_bloc.dart';
 import 'package:fashionista/data/models/profile/models/user.dart';
-import 'package:fashionista/data/services/hive/hive_client_service.dart';
-import 'package:fashionista/data/services/hive/hive_booking_service.dart';
-import 'package:fashionista/data/services/hive/hive_closet_item_service.dart';
-import 'package:fashionista/data/services/hive/hive_design_collection_service.dart';
-import 'package:fashionista/data/services/hive/hive_designers_service.dart';
-import 'package:fashionista/data/services/hive/hive_outfit_service.dart';
-import 'package:fashionista/data/services/hive/hive_trend_comment_service.dart';
-import 'package:fashionista/data/services/hive/hive_trend_service.dart';
-import 'package:fashionista/data/services/hive/hive_work_order_service.dart';
-import 'package:fashionista/data/services/hive/hive_work_order_status_progress_service.dart';
-import 'package:fashionista/domain/usecases/auth/signout_usecase.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/profile_info_card_widget.dart';
 import 'package:fashionista/presentation/screens/profile/widgets/user_profile_messurement_card.dart';
 import 'package:fashionista/presentation/widgets/custom_icon_button_rounded.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
@@ -141,6 +128,33 @@ class UserProfilePage extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           UserProfileMessurementCard(key: ValueKey(user.uid)),
+          const SizedBox(height: 12),
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: colorScheme.error.withValues(alpha: 0.35),
+              ),
+            ),
+            child: TextButton(
+              onPressed: () => context.push('/settings/delete-account'),
+              style: TextButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+              ),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Delete account',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: colorScheme.error,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
           // sign out
           const SizedBox(height: 12),
           Container(
@@ -199,40 +213,14 @@ class UserProfilePage extends StatelessWidget {
     );
 
     if (shouldSignOut == true && context.mounted) {
-      context.read<UserBloc>().clear();
-      context.read<AuthProviderCubit>().setAuthState('', '', '', false);
+      await sl<SessionCleanupService>().clearLocalSession(
+        userBloc: context.read<UserBloc>(),
+        authProviderCubit: context.read<AuthProviderCubit>(),
+      );
 
-      // Deactivate this device before the credential disappears: the device
-      // document can only be written by its owner.
-      await PushNotificationService.onSignOut();
-      // Scheduled reminders belong to the account that armed them.
-      await LocalNotificationService.cancelAll();
-
-      await sl<SignOutUsecase>().call('');
-      await sl<HiveDesignersService>().clearCache();
-      await sl<HiveTrendService>().clearCache();
-      await sl<HiveBookingService>().clearCache();
-      await sl<HiveTrendCommentService>().clearCache();
-      await sl<HiveDesignCollectionService>().clearCache();
-      await sl<HiveClosetItemService>().clearCache();
-      await sl<HiveClientService>().clearCache();
-      await sl<HiveOutfitService>().clearCache();
-      await sl<HiveWorkOrderService>().clearCache();
-      await sl<HiveWorkOrderStatusProgressService>().clearCache();
-      await DefaultCacheManager().emptyCache();
-      PaintingBinding.instance.imageCache.clear(); // Clears memory cache
-      PaintingBinding.instance.imageCache
-          .clearLiveImages(); // Clears any live images still in use
-
-      // ✅ remove loading dialog safely
-      //if (context.mounted) {
-      //Navigator.of(context, rootNavigator: true).maybePop();
-      //}
-
-      // ✅ navigate to sign in
-      // if (context.mounted) {
-      context.go('/sign-in');
-      //}
+      if (context.mounted) {
+        context.go('/sign-in');
+      }
     }
   }
 }

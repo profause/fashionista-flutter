@@ -2,9 +2,11 @@ import 'package:fashionista/core/theme/app.theme.dart';
 import 'package:fashionista/data/models/settings/bloc/settings_bloc.dart';
 import 'package:fashionista/data/models/settings/models/settings_model.dart';
 import 'package:fashionista/presentation/screens/settings/widgets/notification_preferences_sheet.dart';
+import 'package:fashionista/presentation/widgets/appbar_title.dart';
 import 'package:fashionista/presentation/widgets/round_toggle.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -28,20 +30,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
             elevation: 0,
             scrolledUnderElevation: 0,
             centerTitle: true,
-            title: Text(
-              'Settings',
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w600,
-                color: context.onCanvasText,
-              ),
-            ),
-            actions: const [
-              SizedBox(
-                width: 32,
-                height: 32,
-              ),
-            ],
+            title: const AppBarTitle(title: 'Settings'),
+            
+            // Text(
+            //   'Settings',
+            //   style: TextStyle(
+            //     fontSize: 17,
+            //     fontWeight: FontWeight.w600,
+            //     color: context.onCanvasText,
+            //   ),
+            // ),
+            actions: const [SizedBox(width: 32, height: 32)],
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(1),
               child: SizedBox(
@@ -150,6 +149,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                       ),
                     ),
+                    SettingsRow(
+                      title: 'Delete account',
+                      subtitle: 'Permanently delete your account and data',
+                      titleColor: Theme.of(context).colorScheme.error,
+                      onTap: () => context.push('/settings/delete-account'),
+                      trailing: Icon(
+                        Icons.chevron_right,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
                   ],
                 ),
                 Padding(
@@ -174,9 +184,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _comingSoon(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Coming soon')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Coming soon')));
   }
 
   void _showImageQualityBottomsheet(BuildContext context, Settings settings) {
@@ -339,13 +349,15 @@ class _SettingsCard extends StatelessWidget {
     final rows = <Widget>[];
     for (var i = 0; i < children.length; i++) {
       if (i > 0) {
-        rows.add(Divider(
-          height: 1,
-          thickness: 1,
-          indent: 12,
-          endIndent: 12,
-          color: Theme.of(context).colorScheme.outlineVariant,
-        ));
+        rows.add(
+          Divider(
+            height: 1,
+            thickness: 1,
+            indent: 12,
+            endIndent: 12,
+            color: Theme.of(context).colorScheme.outlineVariant,
+          ),
+        );
       }
       rows.add(children[i]);
     }
@@ -354,7 +366,7 @@ class _SettingsCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Theme.of(context).cardTheme.color ?? Colors.white,
           borderRadius: BorderRadius.circular(16),
-          
+
           boxShadow: const [
             BoxShadow(
               color: Color(0x0A1A1C1E),
@@ -363,10 +375,7 @@ class _SettingsCard extends StatelessWidget {
             ),
           ],
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: rows,
-        ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: rows),
       ),
     );
   }
@@ -377,6 +386,7 @@ class SettingsRow extends StatelessWidget {
   final String subtitle;
   final Widget trailing;
   final VoidCallback? onTap;
+  final Color? titleColor;
 
   const SettingsRow({
     super.key,
@@ -384,6 +394,7 @@ class SettingsRow extends StatelessWidget {
     required this.subtitle,
     required this.trailing,
     this.onTap,
+    this.titleColor,
   });
 
   @override
@@ -405,7 +416,7 @@ class SettingsRow extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: context.onCanvasText,
+                      color: titleColor ?? context.onCanvasText,
                       height: 1.2,
                     ),
                   ),
@@ -435,11 +446,6 @@ class _Chevron extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Icon(
-      Icons.chevron_right,
-      size: 16,
-      color: context.placeholderText,
-    );
+    return Icon(Icons.chevron_right, size: 16, color: context.placeholderText);
   }
 }
-
