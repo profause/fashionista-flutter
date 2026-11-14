@@ -25,6 +25,11 @@ class FakeFashionInterestRepository implements FashionInterestRepository {
     lastForceRefresh = forceRefresh;
     return response;
   }
+
+  @override
+  Future<void> incrementCachedPostCounts(
+    Iterable<String> interestNames,
+  ) async {}
 }
 
 FashionInterestModel interest(String name, int posts) {

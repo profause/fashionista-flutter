@@ -102,8 +102,7 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
   /// A trend must carry at least one photo or one video.
   bool get _hasMedia => _editedVideo != null || pickedImages.isNotEmpty;
 
-  bool get _hasDescription =>
-      _descriptionController.text.trim().isNotEmpty;
+  bool get _hasDescription => _descriptionController.text.trim().isNotEmpty;
 
   @override
   void initState() {
@@ -843,6 +842,9 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
       await result.fold((failure) async => throw Exception('$failure'), (
         _,
       ) async {
+        await sl<FashionInterestRepository>().incrementCachedPostCounts(
+          tags.split(','),
+        );
         if (mounted) {
           context.read<TrendBloc>().add(AddTrend(trend));
         }
@@ -937,8 +939,8 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
 
       final result = await sl<AddTrendUsecase>().call(trend);
 
-      result.fold(
-        (l) {
+      await result.fold(
+        (l) async {
           // _buttonLoadingStateCubit.setLoading(false);
           if (mounted) {
             //Navigator.of(context).pop();
@@ -952,7 +954,10 @@ class _AddTrendScreenState extends State<AddTrendScreen> {
             context,
           ).showSnackBar(SnackBar(content: Text(l)));
         },
-        (r) {
+        (r) async {
+          await sl<FashionInterestRepository>().incrementCachedPostCounts(
+            tags.split(','),
+          );
           if (mounted) {
             context.read<TrendBloc>().add(AddTrend(trend));
           }

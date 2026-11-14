@@ -17,4 +17,12 @@ abstract class FashionInterestRepository {
   Future<Either<String, List<FashionInterestModel>>> fetch({
     bool forceRefresh = false,
   });
+
+  /// Optimistically advances the cached counters for [interestNames].
+  ///
+  /// Publishing a trend updates `fashion_interests.number_of_posts`
+  /// asynchronously in Cloud Functions. Refreshing the 24-hour cache right
+  /// away could read the old value again, so the composer applies the increment
+  /// locally and lets the next scheduled refresh reconcile it.
+  Future<void> incrementCachedPostCounts(Iterable<String> interestNames);
 }

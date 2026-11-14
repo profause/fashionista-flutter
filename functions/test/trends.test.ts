@@ -8,6 +8,8 @@ import {
   InterestCounterStore,
   InterestDelta,
   NUMBER_OF_POSTS_FIELD,
+  normalizeInterestName,
+  readInterestCount,
   syncFashionInterestPostCounts,
 } from '../src/trends/interest-counts';
 import {
@@ -120,6 +122,33 @@ describe('tallyTagDeltas', () => {
 
   it('is empty when nothing moved', () => {
     expect(tallyTagDeltas([], []).size).toBe(0);
+  });
+});
+
+describe('normalizeInterestName', () => {
+  it('ignores case and surrounding or repeated whitespace', () => {
+    expect(normalizeInterestName('  Crop   Top  ')).toBe('crop top');
+    expect(normalizeInterestName('OfficeChic')).toBe('officechic');
+  });
+});
+
+describe('readInterestCount', () => {
+  it('reads numeric and numeric-string snake_case counters', () => {
+    expect(readInterestCount({ number_of_posts: 4 })).toBe(4);
+    expect(readInterestCount({ number_of_posts: '4' })).toBe(4);
+  });
+
+  it('falls back to the legacy camelCase counter', () => {
+    expect(readInterestCount({ numberOfPosts: 7 })).toBe(7);
+    expect(readInterestCount({ numberOfPosts: '7' })).toBe(7);
+  });
+
+  it('prefers snake_case and treats unparseable values as zero', () => {
+    expect(
+      readInterestCount({ number_of_posts: 3, numberOfPosts: 99 })
+    ).toBe(3);
+    expect(readInterestCount({ number_of_posts: 'many' })).toBe(0);
+    expect(readInterestCount({})).toBe(0);
   });
 });
 
@@ -353,6 +382,23 @@ describe('rebuildFashionInterestPostCounts', () => {
 
     expect(result.countersUpdated).toBe(0);
     expect(store.written).toEqual([]);
+  });
+
+  it('matches tags case-insensitively and ignores spacing', async () => {
+    const store = new FakeReconcileStore(
+      ['ankara', 'CROP   TOP'],
+      [
+        { id: 'i-ankara', name: 'Ankara', currentCount: 0 },
+        { id: 'i-crop', name: 'Crop Top', currentCount: 0 },
+      ]
+    );
+
+    await rebuildFashionInterestPostCounts(store);
+
+    expect(store.written).toEqual([
+      { id: 'i-ankara', value: 1 },
+      { id: 'i-crop', value: 1 },
+    ]);
   });
 
   it('handles an empty catalogue', async () => {

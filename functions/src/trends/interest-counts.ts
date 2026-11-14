@@ -1,4 +1,4 @@
-import { Firestore, FieldValue } from 'firebase-admin/firestore';
+import { Firestore } from 'firebase-admin/firestore';
 import { diffTags, normalizeTags, tallyTagDeltas } from './tags';
 
 /** Collection that acts as the source of truth for valid fashion interests. */
@@ -19,6 +19,17 @@ export const NUMBER_OF_POSTS_FIELD = 'number_of_posts';
 export const LEGACY_NUMBER_OF_POSTS_FIELD = 'numberOfPosts';
 
 export const TRENDS_COLLECTION = 'trends';
+
+/**
+ * Comparison key for interest names.
+ *
+ * Tapping an interest inserts its exact stored name, but a manually typed
+ * hashtag may differ in case or whitespace. The counter should still resolve
+ * both to the same interest.
+ */
+export function normalizeInterestName(value: string): string {
+  return value.trim().replace(/\s+/g, ' ').toLowerCase();
+}
 
 export interface InterestDelta {
   interestId: string;
@@ -46,6 +57,30 @@ export interface SyncResult {
   missingInterests: string[];
   updatedInterestIds: string[];
   committed: boolean;
+}
+
+/**
+ * Current counter value, tolerating the numeric strings some seeded documents
+ * still hold. Falls back to the legacy camelCase key when the snake_case field
+ * is absent so the first write does not discard an existing count.
+ */
+export function readInterestCount(data: Record<string, unknown>): number {
+  return (
+    parseCount(data[NUMBER_OF_POSTS_FIELD]) ??
+    parseCount(data[LEGACY_NUMBER_OF_POSTS_FIELD]) ??
+    0
+  );
+}
+
+function parseCount(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return Math.trunc(value);
+  }
+  if (typeof value === 'string' && value.trim() !== '') {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return Math.trunc(parsed);
+  }
+  return null;
 }
 
 /**
@@ -126,31 +161,83 @@ export class InterestCounterRepository implements InterestCounterStore {
   async findInterestIdByName(name: string): Promise<string | null> {
     if (!name) return null;
 
-    const snapshot = await this.db
+    const exact = await this.db
       .collection(FASHION_INTERESTS_COLLECTION)
-      .where('name', '==', name)
+      .where('name', '==', name.trim())
       .limit(1)
       .get();
 
-    return snapshot.empty ? null : snapshot.docs[0].id;
+    if (!exact.empty) return exact.docs[0].id;
+
+    // The app resolves tapped interests to their exact stored name, but a
+    // manually typed hashtag can differ in case or spacing. Fall back to a
+    // normalized index so those reports still move the counter.
+    const index = await this.nameIndex();
+    return index.get(normalizeInterestName(name)) ?? null;
   }
 
+  /** Lazily built normalized-name index, cached for this function instance. */
+  private nameIndex(): Promise<Map<string, string>> {
+    if (this._nameIndex === undefined) {
+      this._nameIndex = this.db
+        .collection(FASHION_INTERESTS_COLLECTION)
+        .get()
+        .then((snapshot) => {
+          const index = new Map<string, string>();
+          for (const doc of snapshot.docs) {
+            const name = doc.data().name;
+            if (typeof name !== 'string') continue;
+
+            const key = normalizeInterestName(name);
+            if (key && !index.has(key)) index.set(key, doc.id);
+          }
+          return index;
+        })
+        .catch((error) => {
+          // Do not poison the instance with a permanently rejected index.
+          this._nameIndex = undefined;
+          throw error;
+        });
+    }
+
+    return this._nameIndex;
+  }
+
+  private _nameIndex?: Promise<Map<string, string>>;
+
   /**
-   * Applies every delta in one atomic batch.
+   * Applies every delta in one atomic transaction.
    *
-   * `update` (not `set`) is intentional: a counter must never materialise an
-   * interest document that the catalogue does not contain.
+   * A transaction (rather than `FieldValue.increment`) lets a legacy numeric
+   * string be normalized instead of making the write fail. The document is
+   * never created: `update` on a missing interest is skipped.
    */
   async applyCountDeltas(deltas: InterestDelta[]): Promise<void> {
     if (deltas.length === 0) return;
 
-    const batch = this.db.batch();
-    for (const { interestId, delta } of deltas) {
-      batch.update(
-        this.db.collection(FASHION_INTERESTS_COLLECTION).doc(interestId),
-        { [NUMBER_OF_POSTS_FIELD]: FieldValue.increment(delta) }
-      );
-    }
-    await batch.commit();
+    const collection = this.db.collection(FASHION_INTERESTS_COLLECTION);
+
+    await this.db.runTransaction(async (transaction) => {
+      const refs = deltas.map(({ interestId }) => collection.doc(interestId));
+      const snapshots = [];
+
+      for (const ref of refs) {
+        snapshots.push(await transaction.get(ref));
+      }
+
+      for (let index = 0; index < deltas.length; index += 1) {
+        const snapshot = snapshots[index];
+        if (!snapshot.exists) continue;
+
+        const current = readInterestCount(
+          (snapshot.data() ?? {}) as Record<string, unknown>
+        );
+        transaction.set(
+          refs[index],
+          { [NUMBER_OF_POSTS_FIELD]: current + deltas[index].delta },
+          { merge: true }
+        );
+      }
+    });
   }
 }

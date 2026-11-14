@@ -66,6 +66,32 @@ class FashionInterestRepositoryImpl implements FashionInterestRepository {
     );
   }
 
+  @override
+  Future<void> incrementCachedPostCounts(Iterable<String> interestNames) async {
+    final cached = _cache.read();
+    if (cached == null || cached.isEmpty) return;
+
+    final keys = <String>{};
+    for (final name in interestNames) {
+      final key = _normalizeName(name);
+      if (key.isNotEmpty) keys.add(key);
+    }
+    if (keys.isEmpty) return;
+
+    final updated = [
+      for (final interest in cached)
+        if (keys.contains(_normalizeName(interest.name)))
+          interest.copyWith(numberOfPosts: interest.numberOfPosts + 1)
+        else
+          interest,
+    ];
+
+    await _cache.write(updated);
+  }
+
+  static String _normalizeName(String name) =>
+      name.trim().replaceAll(RegExp(r'\s+'), ' ').toLowerCase();
+
   static int _byPopularity(FashionInterestModel a, FashionInterestModel b) {
     final byPosts = b.numberOfPosts.compareTo(a.numberOfPosts);
     if (byPosts != 0) return byPosts;

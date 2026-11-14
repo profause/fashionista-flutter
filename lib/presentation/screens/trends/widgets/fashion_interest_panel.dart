@@ -115,7 +115,7 @@ class FashionInterestPanel extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 14,
-                    vertical: 12,
+                    vertical: 14,
                   ),
                   child: Row(
                     children: [

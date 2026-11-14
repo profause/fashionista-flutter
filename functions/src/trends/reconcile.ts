@@ -9,6 +9,7 @@ import {
   LEGACY_NUMBER_OF_POSTS_FIELD,
   NUMBER_OF_POSTS_FIELD,
   TRENDS_COLLECTION,
+  normalizeInterestName,
 } from './interest-counts';
 import { countTags } from './tags';
 
@@ -72,13 +73,21 @@ export async function rebuildFashionInterestPostCounts(
 ): Promise<ReconcileResult> {
   const { tagCounts, trendsProcessed } = await store.scanTrendTags();
 
+  // Counts are keyed by the case/spacing the trend stored; compare both sides
+  // through the same normalization used by the hot-path trigger.
+  const normalizedCounts = new Map<string, number>();
+  for (const [tag, count] of tagCounts) {
+    const key = normalizeInterestName(tag);
+    normalizedCounts.set(key, (normalizedCounts.get(key) ?? 0) + count);
+  }
+
   const interests = await store.listInterestCounters();
   const updates: CounterUpdate[] = [];
 
   for (const interest of interests) {
     const desired =
       typeof interest.name === 'string'
-        ? (tagCounts.get(interest.name.trim()) ?? 0)
+        ? (normalizedCounts.get(normalizeInterestName(interest.name)) ?? 0)
         : 0;
 
     // Counter absent counts as stale so the field is created.

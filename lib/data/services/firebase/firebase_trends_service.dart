@@ -66,7 +66,7 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
   Future<Either> addTrendToFirestore(TrendFeedModel trend) async {
     try {
       final firestore = FirebaseFirestore.instance;
-      firestore
+      await firestore
           .collection('trends')
           .doc(trend.uid)
           .set(trend.toJson(), SetOptions(merge: true));
@@ -461,7 +461,7 @@ class FirebaseTrendsServiceImpl implements FirebaseTrendsService {
   Future<Either> updateTrendToFirestore(TrendFeedModel trend) async {
     try {
       final firestore = FirebaseFirestore.instance;
-      firestore
+      await firestore
           .collection('trends')
           .doc(trend.uid)
           .set(trend.toJson(), SetOptions(merge: true));
